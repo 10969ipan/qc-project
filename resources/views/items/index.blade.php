@@ -161,18 +161,7 @@
 
     @php
     @endphp
-    @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
-        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
-            <ul class="mb-0">
-                @foreach(is_object($errors) ? $errors->all() : $errors as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
+
 
 
     <div class="card shadow mb-4">
@@ -504,7 +493,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="formEditItem" action="" method="POST" enctype="multipart/form-data">
+                <form id="formEditItem" action="" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -520,24 +509,22 @@
                     <input type="hidden" name="item_id" id="edit_item_id">
 
                     <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
-                        @if($errors->any())
-                            <div class="alert alert-danger py-2 mb-3 small">
-                                <ul class="mb-0 pl-3">
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+
                         <div class="row">
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="edit_name" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" value="{{ old('name') }}"
-                                        required>
-                                    @error('name')
-                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
-                                    @enderror
+                                    <div class="d-flex w-100 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <input type="text" name="name" id="edit_name_input" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" value="{{ old('name') }}"
+                                                required list="itemNamesList" autocomplete="off" placeholder="Ketik atau pilih Nama Item...">
+                                            @error('name')
+                                                <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 mt-1" onclick="deleteItemName('edit_name_input')" title="Hapus Nama Item dari Daftar"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 mt-1" onclick="addNewItemName('edit_name_input')" title="Tambah Nama Item Baru"><i class="fas fa-plus"></i></button>
+                                    </div>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
@@ -567,16 +554,21 @@
                                     @enderror
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Customer</label>
-                                    <div class="d-flex w-100">
-                                        <select class="form-control form-control-sm border-0 shadow-sm" name="customer" id="edit_customer_select">
-                                            <option value="">- Pilih Customer -</option>
-                                            @foreach($customers as $cust)
-                                                <option value="{{ $cust }}">{{ $cust }}</option>
-                                            @endforeach
-                                        </select>
-                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteItemCustomer('edit_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
-                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="addNewItemCustomer('edit_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
+                                    <label class="font-weight-bold">Customer <span class="text-danger">*</span></label>
+                                    <div class="d-flex w-100 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <select class="form-control form-control-sm border-0 shadow-sm @error('customer') is-invalid @enderror" name="customer" id="edit_customer_select">
+                                                <option value="">- Pilih Customer -</option>
+                                                @foreach($customers as $cust)
+                                                    <option value="{{ $cust }}">{{ $cust }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('customer')
+                                                <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 mt-1" onclick="deleteItemCustomer('edit_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 mt-1" onclick="addNewItemCustomer('edit_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
@@ -591,9 +583,12 @@
                             </div>
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Nomor Part</label>
+                                    <label class="font-weight-bold">Nomor Part <span class="text-danger">*</span></label>
                                     <input type="text" name="part_number" id="edit_part_number"
-                                        class="form-control form-control-sm border-0 shadow-sm">
+                                        class="form-control form-control-sm border-0 shadow-sm @error('part_number') is-invalid @enderror">
+                                    @error('part_number')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kode SAP</label>
@@ -634,7 +629,7 @@
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
                                             <i class="fas fa-file-alt text-info mr-1"></i> Dokumen 2
                                         </label>
-                                        <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm border-0 shadow-sm"
+                                        <input type="file" id="edit_similar_input" name="similar_part_file" class="form-control-file form-control-sm border-0 shadow-sm @error('similar_part_file') is-invalid @enderror"
                                             accept=".pdf">
                                         <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
                                         <div id="edit_existing_similar_file" class="mt-2"></div>
@@ -761,7 +756,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ route('admin.items.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.items.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
 
                     <input type="hidden" name="filter_search" value="{{ request('search') }}">
@@ -772,15 +767,7 @@
                     <input type="hidden" name="filter_sap_code" value="{{ request('sap_code') }}">
                     <input type="hidden" name="page" value="{{ request('page') }}">
                     <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
-                        @if($errors->any())
-                            <div class="alert alert-danger py-2 mb-3 small">
-                                <ul class="mb-0 pl-3">
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+
                         @if(!$plantCode)
                             <div class="alert alert-warning py-2 mb-3 small">
                                 <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -809,11 +796,17 @@
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Nama Item <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" required
-                                        value="{{ old('name') }}" placeholder="Masukkan Nama Item...">
-                                    @error('name')
-                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
-                                    @enderror
+                                    <div class="d-flex w-100 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <input type="text" name="name" id="tambah_name_input" class="form-control form-control-sm border-0 shadow-sm @error('name') is-invalid @enderror" required
+                                                value="{{ old('name') }}" placeholder="Ketik atau pilih Nama Item..." list="itemNamesList" autocomplete="off">
+                                            @error('name')
+                                                <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 mt-1" onclick="deleteItemName('tambah_name_input')" title="Hapus Nama Item dari Daftar"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 mt-1" onclick="addNewItemName('tambah_name_input')" title="Tambah Nama Item Baru"><i class="fas fa-plus"></i></button>
+                                    </div>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kategori <span class="text-danger">*</span></label>
@@ -843,16 +836,21 @@
                                     @enderror
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Customer</label>
-                                    <div class="d-flex w-100">
-                                        <select class="form-control form-control-sm border-0 shadow-sm" name="customer" id="tambah_customer_select">
-                                            <option value="">- Pilih Customer -</option>
-                                            @foreach($customers as $cust)
-                                                <option value="{{ $cust }}">{{ $cust }}</option>
-                                            @endforeach
-                                        </select>
-                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="deleteItemCustomer('tambah_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
-                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="addNewItemCustomer('tambah_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
+                                    <label class="font-weight-bold">Customer <span class="text-danger">*</span></label>
+                                    <div class="d-flex w-100 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <select class="form-control form-control-sm border-0 shadow-sm @error('customer') is-invalid @enderror" name="customer" id="tambah_customer_select">
+                                                <option value="">- Pilih Customer -</option>
+                                                @foreach($customers as $cust)
+                                                    <option value="{{ $cust }}">{{ $cust }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('customer')
+                                                <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 mt-1" onclick="deleteItemCustomer('tambah_customer_select')" title="Hapus Customer Terpilih"><i class="fas fa-times"></i></button>
+                                        <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 mt-1" onclick="addNewItemCustomer('tambah_customer_select')" title="Tambah Customer Baru"><i class="fas fa-plus"></i></button>
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
@@ -868,9 +866,12 @@
                             </div>
                             <div class="col-md-6 text-left">
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">Nomor Part</label>
-                                    <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm"
+                                    <label class="font-weight-bold">Nomor Part <span class="text-danger">*</span></label>
+                                    <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm @error('part_number') is-invalid @enderror"
                                         placeholder="Masukkan Nomor Part...">
+                                    @error('part_number')
+                                        <div class="invalid-feedback animate__animated animate__fadeInDown">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="form-group mb-3">
                                     <label class="font-weight-bold">Kode SAP</label>
@@ -898,17 +899,11 @@
                                     {{-- Left: Standard PDF --}}
                                     <div class="p-3" style="flex: 1; min-width: 0; border-right: 2px solid #e9ecef; overflow: hidden;">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Dokumen 1 <span class="text-danger">*</span>
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Dokumen 1 / 2 <span class="text-danger">*</span>
                                         </label>
                                         <input type="file" id="tambah_files_input" name="files[]"
                                             class="form-control-file form-control-sm border-0 shadow-sm @if($errors->has('files') || $errors->has('files.*')) is-invalid @endif"
-                                            accept=".pdf" multiple required>
-                                        @if($errors->has('files'))
-                                            <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files') }}</div>
-                                        @endif
-                                        @if($errors->has('files.*'))
-                                            <div class="invalid-feedback d-block animate__animated animate__fadeInDown">{{ $errors->first('files.*') }}</div>
-                                        @endif
+                                            accept=".pdf" multiple>
                                         <small class="text-muted text-xs d-block mt-1">Bisa upload lebih dari satu file PDF. Max 10MB per file.</small>
                                         <div id="tambah_preview_files" class="mt-2"></div>
                                     </div>
@@ -918,7 +913,7 @@
                                             <i class="fas fa-file-alt text-info mr-1"></i> Dokumen 2
                                         </label>
                                         <input type="file" id="tambah_similar_input" name="similar_part_file"
-                                            class="form-control-file form-control-sm border-0 shadow-sm" accept=".pdf">
+                                            class="form-control-file form-control-sm border-0 shadow-sm @error('similar_part_file') is-invalid @enderror" accept=".pdf">
                                         <small class="text-muted text-xs d-block mt-1">Optional: PDF referensi part serupa. Max 10MB.</small>
                                         <div id="tambah_preview_similar" class="mt-2"></div>
                                     </div>
@@ -1035,10 +1030,11 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 @if(isset($errors) && (is_object($errors) ? $errors->any() : (is_array($errors) && count($errors) > 0)))
+                    var errorMessages = @json(is_object($errors) ? $errors->all() : $errors);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Data Duplikat atau Tidak Valid',
-                        text: 'Silakan periksa kembali inputan Anda. Nama, Nomor Part, atau Kode SAP mungkin sudah terdaftar.',
+                        title: 'Peringatan Validasi',
+                        html: '<div class="text-left small">Silakan periksa kembali inputan Anda:<ul class="mt-2 pl-3 mb-0"><li>' + errorMessages.join('</li><li>') + '</li></ul></div>',
                         confirmButtonText: 'OK'
                     });
 
@@ -1075,66 +1071,7 @@
                     }
                 });
 
-                // --- INLINE VALIDATION FOR MASTER ITEMS ---
-                const validateField = (form, name, label) => {
-                    const field = $(form).find(`[name="${name}"], [name="${name}[]"]`).first();
-                    if (!field.length || !field.is(':visible')) return true;
 
-                    let isEmpty = false;
-                    if (field.is('input[type="file"]')) {
-                        isEmpty = field.prop('required') && field[0].files.length === 0;
-                    } else {
-                        isEmpty = !field.val() || field.val().trim() === '';
-                    }
-
-                    if (isEmpty) {
-                        field.addClass('is-invalid');
-                        if (field.next('.invalid-feedback').length === 0) {
-                            field.after(`<div class="invalid-feedback js-inline-error">Field ${label} wajib diisi!</div>`);
-                        }
-                        return false;
-                    } else {
-                        field.removeClass('is-invalid');
-                        field.next('.js-inline-error').remove();
-                        return true;
-                    }
-                };
-
-                $(document).on('submit', '#modalTambahItem form, #formEditItem', function (e) {
-                    const form = this;
-                    let isValid = true;
-                    const mandatoryFields = [
-                        { name: 'name', label: 'Nama Item' },
-                        { name: 'category_id', label: 'Kategori' },
-                        { name: 'plant', label: 'Plant' }
-                    ];
-
-                    // For 'store' action, PDF is mandatory
-                    if ($(form).attr('action').includes('/store')) {
-                        mandatoryFields.push({ name: 'files', label: 'Upload PDF Standard' });
-                    }
-
-                    const errorLabels = [];
-                    mandatoryFields.forEach(f => {
-                        if (!validateField(form, f.name, f.label)) {
-                            isValid = false;
-                            errorLabels.push(f.label);
-                        }
-                    });
-
-                    if (!isValid) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Peringatan!',
-                            text: 'Mohon lengkapi data wajib: ' + errorLabels.join(', '),
-                            confirmButtonColor: '#3085d6'
-                        }).then(() => {
-                            $(form).find('.is-invalid').first().focus();
-                        });
-                        return false;
-                    }
-                });
 
                 // --- LOADING STATE FOR IMPORT FORM ---
                 $('#formImportItem').on('submit', function() {
@@ -1271,6 +1208,14 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Datalist for Item Names -->
+    <datalist id="itemNamesList">
+        @foreach($allItemsList->pluck('name')->unique()->sort() as $itemName)
+            <option value="{{ $itemName }}"></option>
+        @endforeach
+    </datalist>
 
 @endsection
 

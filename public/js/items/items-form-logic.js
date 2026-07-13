@@ -240,7 +240,15 @@
             type: 'GET',
             success: function (response) {
                 const item = response.item;
-                $('#edit_name').val(item.name);
+                
+                $('#edit_name_input').val(item.name);
+                
+                // Ensure existing name value is in the datalist
+                var datalist = document.getElementById('itemNamesList');
+                if (datalist && item.name && !Array.from(datalist.options).some(o => o.value === item.name)) {
+                    datalist.appendChild(new Option(item.name, item.name));
+                }
+                
                 $('#edit_category_id').val(item.category_id);
                 // Ensure existing customer value is in the select (may not exist if added externally)
                 var custSel = document.getElementById('edit_customer_select');
@@ -380,11 +388,32 @@
 
         // 1. Check Name
         const nameInput = $(form).find('input[name="name"]');
-        if (!nameInput.val() || !nameInput.val().trim()) {
+        const nameVal = nameInput.val() ? nameInput.val().trim() : '';
+        if (!nameVal) {
             isValid = false;
             nameInput.addClass('is-invalid');
             errors.push('Nama Item');
             if (!firstEmptyField) firstEmptyField = nameInput;
+        } else {
+            // Validate that the name exists in the datalist
+            const datalist = document.getElementById('itemNamesList');
+            if (datalist) {
+                const exists = Array.from(datalist.options).some(o => o.value === nameVal);
+                if (!exists) {
+                    isValid = false;
+                    nameInput.addClass('is-invalid');
+                    errors.push('Nama Item (Harus dipilih dari daftar yang ada)');
+                    if (!firstEmptyField) firstEmptyField = nameInput;
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Nama Item Tidak Valid',
+                        text: 'Nama Item harus dipilih dari daftar saran. Jika nama belum ada, gunakan tombol (+) biru di sebelahnya untuk menambahkannya terlebih dahulu.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return false; // Stop further validation to show this specific error
+                }
+            }
         }
 
         // 2. Check Category
@@ -405,15 +434,40 @@
             if (!firstEmptyField) firstEmptyField = plantSelect;
         }
 
-        // 4. Check Files (only for Create form)
-        const isCreate = $(form).attr('action') && $(form).attr('action').includes('/store');
-        const filesInput = $(form).find('input[name="files[]"]');
-        // Optional check for files only if they are truly required by the model/business logic
-        if (isCreate && filesInput.length && filesInput[0].hasAttribute('required') && filesInput[0].files.length === 0) {
+        // 4. Check Customer
+        const customerSelect = $(form).find('select[name="customer"]');
+        if (customerSelect.length && !customerSelect.val()) {
             isValid = false;
-            filesInput.addClass('is-invalid');
-            errors.push('Upload PDF Standard');
-            if (!firstEmptyField) firstEmptyField = filesInput;
+            customerSelect.addClass('is-invalid');
+            errors.push('Customer');
+            if (!firstEmptyField) firstEmptyField = customerSelect;
+        }
+
+        // 5. Check Nomor Part
+        const partNumberInput = $(form).find('input[name="part_number"]');
+        if (partNumberInput.length && (!partNumberInput.val() || !partNumberInput.val().trim())) {
+            isValid = false;
+            partNumberInput.addClass('is-invalid');
+            errors.push('Nomor Part');
+            if (!firstEmptyField) firstEmptyField = partNumberInput;
+        }
+
+        // 6. Check Files (only for Create form)
+        const isCreate = $(form).closest('#modalTambahItem').length > 0;
+        if (isCreate) {
+            const filesInput = $(form).find('input[name="files[]"]');
+            const similarInput = $(form).find('input[name="similar_part_file"]');
+            
+            const hasDoc1 = filesInput.length && filesInput[0].files.length > 0;
+            const hasDoc2 = similarInput.length && similarInput[0].files.length > 0;
+            
+            if (!hasDoc1 && !hasDoc2) {
+                isValid = false;
+                if (filesInput.length) filesInput.addClass('is-invalid');
+                if (similarInput.length) similarInput.addClass('is-invalid');
+                errors.push('Dokumen (Minimal 1 antara Dokumen 1 atau 2)');
+                if (!firstEmptyField) firstEmptyField = filesInput.length ? filesInput : similarInput;
+            }
         }
 
         if (!isValid) {
@@ -598,5 +652,87 @@ window.deleteItemCustomer = function(selectId) {
         }
     });
 };
+
+    /* ============================================================
+     *  ITEM NAME — Datalist with add/delete
+     * ============================================================ */
+    window.addNewItemName = function(inputId) {
+        Swal.fire({
+            title: 'Tambah Nama Item Baru',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off',
+                placeholder: 'Masukkan nama item baru...',
+                style: 'text-transform: none;'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Tambah',
+            cancelButtonText: 'Batal',
+            preConfirm: (name) => {
+                if (!name || !name.trim()) {
+                    Swal.showValidationMessage('Nama item tidak boleh kosong!');
+                    return false;
+                }
+                return name.trim();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var newName = result.value;
+                // Add to datalist
+                var datalist = document.getElementById('itemNamesList');
+                if (datalist && !Array.from(datalist.options).some(o => o.value === newName)) {
+                    datalist.appendChild(new Option(newName, newName));
+                }
+                
+                // Set the active input explicitly
+                var active = document.getElementById(inputId);
+                if (active) active.value = newName;
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Nama Item baru telah ditambahkan ke daftar saran.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
+
+    window.deleteItemName = function(inputId) {
+        var inp = document.getElementById(inputId);
+        var name = inp ? inp.value.trim() : '';
+        if (!name) {
+            Swal.fire('Peringatan', 'Ketik atau pilih Nama Item yang ingin dihapus dari daftar terlebih dahulu.', 'warning');
+            return;
+        }
+        Swal.fire({
+            title: 'Hapus dari Daftar?',
+            text: '"' + name + '" akan dihapus dari opsi dropdown. Data item yang sudah menggunakan nama ini tidak akan terpengaruh.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var datalist = document.getElementById('itemNamesList');
+                if (datalist) {
+                    Array.from(datalist.options).filter(o => o.value === name).forEach(o => o.remove());
+                }
+                // Clear the input
+                if (inp && inp.value === name) inp.value = '';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Nama Item telah dihapus dari daftar saran.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
 
 })();

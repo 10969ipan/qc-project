@@ -225,10 +225,14 @@
 
         function selectOption(opt) {
             selectEl.value = opt.value;
-            // Display part number in search box if available, otherwise name
+            // Display part name and part number in search box
             var partNo = opt.dataset.partNumber || opt.dataset.part_number;
             var name = opt.dataset.name || opt.text || '';
-            input.value = (partNo || name).replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
+            var displayText = name;
+            if (partNo && partNo !== '-' && name.indexOf(partNo) === -1) {
+                displayText += ' - ' + partNo;
+            }
+            input.value = displayText.replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
             clearBtn.style.display = 'inline';
             // Trigger change so existing JS listeners fire
             var ev = new Event('change', { bubbles: true });
@@ -338,7 +342,11 @@
                 if (selOpt) {
                     var pNo = selOpt.dataset.partNumber || selOpt.dataset.part_number;
                     var nme = selOpt.dataset.name || selOpt.text || '';
-                    input.value = (pNo || nme).replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
+                    var displayText = nme;
+                    if (pNo && pNo !== '-' && nme.indexOf(pNo) === -1) {
+                        displayText += ' - ' + pNo;
+                    }
+                    input.value = displayText.replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
                     clearBtn.style.display = 'inline';
                 }
             } else {

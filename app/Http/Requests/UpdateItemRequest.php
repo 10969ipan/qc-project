@@ -51,12 +51,12 @@ class UpdateItemRequest extends FormRequest
             'files' => 'nullable|array',
             'files.*' => 'mimes:pdf|max:10240', // Max 10MB per file
             'similar_part_file' => 'nullable|mimes:pdf|max:10240',
-            'customer' => 'nullable|string',
+            'customer' => 'required|string',
             'part_number' => [
-                'nullable',
+                'required',
                 'string',
                 function ($attribute, $value, $fail) use ($itemId) {
-                    if (!empty($value)) {
+                    if (!empty($value) && $value !== '-') {
                         $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
                         $categoryId = $this->input('category_id');
                         if (Item::where('part_number', $value)
@@ -76,7 +76,7 @@ class UpdateItemRequest extends FormRequest
                 'string',
                 'max:100',
                 function ($attribute, $value, $fail) use ($itemId) {
-                    if (!empty($value)) {
+                    if (!empty($value) && $value !== '-') {
                         $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
                         $categoryId = $this->input('category_id');
                         if (Item::where('sap_code', $value)
@@ -110,8 +110,12 @@ class UpdateItemRequest extends FormRequest
             'name.required' => 'Nama item wajib diisi.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori yang dipilih tidak valid.',
-            'file.mimes' => 'File harus berformat PDF.',
-            'file.max' => 'Ukuran file maksimal 5MB.',
+            'customer.required' => 'Customer wajib diisi.',
+            'part_number.required' => 'Nomor Part wajib diisi.',
+            'files.*.mimes' => 'File harus berformat PDF.',
+            'files.*.max' => 'Ukuran file maksimal 10MB.',
+            'similar_part_file.mimes' => 'File harus berformat PDF.',
+            'similar_part_file.max' => 'Ukuran file maksimal 10MB.',
         ];
     }
 }
