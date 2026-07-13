@@ -896,11 +896,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     for (const [cavity, points] of Object.entries(parsedVal)) {
                         let pointStrs = [];
                         for (const [point, value] of Object.entries(points)) {
-                            pointStrs.push(`Point ${point}: ${value}`);
+                            pointStrs.push(`Point ${point}= ${value}`);
                         }
-                        formatted.push(`Cav ${cavity} [${pointStrs.join(', ')}]`);
+                        formatted.push(`<span class="d-block" style="margin-bottom: 2px;"><span class="font-weight-bold">Cav ${cavity}</span> &rarr; ${pointStrs.join(', ')}</span>`);
                     }
-                    return formatted.join(' | ');
+                    return formatted.join('');
                 }
             }
 
@@ -925,12 +925,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 const oldVal = formatValue(vals.old, field, false);
                 const newVal = formatValue(vals.new, field, true);
                 
-                rows += `<div class="d-flex align-items-center mb-1" style="font-size: 0.7rem; line-height: 1.3;">
-                    <span class="font-weight-bold text-secondary mr-1" style="min-width: 90px;">${formatFieldLabel(field)}:</span>
-                    <span class="text-danger" style="text-decoration: line-through; opacity: 0.7;">${oldVal}</span>
-                    <i class="fas fa-long-arrow-alt-right mx-1 text-primary" style="font-size: 0.6rem;"></i>
-                    <span class="text-success font-weight-bold">${newVal}</span>
-                </div>`;
+                if (field === 'dimension_check') {
+                    rows += `<div class="mb-2" style="font-size: 0.7rem; line-height: 1.3;">
+                        <div class="font-weight-bold text-secondary mb-1">${formatFieldLabel(field)}:</div>
+                        <div class="pl-2 border-left border-danger mb-1 text-danger" style="text-decoration: line-through; opacity: 0.7;">
+                            ${oldVal}
+                        </div>
+                        <div class="pl-2 border-left border-success text-success font-weight-bold">
+                            ${newVal}
+                        </div>
+                    </div>`;
+                } else {
+                    rows += `<div class="d-flex align-items-start mb-1" style="font-size: 0.7rem; line-height: 1.3;">
+                        <span class="font-weight-bold text-secondary mr-1 pt-1" style="min-width: 90px;">${formatFieldLabel(field)}:</span>
+                        <div class="d-flex flex-wrap flex-fill align-items-start pt-1">
+                            <span class="text-danger" style="text-decoration: line-through; opacity: 0.7;">${oldVal}</span>
+                            <i class="fas fa-long-arrow-alt-right mx-2 text-primary" style="font-size: 0.6rem; margin-top: 3px;"></i>
+                            <span class="text-success font-weight-bold">${newVal}</span>
+                        </div>
+                    </div>`;
+                }
             }
             if (!rows) return '';
             return `<div class="mt-2 pl-2">${rows}</div>`;
