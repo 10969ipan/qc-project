@@ -573,10 +573,10 @@ class InProcessChecksheetService extends BaseService
 
                     $updateData['cycle_time'] = $before->diffInSeconds($after);
                 } else {
-                    $updateData['cycle_time'] = $data['cycle_time'] ?? null;
+                    $updateData['cycle_time'] = $data['cycle_time'] ?? $checksheet->cycle_time;
                 }
             } else {
-                $updateData['cycle_time'] = $data['cycle_time'] ?? null;
+                $updateData['cycle_time'] = $data['cycle_time'] ?? $checksheet->cycle_time;
             }
 
             $checksheet->update($updateData);

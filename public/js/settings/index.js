@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
+        // Tab Persistence
+        $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+            localStorage.setItem('settingsActiveTab', $(e.target).attr('href'));
+        });
+        
+        var activeTab = localStorage.getItem('settingsActiveTab');
+        if (activeTab) {
+            $('a[href="' + activeTab + '"]').tab('show');
+        }
+
         // Menu Detail Loading
         const menuItems = document.querySelectorAll('.menu-item');
         menuItems.forEach(item => {
@@ -742,8 +752,41 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set Indonesian locale for Moment.js
             moment.locale('id');
             
+            function highlightSearchTerm(containerId, term) {
+                if (!term) return;
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const stopWords = ['di', 'ke', 'dari', 'yang', 'dan', 'atau', 'untuk', 'dengan', 'pada', 'adalah'];
+                const terms = term.toLowerCase().split(' ').filter(t => !stopWords.includes(t) && t.length > 1);
+                if (terms.length === 0) terms.push(term.toLowerCase());
+
+                const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+                const nodesToHighlight = [];
+                let node;
+                while ((node = walker.nextNode())) {
+                    const nodeText = node.nodeValue.toLowerCase();
+                    if (terms.some(t => nodeText.includes(t)) && node.parentNode.nodeName !== 'SCRIPT' && node.parentNode.nodeName !== 'STYLE') {
+                        nodesToHighlight.push(node);
+                    }
+                }
+
+                nodesToHighlight.forEach(node => {
+                    let html = node.nodeValue;
+                    terms.forEach(t => {
+                        if (t.trim() === '') return;
+                        const regex = new RegExp(`(${t.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')})`, 'gi');
+                        html = html.replace(regex, '<mark class="bg-warning text-dark p-0">$1</mark>');
+                    });
+                    const span = document.createElement('span');
+                    span.innerHTML = html;
+                    node.parentNode.replaceChild(span, node);
+                });
+            }
+
             // Activity Logs Logic
         function fetchActivityLogs(page = 1) {
+            const search = $('#searchLogs').val() || '';
             $('#activityLogsBody').html(`
                 <tr>
                     <td colspan="4" class="text-center py-5">
@@ -754,16 +797,122 @@ document.addEventListener('DOMContentLoaded', function() {
             `);
 
             $.ajax({
-                url: window.settingsConfig.var_7 + "?page=" + page,
+                url: window.settingsConfig.var_7 + "?page=" + page + "&search=" + encodeURIComponent(search),
                 type: 'GET',
                 success: function(response) {
                     renderLogs(response.data);
                     renderPagination(response);
+                    
+                    if (search) {
+                        setTimeout(() => {
+                            highlightSearchTerm('activityLogsBody', search);
+                        }, 50);
+                    }
                 },
                 error: function() {
                     $('#activityLogsBody').html('<tr><td colspan="4" class="text-center py-5 text-danger">Gagal memuat data log.</td></tr>');
                 }
             });
+        }
+
+        function formatFieldLabel(field) {
+            const customLabels = {
+                'date': 'Tanggal',
+                'remarks': 'Remarks',
+                'cycle_time': 'Cycle Time',
+                'total_qty': 'Total Qty',
+                'total_ok': 'Total OK',
+                'total_ng': 'Total NG',
+                'part_number': 'Nomor Part',
+                'sap_code': 'Kode SAP',
+                'dimension_check': 'Dimension Check',
+                'defect_types': 'Defects',
+                'kashift_qc': 'Approval Ka.Shift',
+                'supervisor_qc': 'Approval Supervisor',
+                'asst_manager_qc': 'Approval Asst. Manager',
+                'manager_qc': 'Approval Manager'
+            };
+            if (customLabels[field]) return customLabels[field];
+            return field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function formatValue(val, field, isNew = false) {
+            if (val === null || val === undefined || val === '') {
+                return '<em class="text-muted">kosong</em>';
+            }
+
+            let parsedVal = val;
+            let iter = 0;
+            while (typeof parsedVal === 'string' && iter < 3) {
+                let trimmed = parsedVal.trim();
+                // Check if it's a JSON string or a double-encoded string starting with quote
+                if (trimmed.startsWith('{') || trimmed.startsWith('[') || (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+                    try {
+                        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                            // Strip outer quotes and unescape manually if JSON.parse fails
+                            try {
+                                parsedVal = JSON.parse(trimmed);
+                            } catch(e) {
+                                let unescaped = trimmed.substring(1, trimmed.length - 1).replace(/\\"/g, '"');
+                                parsedVal = JSON.parse(unescaped);
+                            }
+                        } else {
+                            parsedVal = JSON.parse(trimmed);
+                        }
+                    } catch (e) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+                iter++;
+            }
+
+            // Formatting khusus untuk Defects
+            if (field === 'defects' || field === 'defect_types') {
+                if (!parsedVal || (Array.isArray(parsedVal) && parsedVal.length === 0) || (typeof parsedVal === 'object' && Object.keys(parsedVal).length === 0)) {
+                    return '<em class="text-muted">Tidak ada NG</em>';
+                }
+                if (Array.isArray(parsedVal)) {
+                    return parsedVal.map(d => {
+                        if (typeof d === 'object') {
+                            return `${d.type || d.nama || Object.keys(d)[0]}: ${d.qty || d.jumlah || Object.values(d)[0]} pcs`;
+                        }
+                        return d;
+                    }).join(', ');
+                }
+                if (typeof parsedVal === 'object') {
+                    return Object.entries(parsedVal).map(([k, v]) => `${k}: ${v} pcs`).join(', ');
+                }
+            }
+
+            // Formatting khusus untuk Dimension Check
+            if (field === 'dimension_check') {
+                if (!parsedVal || (typeof parsedVal === 'object' && Object.keys(parsedVal).length === 0)) {
+                    return '<em class="text-muted">kosong</em>';
+                }
+                if (typeof parsedVal === 'object') {
+                    let formatted = [];
+                    for (const [cavity, points] of Object.entries(parsedVal)) {
+                        let pointStrs = [];
+                        for (const [point, value] of Object.entries(points)) {
+                            pointStrs.push(`Point ${point}: ${value}`);
+                        }
+                        formatted.push(`Cav ${cavity} [${pointStrs.join(', ')}]`);
+                    }
+                    return formatted.join(' | ');
+                }
+            }
+
+            if (typeof parsedVal === 'object') {
+                try {
+                    return JSON.stringify(parsedVal);
+                } catch(e) {
+                    return String(parsedVal);
+                }
+            }
+
+            return String(parsedVal);
         }
 
         // ponytail: render old->new property changes inline
@@ -772,17 +921,19 @@ document.addEventListener('DOMContentLoaded', function() {
             let rows = '';
             for (const [field, vals] of Object.entries(properties)) {
                 if (!vals || typeof vals !== 'object') continue;
-                const oldVal = vals.old !== null && vals.old !== undefined && vals.old !== '' ? vals.old : '<em class="text-muted">kosong</em>';
-                const newVal = vals.new !== null && vals.new !== undefined && vals.new !== '' ? vals.new : '<em class="text-muted">kosong</em>';
+                
+                const oldVal = formatValue(vals.old, field, false);
+                const newVal = formatValue(vals.new, field, true);
+                
                 rows += `<div class="d-flex align-items-center mb-1" style="font-size: 0.7rem; line-height: 1.3;">
-                    <span class="font-weight-bold text-secondary mr-1" style="min-width: 70px;">${field}:</span>
+                    <span class="font-weight-bold text-secondary mr-1" style="min-width: 90px;">${formatFieldLabel(field)}:</span>
                     <span class="text-danger" style="text-decoration: line-through; opacity: 0.7;">${oldVal}</span>
                     <i class="fas fa-long-arrow-alt-right mx-1 text-primary" style="font-size: 0.6rem;"></i>
                     <span class="text-success font-weight-bold">${newVal}</span>
                 </div>`;
             }
             if (!rows) return '';
-            return `<div class="mt-2 p-2 rounded" style="background: #f0f4f8; border-left: 3px solid #4e73df;">${rows}</div>`;
+            return `<div class="mt-2 pl-2">${rows}</div>`;
         }
         function renderLogs(logs) {
             let html = '';
@@ -814,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             </td>
                             <td class="pt-3 pb-3 border-top">
                                 <span class="d-block text-dark small font-weight-500">${log.description || '-'}</span>
-                                ${log.model_type ? `<small class="text-muted mt-1 d-block" style="font-size: 0.65rem;">Model: ${log.model_type.split('\\').pop()} #${log.model_id}</small>` : ''}
+                                ${log.model_type ? `<small class="text-muted mt-1 d-block" style="font-size: 0.65rem;">ID: #${log.model_id}</small>` : ''}
                             
                                 ${renderChanges(log.properties)}
                             </td>
@@ -873,6 +1024,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         $('#refreshLogs').on('click', function() {
             fetchActivityLogs();
+        });
+
+        $('#resetLogs').on('click', function() {
+            $('#searchLogs').val('');
+            fetchActivityLogs();
+        });
+
+        $('#searchLogs').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                fetchActivityLogs();
+            }
         });
 
         $(document).on('click', '#logsPagination .page-link', function(e) {

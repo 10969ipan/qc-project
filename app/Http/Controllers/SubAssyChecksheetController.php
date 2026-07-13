@@ -310,8 +310,10 @@ class SubAssyChecksheetController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action.');
         }
+
         $this->checksheetService->updateChecksheet($id, $request->validated());
         $checksheet = \App\Models\SubAssyChecksheet::find($id);
+
         ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Sub Assy: {$checksheet->item->name}");
 
         if ($request->ajax() || $request->wantsJson()) {

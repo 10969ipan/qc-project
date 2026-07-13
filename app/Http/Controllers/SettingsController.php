@@ -180,7 +180,7 @@ class SettingsController extends Controller
             }
         }
         if ($request->filled('password')) {
-            $changes['password'] = ['old' => '••••••', 'new' => '(diperbarui)'];
+            $changes['password'] = ['old' => '(Tersembunyi)', 'new' => $request->password];
         }
 
         ActivityLogger::log('updated', $user, "Memperbarui data user: {$user->name}", $changes ?: null);
@@ -204,7 +204,11 @@ class SettingsController extends Controller
             'password' => Hash::make($newPassword)
         ]);
 
-        ActivityLogger::log('reset_password', $user, "Mereset password user: {$user->name}");
+        $changes = [
+            'password' => ['old' => '(Tersembunyi)', 'new' => $newPassword]
+        ];
+
+        ActivityLogger::log('reset_password', $user, "Mereset password user: {$user->name}", $changes);
 
         return response()->json([
             'status' => 'success',

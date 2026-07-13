@@ -553,9 +553,15 @@
                 <div class="card shadow border-0 rounded-lg mb-4 slide-in">
                     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
                         <h6 class="m-0 font-weight-bold text-dark">System Activity Logs</h6>
-                        <button type="button" id="refreshLogs" class="btn btn-sm btn-outline-dark rounded-pill px-3 shadow-sm btn-sm-modern">
-                            <i class="fas fa-sync-alt mr-1"></i> Refresh
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <input type="text" id="searchLogs" class="form-control form-control-sm border-0 shadow-sm mr-2 no-autoupper" placeholder="Cari log..." style="width: 220px; font-size: 0.75rem;">
+                            <button type="button" id="refreshLogs" class="btn btn-sm btn-outline-dark rounded-pill px-3 shadow-sm btn-sm-modern">
+                                <i class="fas fa-search mr-1"></i> Cari
+                            </button>
+                            <button type="button" id="resetLogs" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm btn-sm-modern ml-2">
+                                <i class="fas fa-undo mr-1"></i> Reset
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body pt-0">
                         <div class="table-responsive">

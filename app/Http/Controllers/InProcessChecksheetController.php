@@ -317,6 +317,7 @@ class InProcessChecksheetController extends Controller
 
             $this->inProcessService->updateChecksheet($id, $validatedData);
             $checksheet = \App\Models\InProcessChecksheet::find($id);
+
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet In Process: {$checksheet->item->name}");
 
             // Only preserve specific navigation and filter parameters

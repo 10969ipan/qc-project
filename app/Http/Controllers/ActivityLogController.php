@@ -9,11 +9,37 @@ use Carbon\Carbon;
 
 class ActivityLogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $logs = ActivityLog::with('user')
-            ->latest()
-            ->paginate(50);
+        $query = ActivityLog::with('user')->latest();
+
+        if ($request->filled('search')) {
+            $searchString = strtolower(trim($request->search));
+            
+            // Smart NLP Search: filter out common stop words
+            $stopWords = ['di', 'ke', 'dari', 'yang', 'dan', 'atau', 'untuk', 'dengan', 'pada', 'adalah', 'untuk'];
+            $terms = explode(' ', $searchString);
+            $validTerms = array_filter($terms, function($term) use ($stopWords) {
+                return !in_array($term, $stopWords) && strlen($term) > 1;
+            });
+            
+            if (empty($validTerms)) {
+                $validTerms = [$searchString];
+            }
+
+            foreach ($validTerms as $term) {
+                $query->where(function($q) use ($term) {
+                    $q->where('description', 'like', "%{$term}%")
+                      ->orWhere('action', 'like', "%{$term}%")
+                      ->orWhereHas('user', function($u) use ($term) {
+                          $u->where('name', 'like', "%{$term}%")
+                            ->orWhere('email', 'like', "%{$term}%");
+                      });
+                });
+            }
+        }
+
+        $logs = $query->paginate(10);
 
         return response()->json($logs);
     }

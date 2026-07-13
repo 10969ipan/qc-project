@@ -168,5 +168,47 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             $view->with('nextProcessesGlobal', \App\Models\NextProcess::where('is_active', true)->orderBy('plant_id')->orderBy('order')->get());
         });
+
+        // Register Global Observer for Activity Log Diff
+        \Illuminate\Support\Facades\Event::listen('eloquent.updating: *', function($eventName, array $data) {
+            $model = $data[0] ?? null;
+            if ($model instanceof \Illuminate\Database\Eloquent\Model) {
+                $class = get_class($model);
+                $id = $model->getKey();
+                if ($id) {
+                    $dirty = $model->getDirty();
+                    $changes = [];
+                    foreach ($dirty as $key => $newValue) {
+                        if (in_array($key, ['created_at', 'updated_at', 'cycle_time', 'password', 'remember_token'])) continue;
+                        
+                        $oldValue = $model->getOriginal($key);
+                        
+                        // Ignore date format equivalence
+                        if (is_string($oldValue) && is_string($newValue)) {
+                            if (preg_match('/^\d{4}-\d{2}-\d{2}/', $oldValue) && preg_match('/^\d{4}-\d{2}-\d{2}/', $newValue)) {
+                                try {
+                                    if (\Carbon\Carbon::parse($oldValue)->eq(\Carbon\Carbon::parse($newValue))) {
+                                        continue;
+                                    }
+                                } catch (\Exception $e) {}
+                            }
+                        }
+
+                        // Ignore JSON empty array/object equivalents
+                        if (($oldValue === '{}' && $newValue === '[]') || ($oldValue === '[]' && $newValue === '{}')) {
+                            continue;
+                        }
+
+                        $changes[$key] = [
+                            'old' => $oldValue,
+                            'new' => $newValue
+                        ];
+                    }
+                    if (!empty($changes)) {
+                        \App\Helpers\ActivityLogger::setOriginalData($class, $id, $changes);
+                    }
+                }
+            }
+        });
     }
 }

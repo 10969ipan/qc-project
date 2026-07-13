@@ -8,8 +8,30 @@ use Illuminate\Support\Facades\Request;
 
 class ActivityLogger
 {
+    protected static $originalData = [];
+
+    /**
+     * Store original data before an update occurs.
+     */
+    public static function setOriginalData($class, $id, $original)
+    {
+        self::$originalData[$class][$id] = $original;
+    }
+
     public static function log($action, $model = null, $description = null, $properties = null)
     {
+        // Auto-calculate properties for 'updated' action if properties is null and model is provided
+        if ($action === 'updated' && $model && $properties === null) {
+            $class = get_class($model);
+            $id = $model->getKey();
+            
+            if (isset(self::$originalData[$class][$id])) {
+                $properties = self::$originalData[$class][$id];
+                // Clear from memory
+                unset(self::$originalData[$class][$id]);
+            }
+        }
+
         return ActivityLog::create([
             'user_id' => Auth::id(),
             'action' => $action,
