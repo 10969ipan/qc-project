@@ -974,7 +974,6 @@
             <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                 <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                     <h5 class="modal-title font-weight-bold text-gray-800" id="modalLogItemLabel" style="font-size: 1.1rem;"><i class="fas fa-history mr-2 text-info"></i> Riwayat Perubahan Data
-                        Riwayat Perubahan Data
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -996,6 +995,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="logItemPagination" class="d-flex justify-content-center p-3 bg-white border-top"></div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light btn-sm shadow-sm px-4" data-dismiss="modal">Tutup</button>
@@ -1082,14 +1082,14 @@
                 });
 
                 // --- LOG ITEM ---
-                $('.btn-log-item').on('click', function() {
-                    const itemId = $(this).data('id');
+                function loadLogData(itemId, page = 1) {
                     const tbody = $('#tableLogItem tbody');
+                    const pagination = $('#logItemPagination');
                     tbody.html('<tr><td colspan="4" class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary" role="status"></span> Memuat data...</td></tr>');
-                    $('#modalLogItem').modal('show');
+                    pagination.empty();
 
                     $.ajax({
-                        url: "{{ route('items.logs', ':id') }}".replace(':id', itemId),
+                        url: "{{ route('items.logs', ':id') }}".replace(':id', itemId) + "?page=" + page,
                         method: 'GET',
                         success: function(response) {
                             if(response.success) {
@@ -1113,6 +1113,29 @@
                                             </tr>
                                         `);
                                     });
+
+                                    // Build pagination
+                                    if(response.pagination && response.pagination.last_page > 1) {
+                                        let pag = response.pagination;
+                                        let html = '<nav><ul class="pagination pagination-sm mb-0 shadow-sm">';
+                                        
+                                        // Prev
+                                        html += '<li class="page-item ' + (pag.current_page == 1 ? 'disabled' : '') + '"><a class="page-link log-page-btn" href="#" data-page="' + (pag.current_page - 1) + '" data-id="' + itemId + '">«</a></li>';
+                                        
+                                        // Pages (simple)
+                                        for(let i = 1; i <= pag.last_page; i++) {
+                                            if(i === 1 || i === pag.last_page || (i >= pag.current_page - 1 && i <= pag.current_page + 1)) {
+                                                html += '<li class="page-item ' + (pag.current_page == i ? 'active' : '') + '"><a class="page-link log-page-btn" href="#" data-page="' + i + '" data-id="' + itemId + '">' + i + '</a></li>';
+                                            } else if (i === pag.current_page - 2 || i === pag.current_page + 2) {
+                                                html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                                            }
+                                        }
+                                        
+                                        // Next
+                                        html += '<li class="page-item ' + (pag.current_page == pag.last_page ? 'disabled' : '') + '"><a class="page-link log-page-btn" href="#" data-page="' + (pag.current_page + 1) + '" data-id="' + itemId + '">»</a></li>';
+                                        html += '</ul></nav>';
+                                        pagination.html(html);
+                                    }
                                 }
                             } else {
                                 tbody.html('<tr><td colspan="4" class="text-center py-4 text-danger">Gagal memuat data log.</td></tr>');
@@ -1122,6 +1145,21 @@
                             tbody.html('<tr><td colspan="4" class="text-center py-4 text-danger">Terjadi kesalahan pada server.</td></tr>');
                         }
                     });
+                }
+
+                $(document).on('click', '.log-page-btn', function(e) {
+                    e.preventDefault();
+                    let page = $(this).data('page');
+                    let itemId = $(this).data('id');
+                    if (page) {
+                        loadLogData(itemId, page);
+                    }
+                });
+
+                $('.btn-log-item').on('click', function() {
+                    const itemId = $(this).data('id');
+                    $('#modalLogItem').modal('show');
+                    loadLogData(itemId, 1);
                 });
 
 

@@ -745,15 +745,17 @@
 
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Checksheet Sub Assy</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-primary" id="editModalLabel" style="font-size: 1.1rem;">
+                        <i class="fas fa-edit mr-2"></i>Edit Checksheet Sub Assy
+                    </h5>
+                    <button type="button" class="close text-gray-500 hover:text-gray-800" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                        <span aria-hidden="true" style="font-size: 1.5rem;">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="editModalBody">
+                <div class="modal-body bg-light px-4 py-4" id="editModalBody" style="max-height: 65vh; overflow-y: auto;">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>

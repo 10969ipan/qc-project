@@ -709,7 +709,7 @@
                                                 <div class="rounded-lg text-center flex flex-col items-center justify-center h-full">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500 mb-0">Meja Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-1 mb-0">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -871,7 +871,7 @@
                                                     class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -1036,7 +1036,7 @@
                                                 <div class="p-2 rounded-lg text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -1202,7 +1202,7 @@
                                                 <div class="p-2 rounded-lg text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -1381,7 +1381,7 @@
                                                     class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>
@@ -1559,7 +1559,7 @@
                                                 <div class="p-2 rounded-lg text-center">
                                                     <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Machine Idle</p>
                                                     <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait
-                                                        Setup</p>
+                                                        Check QC</p>
                                                 </div>
                                             @endif
                                         </div>

@@ -1,45 +1,16 @@
-<form id="editChecksheetForm" class="ajax-form"
-    action="{{ route('admin.checksheets.update', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
+<form id="editChecksheetForm" class="ajax-form" action="{{ route('admin.checksheets.update', ['checksheet' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
     <div id="modal-errors" class="mb-3" style="display: none;"></div>
     @csrf
     @method('PUT')
     @php
         $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
     @endphp
-    {{-- Preserve all filter and pagination parameters --}}
     @foreach(request()->all() as $key => $value)
         @if(!in_array($key, ['_token', '_method', 'id']))
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
         @endif
     @endforeach
 
-    <!-- 1. Header: Penelusuran (Traceability) -->
-    <div class="alert alert-secondary py-2 mb-3 border-left-info shadow-sm">
-        <div class="row align-items-center">
-            <div class="col-md-9">
-                <div class="small text-muted font-weight-bold text-uppercase mb-1">
-                    <i class="fas fa-barcode mr-1"></i> Informasi Traceability (QR Code)
-                </div>
-                <div class="small text-dark font-italic text-truncate mb-1" title="{{ $checksheet->qrcode }}">
-                    <strong>Raw QR:</strong> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
-                </div>
-                <div class="d-flex flex-wrap" style="gap: 15px;">
-                    <span class="small"><strong>Part Code:</strong> {{ $checksheet->part_code }}</span>
-                    <span class="small"><strong>Supplier:</strong> {{ $checksheet->supplier_id }}</span>
-                    <span class="small"><strong>Qty QR:</strong> {{ $checksheet->quantity }}</span>
-                    <span class="small text-danger font-weight-bold"><strong>Unique ID:</strong> {{ $checksheet->unique_code_id }}</span>
-                    <span class="small"><strong>SAP Code:</strong> {{ $checksheet->sap_code }}</span>
-                </div>
-            </div>
-            <div class="col-md-3 text-right">
-                <span class="badge badge-info p-2 px-3 shadow-sm">
-                    ID: {{ $checksheet->id }}
-                </span>
-            </div>
-        </div>
-    </div>
-
-    {{-- Hidden inputs to preserve QR data during update --}}
     <input type="hidden" name="qrcode" value="{{ $checksheet->qrcode }}">
     <input type="hidden" name="part_code" value="{{ $checksheet->part_code }}">
     <input type="hidden" name="supplier_id" value="{{ $checksheet->supplier_id }}">
@@ -48,231 +19,241 @@
     <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
     <input type="hidden" name="cycle_time" value="{{ $checksheet->cycle_time }}">
 
-    <div class="row">
-        <!-- 2. Kolom Kiri: Informasi Produksi -->
-        <div class="col-lg-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 border-top-primary" style="border-top-width: 3px !important;">
-                <div class="card-header bg-white py-2">
-                    <h6 class="m-0 font-weight-bold text-primary small">
-                        <i class="fas fa-info-circle mr-1"></i> Data Identitas & Produksi
-                    </h6>
+    <!-- 1. Header: Penelusuran (Traceability) -->
+    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI TRACEABILITY (QR CODE)</div>
+    <div class="bg-white p-3 mb-4 shadow-sm border" style="border-radius: 8px;">
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <div class="small font-weight-bold text-gray-700 mb-1">
+                    <i class="fas fa-barcode mr-1"></i> Data QR Tag
                 </div>
-                <div class="card-body py-3">
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
-                        <select name="item_id" id="item_id_edit" class="form-control form-control-sm select2-standard" required>
-                            <option value="" disabled>Pilih Item Part</option>
-                            @foreach($items as $item)
-                                <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
-                                    data-part-number="{{ $item->part_number }}"
-                                    data-customer="{{ $item->customer }}"
-                                    data-defects="{{ json_encode($item->defects) }}">
-                                    {{ $item->name }} ({{ $item->customer }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
-                                <input type="date" name="date" id="date_edit" class="form-control form-control-sm"
-                                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
-                                <select name="shift" id="shift_edit" class="form-control form-control-sm" required>
-                                    <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
-                                    <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
-                                    <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Jam Before</label>
-                                <input type="time" name="jam_before" id="jam_before_edit" class="form-control form-control-sm"
-                                    value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Jam After</label>
-                                <input type="time" name="jam_after" id="jam_after_edit" class="form-control form-control-sm"
-                                    value="{{ $checksheet->created_at->format('H:i') }}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-12 text-right">
-                            <small class="text-muted font-weight-bold">
-                                Recalculated Cycle Time: <span id="recalculated_cycle_time_display">{{ $checksheet->cycle_time ?? 0 }}</span> seconds
-                            </small>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            @php
-                                $plant = strtolower(auth()->user()->plant->code ?? request('plant') ?? 'karawang');
-                                $tableOptions = range(1, 15);
-                                if ($plant === 'jakarta') {
-                                    $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
-                                }
-                            @endphp
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Meja <span class="text-danger">*</span></label>
-                                <select name="line" id="line_edit" class="form-control form-control-sm" required>
-                                    <option value="">Pilih Meja</option>
-                                    @foreach ($tableOptions as $num)
-                                        <option value="{{ $num }}" {{ $checksheet->line == $num ? 'selected' : '' }}>Meja {{ $num }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Inisial Operator</label>
-                                <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm text-uppercase bg-light font-weight-bold"
-                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if(auth()->user()->role !== 'inspector')
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-primary">Inspector (System User)</label>
-                        <select name="user_id" id="user_id_edit" class="form-control form-control-sm border-primary">
-                            <option value="">-- Pertahankan User Saat Ini --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }} ({{ $user->initials }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
-
-                    <div class="form-group mb-0">
-                        <label class="small font-weight-bold text-gray-700">Keterangan / Remarks</label>
-                        <textarea name="remarks" id="remarks_edit" class="form-control form-control-sm" rows="2" 
-                            placeholder="Catatan tambahan...">{{ $checksheet->remarks }}</textarea>
-                    </div>
+                <div class="small text-dark mb-1" title="{{ $checksheet->qrcode }}">
+                    <span class="font-weight-bold text-gray-700">Raw QR:</span> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
+                </div>
+                <div class="d-flex flex-wrap" style="gap: 15px;">
+                    <span class="small"><span class="font-weight-bold text-gray-700">Part Code:</span> <span class="text-dark">{{ $checksheet->part_code }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Supplier:</span> <span class="text-dark">{{ $checksheet->supplier_id }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Qty QR:</span> <span class="text-dark">{{ $checksheet->quantity }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Unique ID:</span> <span class="text-danger font-weight-bold">{{ $checksheet->unique_code_id }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">SAP Code:</span> <span class="text-dark">{{ $checksheet->sap_code }}</span></span>
                 </div>
             </div>
-        </div>
-
-        <!-- 3. Kolom Kanan: Hasil Pemeriksaan (Sampling & Auto-Judgment) -->
-        <div class="col-lg-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 border-top-success" style="border-top-width: 3px !important;">
-                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-success small">
-                        <i class="fas fa-check-double mr-1"></i> Sampling & Hasil (AQL 0.65)
-                    </h6>
-                    <div id="editJudgmentBadge" class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }} px-3 py-1">
-                        {{ $checksheet->judgment }}
-                    </div>
-                </div>
-                <div class="card-body py-3">
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="small font-weight-bold">Total Qty <span class="text-danger">*</span></label>
-                            <input type="number" name="total_qty" id="total_qty_edit" class="form-control form-control-sm font-weight-bold bg-light"
-                                value="{{ $checksheet->total_qty }}" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="small font-weight-bold text-primary">Sampling Qty <i class="fas fa-calculator ml-1"></i></label>
-                            <input type="number" name="sampling_qty" id="sampling_qty_edit" class="form-control form-control-sm font-weight-bold text-primary border-primary"
-                                value="{{ $checksheet->sampling_qty }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-6 border-right">
-                            <label class="small font-weight-bold text-success">Total OK</label>
-                            <input type="number" name="total_ok" id="total_ok_edit" class="form-control form-control-sm font-weight-bold text-success border-success"
-                                value="{{ $checksheet->total_ok }}" readonly>
-                        </div>
-                        <div class="col-6">
-                            <label class="small font-weight-bold text-danger">Total NG <span class="text-danger">*</span></label>
-                            <input type="number" name="total_ng" id="total_ng_edit" class="form-control form-control-sm font-weight-bold text-danger border-danger"
-                                value="{{ $checksheet->total_ng }}" required readonly>
-                        </div>
-                    </div>
-
-                    <!-- Defect List -->
-                    <div class="bg-gray-100 p-3 rounded border mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="small font-weight-bold text-dark mb-0">Daftar Defect (NG)</label>
-                            <button type="button" id="editAddDefectBtn" class="btn btn-primary btn-xs">
-                                <i class="fas fa-plus"></i> Tambah
-                            </button>
-                        </div>
-                        <div id="editDefectContainer">
-                            @if(count($defects) > 0)
-                                @foreach($defects as $index => $defect)
-                                    <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
-                                        <div class="col-8 pr-1">
-                                            <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
-                                                <option value="">-- Pilih Defect --</option>
-                                                @php
-                                                    $itemDefects = $checksheet->item->defects ?? [];
-                                                @endphp
-                                                @foreach($itemDefects as $idft)
-                                                    <option value="{{ $idft }}" {{ ($defect['type'] ?? '') == $idft ? 'selected' : '' }}>{{ $idft }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-3 pr-1">
-                                            <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" 
-                                                name="defect_quantities[]" min="1" value="{{ $defect['qty'] ?? 1 }}">
-                                        </div>
-                                        <div class="col-1 text-center">
-                                            <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div id="noDefectMsg" class="text-center py-2 small text-muted font-italic">
-                                    Belum ada defect yang ditambahkan
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Judgment & Next Process -->
-                    <div id="editNextProsesGroup" style="{{ $checksheet->judgment == 'NG' ? '' : 'display: none;' }}">
-                        <div class="form-group mb-0 p-2 border border-danger rounded bg-white">
-                            <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
-                            <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm border-danger">
-                                <option value="">-- Pilih Next Proses --</option>
-                                @foreach($nextProcesses as $opt)
-                                    <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
-                                @endforeach
-                                @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
-                                    <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
-                                @endif
-                            </select>
-                        </div>
-                    </div>
-
-                    <input type="hidden" name="judgment" id="judgment_edit" value="{{ $checksheet->judgment }}">
-                </div>
+            <div class="col-md-3 text-right">
+                <span class="badge badge-info p-2 px-3 shadow-sm" style="font-size: 0.8rem;">
+                    ID: {{ $checksheet->id }}
+                </span>
             </div>
         </div>
     </div>
 
-    <div class="modal-footer px-0 pb-0">
-        <button type="button" class="btn btn-secondary btn-sm px-4 shadow-sm" data-dismiss="modal">Batal</button>
-        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm font-weight-bold">
-            <i class="fas fa-save mr-1"></i> Simpan Perubahan
-        </button>
+    <div class="row">
+        <!-- 2. Kolom Kiri: Informasi Produksi -->
+        <div class="col-md-6 mb-3">
+            <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">DATA IDENTITAS & PRODUKSI</div>
+            
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="item_id" id="item_id_edit" class="form-control form-control-sm border-0 shadow-sm select2-standard" required>
+                        <option value="" disabled>Pilih Item Part</option>
+                        @foreach($items as $item)
+                            <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
+                                data-part-number="{{ $item->part_number }}"
+                                data-customer="{{ $item->customer }}"
+                                data-defects="{{ json_encode($item->defects) }}">
+                                {{ $item->name }} ({{ $item->customer }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <input type="date" name="date" id="date_edit" class="form-control form-control-sm border-0 shadow-sm"
+                        value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="shift" id="shift_edit" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
+                        <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
+                        <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Jam Before / After</label>
+                <div class="col-sm-4">
+                    <input type="time" name="jam_before" id="jam_before_edit" class="form-control form-control-sm border-0 shadow-sm"
+                        value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
+                </div>
+                <div class="col-sm-4">
+                    <input type="time" name="jam_after" id="jam_after_edit" class="form-control form-control-sm border-0 shadow-sm"
+                        value="{{ $checksheet->created_at->format('H:i') }}">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-12 text-right">
+                    <small class="text-muted font-weight-bold">
+                        Recalculated Cycle Time: <span id="recalculated_cycle_time_display" class="text-primary">{{ $checksheet->cycle_time ?? 0 }}</span> s
+                    </small>
+                </div>
+            </div>
+
+            @php
+                $plant = strtolower(auth()->user()->plant->code ?? request('plant') ?? 'karawang');
+                $tableOptions = range(1, 15);
+                if ($plant === 'jakarta') {
+                    $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+                }
+            @endphp
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Meja <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="line" id="line_edit" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <option value="">Pilih Meja</option>
+                        @foreach ($tableOptions as $num)
+                            <option value="{{ $num }}" {{ $checksheet->line == $num ? 'selected' : '' }}>Meja {{ $num }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Inisial Operator</label>
+                <div class="col-sm-8">
+                    <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm border-0 shadow-sm text-uppercase bg-light font-weight-bold"
+                        value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." readonly>
+                </div>
+            </div>
+
+            @if(auth()->user()->role !== 'inspector')
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Inspector (System)</label>
+                <div class="col-sm-8">
+                    <select name="user_id" id="user_id_edit" class="form-control form-control-sm border-0 shadow-sm">
+                        <option value="">-- Pertahankan User Saat Ini --</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->initials }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            @endif
+
+            <div class="form-group row align-items-start mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700 pt-2">Keterangan / Remarks</label>
+                <div class="col-sm-8">
+                    <textarea name="remarks" id="remarks_edit" class="form-control form-control-sm border-0 shadow-sm" rows="3" 
+                        placeholder="Catatan tambahan...">{{ $checksheet->remarks }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Kolom Kanan: Hasil Pemeriksaan -->
+        <div class="col-md-6 mb-3">
+            <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                <span class="font-weight-bold">SAMPLING & HASIL (AQL 0.65)</span>
+                <div id="editJudgmentBadge" class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }} px-3 py-1 shadow-sm" style="font-size: 0.75rem;">
+                    {{ $checksheet->judgment }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="small font-weight-bold text-gray-700">Total Qty <span class="text-danger">*</span></label>
+                    <input type="number" name="total_qty" id="total_qty_edit" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-light"
+                        value="{{ $checksheet->total_qty }}" required>
+                </div>
+                <div class="col-6">
+                    <label class="small font-weight-bold text-primary">Sampling Qty</label>
+                    <input type="number" name="sampling_qty" id="sampling_qty_edit" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        style="color: #4e73df !important; border: 1px solid #4e73df !important;" value="{{ $checksheet->sampling_qty }}" readonly>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-6">
+                    <label class="small font-weight-bold text-success">Total OK</label>
+                    <input type="number" name="total_ok" id="total_ok_edit" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        style="color: #1cc88a !important; border: 1px solid #1cc88a !important;" value="{{ $checksheet->total_ok }}" readonly>
+                </div>
+                <div class="col-6">
+                    <label class="small font-weight-bold text-danger">Total NG <span class="text-danger">*</span></label>
+                    <input type="number" name="total_ng" id="total_ng_edit" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        style="color: #e74a3b !important; border: 1px solid #e74a3b !important;" value="{{ $checksheet->total_ng }}" required readonly>
+                </div>
+            </div>
+
+            <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                <span class="font-weight-bold">DAFTAR DEFECT (NG)</span>
+                <button type="button" id="editAddDefectBtn" class="btn btn-primary btn-sm shadow-sm" style="padding: 0.1rem 0.5rem; font-size: 0.7rem;">
+                    <i class="fas fa-plus"></i> Tambah
+                </button>
+            </div>
+            
+            <div id="editDefectContainer" class="mb-3">
+                @if(count($defects) > 0)
+                    @foreach($defects as $index => $defect)
+                        <div class="row no-gutters mb-2 defect-row align-items-center p-1 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="col-8 pr-1 pl-1">
+                                <select class="form-control form-control-sm defect-select font-weight-bold border-0 shadow-sm" name="defect_types[]">
+                                    <option value="">-- Pilih Defect --</option>
+                                    @php
+                                        $itemDefects = $checksheet->item->defects ?? [];
+                                    @endphp
+                                    @foreach($itemDefects as $idft)
+                                        <option value="{{ $idft }}" {{ ($defect['type'] ?? '') == $idft ? 'selected' : '' }}>{{ $idft }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3 pr-1">
+                                <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold border-0 shadow-sm" 
+                                    name="defect_quantities[]" min="1" value="{{ $defect['qty'] ?? 1 }}">
+                            </div>
+                            <div class="col-1 text-center">
+                                <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div id="noDefectMsg" class="text-center py-3 small text-muted font-italic bg-white rounded shadow-sm border border-light">
+                        Belum ada defect yang ditambahkan
+                    </div>
+                @endif
+            </div>
+
+            <!-- Judgment & Next Process -->
+            <div id="editNextProsesGroup" style="{{ $checksheet->judgment == 'NG' ? '' : 'display: none;' }}">
+                <div class="form-group mb-0 p-3 rounded" style="background: #fff5f5; border: 1px dashed #e74a3b;">
+                    <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
+                    <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-danger">
+                        <option value="">-- Pilih Next Proses --</option>
+                        @foreach($nextProcesses as $opt)
+                            <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
+                        @endforeach
+                        @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                            <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+
+            <input type="hidden" name="judgment" id="judgment_edit" value="{{ $checksheet->judgment }}">
+        </div>
+    </div>
+
+    <div class="bg-white border-top py-3 px-4 d-flex justify-content-end align-items-center" style="margin: 1.5rem -1.5rem -1.5rem -1.5rem; border-radius: 0 0 12px 12px;">
+        <button type="button" class="btn btn-light border px-4 font-weight-bold mr-2" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Simpan Perubahan</button>
     </div>
 </form>
 
@@ -335,7 +316,7 @@
                 $('#judgment_edit').val(judgment);
                 
                 const $badge = $('#editJudgmentBadge');
-                $badge.text(judgment).removeClass('badge-success badge-danger');
+                $badge.text(judgment).removeClass('badge-success badge-danger text-success text-danger');
                 if (judgment === 'OK') {
                     $badge.addClass('badge-success');
                     $('#editNextProsesGroup').fadeOut();
@@ -382,14 +363,14 @@
             $(document).on('input', '.defect-qty', calculateTotalNG);
             
             $('#editAddDefectBtn').click(function() {
-                const row = $('<div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">' +
-                    '<div class="col-8 pr-1">' +
-                    '<select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">' +
+                const row = $('<div class="row no-gutters mb-2 defect-row align-items-center p-1 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">' +
+                    '<div class="col-8 pr-1 pl-1">' +
+                    '<select class="form-control form-control-sm defect-select font-weight-bold border-0 shadow-sm" name="defect_types[]">' +
                     '<option value="">-- Pilih Defect --</option>' +
                     '</select>' +
                     '</div>' +
                     '<div class="col-3 pr-1">' +
-                    '<input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1" value="1">' +
+                    '<input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold border-0 shadow-sm" name="defect_quantities[]" placeholder="Qty" min="1" value="1">' +
                     '</div>' +
                     '<div class="col-1 text-center">' +
                     '<button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>' +
@@ -426,11 +407,8 @@
                     
                     const diffSeconds = Math.floor((after - before) / 1000);
                     
-                    // Optional: show feedback or update hidden cycle_time
-                    // For now, just update the hidden input to be sure
                     $('input[name="cycle_time"]').val(diffSeconds);
                     $('#recalculated_cycle_time_display').text(diffSeconds);
-                    console.log('Recalculated cycle time:', diffSeconds);
                 }
             }
 

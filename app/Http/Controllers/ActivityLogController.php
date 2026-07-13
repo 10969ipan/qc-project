@@ -44,26 +44,32 @@ class ActivityLogController extends Controller
         return response()->json($logs);
     }
 
-    public function getItemLogs($itemId)
+    public function getItemLogs(Request $request, $itemId)
     {
-        $logs = ActivityLog::with('user:id,name')
+        $paginator = ActivityLog::with('user:id,name')
             ->where('model_type', Item::class)
             ->where('model_id', $itemId)
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'id' => $log->id,
-                    'action' => $log->action,
-                    'description' => $log->description,
-                    'user' => $log->user ? $log->user->name : 'System',
-                    'date' => Carbon::parse($log->created_at)->translatedFormat('d M Y, H:i'),
-                ];
-            });
+            ->paginate(10);
+
+        $paginator->getCollection()->transform(function ($log) {
+            return [
+                'id' => $log->id,
+                'action' => $log->action,
+                'description' => $log->description,
+                'user' => $log->user ? $log->user->name : 'System',
+                'date' => Carbon::parse($log->created_at)->translatedFormat('d M Y, H:i'),
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'logs' => $logs
+            'logs' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'total' => $paginator->total(),
+            ]
         ]);
     }
 }

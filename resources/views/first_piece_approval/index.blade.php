@@ -1028,17 +1028,17 @@
 
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="editModalLabel">
-                        <i class="fas fa-edit mr-2"></i> Edit Checksheet First Piece Approval
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                <div class="modal-header bg-white" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem;">
+                    <h5 class="modal-title text-primary font-weight-bold" id="editModalLabel">
+                        <i class="fas fa-edit mr-2"></i>Edit Checksheet First Piece Approval
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="editModalBody">
+                <div class="modal-body bg-light px-4 py-4" id="editModalBody">
                     <!-- Loaded via AJAX -->
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">

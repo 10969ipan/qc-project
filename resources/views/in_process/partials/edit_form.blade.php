@@ -13,26 +13,27 @@
         @endif
     @endforeach
 
-    <!-- 1. Header: Penelusuran (Traceability) - Dibuat Ringkas -->
-    <div class="alert alert-secondary py-2 mb-3 border-left-info shadow-sm">
+    <!-- 1. Header: Penelusuran (Traceability) -->
+    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI TRACEABILITY (QR CODE)</div>
+    <div class="bg-white p-3 mb-4 shadow-sm border" style="border-radius: 8px;">
         <div class="row align-items-center">
             <div class="col-md-9">
-                <div class="small text-muted font-weight-bold text-uppercase mb-1">
-                    <i class="fas fa-barcode mr-1"></i> Informasi Traceability (QR Code)
+                <div class="small font-weight-bold text-gray-700 mb-1">
+                    <i class="fas fa-barcode mr-1"></i> Data QR Tag
                 </div>
-                <div class="small text-dark font-italic text-truncate mb-1" title="{{ $checksheet->qrcode }}">
-                    <strong>Raw QR:</strong> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
+                <div class="small text-dark mb-1" title="{{ $checksheet->qrcode }}">
+                    <span class="font-weight-bold text-gray-700">Raw QR:</span> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
                 </div>
                 <div class="d-flex flex-wrap" style="gap: 15px;">
-                    <span class="small"><strong>Part Code:</strong> {{ $checksheet->part_code }}</span>
-                    <span class="small"><strong>Supplier:</strong> {{ $checksheet->supplier_id }}</span>
-                    <span class="small"><strong>Qty QR:</strong> {{ $checksheet->quantity }}</span>
-                    <span class="small text-danger font-weight-bold"><strong>Unique ID:</strong> {{ $checksheet->unique_code_id }}</span>
-                    <span class="small"><strong>SAP Code:</strong> {{ $checksheet->sap_code }}</span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Part Code:</span> <span class="text-dark">{{ $checksheet->part_code }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Supplier:</span> <span class="text-dark">{{ $checksheet->supplier_id }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Qty QR:</span> <span class="text-dark">{{ $checksheet->quantity }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">Unique ID:</span> <span class="text-danger font-weight-bold">{{ $checksheet->unique_code_id }}</span></span>
+                    <span class="small"><span class="font-weight-bold text-gray-700">SAP Code:</span> <span class="text-dark">{{ $checksheet->sap_code }}</span></span>
                 </div>
             </div>
             <div class="col-md-3 text-right">
-                <span class="badge badge-info p-2 px-3 shadow-sm">
+                <span class="badge badge-info p-2 px-3 shadow-sm" style="font-size: 0.8rem;">
                     ID: {{ $checksheet->id }}
                 </span>
             </div>
@@ -49,328 +50,306 @@
 
     <div class="row">
         <!-- 2. Kolom Kiri: Informasi Produksi -->
-        <div class="col-lg-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 border-top-primary" style="border-top-width: 3px !important;">
-                <div class="card-header bg-white py-2">
-                    <h6 class="m-0 font-weight-bold text-primary small">
-                        <i class="fas fa-info-circle mr-1"></i> Data Identitas & Produksi
-                    </h6>
+        <div class="col-md-6 mb-3">
+            <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">DATA IDENTITAS & PRODUKSI</div>
+            
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="item_id" id="item_id" class="form-control form-control-sm border-0 shadow-sm select2-standard" required>
+                        <option value="" disabled>Pilih Item Part</option>
+                        @foreach($items as $item)
+                            <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
+                                data-part-number="{{ $item->part_number }}"
+                                data-customer="{{ $item->customer }}"
+                                data-weight-standard="{{ $item->weight_standard }}"
+                                data-defects="{{ json_encode($item->defects) }}">
+                                {{ $item->name }} ({{ $item->customer }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="card-body py-3">
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
-                        <select name="item_id" id="item_id" class="form-control form-control-sm select2-standard" required>
-                            <option value="" disabled>Pilih Item Part</option>
-                            @foreach($items as $item)
-                                <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
-                                    data-part-number="{{ $item->part_number }}"
-                                    data-customer="{{ $item->customer }}"
-                                    data-weight-standard="{{ $item->weight_standard }}"
-                                    data-defects="{{ json_encode($item->defects) }}">
-                                    {{ $item->name }} ({{ $item->customer }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+            </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
-                                <input type="date" name="date" id="date" class="form-control form-control-sm"
-                                    value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Tanggal <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <input type="date" name="date" id="date" class="form-control form-control-sm border-0 shadow-sm"
+                        value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="shift" id="shift" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
+                        <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
+                        <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">No Mesin <span class="text-danger">*</span></label>
+                <div class="col-sm-8">
+                    <select name="code_machine" id="code_machine" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <option value="">-- Pilih --</option>
+                        @php
+                            $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
+                            $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+                            $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
+                            $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
+                        @endphp
+                        @foreach ($machineNumbers as $num)
+                            <option value="{{ $num }}" {{ $checksheet->code_machine == $num ? 'selected' : '' }}>Machine {{ $num }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Inisial Operator</label>
+                <div class="col-sm-8">
+                    <input type="text" name="operator_initials" id="operator_initials" class="form-control form-control-sm border-0 shadow-sm text-uppercase bg-light font-weight-bold"
+                        value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." readonly>
+                </div>
+            </div>
+
+            @if(auth()->user()->role !== 'inspector')
+            <div class="form-group row align-items-center mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Inspector (System)</label>
+                <div class="col-sm-8">
+                    <select name="user_id" id="user_id" class="form-control form-control-sm border-0 shadow-sm">
+                        <option value="">-- Pertahankan User Saat Ini --</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->initials }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            @endif
+
+            <div class="form-group row align-items-start mb-2">
+                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700 pt-2">Keterangan / Remarks</label>
+                <div class="col-sm-8">
+                    <textarea name="remarks" id="remarks" class="form-control form-control-sm border-0 shadow-sm" rows="3" placeholder="Catatan tambahan...">{{ $checksheet->remarks }}</textarea>
+                </div>
+            </div>
+
+            <!-- Section Berat Part (Hanya muncul jika customer tertentu) -->
+            <div id="editBeratPartRow" style="display: none;" class="mt-3 bg-white p-3 rounded shadow-sm border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="small font-weight-bold text-gray-700 mb-0">
+                        <i class="fas fa-weight mr-1"></i> Berat Part (gr.)
+                        <span class="badge badge-secondary ml-2 font-weight-normal" id="editWeightStandardBadge" style="display: none;">
+                            Std: <span id="editWeightStandardDisplay">-</span> gr
+                        </span>
+                    </label>
+                    
+                    <div class="d-flex align-items-center" style="gap:5px;">
+                        <div class="btn-group shadow-sm">
+                            <button type="button" id="editAddWeightCavBtn" class="btn btn-primary btn-xs px-2" title="Tambah Cavity" style="font-size: 0.7rem;"><i class="fas fa-plus"></i></button>
+                            <button type="button" id="editRemoveWeightCavBtn" class="btn btn-danger btn-xs px-2" title="Kurangi Cavity" style="font-size: 0.7rem;"><i class="fas fa-minus"></i></button>
+                        </div>
+                        <span id="editWeightCavCount" class="badge badge-primary px-2 py-1" style="font-size: 0.7rem;">1 Cav</span>
+                    </div>
+                </div>
+
+                <div id="editWeightCavContainer">
+                    @php
+                        $existingWeights = is_array($checksheet->part_weight)
+                            ? $checksheet->part_weight
+                            : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true) : ($checksheet->part_weight ? [$checksheet->part_weight] : [null]));
+                    @endphp
+                    @foreach($existingWeights as $cavIdx => $wVal)
+                        <div class="input-group input-group-sm mb-2 edit-weight-cav-row">
+                            <div class="input-group-prepend shadow-sm">
+                                <span class="input-group-text bg-light border-0" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
+                            </div>
+                            <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold border-0 shadow-sm"
+                                name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
+                            <div class="input-group-append shadow-sm">
+                                <span class="input-group-text bg-light border-0 text-muted">gr</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
-                                <select name="shift" id="shift" class="form-control form-control-sm" required>
-                                    <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
-                                    <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
-                                    <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">No Mesin <span class="text-danger">*</span></label>
-                                <select name="code_machine" id="code_machine" class="form-control form-control-sm" required>
-                                    <option value="">-- Pilih --</option>
-                                    @php
-                                        $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
-                                        $jakartaMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-                                        $karawangMachineNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
-                                        $machineNumbers = ($plantCode === 'jakarta') ? $jakartaMachineNumbers : $karawangMachineNumbers;
-                                    @endphp
-                                    @foreach ($machineNumbers as $num)
-                                        <option value="{{ $num }}" {{ $checksheet->code_machine == $num ? 'selected' : '' }}>Machine {{ $num }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Inisial Operator</label>
-                                <input type="text" name="operator_initials" id="operator_initials" class="form-control form-control-sm text-uppercase bg-light font-weight-bold"
-                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if(auth()->user()->role !== 'inspector')
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-primary">Inspector (System User)</label>
-                        <select name="user_id" id="user_id" class="form-control form-control-sm border-primary">
-                            <option value="">-- Pertahankan User Saat Ini --</option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ $checksheet->user_id == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }} ({{ $user->initials }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
-
-                    <!-- Section Berat Part (Hanya muncul jika customer tertentu) -->
-                    <div id="editBeratPartRow" style="display: none;" class="bg-light p-2 rounded border">
-                        <label class="small font-weight-bold text-gray-800 mb-2 mt-0">
-                            <i class="fas fa-weight mr-1"></i> Berat Part (gr.)
-                            <span class="badge badge-secondary ml-2 font-weight-normal" id="editWeightStandardBadge" style="display: none;">
-                                Std: <span id="editWeightStandardDisplay">-</span> gr
-                            </span>
-                        </label>
-                        
-                        <div class="d-flex align-items-center mb-2" style="gap:5px;">
-                            <div class="btn-group shadow-sm">
-                                <button type="button" id="editAddWeightCavBtn" class="btn btn-primary btn-xs"><i class="fas fa-plus"></i></button>
-                                <button type="button" id="editRemoveWeightCavBtn" class="btn btn-outline-danger btn-xs"><i class="fas fa-minus"></i></button>
-                            </div>
-                            <span id="editWeightCavCount" class="badge badge-primary px-2 py-1">1 Cav</span>
-                        </div>
-
-                        <div id="editWeightCavContainer">
-                            @php
-                                $existingWeights = is_array($checksheet->part_weight)
-                                    ? $checksheet->part_weight
-                                    : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true) : ($checksheet->part_weight ? [$checksheet->part_weight] : [null]));
-                            @endphp
-                            @foreach($existingWeights as $cavIdx => $wVal)
-                                <div class="input-group input-group-sm mb-1 edit-weight-cav-row">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text bg-white" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
-                                    </div>
-                                    <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold"
-                                        name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text bg-white text-muted">gr</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
 
         <!-- 3. Kolom Kanan: Hasil Kualitas -->
-        <div class="col-lg-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 border-top-danger" style="border-top-width: 3px !important;">
-                <div class="card-header bg-white py-2">
-                    <h6 class="m-0 font-weight-bold text-danger small">
-                        <i class="fas fa-clipboard-check mr-1"></i> Hasil Pemeriksaan & Kualitas
-                    </h6>
+        <div class="col-md-6 mb-3">
+            <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                <span class="font-weight-bold">HASIL PEMERIKSAAN & KUALITAS</span>
+            </div>
+
+            @if(auth()->user()->role !== 'inspector')
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="small font-weight-bold text-gray-700">Jam (Before)</label>
+                    <input type="time" name="jam_before" id="jam_before" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
                 </div>
-                <div class="card-body py-3">
-                    @if(auth()->user()->role !== 'inspector')
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="small font-weight-bold">Jam (Before)</label>
-                            <input type="time" name="jam_before" id="jam_before" class="form-control form-control-sm border-left-info"
-                                value="{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}">
-                        </div>
-                        <div class="col-6">
-                            <label class="small font-weight-bold">Jam (After)</label>
-                            <input type="time" name="jam_after" id="jam_after" class="form-control form-control-sm border-left-info"
-                                value="{{ $checksheet->created_at->format('H:i') }}">
-                        </div>
-                    </div>
-                    @endif
+                <div class="col-6">
+                    <label class="small font-weight-bold text-gray-700">Jam (After)</label>
+                    <input type="time" name="jam_after" id="jam_after" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        value="{{ $checksheet->created_at->format('H:i') }}">
+                </div>
+            </div>
+            @endif
 
-                    <div class="row mb-3 pb-3 border-bottom">
-                        <div class="col-6">
-                            <label class="small font-weight-bold text-gray-700">Total Produksi (Qty)</label>
-                            <input type="number" name="total_qty" id="total_qty" class="form-control form-control-sm font-weight-bold"
-                                value="{{ $checksheet->total_qty }}" min="0" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="small font-weight-bold text-gray-700 text-info">Sampling Qty</label>
-                            <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm font-weight-bold border-info"
-                                value="{{ $checksheet->sampling_qty }}" min="0" required>
-                        </div>
-                    </div>
+            <div class="row mb-3 pb-3 border-bottom">
+                <div class="col-6">
+                    <label class="small font-weight-bold text-gray-700">Total Produksi (Qty) <span class="text-danger">*</span></label>
+                    <input type="number" name="total_qty" id="total_qty" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-light"
+                        value="{{ $checksheet->total_qty }}" min="0" required>
+                </div>
+                <div class="col-6">
+                    <label class="small font-weight-bold text-gray-700">Sampling Qty</label>
+                    <input type="number" name="sampling_qty" id="sampling_qty" class="form-control form-control-sm border-0 shadow-sm font-weight-bold bg-white"
+                        value="{{ $checksheet->sampling_qty }}" min="0" required readonly>
+                </div>
+            </div>
 
-                    <div class="form-group mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="small font-weight-bold text-gray-700 mb-0">Detail NG (Defect List)</label>
-                            <button type="button" id="editAddDefectBtn" class="btn btn-outline-info btn-xs rounded-pill" style="{{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
-                                <i class="fas fa-plus"></i> Tambah Jenis NG
-                            </button>
-                        </div>
-                        <div id="editDefectContainer" class="bg-light p-2 rounded border-dashed">
-                            {{-- Rows will be populated by JS --}}
-                            
-                            @forelse($defects as $index => $defect)
-                                <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
-                                    <div class="col-8 pr-1">
-                                        <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
-                                            <option value="">-- Pilih Defect --</option>
-                                            <option value="{{ $defect['type'] }}" selected>{{ $defect['type'] }}</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-3 pr-1">
-                                        <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" name="defect_quantities[]" 
-                                            value="{{ $defect['qty'] }}" min="1">
-                                    </div>
-                                    <div class="col-1 text-center">
-                                        <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-2 text-muted small" id="noDefectMsg">
-                                    <i class="fas fa-check-circle mr-1 text-success"></i> Tidak ada data defect tercatat.
-                                </div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <div class="row align-items-end">
-                        <div class="col-4">
-                            <label class="small font-weight-bold text-success text-uppercase">Total OK</label>
-                            <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm font-weight-bold border-success"
-                                value="{{ $checksheet->total_ok }}" min="0" required>
-                        </div>
-                        <div class="col-4">
-                            <label class="small font-weight-bold text-danger text-uppercase">Total NG</label>
-                            <input type="number" name="total_ng" id="total_ng" class="form-control form-control-sm font-weight-bold border-danger"
-                                value="{{ $checksheet->total_ng }}" min="0" required>
-                        </div>
-                        <div class="col-4">
-                             <label class="small font-weight-bold text-uppercase">Judgment</label>
-                             <select name="judgment" id="judgment" class="form-control form-control-sm font-weight-bold d-none {{ $checksheet->judgment == 'OK' ? 'text-success' : 'text-danger' }}" required>
-                                <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
-                                <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
-                            </select>
-                            {{-- Visual display for judgment --}}
-                            <div id="judgmentDisplay" class="alert mb-0 p-1 text-center font-weight-bold border {{ $checksheet->judgment == 'OK' ? 'alert-success border-success' : 'alert-danger border-danger' }}" style="height: 31px; line-height: 20px;">
-                                {{ $checksheet->judgment }}
+            <div class="form-group mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="small font-weight-bold text-gray-700 mb-0">Detail NG (Defect List)</label>
+                    <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs px-3" style="font-size: 0.7rem; {{ count($defects) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
+                        <i class="fas fa-plus mr-1"></i> Tambah Jenis NG
+                    </button>
+                </div>
+                
+                <div id="editDefectContainer" class="bg-light p-2 rounded border-dashed" style="border: 1px dashed #ced4da;">
+                    @forelse($defects as $index => $defect)
+                        <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
+                            <div class="col-8 pr-1">
+                                <select class="form-control form-control-sm defect-select font-weight-bold" name="defect_types[]">
+                                    <option value="">-- Pilih Defect --</option>
+                                    <option value="{{ $defect['type'] }}" selected>{{ $defect['type'] }}</option>
+                                </select>
+                            </div>
+                            <div class="col-3 pr-1">
+                                <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" 
+                                    name="defect_quantities[]" value="{{ $defect['qty'] }}" min="1">
+                            </div>
+                            <div class="col-1 text-center">
+                                <button type="button" class="btn btn-danger btn-xs px-2 remove-defect-btn" title="Hapus"><i class="fas fa-minus"></i></button>
                             </div>
                         </div>
-                    </div>
+                    @empty
+                        <div class="text-center py-2 text-muted small" id="noDefectMsg">
+                            <i class="fas fa-check-circle mr-1 text-success"></i> Tidak ada data defect tercatat.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
 
-                    <div id="nextProsesContainer" class="mt-3" style="display: {{ $checksheet->judgment == 'NG' ? 'block' : 'none' }};">
-                        <label class="small font-weight-bold text-danger"><i class="fas fa-directions mr-1"></i> Instruksi Lanjutan (Next Proses) <span class="text-danger">*</span></label>
-                        <select class="form-control form-control-sm border-danger font-weight-bold" id="next_proses" name="next_proses">
-                            <option value="">-- Pilih --</option>
-                            @foreach($nextProcesses as $opt)
-                                <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
-                            @endforeach
-                            @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
-                                <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
-                            @endif
-                        </select>
-                    </div>
-
-                    <div class="form-group mb-0 mt-3">
-                        <label class="small font-weight-bold">Keterangan / Remarks</label>
-                        <textarea name="remarks" id="remarks" class="form-control form-control-sm border-left-secondary" rows="2" placeholder="Catatan tambahan...">{{ $checksheet->remarks }}</textarea>
+            <div class="row align-items-end mb-3">
+                <div class="col-4">
+                    <label class="small font-weight-bold text-success text-uppercase">Total OK</label>
+                    <input type="number" name="total_ok" id="total_ok" class="form-control form-control-sm font-weight-bold border-success"
+                        value="{{ $checksheet->total_ok }}" min="0" required>
+                </div>
+                <div class="col-4">
+                    <label class="small font-weight-bold text-danger text-uppercase">Total NG</label>
+                    <input type="number" name="total_ng" id="total_ng" class="form-control form-control-sm font-weight-bold border-danger"
+                        value="{{ $checksheet->total_ng }}" min="0" required>
+                </div>
+                <div class="col-4">
+                     <label class="small font-weight-bold text-uppercase">Judgment</label>
+                     <select name="judgment" id="judgment" class="d-none" required>
+                        <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>
+                        <option value="NG" {{ $checksheet->judgment == 'NG' ? 'selected' : '' }}>NG</option>
+                    </select>
+                    {{-- Visual display for judgment --}}
+                    <div id="judgmentDisplay" class="alert mb-0 p-1 text-center font-weight-bold border shadow-sm {{ $checksheet->judgment == 'OK' ? 'alert-success border-success text-success' : 'alert-danger border-danger text-danger' }}" style="height: 31px; line-height: 20px;">
+                        {{ $checksheet->judgment }}
                     </div>
                 </div>
             </div>
+
+            <!-- Next Proses -->
+            <div id="nextProsesContainer" style="{{ $checksheet->judgment == 'NG' ? '' : 'display: none;' }}">
+                <div class="form-group mb-0 p-3 rounded" style="background: #fff5f5; border: 1px dashed #e74a3b;">
+                    <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
+                    <select name="next_proses" id="next_proses" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-danger">
+                        <option value="">-- Pilih Next Proses --</option>
+                        @foreach($nextProcesses as $opt)
+                            <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
+                        @endforeach
+                        @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                            <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- 4. Footer Row: Check Dimensi (Full Width) -->
-    <div class="card shadow-sm border-0 border-top-info mt-2" style="border-top-width: 3px !important;">
-        <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-info small">
-                <i class="fas fa-ruler-combined mr-1"></i> Pemeriksaan Dimensi (mm)
-            </h6>
-            <div class="btn-group shadow-sm">
-                <button type="button" class="btn btn-success btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity">
-                    <i class="fas fa-plus mr-1"></i> Tambah Cavity
-                </button>
-                <button type="button" class="btn btn-info btn-xs px-3" id="editAddPointBtn" title="Tambah Point">
-                    <i class="fas fa-plus-circle mr-1"></i> Tambah Point
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            @php
-                $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
-                $maxCavityFound = 5;
-                $maxPointFound = 5;
-                foreach ($dimensions as $cav => $pts) {
-                    if (is_numeric($cav)) $maxCavityFound = max($maxCavityFound, (int) $cav);
-                    if (is_array($pts)) {
-                        foreach (array_keys($pts) as $pt) {
-                            if (is_numeric($pt)) $maxPointFound = max($maxPointFound, (int) $pt);
-                        }
-                    }
-                }
-            @endphp
-            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTable">
-                    <thead class="bg-light text-center small font-weight-bold">
-                        <tr id="editDimensionHeadRow">
-                            <th style="min-width: 100px; position: sticky; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
-                            @for ($j = 1; $j <= $maxPointFound; $j++)
-                                <th class="point-header" style="background-color: #f8f9fc !important; color: #475569 !important;">P{{ $j }}</th>
-                            @endfor
-                        </tr>
-                    </thead>
-                    <tbody id="editDimensionBody">
-                        @for ($i = 1; $i <= $maxCavityFound; $i++)
-                            <tr class="edit-cavity-row" data-cavity="{{ $i }}">
-                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
-                                    Cavity {{ $i }}
-                                </td>
-                                @for ($j = 1; $j <= $maxPointFound; $j++)
-                                    <td class="p-0">
-                                        <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
-                                            style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}]"
-                                            value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="-">
-                                    </td>
-                                @endfor
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
+    <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center mt-3" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+        <span class="font-weight-bold">PEMERIKSAAN DIMENSI (MM)</span>
+        <div class="btn-group shadow-sm">
+            <button type="button" class="btn btn-primary btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity" style="font-size: 0.7rem;">
+                <i class="fas fa-plus mr-1"></i> Cavity
+            </button>
+            <button type="button" class="btn btn-info btn-xs px-3" id="editAddPointBtn" title="Tambah Point" style="font-size: 0.7rem;">
+                <i class="fas fa-plus mr-1"></i> Point
+            </button>
         </div>
     </div>
 
-    <div class="mt-4 pb-2 d-flex justify-content-end" style="gap: 10px;">
-        <button type="button" class="btn btn-light btn-sm px-4 border shadow-sm" data-dismiss="modal">
-            <i class="fas fa-times mr-1"></i> Batal
-        </button>
-        <button type="submit" class="btn btn-primary btn-sm px-4 shadow-sm font-weight-bold" id="btnSubmit">
-            <i class="fas fa-save mr-1"></i> Simpan Perubahan
-        </button>
+    <div class="table-responsive bg-white rounded shadow-sm border mb-4" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTable">
+            <thead class="bg-light text-center small font-weight-bold">
+                <tr id="editDimensionHeadRow">
+                    <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                    @php
+                        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
+                        $maxCavityFound = 5;
+                        $maxPointFound = 5;
+                        foreach ($dimensions as $cav => $pts) {
+                            if (is_numeric($cav)) $maxCavityFound = max($maxCavityFound, (int) $cav);
+                            if (is_array($pts)) {
+                                foreach (array_keys($pts) as $pt) {
+                                    if (is_numeric($pt)) $maxPointFound = max($maxPointFound, (int) $pt);
+                                }
+                            }
+                        }
+                    @endphp
+                    @for ($j = 1; $j <= $maxPointFound; $j++)
+                        <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
+                    @endfor
+                </tr>
+            </thead>
+            <tbody id="editDimensionBody">
+                @for ($i = 1; $i <= $maxCavityFound; $i++)
+                    <tr class="edit-cavity-row" data-cavity="{{ $i }}">
+                        <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                            Cavity {{ $i }}
+                        </td>
+                        @for ($j = 1; $j <= $maxPointFound; $j++)
+                            <td class="p-0">
+                                <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                                    style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}]"
+                                    value="{{ $dimensions[$i][$j] ?? '' }}" placeholder="-">
+                            </td>
+                        @endfor
+                    </tr>
+                @endfor
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white border-top py-3 px-4 d-flex justify-content-end align-items-center" style="margin: 1.5rem -1.5rem -1.5rem -1.5rem; border-radius: 0 0 12px 12px;">
+        <button type="button" class="btn btn-light border px-4 font-weight-bold mr-2" data-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btnSubmit"><i class="fas fa-save mr-1"></i> Simpan Perubahan</button>
     </div>
 </form>
-
-<!-- Loading Overlay -->
-<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-    <div class="text-center">
-        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
-            <span class="sr-only">Loading...</span>
-        </div>
-        <div class="text-white mt-3 font-weight-bold">Menyimpan data...</div>
-    </div>
-</div>
 
 @php
 // We remove @push because this is loaded via AJAX and @push doesn't work in AJAX responses.
@@ -508,10 +487,10 @@
                 
                 if (finalJudgment === 'OK') {
                     judgmentSelect.removeClass('text-danger').addClass('text-success');
-                    judgmentDisplay.removeClass('alert-danger border-danger').addClass('alert-success border-success');
+                    judgmentDisplay.removeClass('alert-danger border-danger text-danger').addClass('alert-success border-success text-success');
                 } else {
                     judgmentSelect.removeClass('text-success').addClass('text-danger');
-                    judgmentDisplay.removeClass('alert-success border-success').addClass('alert-danger border-danger');
+                    judgmentDisplay.removeClass('alert-success border-success text-success').addClass('alert-danger border-danger text-danger');
                 }
             } else {
                 judgmentSelect.val('');
@@ -771,6 +750,7 @@
         $('#editChecksheetForm').on('submit', function (e) {
             const judgment = $('#judgment').val();
             const nextProses = $('#next_proses').val();
+            const totalNg = parseInt($('#total_ng').val()) || 0;
 
             if (judgment === 'NG' && !nextProses) {
                 e.preventDefault();
@@ -789,19 +769,48 @@
                 
                 return false;
             }
+
+            if (totalNg > 0) {
+                let isDefectEmpty = false;
+                let defectCount = 0;
+                
+                $('.defect-select').each(function() {
+                    defectCount++;
+                    if ($(this).val() === '') {
+                        isDefectEmpty = true;
+                        $(this).addClass('is-invalid');
+                        
+                        let that = $(this);
+                        setTimeout(function() {
+                            that.removeClass('is-invalid');
+                        }, 3000);
+                    }
+                });
+
+                if (defectCount === 0 || isDefectEmpty) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Defect Belum Dipilih',
+                        text: 'Total NG terisi, silakan pilih jenis defect pada daftar Detail NG!',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return false;
+                }
+            }
             
             $('#editChecksheetForm').find(':input:disabled').each(function() {
                 $(this).prop('disabled', false).addClass('was-disabled');
             });
             
-            $('#loadingOverlay').css('display', 'flex');
             $('#btnSubmit').prop('disabled', true);
+            $('#btnSubmit').html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
         });
         
         $(document).on('ajaxComplete ajaxError', function() {
             $('.was-disabled').prop('disabled', true).removeClass('was-disabled');
-            $('#loadingOverlay').hide();
             $('#btnSubmit').prop('disabled', false);
+            $('#btnSubmit').html('<i class="fas fa-save mr-1"></i> Simpan Perubahan');
         });
 
         // Initial check
@@ -887,7 +896,7 @@
                     '<input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
                     '</div>' +
                     '<div class="col-1 text-center">' +
-                    '<button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>' +
+                    '<button type="button" class="btn btn-danger btn-xs px-2 remove-defect-btn" title="Hapus"><i class="fas fa-minus"></i></button>' +
                     '</div>' +
                     '</div>');
                 
@@ -922,12 +931,23 @@
 
         $(document).on('input', '.defect-qty', calculateTotalNG);
 
-        $('#total_ng').on('input', function () {
+        $('#total_ng').on('input', function (e) {
+            // Prevent recursive loop if triggered by calculateTotalNG programmatically
+            if (e.originalEvent === undefined) return;
+            
             var ng = parseInt($(this).val()) || 0;
             if (ng > 0) {
                 $('#editAddDefectBtn').show();
                 if ($('.defect-row').length === 0) {
                     $('#editAddDefectBtn').trigger('click');
+                }
+                
+                if ($('.defect-row').length === 1) {
+                    $('.defect-row:first').find('.defect-qty').val(ng);
+                }
+            } else if (ng === 0) {
+                if ($('.defect-row').length === 1) {
+                    $('.defect-row:first').find('.defect-qty').val('');
                 }
             }
         });
@@ -954,8 +974,6 @@
         function updateEditWeightCavBadge() {
             var cnt = $('#editWeightCavContainer .edit-weight-cav-row').length;
             $('#editWeightCavCount').text(cnt + ' Cav');
-            $('#editAddWeightCavBtn').prop('disabled', cnt >= EDIT_MAX_WEIGHT_CAV);
-            $('#editRemoveWeightCavBtn').prop('disabled', cnt <= 1);
         }
         updateEditWeightCavBadge();
 
