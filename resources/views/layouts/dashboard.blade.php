@@ -1585,7 +1585,7 @@
                                         <div class="icon-circle bg-warning text-white mr-3"
                                             style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-layer-group"></i></div>
                                         <div>
-                                            <h6 class="modern-card-title">PRODUKSI PLATING, PAINTING, CROSS CUT & DOUBLE TAPE</h6><small
+                                            <h6 class="modern-card-title">PRODUKSI PLATING, PAINTING & DOUBLE TAPE</h6><small
                                                 class="text-muted">Monitoring {{ ucfirst($currentPlant ?? 'Karawang') }}</small>
                                         </div>
                                     </div>
@@ -1646,7 +1646,7 @@
                                                 elseif ($type === 'Cross Cut Plating') $typeColor = 'secondary';
                                                 elseif ($type === 'Cross Cut Painting') $typeColor = 'dark';
                                             @endphp
-                                            <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
+                                            <div class="col-6 col-md-4 col-lg-2 mb-3 px-2">
                                                 <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
                                                     data-status="{{ $isActive ? 'active' : 'idle' }}"
                                                     @if($isActive) data-part-number="{{ $latestData->item->part_number ?? '-' }}"
@@ -1726,7 +1726,7 @@
 
                                         <!-- Double Tape as 13th box -->
                                         @if($dashboardLayout['monitoringDoubleTape'] ?? true)
-                                        <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
+                                        <div class="col-6 col-md-4 col-lg-2 mb-3 px-2">
                                             @php
                                                 $data = $latestDoubleTape ?? null;
                                                 $isActive = $data ? true : false;
