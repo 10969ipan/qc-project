@@ -884,7 +884,6 @@
             </div>
             @endif
 
-            
             @if($dashboardLayout['injectionJakarta'] ?? true)
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
@@ -1573,6 +1572,363 @@
             @endif
         </div>
     @endif
+
+            <div class="col-12 mb-5">
+                <div class="row">
+                    <!-- Kiri: Plating & Painting -->
+                    <div class="col-xl-8 col-lg-7">
+                        @if(($dashboardLayout['monitoringPlating'] ?? true) || ($dashboardLayout['monitoringPainting'] ?? true))
+                        <div class="mb-4">
+                            <div class="modern-card h-100">
+                                <div class="modern-card-header d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-warning text-white mr-3"
+                                            style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-layer-group"></i></div>
+                                        <div>
+                                            <h6 class="modern-card-title">PRODUKSI PLATING & PAINTING</h6><small
+                                                class="text-muted">Monitoring {{ ucfirst($currentPlant ?? 'Karawang') }}</small>
+                                        </div>
+                                    </div>
+                                    @php
+                                        $activeCount = 0;
+                                        foreach (range(1, 12) as $i) {
+                                            if ($activePlating->get($i) || $activePainting->get($i)) {
+                                                $activeCount++;
+                                            }
+                                        }
+                                    @endphp
+                                    <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running: {{ $activeCount }}</span>
+                                </div>
+                                <div class="card-body bg-light" style="background: #fdfdfe;">
+                                    <div class="row px-2">
+                                        @foreach (range(1, 12) as $i)
+                                            @php
+                                                $d_plate = $activePlating->get($i) ?? null;
+                                                $d_paint = $activePainting->get($i) ?? null;
+                                                
+                                                $latestData = null;
+                                                $type = null;
+                                                
+                                                if ($d_plate && $d_paint) {
+                                                    if ($d_plate->created_at > $d_paint->created_at) {
+                                                        $latestData = $d_plate;
+                                                        $type = 'Plating';
+                                                    } else {
+                                                        $latestData = $d_paint;
+                                                        $type = 'Painting';
+                                                    }
+                                                } elseif ($d_plate) {
+                                                    $latestData = $d_plate;
+                                                    $type = 'Plating';
+                                                } elseif ($d_paint) {
+                                                    $latestData = $d_paint;
+                                                    $type = 'Painting';
+                                                }
+
+                                                $isActive = $latestData ? true : false;
+                                                $isNg = $isActive && $latestData->judgment === 'NG';
+                                                $statusClass = 'status-idle';
+                                                if ($isActive) {
+                                                    $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                                }
+                                            @endphp
+                                            <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
+                                                <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                                    data-status="{{ $isActive ? 'active' : 'idle' }}"
+                                                    @if($isActive) data-part-number="{{ $latestData->item->part_number ?? '-' }}"
+                                                        data-item-name="{{ $latestData->item->name ?? '-' }}" data-judgment="{{ $latestData->judgment }}"
+                                                        data-total-qty="{{ $latestData->total_qty ?? '-' }}"
+                                                        data-sampling-qty="{{ $latestData->sampling_qty ?? '-' }}"
+                                                        data-ok-count="{{ $latestData->total_ok ?? '-' }}" data-ng-count="{{ $latestData->total_ng ?? '-' }}"
+                                                        data-operator="{{ $operatorMap[$latestData->operator_initials] ?? $latestData->operator_initials ?? '-' }}"
+                                                        data-date="{{ $latestData->date ? \Carbon\Carbon::parse($latestData->date)->format('d/m/Y') : '-' }}"
+                                                        data-shift="{{ $latestData->shift ?? '-' }}"
+                                                    data-time="{{ $latestData->created_at ? $latestData->created_at->format('H:i') : '-' }}" @endif
+                                                    title="Click untuk detail">
+                                                    
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <div class="flex flex-col">
+                                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">MEJA-{{ $i }}</h4>
+                                                        </div>
+                                                        @if($isActive)
+                                                            <div class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                                <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
+                                                                RUNNING
+                                                            </div>
+                                                        @else
+                                                            <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                                <span class="material-icons-round text-[10px]">pause_circle_outline</span>
+                                                                IDLE
+                                                            </div>
+                                                        @endif
+                                                    </div>
+
+                                                    <div class="space-y-1.5 min-h-[100px]">
+                                                        @if($isActive)
+                                                            <div class="flex items-center justify-between text-[0.55rem] leading-tight">
+                                                                <span class="text-slate-500 dark:text-slate-400">Proses</span>
+                                                                <div class="flex items-center gap-1 bg-{{ $type == 'Plating' ? 'warning' : 'info' }} px-1.5 py-0.5 rounded text-white font-bold text-[0.5rem] tracking-wider uppercase shadow-sm">
+                                                                    {{ $type }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex items-center justify-between text-[0.55rem] leading-tight mt-1">
+                                                                <span class="text-slate-500 dark:text-slate-400">Item</span>
+                                                                <span class="font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $latestData->item->name ?? '-' }}</span>
+                                                            </div>
+                                                            <div class="flex items-center justify-between text-[0.55rem] leading-tight mt-0.5">
+                                                                <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                                <span class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $latestData->item->part_number ?? '-' }}</span>
+                                                            </div>
+                                                            <div class="flex items-center justify-between text-[0.55rem] leading-tight">
+                                                                <span class="text-slate-500 dark:text-slate-400">Jam</span>
+                                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $latestData->created_at ? $latestData->created_at->format('H:i') : '-' }} WIB</span>
+                                                            </div>
+                                                            <div class="flex items-center justify-between text-[0.55rem] leading-tight">
+                                                                <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                                <div class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                                    <span class="material-icons-round text-[0.45rem]">person</span>
+                                                                    <span class="truncate max-w-[120px]">{{ $operatorMap[$latestData->operator_initials] ?? $latestData->operator_initials ?? '-' }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <div class="flex justify-between text-[0.7rem] mb-1 font-medium">
+                                                                    <span class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                                    <span class="{{ $latestData->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $latestData->judgment }}</span>
+                                                                </div>
+                                                                <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                                    <div class="bg-gradient-to-r {{ $latestData->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full" style="width: 100%"></div>
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                                <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Meja Idle</p>
+                                                                <p class="text-[0.6rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">Wait Check QC</p>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Kanan: Cross Cut & Double Tape -->
+                    <div class="col-xl-4 col-lg-5">
+                        @if($dashboardLayout['monitoringCrossCutPlating'] ?? true)
+                        <div class="mb-4">
+                        <div class="modern-card h-100">
+                            <div class="modern-card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-secondary text-white mr-3"
+                                        style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cut"></i></div>
+                                    <div>
+                                        <h6 class="modern-card-title">CROSS CUT PLATING</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body bg-light" style="background: #fdfdfe;">
+                                @php
+                                    $data = $latestCrossCutPlating ?? null;
+                                    $isActive = $data ? true : false;
+                                @endphp
+                                <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="flex flex-col">
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">Input Terakhir</h4>
+                                        </div>
+                                        @if($isActive)
+                                            <div class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                LATEST
+                                            </div>
+                                        @else
+                                            <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                NO DATA
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="space-y-1.5 min-h-[100px]">
+                                        @if($isActive)
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Item</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->name ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight mt-0.5">
+                                                <span class="text-slate-500 dark:text-slate-400">Date</span>
+                                                <span class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->production_datetime ? \Carbon\Carbon::parse($data->production_datetime)->format('d/m/Y H:i') : '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                <div class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                    <span class="material-icons-round text-[0.45rem]">person</span>
+                                                    <span class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Visual</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $data->visual_ok == '1' ? 'OK' : 'NG' }}</span>
+                                            </div>
+                                        @else
+                                            <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Belum ada data Cross Cut Plating</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($dashboardLayout['monitoringCrossCutPainting'] ?? true)
+                    <div class="mb-4">
+                        <div class="modern-card h-100">
+                            <div class="modern-card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-secondary text-white mr-3"
+                                        style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-cut"></i></div>
+                                    <div>
+                                        <h6 class="modern-card-title">CROSS CUT PAINTING</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body bg-light" style="background: #fdfdfe;">
+                                @php
+                                    $data = $latestCrossCutPainting ?? null;
+                                    $isActive = $data ? true : false;
+                                @endphp
+                                <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="flex flex-col">
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">Input Terakhir</h4>
+                                        </div>
+                                        @if($isActive)
+                                            <div class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                LATEST
+                                            </div>
+                                        @else
+                                            <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                NO DATA
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="space-y-1.5 min-h-[100px]">
+                                        @if($isActive)
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Item</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->name ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight mt-0.5">
+                                                <span class="text-slate-500 dark:text-slate-400">Date</span>
+                                                <span class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->production_datetime ? \Carbon\Carbon::parse($data->production_datetime)->format('d/m/Y H:i') : '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                <div class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                    <span class="material-icons-round text-[0.45rem]">person</span>
+                                                    <span class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Visual</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $data->visual_ok == '1' ? 'OK' : 'NG' }}</span>
+                                            </div>
+                                        @else
+                                            <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Belum ada data Cross Cut Painting</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($dashboardLayout['monitoringDoubleTape'] ?? true)
+                    <div class="mb-4">
+                        <div class="modern-card h-100">
+                            <div class="modern-card-header d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-dark text-white mr-3"
+                                        style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fas fa-tape"></i></div>
+                                    <div>
+                                        <h6 class="modern-card-title">DOUBLE TAPE</h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body bg-light" style="background: #fdfdfe;">
+                                @php
+                                    $data = $latestDoubleTape ?? null;
+                                    $isActive = $data ? true : false;
+                                    $isNg = $isActive && $data->judgment === 'NG';
+                                    $statusClass = 'status-idle';
+                                    if ($isActive) {
+                                        $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
+                                    }
+                                @endphp
+                                <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="flex flex-col">
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">Input Terakhir</h4>
+                                        </div>
+                                        @if($isActive)
+                                            <div class="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-green-200 dark:border-green-800">
+                                                LATEST
+                                            </div>
+                                        @else
+                                            <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded-full text-[0.55rem] font-bold border border-gray-200 dark:border-gray-700">
+                                                NO DATA
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="space-y-1.5 min-h-[100px]">
+                                        @if($isActive)
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Item</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->name ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight mt-0.5">
+                                                <span class="text-slate-500 dark:text-slate-400">Part No.</span>
+                                                <span class="font-mono font-bold text-slate-700 dark:text-slate-200 truncate ml-2 text-right">{{ $data->item->part_number ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">Date</span>
+                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $data->created_at ? $data->created_at->format('d/m/Y H:i') : '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
+                                                <span class="text-slate-500 dark:text-slate-400">QC</span>
+                                                <div class="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded font-medium text-slate-700 dark:text-slate-300">
+                                                    <span class="material-icons-round text-[0.45rem]">person</span>
+                                                    <span class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="flex justify-between text-[0.7rem] mb-1 font-medium">
+                                                    <span class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                    <span class="{{ $data->judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} font-bold">{{ $data->judgment }}</span>
+                                                </div>
+                                                <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                                    <div class="bg-gradient-to-r {{ $data->judgment === 'OK' ? 'from-green-400 to-green-600' : 'from-red-400 to-red-600' }} h-full rounded-full" style="width: 100%"></div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
+                                                <p class="text-[0.65rem] text-slate-400 dark:text-slate-500">Belum ada data Double Tape</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    </div>
+                </div>
+            </div>
 
     
     <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel"

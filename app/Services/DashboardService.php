@@ -120,6 +120,13 @@ class DashboardService extends BaseService
             }
             $productionMonitoring = $this->getProductionMonitoring(); // Default
 
+            // Fetch Plating & Painting Monitoring (Use the targeted plant, defaulting to Karawang)
+            $targetPlantForMonitoring = request('plant') ?? auth()->user()->plant_id;
+            if (!$targetPlantForMonitoring || $targetPlantForMonitoring == 'total' || $targetPlantForMonitoring == \App\Models\Plant::resolveId('total')) {
+                $targetPlantForMonitoring = 'karawang'; // Fallback
+            }
+            $activeMonitoringOther = $this->getOtherProductionMonitoring($targetPlantForMonitoring);
+
             $activeReport = MonthlyReport::where('is_active', true)->first();
 
             // NG Rate Data for Charts
@@ -160,7 +167,8 @@ class DashboardService extends BaseService
 
             return array_merge(
                 compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView', 'claimFrequency'),
-                $productionMonitoring
+                $productionMonitoring,
+                $activeMonitoringOther
             );
         })();
     }
@@ -327,6 +335,79 @@ class DashboardService extends BaseService
         $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
 
         return compact('activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount');
+    }
+
+    /**
+     * Get monitoring data for Plating, Painting, Cross Cut, Double Tape
+     */
+    private function getOtherProductionMonitoring(?string $plantIdentifier = null): array
+    {
+        $now = now();
+        $plantId = $this->resolvePlantId($plantIdentifier ?? request('plant') ?? auth()->user()->plant_id);
+
+        $currentProductionDate = ShiftHelper::getProductionDate($now);
+        $currentShift = ShiftHelper::getShift($now);
+
+        $activePlating = $this->fetchActivePlating($currentProductionDate, $currentShift, $plantId);
+        $activePainting = $this->fetchActivePainting($currentProductionDate, $currentShift, $plantId);
+        
+        $latestCrossCutPlating = $this->fetchLatestRecord(\App\Models\CrossCutChecksheet::class, $plantId, $currentProductionDate, $currentShift);
+        $latestCrossCutPainting = $this->fetchLatestRecord(\App\Models\CrossCutPaintingChecksheet::class, $plantId, $currentProductionDate, $currentShift);
+        $latestDoubleTape = $this->fetchLatestRecord(\App\Models\DoubleTapeChecksheet::class, $plantId, $currentProductionDate, $currentShift);
+
+        return compact('activePlating', 'activePainting', 'latestCrossCutPlating', 'latestCrossCutPainting', 'latestDoubleTape');
+    }
+
+    private function fetchLatestRecord(string $modelClass, $plantId, $date, $shift)
+    {
+        $query = $modelClass::with('item')->orderBy('created_at', 'desc');
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        if ($modelClass === \App\Models\CrossCutChecksheet::class || $modelClass === \App\Models\CrossCutPaintingChecksheet::class) {
+            $query->whereDate('production_datetime', $date)
+                  ->where('production_shift', $shift);
+        } else {
+            $query->where('date', $date)
+                  ->where('shift', $shift);
+        }
+
+        return $query->first();
+    }
+
+    private function fetchActivePlating($date, $shift, $plantId)
+    {
+        $query = PlatingChecksheet::with('item')
+            ->where('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get()
+            ->unique('line')
+            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
+    }
+
+    private function fetchActivePainting($date, $shift, $plantId)
+    {
+        $query = \App\Models\PaintingChecksheet::with('item')
+            ->where('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get()
+            ->unique('line')
+            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
 
     private function fetchActiveLines($date, $shift, $plantId)

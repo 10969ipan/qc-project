@@ -247,6 +247,11 @@
                                     'chartNgSingle' => 'Monitoring Rate NG [Plant] (Single View)',
                                     'productionSingle' => 'Produksi Sub Assy [Plant] (Single View)',
                                     'injectionSingle' => 'Produksi Injection [Plant] (Single View)',
+                                    'monitoringPlating' => 'Produksi Plating',
+                                    'monitoringPainting' => 'Produksi Painting',
+                                    'monitoringCrossCutPlating' => 'Cross Cut Plating',
+                                    'monitoringCrossCutPainting' => 'Cross Cut Painting',
+                                    'monitoringDoubleTape' => 'Double Tape',
                                 ];
                             @endphp
 
