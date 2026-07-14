@@ -445,26 +445,32 @@ class PlatingChecksheetController extends Controller
         $itemId = $request->input('item_id');
         $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
 
-        if (!$itemId || !$operatorInitials) {
+        if (!$operatorInitials) {
             return response()->json(['success' => false]);
         }
 
-        $last = PlatingChecksheet::withoutGlobalScope('plant')
-            ->where('item_id', $itemId)
+        $lastUserActivity = PlatingChecksheet::withoutGlobalScope('plant')
             ->where('operator_initials', $operatorInitials)
             ->latest('id')
             ->first();
 
-        if ($last) {
-            return response()->json([
-                'success' => true,
-                'injection_date' => $last->injection_date ? $last->injection_date->toDateString() : null,
-                'injection_shift' => $last->injection_shift,
-                'line' => $last->line
-            ]);
+        $line = $lastUserActivity ? $lastUserActivity->line : null;
+
+        $lastItemActivity = null;
+        if ($itemId) {
+            $lastItemActivity = PlatingChecksheet::withoutGlobalScope('plant')
+                ->where('item_id', $itemId)
+                ->where('operator_initials', $operatorInitials)
+                ->latest('id')
+                ->first();
         }
 
-        return response()->json(['success' => false]);
+        return response()->json([
+            'success' => true,
+            'injection_date' => $lastItemActivity && $lastItemActivity->injection_date ? $lastItemActivity->injection_date->toDateString() : null,
+            'injection_shift' => $lastItemActivity ? $lastItemActivity->injection_shift : null,
+            'line' => $line
+        ]);
     }
 
     /**
