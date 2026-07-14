@@ -366,8 +366,8 @@ class DashboardService extends BaseService
         }
 
         if ($modelClass === \App\Models\CrossCutChecksheet::class || $modelClass === \App\Models\CrossCutPaintingChecksheet::class) {
-            $query->whereDate('production_datetime', $date)
-                  ->where('production_shift', $shift);
+            $query->whereDate('qc_datetime', $date)
+                  ->where('qc_shift', $shift);
         } else {
             $query->where('date', $date)
                   ->where('shift', $shift);

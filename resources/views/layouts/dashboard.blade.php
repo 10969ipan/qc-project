@@ -1767,9 +1767,9 @@
                                                     <span class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                <span class="text-slate-500 dark:text-slate-400">Visual</span>
-                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $data->visual_ok == '1' ? 'OK' : 'NG' }}</span>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight mt-1">
+                                                <span class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                <span class="font-bold {{ $data->position_remark_judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $data->position_remark_judgment ?? 'NG' }}</span>
                                             </div>
                                         @else
                                             <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
@@ -1832,9 +1832,9 @@
                                                     <span class="truncate max-w-[120px]">{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}</span>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight">
-                                                <span class="text-slate-500 dark:text-slate-400">Visual</span>
-                                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $data->visual_ok == '1' ? 'OK' : 'NG' }}</span>
+                                            <div class="flex items-center justify-between text-[0.65rem] leading-tight mt-1">
+                                                <span class="text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Status</span>
+                                                <span class="font-bold {{ $data->position_remark_judgment === 'OK' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $data->position_remark_judgment ?? 'NG' }}</span>
                                             </div>
                                         @else
                                             <div class="p-2 rounded-lg text-center flex flex-col items-center justify-center h-full">
