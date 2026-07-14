@@ -41,6 +41,7 @@ class StoreCrossCutChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'operator_initials' => 'nullable|string|max:255',
             'next_proses' => 'nullable|string',
+            'line' => 'required|string|max:255',
         ];
     }
 }

@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Input Data Checksheet')
 
@@ -82,7 +82,7 @@
                             <tr class="text-center">
 
                                 <th>Item Part</th>
-                                <th>Tanggal &amp; Shift Produksi / QC</th>
+                                <th>Tanggal, Shift &amp; Meja</th>
                                 <th>Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                                 <th>Posisi Remark (Judgement)</th>
                                 <th>Inisial QC</th>
@@ -155,6 +155,15 @@
                                                 </option>
                                             </select>
                                         </div>
+                                    </div>
+                                    <div class="form-group mb-0 mt-2">
+                                        <label>Meja</label>
+                                        <select class="form-control" name="line" id="lineSelect" required>
+                                            <option value="" disabled selected>Pilih Meja</option>
+                                            @foreach (range(1, 12) as $i)
+                                                <option value="{{ $i }}">Meja {{ $i }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </td>
                                 <!-- Hasil Cross Cut (Gambar) -->
@@ -438,6 +447,46 @@
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
             window.initItemSearch('item_id');
+        });
+        
+            // --- Auto-fill Meja (Line) ---
+            var lastDataUrl = "{{ route('cross_cut_painting.last_data') }}";
+            var lineSelect = document.getElementById('lineSelect');
+            var initialsInput = document.getElementById('operatorInitialsInput');
+
+            function fetchLastData() {
+                var initials = initialsInput ? initialsInput.value : '';
+
+                if (!initials) return;
+
+                var params = new URLSearchParams({
+                    operator_initials: initials
+                });
+
+                fetch(lastDataUrl + '?' + params.toString())
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success && data.line) {
+                            lineSelect.value = data.line;
+                        }
+                    })
+                    .catch(function(e) { console.error('Error fetching last data:', e); });
+            }
+
+            function debounce(func, wait) {
+                var timeout;
+                return function() {
+                    var context = this, args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() { func.apply(context, args); }, wait);
+                };
+            }
+
+            if (initialsInput) initialsInput.addEventListener('input', debounce(function() {
+                fetchLastData();
+            }, 500));
+            
+            setTimeout(fetchLastData, 300);
         });
     </script>
 @endpush

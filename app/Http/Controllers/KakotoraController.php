@@ -111,7 +111,8 @@ class KakotoraController extends Controller
             'defect_category' => 'nullable|string|max:255',
             'status' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
-            'form_analysis' => 'nullable|file|mimes:pptx,xlsx,doc,docx,pdf|max:10240',
+            'form_analysis' => 'required|file|mimes:pptx,xlsx,doc,docx,pdf|max:10240',
+            'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
         $data = $validated;
@@ -122,6 +123,13 @@ class KakotoraController extends Controller
             $filename = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('kakotora', $filename, 'public');
             $data['form_analysis_path'] = $path;
+        }
+
+        if ($request->hasFile('foto')) {
+            $file = $request->file('foto');
+            $filename = time() . '_foto_' . $file->getClientOriginalName();
+            $path = $file->storeAs('kakotora', $filename, 'public');
+            $data['foto_path'] = $path;
         }
 
         $kakotora = Kakotora::create($data);
@@ -168,6 +176,7 @@ class KakotoraController extends Controller
             'status' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
             'form_analysis' => 'nullable|file|mimes:pptx,xlsx,doc,docx,pdf|max:10240',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
         if ($request->has('delete_file') && $request->delete_file == '1') {
@@ -188,6 +197,24 @@ class KakotoraController extends Controller
             $validated['form_analysis_path'] = $path;
         }
 
+        if ($request->has('delete_foto') && $request->delete_foto == '1') {
+            if ($kakotora->foto_path) {
+                Storage::disk('public')->delete($kakotora->foto_path);
+                $validated['foto_path'] = null;
+            }
+        }
+        
+        if ($request->hasFile('foto')) {
+            // Delete old file if exists
+            if ($kakotora->foto_path) {
+                Storage::disk('public')->delete($kakotora->foto_path);
+            }
+            $file = $request->file('foto');
+            $filename = time() . '_foto_' . $file->getClientOriginalName();
+            $path = $file->storeAs('kakotora', $filename, 'public');
+            $validated['foto_path'] = $path;
+        }
+
         $kakotora->update($validated);
         ActivityLogger::log('updated', $kakotora, "Memperbarui data KAKOTORA: {$kakotora->no_reg}");
 
@@ -199,6 +226,9 @@ class KakotoraController extends Controller
         $plant = $kakotora->plant;
         if ($kakotora->form_analysis_path) {
             Storage::disk('public')->delete($kakotora->form_analysis_path);
+        }
+        if ($kakotora->foto_path) {
+            Storage::disk('public')->delete($kakotora->foto_path);
         }
         $noReg = $kakotora->no_reg;
         $kakotora->delete();
@@ -222,6 +252,21 @@ class KakotoraController extends Controller
         return response()->json(['success' => false, 'message' => 'File tidak ditemukan.'], 404);
     }
 
+    public function deleteFoto($id)
+    {
+        $kakotora = Kakotora::findOrFail($id);
+
+        if ($kakotora->foto_path) {
+            Storage::disk('public')->delete($kakotora->foto_path);
+            $kakotora->update(['foto_path' => null]);
+            ActivityLogger::log('updated', $kakotora, "Menghapus file foto KAKOTORA: {$kakotora->no_reg}");
+            
+            return response()->json(['success' => true, 'message' => 'Foto berhasil dihapus.']);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Foto tidak ditemukan.'], 404);
+    }
+
     public function bulkDestroy(Request $request)
     {
         if (auth()->user()->role !== 'admin') {
@@ -242,6 +287,9 @@ class KakotoraController extends Controller
             foreach ($records as $record) {
                 if ($record->form_analysis_path) {
                     Storage::disk('public')->delete($record->form_analysis_path);
+                }
+                if ($record->foto_path) {
+                    Storage::disk('public')->delete($record->foto_path);
                 }
                 ActivityLogger::log('deleted', null, "Menghapus massal data KAKOTORA: {$record->no_reg}");
                 $record->delete();

@@ -222,6 +222,30 @@ class CrossCutChecksheetController extends Controller
     }
 
     /**
+     * API: Get last data (line) for a given item + operator.
+     */
+    public function getLastData(Request $request)
+    {
+        $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
+
+        if (!$operatorInitials) {
+            return response()->json(['success' => false]);
+        }
+
+        $lastUserActivity = CrossCutChecksheet::withoutGlobalScope('plant')
+            ->where('operator_initials', $operatorInitials)
+            ->latest('id')
+            ->first();
+
+        $line = $lastUserActivity ? $lastUserActivity->line : null;
+
+        return response()->json([
+            'success' => true,
+            'line' => $line
+        ]);
+    }
+
+    /**
      * API: Get auto-generated No Lot QC based on format A07AE26A.
      * Month(1 char) + Date(2 chars) + Initials + Year(2 chars) + SequenceChar(repeated by shift count)
      */

@@ -351,11 +351,11 @@ class DashboardService extends BaseService
         $activePlating = $this->fetchActivePlating($currentProductionDate, $currentShift, $plantId);
         $activePainting = $this->fetchActivePainting($currentProductionDate, $currentShift, $plantId);
         
-        $latestCrossCutPlating = $this->fetchLatestRecord(\App\Models\CrossCutChecksheet::class, $plantId, $currentProductionDate, $currentShift);
-        $latestCrossCutPainting = $this->fetchLatestRecord(\App\Models\CrossCutPaintingChecksheet::class, $plantId, $currentProductionDate, $currentShift);
+        $activeCrossCutPlating = $this->fetchActiveCrossCutPlating($currentProductionDate, $currentShift, $plantId);
+        $activeCrossCutPainting = $this->fetchActiveCrossCutPainting($currentProductionDate, $currentShift, $plantId);
         $latestDoubleTape = $this->fetchLatestRecord(\App\Models\DoubleTapeChecksheet::class, $plantId, $currentProductionDate, $currentShift);
 
-        return compact('activePlating', 'activePainting', 'latestCrossCutPlating', 'latestCrossCutPainting', 'latestDoubleTape');
+        return compact('activePlating', 'activePainting', 'activeCrossCutPlating', 'activeCrossCutPainting', 'latestDoubleTape');
     }
 
     private function fetchLatestRecord(string $modelClass, $plantId, $date, $shift)
@@ -398,6 +398,40 @@ class DashboardService extends BaseService
         $query = \App\Models\PaintingChecksheet::with('item')
             ->where('date', $date)
             ->where('shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get()
+            ->unique('line')
+            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
+    }
+
+    private function fetchActiveCrossCutPlating($date, $shift, $plantId)
+    {
+        $query = \App\Models\CrossCutChecksheet::with('item')
+            ->whereDate('qc_datetime', $date)
+            ->where('qc_shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $query->where('plant_id', $plantId);
+        }
+
+        return $query->get()
+            ->unique('line')
+            ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
+    }
+
+    private function fetchActiveCrossCutPainting($date, $shift, $plantId)
+    {
+        $query = \App\Models\CrossCutPaintingChecksheet::with('item')
+            ->whereDate('qc_datetime', $date)
+            ->where('qc_shift', $shift)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
 

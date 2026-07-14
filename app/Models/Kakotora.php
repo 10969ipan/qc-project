@@ -30,6 +30,7 @@ class Kakotora extends Model
         'supplier',
         'defect_category',
         'status',
+        'foto_path',
         'form_analysis_path',
         'remarks',
     ];
@@ -40,5 +41,13 @@ class Kakotora extends Model
     public function getFormAnalysisUrlAttribute()
     {
         return $this->form_analysis_path ? asset('storage/' . $this->form_analysis_path) : null;
+    }
+
+    /**
+     * Get the URL for the foto file.
+     */
+    public function getFotoUrlAttribute()
+    {
+        return $this->foto_path ? asset('storage/' . $this->foto_path) : null;
     }
 }

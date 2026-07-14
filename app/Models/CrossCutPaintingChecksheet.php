@@ -18,6 +18,7 @@ class CrossCutPaintingChecksheet extends Model
         'qc_shift',
         'production_datetime',
         'qc_datetime',
+        'line',
         'image_path',
         'pencil_scratch',
         'tap_test',

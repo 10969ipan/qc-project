@@ -192,6 +192,30 @@ class CrossCutPaintingChecksheetController extends Controller
         return response()->file(Storage::disk('public')->path($checksheet->image_path));
     }
 
+    /**
+     * API: Get last data (line) for a given item + operator.
+     */
+    public function getLastData(Request $request)
+    {
+        $operatorInitials = strtoupper(trim($request->input('operator_initials', '')));
+
+        if (!$operatorInitials) {
+            return response()->json(['success' => false]);
+        }
+
+        $lastUserActivity = CrossCutPaintingChecksheet::withoutGlobalScope('plant')
+            ->where('operator_initials', $operatorInitials)
+            ->latest('id')
+            ->first();
+
+        $line = $lastUserActivity ? $lastUserActivity->line : null;
+
+        return response()->json([
+            'success' => true,
+            'line' => $line
+        ]);
+    }
+
     public function getData($id)
     {
         $query = CrossCutPaintingChecksheet::with('item');

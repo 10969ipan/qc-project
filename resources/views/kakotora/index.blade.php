@@ -253,7 +253,7 @@
                 <thead>
                     <tr>
                         @if(auth()->user()->role === 'admin')
-                            <th width="40" class="text-center align-middle" style="width: 50px;">
+                            <th rowspan="2" width="40" class="text-center align-middle" style="width: 50px;">
                                 <div class="d-flex flex-column align-items-center justify-content-center">
                                     <span style="font-size: 10px; margin-bottom: 5px; white-space: nowrap;">Semua (<span id="checkedCountDisplay">0</span>)</span>
                                     <div class="custom-control custom-checkbox">
@@ -263,31 +263,36 @@
                                 </div>
                             </th>
                         @endif
-                        <th width="40">NO</th>
-                        <th width="50" class="text-center">DETAIL</th>
-                        <th>TANGGAL ENTRY</th>
-                        <th>NO REGISTRASI</th>
-                        <th>ISSUE DATE</th>
-                        <th>NO. REVMODEL</th>
-                        <th>FAMILY</th>
-                        <th>CATEGORY</th>
-                        <th>CLAIM</th>
-                        <th>MODEL</th>
-                        <th>PART NAME</th>
-                        <th>PART NO.</th>
-                        <th>MOULD</th>
-                        <th>OWNER</th>
-                        <th class="d-none">SIMILAR PART</th>
-                        <th>SECTION</th>
-                        <th class="d-none">PROBLEM</th>
-                        <th>PROSES</th>
-                        <th class="d-none">CAUSE</th>
-                        <th class="d-none">COUNTERMEASURE</th>
-                        <th>PIC</th>
-                        <th>SUPPLIER</th>
-                        <th>DEFECT</th>
-                        <th>STATUS</th>
-                        <th width="100">ACTION</th>
+                        <th rowspan="2" width="40" class="align-middle">NO</th>
+                        <th rowspan="2" width="50" class="text-center align-middle">DETAIL</th>
+                        <th rowspan="2" class="align-middle">TANGGAL ENTRY</th>
+                        <th rowspan="2" class="align-middle">NO REGISTRASI</th>
+                        <th rowspan="2" class="align-middle">ISSUE DATE</th>
+                        <th rowspan="2" class="align-middle">NO. REVMODEL</th>
+                        <th rowspan="2" class="align-middle">FAMILY</th>
+                        <th rowspan="2" class="align-middle">CATEGORY</th>
+                        <th rowspan="2" class="align-middle">CLAIM</th>
+                        <th rowspan="2" class="align-middle">MODEL</th>
+                        <th rowspan="2" class="align-middle">PART NAME</th>
+                        <th rowspan="2" class="align-middle">PART NO.</th>
+                        <th rowspan="2" class="align-middle">MOULD</th>
+                        <th rowspan="2" class="align-middle">OWNER</th>
+                        <th rowspan="2" class="d-none align-middle">SIMILAR PART</th>
+                        <th rowspan="2" class="align-middle">SECTION</th>
+                        <th rowspan="2" class="d-none align-middle">PROBLEM</th>
+                        <th rowspan="2" class="align-middle">PROSES</th>
+                        <th rowspan="2" class="d-none align-middle">CAUSE</th>
+                        <th rowspan="2" class="d-none align-middle">COUNTERMEASURE</th>
+                        <th rowspan="2" class="align-middle">PIC</th>
+                        <th rowspan="2" class="align-middle">SUPPLIER</th>
+                        <th rowspan="2" class="align-middle">DEFECT</th>
+                        <th rowspan="2" class="align-middle">STATUS</th>
+                        <th colspan="2" class="text-center align-middle">EVIDENCE</th>
+                        <th rowspan="2" width="100" class="align-middle">ACTION</th>
+                    </tr>
+                    <tr>
+                        <th class="text-center align-middle">FOTO</th>
+                        <th class="text-center align-middle">REPORT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -331,14 +336,29 @@
                                         </span>
                                     </td>
                                     <td class="text-center align-middle">
+                                        @if ($item->foto_path)
+                                            <button type="button" class="btn btn-outline-info btn-sm shadow-sm rounded view-foto-btn-kakotora"
+                                                data-src="{{ $item->foto_url }}"
+                                                title="Lihat Foto">
+                                                <i class="fas fa-image"></i>
+                                            </button>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        @if ($item->form_analysis_path)
+                                            <button type="button" class="btn btn-outline-info btn-sm shadow-sm rounded view-pdf-btn-kakotora"
+                                                data-src="{{ $item->form_analysis_url }}"
+                                                title="Lihat Form Analysis">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </button>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="text-center align-middle">
                                         <div class="d-flex justify-content-center align-items-center" style="gap: 5px;">
-                                            @if ($item->form_analysis_path)
-                                                <button type="button" class="btn btn-outline-info btn-sm shadow-sm rounded view-pdf-btn-kakotora"
-                                                    data-src="{{ $item->form_analysis_url }}"
-                                                    title="Lihat Form Analysis">
-                                                    <i class="fas fa-file-pdf"></i>
-                                                </button>
-                                            @endif
                                             <button type="button" class="btn btn-outline-primary btn-sm btn-edit-kakotora shadow-sm rounded"
                                                 data-id="{{ $item->id }}" data-date="{{ $item->date }}"
                                                 data-no_reg="{{ $item->no_reg }}" data-issue_date="{{ $item->issue_date }}"
@@ -356,6 +376,7 @@
                                                 data-defect_category="{{ $item->defect_category }}"
                                                 data-status="{{ $item->status }}" data-remarks="{{ $item->remarks }}"
                                                 data-file_url="{{ $item->form_analysis_path ? $item->form_analysis_url : '' }}"
+                                                data-foto_url="{{ $item->foto_path ? $item->foto_url : '' }}"
                                                 title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -606,10 +627,17 @@
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-start mb-2">
-                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Form Analysis</label>
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Form Analysis <span class="text-danger">*</span></label>
                                     <div class="col-sm-9">
-                                        <input type="file" name="form_analysis" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;">
+                                        <input type="file" name="form_analysis" id="add_form_analysis" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;">
                                         <small class="text-muted">Max 10MB (pptx, xlsx, doc, pdf)</small>
+                                    </div>
+                                </div>
+                                <div class="form-group row align-items-start mb-2">
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Foto <span class="text-danger">*</span></label>
+                                    <div class="col-sm-9">
+                                        <input type="file" name="foto" id="add_foto" class="form-control-file border-0 p-1 shadow-sm rounded" style="background:#fff;" accept="image/*">
+                                        <small class="text-muted">Max 5MB (jpeg, png, jpg, gif)</small>
                                     </div>
                                 </div>
                             </div>
@@ -875,7 +903,7 @@
                                 <div class="mb-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
                                     <div class="p-3">
                                         <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
-                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Form Analysis
+                                            <i class="fas fa-file-pdf text-danger mr-1"></i> Form Analysis <span class="text-danger">*</span>
                                         </label>
                                         <div class="d-flex align-items-center">
                                             <input type="file" name="form_analysis" id="edit_form_analysis" class="form-control-file form-control-sm border-0 shadow-sm" style="background:#fff;" accept=".pptx,.xlsx,.doc,.docx,.pdf">
@@ -885,6 +913,21 @@
                                         </div>
                                         <small class="text-muted text-xs d-block mt-1">Upload file form analysis. Max 10MB (pptx, xlsx, doc, pdf).</small>
                                         <div id="edit_file_preview" class="mt-2"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                                    <div class="p-3">
+                                        <label class="font-weight-bold d-block mb-1" style="font-size:0.82rem;">
+                                            <i class="fas fa-image text-info mr-1"></i> Foto <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="file" name="foto" id="edit_foto" class="form-control-file form-control-sm border-0 shadow-sm" style="background:#fff;" accept="image/*">
+                                            <button type="button" class="btn btn-sm btn-light text-danger ml-2 d-none" id="clear_edit_foto" title="Hapus pilihan file" style="border: 1px solid #e3e6f0; border-radius:4px; padding:2px 8px;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <small class="text-muted text-xs d-block mt-1">Upload foto. Max 5MB (jpeg, png, jpg, gif).</small>
+                                        <div id="edit_foto_preview" class="mt-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -929,11 +972,72 @@
         </div>
     </div>
 
+    <!-- Modal View Foto Kakotora -->
+    <div class="modal fade" id="modalViewFotoKakotora" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;"><i class="fas fa-image mr-2 text-info"></i> Lihat Foto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 text-center" style="background-color: #f8fafc; border-radius: 0 0 12px 12px;">
+                    <img id="kakotoraFotoImg" src="" alt="Foto Kakotora" style="max-width: 100%; max-height: 75vh; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 
 @push('scripts')
     <script>
+        function compressImage(file, maxWidth = 1280, maxHeight = 1280, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                const newFile = new File([blob], file.name, {
+                                    type: 'image/jpeg',
+                                    lastModified: Date.now()
+                                });
+                                resolve(newFile);
+                            } else {
+                                reject(new Error('Canvas to Blob failed'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = reject;
+                };
+                reader.onerror = reject;
+            });
+        }
+
         // Global error logger to capture any JS errors immediately
         window.onerror = function(msg, url, line, col, error) {
             alert("JS Error: " + msg + "\nURL: " + url + "\nLine: " + line);
@@ -1481,6 +1585,7 @@
                 var status = $(this).data('status');
                 var remarks = $(this).data('remarks');
                 var file_url = $(this).data('file_url');
+                var foto_url = $(this).data('foto_url');
 
                 // Set values to Edit Modal
                 $('#edit_date').val(date);
@@ -1573,6 +1678,21 @@
                     `);
                 } else {
                     $('#edit_file_preview').html('');
+                }
+
+                if (foto_url) {
+                    let fotoName = foto_url.split('/').pop();
+                    $('#edit_foto_preview').html(`
+                        <label class="small font-weight-bold mb-1 d-block text-muted">Foto tersimpan:</label>
+                        <div id="foto-file-row" class="d-flex align-items-center mb-1 p-1 border rounded bg-light" style="overflow:hidden; font-size: 0.75rem;">
+                            <i class="fas fa-image text-info mr-1 flex-shrink-0" style="font-size: 1.1rem;"></i>
+                            <span class="text-truncate mr-2 flex-grow-1" style="min-width:0;" title="${fotoName}">${fotoName}</span>
+                            <button type="button" class="btn btn-info btn-sm mr-1 flex-shrink-0 view-foto-btn-kakotora" data-src="${foto_url}" style="font-size:0.65rem; padding:2px 6px;">View</button>
+                            <button type="button" class="btn btn-danger btn-sm flex-shrink-0 btn-delete-foto-ajax" data-id="${id}" style="font-size:0.65rem; padding:2px 6px;">Hapus</button>
+                        </div>
+                    `);
+                } else {
+                    $('#edit_foto_preview').html('');
                 }
 
                 // Set Action URL
@@ -1754,6 +1874,64 @@
                 });
             });
 
+            // Delete Foto logic via AJAX
+            $(document).on('click', '.btn-delete-foto-ajax', function() {
+                var btn = $(this);
+                var id = btn.data('id');
+                
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: 'Foto akan dihapus secara langsung dan permanen!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Hapus Foto!',
+                    cancelButtonText: 'Batal'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Menghapus Foto...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        $.ajax({
+                            url: '{{ url("kakotora/delete-foto") }}/' + id,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    $('#edit_foto_preview').empty();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: response.message,
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        var editBtn = $('.btn-edit-kakotora[data-id="'+id+'"]');
+                                        editBtn.attr('data-foto_url', '');
+                                        editBtn.data('foto_url', '');
+                                        // Optional: update table cell to remove icon
+                                        location.reload(); // Reload for safety so the table is updated
+                                    });
+                                } else {
+                                    Swal.fire('Gagal!', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Error!', 'Gagal menghapus foto.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
             // View PDF logic
             $(document).on('click', '.view-pdf-btn-kakotora', function(e) {
                 e.preventDefault();
@@ -1765,6 +1943,19 @@
             // Clear iframe on hide
             $('#modalViewPdfKakotora').on('hidden.bs.modal', function () {
                 $('#kakotoraPdfIframe').attr('src', '');
+            });
+
+            // View Foto logic
+            $(document).on('click', '.view-foto-btn-kakotora', function(e) {
+                e.preventDefault();
+                const url = $(this).data('src');
+                $('#kakotoraFotoImg').attr('src', url);
+                $('#modalViewFotoKakotora').modal('show');
+            });
+
+            // Clear image on hide
+            $('#modalViewFotoKakotora').on('hidden.bs.modal', function () {
+                $('#kakotoraFotoImg').attr('src', '');
             });
 
             $('#modalTambahKakotora').on('hidden.bs.modal', function () {
@@ -1787,6 +1978,45 @@
 
             $('#clear_edit_file').on('click', function() {
                 $('#edit_form_analysis').val('');
+                $(this).addClass('d-none');
+            });
+
+            $('#edit_foto').on('change', async function(e) {
+                const file = e.target.files[0];
+                if (file && file.type.match(/image.*/)) {
+                    try {
+                        const compressedFile = await compressImage(file);
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        e.target.files = dataTransfer.files;
+                    } catch (err) {
+                        console.error("Gagal kompres foto:", err);
+                    }
+                }
+
+                if ($(this)[0].files.length > 0) {
+                    $('#clear_edit_foto').removeClass('d-none');
+                } else {
+                    $('#clear_edit_foto').addClass('d-none');
+                }
+            });
+
+            $('#add_foto').on('change', async function(e) {
+                const file = e.target.files[0];
+                if (file && file.type.match(/image.*/)) {
+                    try {
+                        const compressedFile = await compressImage(file);
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(compressedFile);
+                        e.target.files = dataTransfer.files;
+                    } catch (err) {
+                        console.error("Gagal kompres foto:", err);
+                    }
+                }
+            });
+
+            $('#clear_edit_foto').on('click', function() {
+                $('#edit_foto').val('');
                 $(this).addClass('d-none');
             });
 
@@ -1878,6 +2108,36 @@
                 });
                 return false;
             }
+        }
+
+        // Cek Form Analysis
+        var fileInput = document.getElementById(prefix + '_form_analysis');
+        var filePreview = document.getElementById(prefix + '_file_preview');
+        var hasFile = (filePreview && filePreview.innerHTML.trim() !== '') || (fileInput && fileInput.value !== '');
+        
+        if (!hasFile) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Form Analysis wajib diupload!',
+                icon: 'warning'
+            });
+            return false;
+        }
+
+        // Cek Foto
+        var fotoInput = document.getElementById(prefix + '_foto');
+        var fotoPreview = document.getElementById(prefix + '_foto_preview');
+        var hasFoto = (fotoPreview && fotoPreview.innerHTML.trim() !== '') || (fotoInput && fotoInput.value !== '');
+
+        if (!hasFoto) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Data Belum Lengkap!',
+                text: 'Foto wajib diupload!',
+                icon: 'warning'
+            });
+            return false;
         }
 
         return true;

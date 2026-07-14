@@ -95,11 +95,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cross_cut/{id}/data', [CrossCutChecksheetController::class, 'getData'])->name('cross_cut.data');
     Route::get('/api/cross-cut/next-remark', [CrossCutChecksheetController::class, 'getNextResultRemark'])->name('cross_cut.next_remark');
     Route::get('/api/cross-cut/next-no-lot', [CrossCutChecksheetController::class, 'getAutoNoLot'])->name('cross_cut.next_no_lot');
+    Route::get('/api/cross-cut/last-data', [CrossCutChecksheetController::class, 'getLastData'])->name('cross_cut.last_data');
 
     // Special routes for Cross Cut Painting
     Route::get('/checksheet/cross-cut-painting/{id}', [CrossCutPaintingChecksheetController::class, 'show'])->name('cross_cut_painting.show');
     Route::get('/checksheet/cross-cut-painting/{id}/image', [CrossCutPaintingChecksheetController::class, 'serveImage'])->name('cross_cut_painting.image');
     Route::get('/cross_cut-painting/{id}/data', [CrossCutPaintingChecksheetController::class, 'getData'])->name('cross_cut_painting.data');
+    Route::get('/api/cross-cut-painting/last-data', [CrossCutPaintingChecksheetController::class, 'getLastData'])->name('cross_cut_painting.last_data');
 
     // Special routes for Plating
     Route::get('/api/plating/next-no-lot', [PlatingChecksheetController::class, 'getAutoNoLot'])->name('plating.next_no_lot');

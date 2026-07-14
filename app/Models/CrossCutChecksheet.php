@@ -18,6 +18,7 @@ class CrossCutChecksheet extends Model
         'qc_shift',
         'production_datetime',
         'qc_datetime',
+        'line',
         'image_path',
         'chemical_catalyst',
         'chemical_abu',
