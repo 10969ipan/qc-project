@@ -1612,14 +1612,14 @@
                                                 $type = null;
                                                 
                                                 $candidates = [
-                                                    'Plating' => $d_plate,
-                                                    'Painting' => $d_paint,
-                                                    'CC Plating' => $d_cc_plate,
-                                                    'CC Painting' => $d_cc_paint,
+                                                    ['Plating', $d_plate],
+                                                    ['Painting', $d_paint],
+                                                    ['Cross Cut Plating', $d_cc_plate],
+                                                    ['Cross Cut Painting', $d_cc_paint],
                                                 ];
 
                                                 $maxTime = null;
-                                                foreach($candidates as $cType => $cData) {
+                                                foreach($candidates as [$cType, $cData]) {
                                                     if ($cData) {
                                                         $cTime = $cData->created_at;
                                                         if (!$maxTime || $cTime > $maxTime) {
@@ -1643,8 +1643,8 @@
                                                 $typeColor = 'info';
                                                 if ($type === 'Plating') $typeColor = 'warning';
                                                 elseif ($type === 'Painting') $typeColor = 'primary';
-                                                elseif ($type === 'CC Plating') $typeColor = 'secondary';
-                                                elseif ($type === 'CC Painting') $typeColor = 'dark';
+                                                elseif ($type === 'Cross Cut Plating') $typeColor = 'secondary';
+                                                elseif ($type === 'Cross Cut Painting') $typeColor = 'dark';
                                             @endphp
                                             <div class="col-6 col-md-6 col-lg-4 mb-4 px-2">
                                                 <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"

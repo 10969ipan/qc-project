@@ -119,6 +119,7 @@ class CrossCutPaintingChecksheetService extends BaseService
             $checksheet = CrossCutPaintingChecksheet::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'item_id' => $data['item_id'],
+                'line' => $data['line'] ?? null,
                 'production_shift' => $data['production_shift'],
                 'qc_shift' => $data['qc_shift'],
                 'production_datetime' => $data['production_datetime'],

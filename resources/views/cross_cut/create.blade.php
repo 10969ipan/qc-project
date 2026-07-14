@@ -73,7 +73,7 @@
                 $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
             @endphp
 
-            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
+            <form action="{{ route('cross_cut.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="{{ $plant }}">
                 <div class="table-responsive">
@@ -173,7 +173,7 @@
                                     <label for="image" class="mb-2 d-block">Ambil Gambar</label>
                                     <!-- Input file tersembunyi -->
                                     <input type="file" class="d-none" id="image" name="image" accept="image/*"
-                                        capture="environment" required>
+                                        capture="environment">
                                     <!-- Tombol kustom untuk memicu input file -->
                                     <button type="button" class="btn btn-primary btn-block mb-2" id="captureBtn">
                                         <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih
@@ -190,9 +190,9 @@
                                 <!-- No Bak -->
                                 <td class="align-middle" style="min-width: 150px;">
                                     <div class="form-group mb-2"><label>Catalyst</label><input type="text"
-                                            class="form-control" name="chemical_catalyst"></div>
+                                            class="form-control" name="chemical_catalyst" id="chemicalCatalystInput"></div>
                                     <div class="form-group mb-0"><label>Copper</label><input type="text" class="form-control"
-                                            name="chemical_abu"></div>
+                                            name="chemical_abu" id="chemicalCopperInput"></div>
                                 </td>
                                 <!-- Posisi Remark -->
                                 <td class="align-middle" style="min-width: 120px;">

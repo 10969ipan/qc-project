@@ -913,6 +913,32 @@ class CrossCutCreate {
 
     initFormSubmit() {
         $('#checksheetForm').on('submit', (e) => {
+            const requiredFields = [
+                { id: 'item_id', name: 'Item Part' },
+                { id: 'productionDateInput', name: 'Tanggal Produksi' },
+                { id: 'productionShiftInput', name: 'Shift Produksi' },
+                { id: 'qcShiftInput', name: 'Shift QC' },
+                { id: 'lineSelect', name: 'Meja' },
+                { id: 'chemicalCatalystInput', name: 'Catalyst' },
+                { id: 'chemicalCopperInput', name: 'Copper' },
+                { id: 'operatorInitialsInput', name: 'Inisial QC' }
+            ];
+
+            for (let field of requiredFields) {
+                const el = document.getElementById(field.id);
+                if (el && (!el.value || el.value.trim() === '')) {
+                    Swal.fire({ icon: 'warning', title: 'Peringatan', text: `Harap isi ${field.name} terlebih dahulu!` });
+                    if (el.focus && typeof el.focus === 'function') el.focus();
+                    return e.preventDefault();
+                }
+            }
+
+            const imageInput = document.getElementById('image');
+            if (imageInput && imageInput.files.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Harap ambil/upload Foto terlebih dahulu!' });
+                return e.preventDefault();
+            }
+
             const judgement = $('select[name="position_remark_judgment"]').val();
             if (judgement === 'NG' && !$('#nextProses').val()) {
                 Swal.fire({ icon: 'warning', title: 'Next Proses Wajib Dipilih' });

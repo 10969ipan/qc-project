@@ -73,7 +73,7 @@
                 $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
             @endphp
 
-            <form action="{{ route('cross_cut_painting.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm">
+            <form action="{{ route('cross_cut_painting.store') }}" method="POST" enctype="multipart/form-data" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="{{ $plant }}">
                 <div class="table-responsive">
@@ -174,7 +174,7 @@
                                             <label for="image" class="mb-1 d-block font-weight-bold">Ambil Gambar</label>
                                             <!-- Input file tersembunyi -->
                                             <input type="file" class="d-none" id="image" name="image" accept="image/*"
-                                                capture="environment" required>
+                                                capture="environment">
                                             <!-- Tombol kustom untuk memicu input file -->
                                             <button type="button" class="btn btn-primary btn-block mb-1" id="captureBtn">
                                                 <i class="fas fa-camera"></i> <span id="captureBtnText">Buka Kamera / Pilih Foto</span>
