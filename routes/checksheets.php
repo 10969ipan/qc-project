@@ -176,6 +176,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/incoming-chemical', [IncomingChemicalController::class, 'index'])->name('incoming.chemicals.index');
         Route::get('/report/incoming-part/export-pdf', [IncomingPartController::class, 'exportPdf'])->name('incoming.parts.export_pdf');
         Route::get('/report/incoming-material/export-pdf', [IncomingMaterialController::class, 'exportPdf'])->name('incoming.materials.export_pdf');
+        Route::get('/report/incoming-material/print', [IncomingMaterialController::class, 'printView'])->name('incoming.materials.print');
         Route::get('/report/incoming-sub-part/export-pdf', [IncomingSubPartController::class, 'exportPdf'])->name('incoming.sub_parts.export_pdf');
         Route::get('/report/incoming-export/export-pdf', [IncomingExportController::class, 'exportPdf'])->name('incoming.exports.export_pdf');
         Route::get('/report/incoming-chemical/export-pdf', [IncomingChemicalController::class, 'exportPdf'])->name('incoming.chemicals.export_pdf');

@@ -34,7 +34,7 @@
             padding: 3px;
             text-align: center;
             vertical-align: middle;
-            word-wrap: break-word;
+            white-space: nowrap;
         }
 
         .table thead th {
@@ -173,9 +173,9 @@
                     <td>{{ $cs->item->name ?? '-' }}</td>
                     <td>{{ date('d/m/y', strtotime($cs->tanggal_datang)) }}</td>
                     <td>{{ $cs->lot_batch_number }}</td>
-                    <td>{{ $cs->quantity_kg }}</td>
-                    <td>{{ $cs->komper_karung_kg }}</td>
-                    <td>{{ $cs->sampling_size_karung_kg }}</td>
+                    <td>{{ (float) $cs->quantity_kg }}</td>
+                    <td>{{ (float) $cs->komper_karung_kg }}</td>
+                    <td>{{ (float) $cs->sampling_size_karung_kg }}</td>
                     <td>{{ date('d/m/y', strtotime($cs->expired_date)) }}</td>
                     <td>
                         <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">

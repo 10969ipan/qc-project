@@ -62,6 +62,7 @@ class SettingsController extends Controller
             ->get();
 
         $qcModules = [
+            'incoming_materials' => 'Incoming Material',
             'sub_assy' => 'Sub Assy',
             'sortir' => 'Sortir',
             'plating' => 'Plating',

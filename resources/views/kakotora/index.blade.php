@@ -55,6 +55,7 @@
         border-bottom: 1px solid #e2e8f0 !important;
         border-top: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
+        text-align: center !important;
         line-height: 1.2 !important;
         white-space: nowrap !important;
         box-shadow: inset 0 -1px 0 #e2e8f0 !important;
@@ -310,7 +311,14 @@
                                     <td class="details-control"><i class="fas fa-caret-right text-primary fa-lg"></i></td>
                                     <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $item->no_reg ?? '-' }}</td>
-                                    <td>{{ $item->issue_date ? \Carbon\Carbon::parse($item->issue_date)->format('d/m/Y') : '-' }}
+                                    <td>
+                                        @if($item->issue_date)
+                                            @foreach(explode(',', $item->issue_date) as $d)
+                                                <div style="white-space:nowrap;">{{ \Carbon\Carbon::parse(trim($d))->format('d/m/Y') }}</div>
+                                            @endforeach
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                     <td>{{ $item->rev_model ?? '-' }}</td>
                                     <td>{{ $item->family ?? '-' }}</td>
@@ -431,9 +439,14 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group row align-items-center mb-2">
-                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Issue Date</label>
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Issue Date</label>
                                     <div class="col-sm-9">
-                                        <input type="date" name="issue_date" class="form-control form-control-sm border-0 shadow-sm">
+                                        <div class="d-flex w-100 mb-1">
+                                            <input type="date" id="add_issue_date_input" class="form-control form-control-sm border-0 shadow-sm">
+                                            <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendIssueDate('add')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="add_issue_date_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="issue_date" id="add_issue_date_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
@@ -705,9 +718,14 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group row align-items-center mb-2">
-                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Issue Date</label>
+                                    <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700 pt-2">Issue Date</label>
                                     <div class="col-sm-9">
-                                        <input type="date" name="issue_date" id="edit_issue_date" class="form-control form-control-sm border-0 shadow-sm">
+                                        <div class="d-flex w-100 mb-1">
+                                            <input type="date" id="edit_issue_date_input" class="form-control form-control-sm border-0 shadow-sm">
+                                            <button type="button" class="btn btn-sm btn-info shadow-sm ml-1" onclick="appendIssueDate('edit')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
+                                        </div>
+                                        <div id="edit_issue_date_container" class="w-100 mt-2"></div>
+                                        <input type="hidden" name="issue_date" id="edit_issue_date_hidden">
                                     </div>
                                 </div>
                                 <div class="form-group row align-items-center mb-2">
@@ -1336,6 +1354,51 @@
                 prev.value = '';
                 m.focus();
             };
+
+            window.updateHiddenIssueDate = function(prefix) {
+                var container = document.getElementById(prefix + '_issue_date_container');
+                var hidden = document.getElementById(prefix + '_issue_date_hidden');
+                var inputs = container.querySelectorAll('input[type="hidden"]');
+                var vals = [];
+                inputs.forEach(function(inp) {
+                    var val = inp.value.trim();
+                    if(val) vals.push(val);
+                });
+                hidden.value = vals.join(',');
+            };
+
+            window.removeIssueDate = function(btn, prefix) {
+                btn.parentElement.remove();
+                window.updateHiddenIssueDate(prefix);
+            };
+
+            window.addIssueDateElement = function(prefix, val) {
+                var container = document.getElementById(prefix + '_issue_date_container');
+                var div = document.createElement('div');
+                div.className = 'd-flex align-items-center mb-1';
+                
+                var parts = val.split('-');
+                var displayVal = parts.length === 3 ? parts[2] + '/' + parts[1] + '/' + parts[0] : val;
+
+                div.innerHTML = '<input type="text" class="form-control form-control-sm border-0 shadow-sm bg-light font-weight-bold" value="' + displayVal + '" readonly>' +
+                                '<input type="hidden" value="' + val + '">' +
+                                '<button type="button" class="btn btn-sm btn-danger shadow-sm ml-1" onclick="window.removeIssueDate(this, \'' + prefix + '\')" title="Hapus"><i class="fas fa-times"></i></button>';
+                container.appendChild(div);
+                window.updateHiddenIssueDate(prefix);
+            };
+
+            window.appendIssueDate = function(prefix) {
+                var input = document.getElementById(prefix + '_issue_date_input');
+                var val = input.value.trim();
+                
+                if (val !== '') {
+                    window.addIssueDateElement(prefix, val);
+                    input.value = '';
+                } else {
+                    Swal.fire('Peringatan', 'Pilih tanggal terlebih dahulu!', 'warning');
+                }
+            };
+
             var isAdmin = {{ auth()->user()->role === 'admin' ? 'true' : 'false' }};
             var colOffset = isAdmin ? 1 : 0;
 
@@ -1590,7 +1653,21 @@
                 // Set values to Edit Modal
                 $('#edit_date').val(date);
                 $('#edit_no_reg').val(no_reg);
-                $('#edit_issue_date').val(issue_date);
+
+                // Populate Issue Dates
+                $('#edit_issue_date_container').empty();
+                $('#edit_issue_date_hidden').val('');
+                if (issue_date) {
+                    let dates = issue_date.split(',');
+                    dates.forEach(function(d) {
+                        let trimmed = d.trim();
+                        if (trimmed) {
+                            addIssueDateElement('edit', trimmed);
+                        }
+                    });
+                }
+                updateHiddenIssueDate('edit');
+
                 $('#edit_rev_model').val(rev_model);
                 $('#edit_family').val(family);
                 $('#edit_category_nm_mp').val(category_nm_mp);
@@ -1965,6 +2042,8 @@
                 $('#add_cause_hidden').val('');
                 $('#add_cm_container').empty();
                 $('#add_cm_hidden').val('');
+                $('#add_issue_date_container').empty();
+                $('#add_issue_date_hidden').val('');
             });
 
             // Handle clear input file

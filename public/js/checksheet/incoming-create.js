@@ -41,11 +41,86 @@ function normalizePartNumber(pn) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    let timerInterval = null;
+    let totalSeconds = 0;
+    let timerRunning = false;
+
+    // Lock UI on load
+    const form = $("#checksheetForm");
+    const formInputs = form.find("input, select, textarea, button")
+        .not("#startTimerBtn")
+        .not('[type="hidden"]');
+    
+    formInputs.prop("disabled", true);
+    form.addClass("inputs-locked");
+
+    if (!$("#lockStyle").length) {
+        $('<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo("head");
+    }
+
+    $("#startTimerBtn").on("click", function() {
+        if (!timerRunning) {
+            formInputs.prop("disabled", false);
+            $("#saveBtn").prop("disabled", false);
+            form.removeClass("inputs-locked");
+            
+            $(this).removeClass('btn-success').addClass('btn-secondary text-white')
+                   .html('<i class="far fa-clock"></i> Running...')
+                   .css('cursor', 'default');
+            
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+                const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+                const s = (totalSeconds % 60).toString().padStart(2, '0');
+                $('#timerDisplay').text(`${h}:${m}:${s}`);
+                $('#cycleTimeInput').val(totalSeconds);
+            }, 1000);
+            
+            timerRunning = true;
+        }
+    });
+
     // Tangani Pemilihan Item untuk memperbarui Dropdown Defect
     $('#itemSelect').on('change', function () {
         const selected = $(this).find(':selected');
         const defects = selected.data('defects');
         updateDefectOptions(defects);
+        
+        if ($(this).val()) {
+            $('#addDefectBtn').show();
+            
+            // PDF Logic
+            const files = selected.data('files');
+            const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
+            
+            pdfDoc = null;
+            pageNum = 1;
+            standardFileIndex = 0;
+            standardFiles = validFiles;
+
+            if (validFiles.length > 0) {
+                const firstPdfUrl = window.pdfUrlPattern
+                    .replace('ID_PLACEHOLDER', $(this).val())
+                    .replace('INDEX_PLACEHOLDER', 0);
+                renderPdfToCanvas(
+                    firstPdfUrl,
+                    "standardPdfCanvas",
+                    "standardPdfPlaceholder",
+                    "standardPdfLoading",
+                    1
+                );
+            } else {
+                $("#standardPdfCanvas").addClass("d-none").hide();
+                $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Standard PDF tidak tersedia");
+                $(".standard-nav-controls").hide();
+            }
+        } else {
+            $('#addDefectBtn').hide();
+            $("#standardPdfCanvas").addClass("d-none").hide();
+            $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Pilih Item untuk menampilkan Standard PDF");
+            $(".standard-nav-controls").hide();
+        }
     });
 
     function updateDefectOptions(defects) {
@@ -87,8 +162,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Hitung Ukuran Sampel dari Kuantitas Lot
-    $('#lotQtyInput').on('input', function() {
+    // Hitung Ukuran Sampel dari Kuantitas Lot (Sekarang dari Komper/Karung)
+    $('#komperKarungInput').on('input', function() {
         const lotSize = parseInt($(this).val()) || 0;
         const sampleSize = AQL_TABLE.getSampleSize(lotSize);
         $('#totalCheckInput').val(sampleSize).trigger('input');
@@ -118,15 +193,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const judgment = (totalNg >= aql.rej) ? 'NG' : 'OK';
         $('#judgmentSelect').val(judgment);
         
-        // Tampilkan Info AQL
-        if (!$('#aqlInfoBox').length) {
-            $('#judgmentSelect').after('<div id="aqlInfoBox" class="mt-2 small text-muted text-center" style="font-size: 0.7rem;"></div>');
+        const badge = $('#judgmentBadge');
+        if (judgment === 'OK') {
+            badge.removeClass('d-none border-danger text-danger border-warning text-warning')
+                 .addClass('border-success text-success')
+                 .text('OK');
+        } else {
+            badge.removeClass('d-none border-success text-success border-warning text-warning')
+                 .addClass('border-danger text-danger')
+                 .text('NG');
         }
         
         if (totalCheck > 0) {
-            $('#aqlInfoBox').html(`Standard: AQL 0.65<br>Acc: ${aql.acc} | Rej: ${aql.rej}`);
+            $('#aql_info').show();
+            $('#acc_val').text(aql.acc);
+            $('#rej_val').text(aql.rej);
         } else {
-            $('#aqlInfoBox').empty();
+            $('#aql_info').hide();
         }
     }
 
@@ -217,4 +300,120 @@ document.addEventListener('DOMContentLoaded', function () {
             form.find('.select2').trigger('change');
         }
     }
+
+    // --- PDF Viewer Logic ---
+    let pdfDoc = null, pageNum = 1, standardZoomLevel = 1.0;
+    let standardFiles = [], standardFileIndex = 0;
+    let pdfCache = {};
+
+    if (typeof pdfjsLib !== 'undefined' && window.pdfWorkerSrc) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfWorkerSrc;
+    }
+
+    function renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pNum = 1) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const $placeholder = $("#" + placeholderId);
+        const $loading = $("#" + loadingId);
+        const $canvas = $(canvas);
+
+        $placeholder.removeClass("d-flex").addClass("d-none");
+        $canvas.addClass("d-none").hide();
+        $loading.removeClass("d-none").addClass("d-flex");
+
+        if (pdfCache[url]) {
+            drawPage(pdfCache[url], canvas, ctx, $loading, $canvas, pNum);
+            return;
+        }
+
+        pdfjsLib.getDocument(url).promise.then((pdf) => {
+            pdfCache[url] = pdf;
+            drawPage(pdf, canvas, ctx, $loading, $canvas, pNum);
+        }).catch((err) => {
+            $loading.removeClass("d-flex").addClass("d-none");
+            $placeholder.removeClass("d-none").addClass("d-flex").find("p").text("Gagal memuat PDF");
+        });
+    }
+
+    function drawPage(pdf, canvas, ctx, $loading, $canvas, pNum) {
+        pdf.getPage(pNum).then((page) => {
+            const containerWidth = $canvas.parent().width() || 500;
+            const availableWidth = containerWidth - 40;
+            const viewport = page.getViewport({ scale: 1.0 });
+            const scale = (availableWidth / viewport.width) * standardZoomLevel;
+            const scaledViewport = page.getViewport({ scale: scale });
+
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            if (standardZoomLevel > 1.0) $canvas.css({ width: "auto", "max-width": "none" });
+            else $canvas.css({ width: "100%", "max-width": "100%" });
+            $canvas.css("height", "auto");
+
+            page.render({ canvasContext: ctx, viewport: scaledViewport }).promise.then(() => {
+                $loading.removeClass("d-flex").addClass("d-none");
+                $canvas.removeClass("d-none").show();
+                pdfDoc = pdf;
+                pageNum = pNum;
+                
+                const fileInfo = standardFiles.length > 1 ? ` (${standardFileIndex + 1}/${standardFiles.length})` : '';
+                $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
+                
+                if (standardFiles.length > 0) $(".standard-nav-controls").attr("style", "display: flex !important;");
+                else $(".standard-nav-controls").hide();
+            });
+        });
+    }
+
+    function renderPageOnCanvas() {
+        if (!pdfDoc) return;
+        const canvas = document.getElementById("standardPdfCanvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const $canvas = $(canvas);
+        const $loading = $("#standardPdfLoading");
+
+        $canvas.hide();
+        $loading.removeClass("d-none").addClass("d-flex");
+        drawPage(pdfDoc, canvas, ctx, $loading, $canvas, pageNum);
+    }
+
+    $('#prevStandardPage').click(() => {
+        if (pageNum > 1) {
+            pageNum--;
+            renderPageOnCanvas();
+        } else if (standardFileIndex > 0) {
+            standardFileIndex--;
+            const itemId = $('#itemSelect').val();
+            const prevFileUrl = window.pdfUrlPattern.replace("ID_PLACEHOLDER", itemId).replace("INDEX_PLACEHOLDER", standardFileIndex);
+            renderPdfToCanvas(prevFileUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", 1);
+        }
+    });
+
+    $('#nextStandardPage').click(() => {
+        if (pdfDoc && pageNum < pdfDoc.numPages) {
+            pageNum++;
+            renderPageOnCanvas();
+        } else if (standardFiles && standardFileIndex < standardFiles.length - 1) {
+            standardFileIndex++;
+            const itemId = $('#itemSelect').val();
+            const nextFileUrl = window.pdfUrlPattern.replace("ID_PLACEHOLDER", itemId).replace("INDEX_PLACEHOLDER", standardFileIndex);
+            renderPdfToCanvas(nextFileUrl, "standardPdfCanvas", "standardPdfPlaceholder", "standardPdfLoading", 1);
+        }
+    });
+
+    $("#zoomInStandard").click(() => {
+        standardZoomLevel += 0.25;
+        if (pdfDoc) renderPageOnCanvas();
+    });
+    $("#zoomOutStandard").click(() => {
+        if (standardZoomLevel > 0.5) {
+            standardZoomLevel -= 0.25;
+            if (pdfDoc) renderPageOnCanvas();
+        }
+    });
+    $("#zoomResetStandard").click(() => {
+        standardZoomLevel = 1.0;
+        if (pdfDoc) renderPageOnCanvas();
+    });
 });

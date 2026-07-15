@@ -37,6 +37,7 @@ class IncomingMaterial extends Model
         'asst_manager_approved_at',
         'manager_approved_at',
         'rejection_remarks',
+        'cycle_time',
     ];
 
     protected $casts = [

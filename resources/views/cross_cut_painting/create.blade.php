@@ -437,7 +437,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>Sampling Size
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/cross-cut.js') }}?v={{ time() }}"></script>
     <script>
