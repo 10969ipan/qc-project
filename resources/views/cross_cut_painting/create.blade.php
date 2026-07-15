@@ -447,8 +447,7 @@
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
             });
             window.initItemSearch('item_id');
-        });
-        
+            
             // --- Auto-fill Meja (Line) ---
             var lastDataUrl = "{{ route('cross_cut_painting.last_data') }}";
             var lineSelect = document.getElementById('lineSelect');
