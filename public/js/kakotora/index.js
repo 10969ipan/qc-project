@@ -346,7 +346,7 @@
             var table = $('#dataTableKakotora').DataTable({
                 dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
                      "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                "order": [[2 + colOffset, "desc"]],
+                "order": [],
                 "autoWidth": false,
                 "columnDefs": [
                     { "orderable": false, "targets": isAdmin ? [0, 1 + colOffset] : [1] },
