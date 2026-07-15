@@ -90,7 +90,7 @@ class KakotoraController extends Controller
         $validated = $request->validate([
             'date' => 'nullable|date',
             'no_reg' => 'nullable|string|max:255',
-            'issue_date' => 'nullable|date',
+            'issue_date' => 'nullable|string',
             'rev_model' => 'nullable|string|max:255',
             'family' => 'nullable|string|max:255',
             'category_nm_mp' => 'nullable|string|max:255',
@@ -154,7 +154,7 @@ class KakotoraController extends Controller
         $validated = $request->validate([
             'date' => 'nullable|date',
             'no_reg' => 'nullable|string|max:255',
-            'issue_date' => 'nullable|date',
+            'issue_date' => 'nullable|string',
             'rev_model' => 'nullable|string|max:255',
             'family' => 'nullable|string|max:255',
             'category_nm_mp' => 'nullable|string|max:255',
