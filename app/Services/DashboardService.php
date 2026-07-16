@@ -53,8 +53,12 @@ class DashboardService extends BaseService
         $users = \App\Models\User::all();
         $operatorMap = [];
         foreach ($users as $u) {
-            if ($u->initials) {
-                $operatorMap[strtoupper($u->initials)] = $u->name;
+            $init = $u->initials;
+            if ($init) {
+                $operatorMap[$init] = $u->name;
+                $operatorMap[strtoupper($init)] = $u->name;
+                $operatorMap[strtolower($init)] = $u->name;
+                $operatorMap[ucfirst(strtolower($init))] = $u->name;
             }
         }
 
@@ -146,6 +150,7 @@ class DashboardService extends BaseService
                     // Also map case-insensitive variants
                     $operatorMap[strtoupper($init)] = $u->name;
                     $operatorMap[strtolower($init)] = $u->name;
+                    $operatorMap[ucfirst(strtolower($init))] = $u->name; // ponytail: fallback for un-uppercased edit form inputs like "Mi"
                 }
                 // Map by full name so if operator_initials already contains full name it still resolves
                 if ($u->name) {
