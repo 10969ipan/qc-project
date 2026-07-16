@@ -53,6 +53,16 @@ class IncomingMaterialService extends BaseService
             });
         }
 
+        if (!empty($filters['supplier'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('customer', $filters['supplier']);
+            });
+        }
+
+        if (!empty($filters['start_tgl_datang']) && !empty($filters['end_tgl_datang'])) {
+            $query->whereBetween('tanggal_datang', [$filters['start_tgl_datang'], $filters['end_tgl_datang']]);
+        }
+
         if (!empty($filters['id'])) {
             $query->where($query->getModel()->getTable() . '.id', $filters['id']);
         }

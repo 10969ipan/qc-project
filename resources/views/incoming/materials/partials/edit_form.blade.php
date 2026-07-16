@@ -92,7 +92,7 @@
             @endphp
             @forelse($defects ?? [] as $d)
                 <div class="row no-gutters mb-2 edit-defect-row align-items-center">
-                    <div class="col-8 pr-1">
+                    <div class="col-7 pr-1">
                         <select class="form-control form-control-sm border-0 shadow-sm edit-defect-select font-weight-bold" name="defect_types[]">
                             <option value="{{ $d['type'] }}">{{ $d['type'] }}</option>
                         </select>
@@ -100,13 +100,19 @@
                     <div class="col-3 pr-1">
                         <input type="number" class="form-control form-control-sm border-0 shadow-sm edit-defect-qty text-center font-weight-bold" name="defect_quantities[]" value="{{ $d['qty'] }}" min="1">
                     </div>
-                    <div class="col-1 text-center">
-                        <button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>
+                    <div class="col-2 text-center action-col">
+                        @if($loop->first)
+                            <button type="button" id="editAddDefectBtn" class="btn btn-primary btn-sm shadow-sm" title="Tambah Jenis">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        @else
+                            <button type="button" class="btn btn-danger btn-sm shadow-sm remove-defect-btn"><i class="fas fa-times"></i></button>
+                        @endif
                     </div>
                 </div>
             @empty
                 <div class="row no-gutters mb-2 edit-defect-row align-items-center">
-                    <div class="col-8 pr-1">
+                    <div class="col-7 pr-1">
                         <select class="form-control form-control-sm border-0 shadow-sm edit-defect-select font-weight-bold" name="defect_types[]">
                             <option value="">-- Pilih Defect --</option>
                         </select>
@@ -114,11 +120,14 @@
                     <div class="col-3 pr-1">
                         <input type="number" class="form-control form-control-sm border-0 shadow-sm edit-defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
                     </div>
-                    <div class="col-1 text-center"></div>
+                    <div class="col-2 text-center action-col">
+                        <button type="button" id="editAddDefectBtn" class="btn btn-primary btn-sm shadow-sm" title="Tambah Jenis">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
             @endforelse
         </div>
-        <button type="button" id="editAddDefectBtn" class="btn btn-outline-info btn-sm mt-1"><i class="fas fa-plus"></i> Tambah</button>
     </div>
 
     <div class="row mt-3">

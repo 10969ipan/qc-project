@@ -164,18 +164,24 @@
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <!-- Field: Pencarian -->
+                <!-- Field: Part -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Search:</label>
-                    <div style="width: 200px;">
-                        <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" placeholder="Cari..."
-                            value="{{ request('search') }}" style="font-size: 0.75rem;">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <div style="width: 200px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Ketik Material / Part No...</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
                 <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Check:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
                         <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
                             style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
@@ -185,8 +191,39 @@
                     </div>
                 </div>
 
+                <!-- Field: Tgl Datang -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Datang:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_tgl_datang') }}">
+                        <span class="px-1 text-gray-500 small">-</span>
+                        <input type="date" name="end_tgl_datang" id="end_tgl_datang" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_tgl_datang') }}">
+                    </div>
+                </div>
+
+                <!-- Field: Supplier -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Supplier:</label>
+                    <div style="width: 140px;" class="custom-filter-wrapper">
+                        <select name="supplier" id="filterSupplier" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua Supplier</option>
+                            @foreach($suppliers as $supplier)
+                                <option value="{{ $supplier }}" {{ request('supplier') == $supplier ? 'selected' : '' }}>{{ $supplier }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>
@@ -233,9 +270,9 @@
                             <th rowspan="2">Action</th>
                         </tr>
                         <tr>
-                            <th>Total</th>
-                            <th>Komp.</th>
-                            <th>Samp.</th>
+                            <th>Total (kg)</th>
+                            <th>Karung</th>
+                            <th>Sampling Size</th>
                             <th>Pcs</th>
                             <th>Jenis</th>
                             <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
@@ -246,6 +283,22 @@
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
+                            @php
+                                $user = auth()->user();
+                                $isAdmin = $user->role === 'admin';
+                                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+                                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
+                                    $isKaruJakarta) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED');
+                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
+                                    (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED');
+                                $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
+                                    (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED');
+                                $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc ||
+                                    $cs->manager_qc === 'REJECTED');
+                            @endphp
                             <tr>
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle">{{ date('d/m/Y', strtotime($cs->date)) }}</td>
@@ -416,11 +469,62 @@
                                         {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($cs->remarks)) !!}
                                     @endif
                                 </td>
-                                <td class="align-middle text-nowrap">
+                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                    @if($canApproveKashift)
+                                        <form action="{{ route('incoming.materials.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)" style="min-width: 110px;">
+                                                <i class="fas fa-check"></i> Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 110px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveSupervisor)
+                                        <form action="{{ route('incoming.materials.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)" style="min-width: 110px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 110px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveAsst)
+                                        <form action="{{ route('incoming.materials.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)" style="min-width: 110px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager" style="min-width: 110px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveManager)
+                                        <form action="{{ route('incoming.materials.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)" style="min-width: 110px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager" style="min-width: 110px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
                                     <div class="btn-group">
+                                        @if(auth()->user()->role === 'admin')
+                                            <a href="{{ route('admin.incoming.materials.edit_approval', $cs->id) }}"
+                                                class="btn btn-info btn-xs mx-1 btn-status-modal" data-id="{{ $cs->id }}" title="Status Approval">
+                                                <i class="fas fa-user-check"></i>
+                                            </a>
+                                        @endif
                                         @if(!in_array(auth()->user()->role, ['inspector']))
                                             <a href="{{ route('incoming.materials.edit', $cs->id) }}"
-                                                class="btn btn-warning btn-xs mx-1 btn-edit-modal" data-id="{{ $cs->id }}">
+                                                class="btn btn-warning btn-xs mx-1 btn-edit-modal" data-id="{{ $cs->id }}" title="Edit Checksheet">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('incoming.materials.destroy', $cs->id) }}" method="POST"
@@ -462,7 +566,31 @@
                         <span aria-hidden="true" style="font-size: 1.5rem;">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body bg-light px-4 py-4" id="editModalBody" style="max-height: 65vh; overflow-y: auto;">
+                <div class="modal-body bg-light px-4 py-4" id="editModalBody" style="max-height: 85vh; overflow-y: auto;">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Status Approval -->
+    <div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
+                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-primary" id="statusModalLabel" style="font-size: 1.1rem;">
+                        <i class="fas fa-user-check mr-2"></i>Edit Status Approval Incoming Material
+                    </h5>
+                    <button type="button" class="close text-gray-500 hover:text-gray-800" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                        <span aria-hidden="true" style="font-size: 1.5rem;">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light px-4 py-4" id="statusModalBody" style="max-height: 85vh; overflow-y: auto;">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
@@ -472,6 +600,93 @@
             </div>
         </div>
     </div>
+
+    <!-- Rejection Modal for each checksheet and type -->
+    @foreach($checksheets as $cs)
+        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+            @php
+                $user = auth()->user();
+                $isAdmin = $user->role === 'admin';
+                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+                $canReject = false;
+                if (
+                    $rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&
+                        (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))
+                ) {
+                    $canReject = true;
+                } elseif (
+                    $rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc ||
+                        $cs->supervisor_qc === 'REJECTED'))
+                ) {
+                    $canReject = true;
+                } elseif (
+                    $rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc ||
+                        $cs->asst_manager_qc === 'REJECTED'))
+                ) {
+                    $canReject = true;
+                } elseif (
+                    $rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc
+                        === 'REJECTED'))
+                ) {
+                    $canReject = true;
+                }
+            @endphp
+            @if($canReject)
+                <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
+                    aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                                </h5>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form
+                                action="{{ route('incoming.materials.reject', array_merge(['id' => $cs->id, 'type' => $rejectType], request()->all())) }}"
+                                method="POST" class="ajax-form">
+                                @csrf
+                                <div id="modal-errors" class="mx-3 mt-3" style="display: none;"></div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
+                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
+                                            Alasan Rejection <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
+                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
+                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
+                                        </small>
+                                        @error('rejection_remarks')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                        <i class="fas fa-times"></i> Batal
+                                    </button>
+                                    <button type="submit" class="btn btn-danger btn-confirm-reject">
+                                        <i class="fas fa-ban"></i> Tolak Checksheet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    @endforeach
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -487,6 +702,20 @@
                     $('#editModalBody').html(data);
                 }).fail(function() {
                     $('#editModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                });
+            });
+
+            // Status Approval Modal
+            $('.btn-status-modal').click(function(e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $('#statusModal').modal('show');
+                $('#statusModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+                
+                $.get(url, function(data) {
+                    $('#statusModalBody').html(data);
+                }).fail(function() {
+                    $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
                 });
             });
 
@@ -510,6 +739,17 @@
                     }
                 });
             });
+        });
+    </script>
+@endpush
+
+@push('scripts')
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            if (typeof initItemSearch === 'function') {
+                initItemSearch('filterItem', { placeholder: 'Ketik Material / Part No...', maxResults: 50 });
+            }
         });
     </script>
 @endpush

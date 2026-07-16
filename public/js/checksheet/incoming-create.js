@@ -149,8 +149,8 @@ document.addEventListener('DOMContentLoaded', function () {
         firstRow.find('input').val('');
         firstRow.find('select').val('');
         
-        const lastCol = firstRow.find('.col-1');
-        lastCol.empty().append('<button type="button" class="btn btn-link text-danger p-0 remove-defect-btn"><i class="fas fa-times-circle"></i></button>');
+        const lastCol = firstRow.find('.action-col');
+        lastCol.empty().append('<button type="button" class="btn btn-danger btn-sm shadow-sm remove-defect-btn"><i class="fas fa-times"></i></button>');
         
         container.append(firstRow);
     });

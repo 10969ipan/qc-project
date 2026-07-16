@@ -164,7 +164,7 @@
                                     <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
+                                            <div class="col-7 pr-1">
                                                 <select class="form-control defect-select font-weight-bold"
                                                     name="defect_types[]" id="defectSelect">
                                                     <option value="">-- Pilih Defect --</option>
@@ -174,12 +174,13 @@
                                                 <input type="number" class="form-control defect-qty text-center font-weight-bold"
                                                     name="defect_quantities[]" placeholder="Qty" min="1">
                                             </div>
-                                            <div class="col-1 text-center"></div>
+                                            <div class="col-2 text-center action-col">
+                                                <button type="button" id="addDefectBtn" class="btn btn-primary btn-sm shadow-sm" style="display: none;" title="Tambah Jenis">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1" style="display: none;">
-                                        <i class="fas fa-plus"></i> Tambah Jenis
-                                    </button>
                                 </td>
 
                                 <!-- Result -->

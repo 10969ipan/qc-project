@@ -70,11 +70,12 @@ class IncomingMaterialController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Material')->orderBy('name')->get();
+        $suppliers = $items->pluck('customer')->filter()->unique()->sort()->values();
 
-        return view('incoming.materials.index', compact('checksheets', 'items'));
+        return view('incoming.materials.index', compact('checksheets', 'items', 'suppliers'));
     }
 
     public function create(Request $request)
@@ -157,7 +158,7 @@ class IncomingMaterialController extends Controller
 
     public function printView(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $query = $this->checksheetService->getQuery($filters)->latest();
         $checksheets = $query->get();
 
@@ -171,7 +172,7 @@ class IncomingMaterialController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $query = $this->checksheetService->getQuery($filters)->latest();
 
         if ($request->has('page')) {
@@ -188,5 +189,67 @@ class IncomingMaterialController extends Controller
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('Incoming_Material_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function editApproval($id)
+    {
+        $checksheet = IncomingMaterial::findOrFail($id);
+
+        if (request()->ajax()) {
+            return view('incoming.materials.partials.edit_approval_form', compact('checksheet'));
+        }
+        return view('incoming.materials.edit_approval', compact('checksheet'));
+    }
+
+    public function updateApproval(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'kashift_qc' => 'required|in:Pending,Approved,Rejected',
+            'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'manager_qc' => 'required|in:Pending,Approved,Rejected',
+        ]);
+
+        try {
+            $this->checksheetService->updateApprovalStatus($id, $validated);
+            $checksheet = \App\Models\IncomingMaterial::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'Incoming Material', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+                }
+            }
+
+            ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Incoming Material: {$checksheet->item->name}");
+
+            // Only preserve specific navigation and filter parameters
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'item_id', 'supplier', 'start_tgl_datang', 'end_tgl_datang'];
+            $redirectParams = $request->only($preservationKeys);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status approval berhasil diperbarui oleh Admin.',
+                    'redirect' => route('incoming.materials.index', $redirectParams)
+                ]);
+            }
+
+            return redirect()->route('incoming.materials.index', $redirectParams)->with('success', 'Status approval berhasil diperbarui oleh Admin.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error: ' . $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
     }
 }
