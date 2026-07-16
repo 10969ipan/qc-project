@@ -1592,9 +1592,12 @@
                                     @php
                                         $activeCount = 0;
                                         foreach (range(1, 12) as $i) {
-                                            if ($activePlating->get($i) || $activePainting->get($i)) {
+                                            if ($activePlating->get($i) || $activePainting->get($i) || $activeCrossCutPlating->get($i) || $activeCrossCutPainting->get($i)) {
                                                 $activeCount++;
                                             }
+                                        }
+                                        if (($dashboardLayout['monitoringDoubleTape'] ?? true) && isset($latestDoubleTape) && $latestDoubleTape) {
+                                            $activeCount++;
                                         }
                                     @endphp
                                     <span class="badge badge-success px-3 py-2 rounded-pill shadow-sm">Running: {{ $activeCount }}</span>
