@@ -162,10 +162,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Hitung Ukuran Sampel dari Kuantitas Lot (Sekarang dari Komper/Karung)
+    // Hitung Otomatis Komper/Karung dan Ukuran Sampel dari Qty (Kg)
+    // Asumsi: 1 karung = 25 kg
+    $('#lotQtyInput').on('input', function() {
+        const qtyKg = parseFloat($(this).val()) || 0;
+        
+        if (qtyKg > 0) {
+            const totalKarung = Math.ceil(qtyKg / 25);
+            $('#komperKarungInput').val(totalKarung);
+            
+            const sampleSize = AQL_TABLE.getSampleSize(totalKarung);
+            $('#totalCheckInput').val(sampleSize).trigger('input');
+        } else {
+            $('#komperKarungInput').val(0);
+            $('#totalCheckInput').val(0).trigger('input');
+        }
+    });
+
+    // Jika user mengedit manual Komper/Karung
     $('#komperKarungInput').on('input', function() {
-        const lotSize = parseInt($(this).val()) || 0;
-        const sampleSize = AQL_TABLE.getSampleSize(lotSize);
+        const totalKarung = parseFloat($(this).val()) || 0;
+        const sampleSize = AQL_TABLE.getSampleSize(totalKarung);
         $('#totalCheckInput').val(sampleSize).trigger('input');
     });
 

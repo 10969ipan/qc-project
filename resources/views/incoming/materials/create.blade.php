@@ -148,15 +148,15 @@
                                 <!-- Quantity Details -->
                                 <td>
                                     <input type="number" step="any" class="form-control text-center" name="quantity_kg"
-                                        id="lotQtyInput" placeholder="0" required>
+                                        id="lotQtyInput" placeholder="0" required style="min-width: 120px;">
                                 </td>
                                 <td>
                                     <input type="number" step="any" class="form-control text-center"
-                                        name="komper_karung_kg" id="komperKarungInput" placeholder="0" required>
+                                        name="komper_karung_kg" id="komperKarungInput" placeholder="0" required style="min-width: 120px;">
                                 </td>
                                 <td>
                                     <input type="number" step="any" class="form-control text-center"
-                                        name="sampling_size_karung_kg" id="totalCheckInput" placeholder="0" required>
+                                        name="sampling_size_karung_kg" id="totalCheckInput" placeholder="0" required style="min-width: 120px;">
                                 </td>
 
                                 <!-- Defect Details -->

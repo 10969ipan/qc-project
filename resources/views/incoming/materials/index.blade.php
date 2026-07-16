@@ -257,7 +257,6 @@
                             <th rowspan="2">Cycle Time (s)</th>
                             <th rowspan="2">Material Name</th>
                             <th rowspan="2">Supplier</th>
-                            <th rowspan="2">Part No</th>
                             <th rowspan="2">Tgl Datang</th>
                             <th rowspan="2">Expired</th>
                             <th rowspan="2">Lot/Batch</th>
@@ -307,7 +306,6 @@
                                 <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
                                 <td class="align-middle">{{ $cs->item->name }}</td>
                                 <td class="align-middle">{{ $cs->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $cs->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}</td>
                                 <td class="align-middle text-nowrap">{{ date('d/m/Y', strtotime($cs->expired_date)) }}</td>
                                 <td class="align-middle">{{ $cs->lot_batch_number }}</td>
