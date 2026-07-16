@@ -183,7 +183,7 @@
             <div class="form-group mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="small font-weight-bold text-gray-700 mb-0">Detail NG (Defect List)</label>
-                    <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs px-3" style="font-size: 0.7rem; {{ count($defectsArr) > 0 || $checksheet->total_ng > 0 ? '' : 'display:none;' }}">
+                    <button type="button" id="editAddDefectBtn" class="btn btn-info btn-xs px-3" style="font-size: 0.7rem;">
                         <i class="fas fa-plus mr-1"></i> Tambah Jenis NG
                     </button>
                 </div>
@@ -341,9 +341,18 @@
         });
 
         $('#editAddDefectBtn').click(function() {
-            const itemDefects = $('#item_id').find('option:selected').data('defects') || [];
+            let itemDefects = $('#item_id').find('option:selected').data('defects') || [];
+            if (typeof itemDefects === 'string') {
+                try { itemDefects = JSON.parse(itemDefects); } catch(e) { itemDefects = []; }
+            }
+            if (!Array.isArray(itemDefects)) itemDefects = [];
+
             let options = '<option value="">-- Pilih Defect --</option>';
             itemDefects.forEach(d => options += `<option value="${d}">${d}</option>`);
+            // Pastikan opsi Dimensi selalu ada
+            if (options.indexOf('value="dimension"') === -1 && options.indexOf('Dimensi') === -1) {
+                options += '<option value="dimension">Dimensi</option>';
+            }
             
             $('#noDefectMsg').remove();
             $('#editDefectContainer').append(`
@@ -457,8 +466,8 @@
             $('#judgmentDisplay').text(j).removeClass('alert-success alert-danger border-success border-danger text-success text-danger')
                 .addClass(j === 'OK' ? 'alert-success border-success text-success' : 'alert-danger border-danger text-danger');
 
-            if(j === 'NG') $('#next_proses_container').slideDown();
-            else $('#next_proses_container').slideUp();
+            if(j === 'NG') $('#nextProsesContainer').slideDown();
+            else $('#nextProsesContainer').slideUp();
         }
 
         // Validation Logic
