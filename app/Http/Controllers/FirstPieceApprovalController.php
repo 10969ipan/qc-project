@@ -801,14 +801,30 @@ class FirstPieceApprovalController extends Controller
 
         // Hitung base total NG (tanpa Dimensi)
         $baseTotalNg = 0;
+        $hasExistingDimensi = false;
         foreach ($defects as $d) {
             $type = $d['type'] ?? '';
-            if (is_array($d) && $type !== 'Dimensi' && $type !== 'NG Dimensi') {
-                $baseTotalNg += (int)($d['qty'] ?? 0);
+            if (is_array($d)) {
+                if ($type === 'Dimensi' || $type === 'NG Dimensi') {
+                    $hasExistingDimensi = true;
+                } else {
+                    $baseTotalNg += (int)($d['qty'] ?? 0);
+                }
             }
         }
 
-        if ($newJudgment === 'NG') {
+        // Determine if Dimensi defect should exist
+        $shouldHaveDimensi = false;
+        if ($ngPoints !== null) {
+            // If we have explicit validation results, trust ngPoints
+            $shouldHaveDimensi = ($ngPoints > 0);
+        } else {
+            // Fallback for when there is no dimension validation result (e.g. no standards or empty data)
+            // Preserve existing user-submitted state, but if newJudgment is OK, force remove it.
+            $shouldHaveDimensi = ($newJudgment === 'NG') ? $hasExistingDimensi : false;
+        }
+
+        if ($shouldHaveDimensi) {
             $found = false;
             foreach ($defects as &$defect) {
                 if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
@@ -847,7 +863,9 @@ class FirstPieceApprovalController extends Controller
         $samplingQty = (int) ($checksheet->sampling_qty ?? 0);
         $totalNg = (int) ($checksheet->total_ng ?? 0);
         $checksheet->total_ok = max(0, $samplingQty - $totalNg);
-
+        
+        // Re-evaluate judgment if needed
+        $checksheet->judgment = ($checksheet->total_ng > 0) ? 'NG' : 'OK';
 
         $checksheet->defects = $defects; // Cast handled by model
         return $checksheet;
