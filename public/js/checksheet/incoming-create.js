@@ -235,6 +235,63 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
 
         const form = $(this);
+        
+        // Validasi Manual untuk Required Fields
+        let isValid = true;
+        let missingFields = [];
+        
+        const fieldNames = {
+            'item_id': 'Material Name',
+            'tanggal_datang': 'Tgl Datang',
+            'expired_date': 'Expired Date',
+            'date': 'Tanggal Check',
+            'lot_batch_number': 'Lot/Batch Number',
+            'quantity_kg': 'Qty (Kg)',
+            'komper_karung_kg': 'Komper/Karung',
+            'sampling_size_karung_kg': 'Sampling Size',
+            'judgment': 'Judgment',
+            'operator_initials': 'QC'
+        };
+
+        form.find('input[required], select[required], textarea[required]').each(function() {
+            // Trim spasi jika berupa string
+            let val = $(this).val();
+            if (typeof val === 'string') {
+                val = val.trim();
+            }
+            if (!val) {
+                isValid = false;
+                $(this).addClass('is-invalid');
+                const name = $(this).attr('name');
+                if (name && fieldNames[name]) {
+                    if (!missingFields.includes(fieldNames[name])) {
+                        missingFields.push(fieldNames[name]);
+                    }
+                }
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            let errorHtml = 'Pastikan semua kolom yang wajib sudah terisi sebelum menyimpan data.<br><br>';
+            if (missingFields.length > 0) {
+                errorHtml += '<div class="text-left"><strong class="text-danger">Kolom yang belum diisi:</strong><ul class="text-danger mt-1">';
+                missingFields.forEach(function(field) {
+                    errorHtml += `<li>${field}</li>`;
+                });
+                errorHtml += '</ul></div>';
+            }
+            
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap!',
+                html: errorHtml,
+                confirmButtonColor: '#4e73df'
+            });
+            return false;
+        }
+
         const saveBtn = form.find('button[type="submit"]');
         const originalHtml = saveBtn.html();
 
@@ -432,5 +489,12 @@ document.addEventListener('DOMContentLoaded', function () {
     $("#zoomResetStandard").click(() => {
         standardZoomLevel = 1.0;
         if (pdfDoc) renderPageOnCanvas();
+    });
+
+    // Clear is-invalid class on input
+    $('#checksheetForm').on('input change', 'input[required], select[required], textarea[required]', function() {
+        if ($(this).val()) {
+            $(this).removeClass('is-invalid');
+        }
     });
 });

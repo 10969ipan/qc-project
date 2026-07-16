@@ -82,7 +82,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Incoming Material</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('incoming.materials.store') }}" method="POST" id="checksheetForm">
+            <form action="{{ route('incoming.materials.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">
 

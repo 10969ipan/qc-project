@@ -1,4 +1,4 @@
-<form action="{{ route('incoming.materials.update', $checksheet->id) }}" method="POST" id="editChecksheetForm">
+<form action="{{ route('incoming.materials.update', $checksheet->id) }}" method="POST" id="editChecksheetForm" novalidate>
     @csrf
     @method('PUT')
 
@@ -150,10 +150,36 @@
 <script>
     $('#editChecksheetForm').on('submit', function(e) {
         var isValid = true;
+        var missingFields = [];
+        
+        var fieldNames = {
+            'item_id': 'Material Name',
+            'tanggal_datang': 'Tgl Datang',
+            'expired_date': 'Expired Date',
+            'date': 'Tanggal Check',
+            'lot_batch_number': 'Lot/Batch Number',
+            'quantity_kg': 'Qty (Kg)',
+            'komper_karung_kg': 'Komper/Karung',
+            'sampling_size_karung_kg': 'Sampling Size',
+            'judgment': 'Judgment',
+            'operator_initials': 'QC'
+        };
+
         $(this).find('input[required], select[required], textarea[required]').each(function() {
-            if (!$(this).val()) {
+            var val = $(this).val();
+            if (typeof val === 'string') {
+                val = val.trim();
+            }
+            
+            if (!val) {
                 isValid = false;
                 $(this).addClass('is-invalid');
+                var name = $(this).attr('name');
+                if (name && fieldNames[name]) {
+                    if (!missingFields.includes(fieldNames[name])) {
+                        missingFields.push(fieldNames[name]);
+                    }
+                }
             } else {
                 $(this).removeClass('is-invalid');
             }
@@ -161,16 +187,26 @@
 
         if (!isValid) {
             e.preventDefault();
+            
+            var errorHtml = 'Pastikan semua kolom yang wajib (bertanda merah/required) sudah terisi sebelum menyimpan.<br><br>';
+            if (missingFields.length > 0) {
+                errorHtml += '<div class="text-left"><strong class="text-danger">Kolom yang belum diisi:</strong><ul class="text-danger mt-1">';
+                missingFields.forEach(function(field) {
+                    errorHtml += '<li>' + field + '</li>';
+                });
+                errorHtml += '</ul></div>';
+            }
+            
             Swal.fire({
                 icon: 'warning',
                 title: 'Data Belum Lengkap!',
-                text: 'Pastikan semua kolom yang wajib (bertanda merah/required) sudah terisi sebelum menyimpan.',
+                html: errorHtml,
                 confirmButtonColor: '#4e73df'
             });
         }
     });
 
-    $('#editChecksheetForm input, #editChecksheetForm select').on('change', function() {
+    $('#editChecksheetForm').on('input change', 'input[required], select[required], textarea[required]', function() {
         if ($(this).val()) {
             $(this).removeClass('is-invalid');
         }
