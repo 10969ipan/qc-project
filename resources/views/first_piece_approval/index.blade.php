@@ -5,33 +5,25 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
+        max-height: 75vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
-    }
-    #checksheetTable, #sortirTable {
-        border-collapse: collapse !important;
+    #checksheetTable {
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
         table-layout: auto !important;
     }
-    }
-    #checksheetTable td, #checksheetTable th,
-    #sortirTable td, #sortirTable th {
+    
+    #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    }
-    #checksheetTable tbody td,
-    #sortirTable tbody td {
+
+    #checksheetTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
         vertical-align: middle !important;
@@ -41,68 +33,61 @@
     }
 
     /* Global TH sticky setup */
-    #checksheetTable > thead > tr > th,
-    #sortirTable > thead > tr > th {
+    #checksheetTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
         font-size: 0.62rem !important;
         letter-spacing: 0.2px;
         padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
         line-height: 1.2;
         white-space: nowrap !important; /* Force all headers to be side-by-side */
+        box-shadow: inset 0 -1px 0 #e2e8f0;
     }
 
     /* Forced overrides for compact view */
-    #checksheetTable td.no-export,
-    #sortirTable td.no-export {
+    #checksheetTable td.no-export {
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
-    }
-    #checksheetTable .btn,
-    #sortirTable .btn {
-        min-width: 0 !important; /* Overrides 110px inline style */
+    #checksheetTable .btn {
+        min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
     }
-    }
-    #checksheetTable .badge,
-    #sortirTable .badge {
+    #checksheetTable .badge {
         font-size: 0.6rem !important;
         padding: 0.2rem 0.4rem !important;
     }
 
     /* Exact sticky heights since headers no longer wrap */
-    #checksheetTable > thead > tr:nth-child(1) > th,
-    #sortirTable > thead > tr:nth-child(1) > th {
+    #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 48px !important; 
     }
-    }
-    #checksheetTable > thead > tr:nth-child(2) > th,
-    #sortirTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+    #checksheetTable > thead > tr:nth-child(2) > th {
+        top: 48px !important; 
         z-index: 104 !important;
-        height: 30px !important;
+        height: 38px !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
     }
-    }
-    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"],
-    #sortirTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
+    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
+        top: 0 !important;
+        height: 86px !important; /* 48 + 38 */
+        z-index: 106 !important;
     }
 
-    /* Minimalist Dimension Table Styles - Aggressive override for global !important */
+    /* Minimalist Dimension Table Styles */
     #checksheetTable .table-dimension-minimalist,
     #checksheetTable td .table-dimension-minimalist,
     #checksheetTable table.table-dimension-minimalist {
@@ -112,7 +97,7 @@
         background: #ffffff !important;
         border: none !important;
     }
-    }
+
     #checksheetTable .table-dimension-minimalist td,
     #checksheetTable .table-dimension-minimalist th {
         background-color: transparent !important;
@@ -121,9 +106,8 @@
         text-align: center !important;
     }
 
-    /* Target headers switched to td for avoiding global thead th blue style */
     #checksheetTable .table-dimension-minimalist .dim-header {
-        background-color: #f8fafc !important; /* Industrial Slate */
+        background-color: #f8fafc !important;
         color: #475569 !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
@@ -131,22 +115,40 @@
         border-bottom: 1px solid #e2e8f0 !important;
         line-height: 1 !important;
     }
-    }
+
     #checksheetTable .table-dimension-minimalist .dim-data {
         font-size: 0.65rem !important;
         border-bottom: 1px solid #f1f5f9 !important;
         color: #1e293b !important;
         line-height: 1.2 !important;
     }
-    }
+
     #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
         border-bottom: none !important;
     }
-    }
+
     #checksheetTable .table-dimension-minimalist .text-std-header { 
         color: #64748b !important; 
         font-weight: 600 !important; 
         background-color: #f1f5f9 !important; 
+    }
+
+    /* Sticky Pagination */
+    .pagination-container {
+        position: sticky !important;
+        bottom: 0 !important;
+        background-color: #ffffff !important;
+        z-index: 106 !important;
+        padding: 12px 20px !important;
+        margin: 0 -20px -20px -20px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        border-bottom-left-radius: 0.35rem;
+        border-bottom-right-radius: 0.35rem;
+    }
+    
+    .pagination-container .pagination {
+        margin-bottom: 0 !important;
     }
 </style>
     @php
@@ -338,7 +340,7 @@
             </form>
 
             <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
+                <table class="table table-hover" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
                         @php
                             $requestPlant = request('plant');
@@ -1020,8 +1022,13 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4">
-                {{ $checksheets->withQueryString()->links() }}
+            <div class="pagination-container d-flex justify-content-between align-items-center">
+                <div class="text-muted small font-weight-bold">
+                    Menampilkan {{ $checksheets->firstItem() ?? 0 }} - {{ $checksheets->lastItem() ?? 0 }} dari {{ $checksheets->total() ?? 0 }} data
+                </div>
+                <div>
+                    {{ $checksheets->withQueryString()->links() }}
+                </div>
             </div>
         </div>
     </div>

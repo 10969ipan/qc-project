@@ -147,6 +147,9 @@
                                     </td>
                                 @endforeach
                                 <td class="align-middle">
+                                    @if($loop->first)
+                                        @include('partials.bulk_approve_button')
+                                    @endif
                                     <div class="btn-group">
                                         @if(!in_array(auth()->user()->role, ['inspector']))
                                             @if($canEdit)
@@ -176,4 +179,6 @@
             <div class="mt-4">{{ $checksheets->withQueryString()->links() }}</div>
         </div>
     </div>
+    @php $bulkApproveRoute = route('incoming.sub_parts.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endsection

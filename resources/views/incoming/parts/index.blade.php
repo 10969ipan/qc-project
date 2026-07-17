@@ -163,6 +163,9 @@
 
                                 <td class="align-middle small">{{ $cs->remarks }}</td>
                                 <td class="align-middle text-nowrap">
+                                    @if($loop->first)
+                                        @include('partials.bulk_approve_button')
+                                    @endif
                                     <div class="btn-group">
                                         {{-- Approval Actions --}}
                                         @if(!in_array(auth()->user()->role, ['inspector']))
@@ -199,4 +202,7 @@
             </div>
         </div>
     </div>
+    @php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
+
 @endsection

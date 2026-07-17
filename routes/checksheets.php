@@ -176,10 +176,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/incoming-chemical', [IncomingChemicalController::class, 'index'])->name('incoming.chemicals.index');
         Route::get('/report/incoming-part/export-pdf', [IncomingPartController::class, 'exportPdf'])->name('incoming.parts.export_pdf');
         Route::get('/report/incoming-material/export-pdf', [IncomingMaterialController::class, 'exportPdf'])->name('incoming.materials.export_pdf');
+        Route::get('/report/incoming-material/{id}/edit-approval', [IncomingMaterialController::class, 'editApproval'])->name('admin.incoming.materials.edit_approval');
+        Route::put('/report/incoming-material/{id}/update-approval', [IncomingMaterialController::class, 'updateApproval'])->name('admin.incoming.materials.update_approval');
         Route::get('/report/incoming-material/print', [IncomingMaterialController::class, 'printView'])->name('incoming.materials.print');
         Route::get('/report/incoming-sub-part/export-pdf', [IncomingSubPartController::class, 'exportPdf'])->name('incoming.sub_parts.export_pdf');
         Route::get('/report/incoming-export/export-pdf', [IncomingExportController::class, 'exportPdf'])->name('incoming.exports.export_pdf');
         Route::get('/report/incoming-chemical/export-pdf', [IncomingChemicalController::class, 'exportPdf'])->name('incoming.chemicals.export_pdf');
+        Route::get('/report/incoming-chemical/print', [IncomingChemicalController::class, 'printView'])->name('incoming.chemicals.print');
+        Route::get('/report/incoming-chemical/{id}/edit-approval', [IncomingChemicalController::class, 'editApproval'])->name('admin.incoming.chemicals.edit_approval');
+        Route::put('/report/incoming-chemical/{id}/update-approval', [IncomingChemicalController::class, 'updateApproval'])->name('admin.incoming.chemicals.update_approval');
 
         // Approval Actions
         Route::post('/checksheets/{id}/approve/{type}', [SubAssyChecksheetController::class, 'approve'])->name('admin.checksheets.approve');
@@ -243,6 +248,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/incoming-sub-part/{id}/reject/{type}', [IncomingSubPartController::class, 'reject'])->name('incoming.sub_parts.reject');
         Route::post('/incoming-export/{id}/approve/{type}', [IncomingExportController::class, 'approve'])->name('incoming.exports.approve');
         Route::post('/incoming-export/{id}/reject/{type}', [IncomingExportController::class, 'reject'])->name('incoming.exports.reject');
+        
+        // Incoming Bulk Approval Routes
+        Route::post('/incoming-part/bulk-approve', [IncomingPartController::class, 'bulkApprove'])->name('incoming.parts.bulk_approve');
+        Route::post('/incoming-material/bulk-approve', [IncomingMaterialController::class, 'bulkApprove'])->name('incoming.materials.bulk_approve');
+        Route::post('/incoming-sub-part/bulk-approve', [IncomingSubPartController::class, 'bulkApprove'])->name('incoming.sub_parts.bulk_approve');
+        Route::post('/incoming-export/bulk-approve', [IncomingExportController::class, 'bulkApprove'])->name('incoming.exports.bulk_approve');
+        Route::post('/incoming-chemical/bulk-approve', [IncomingChemicalController::class, 'bulkApprove'])->name('incoming.chemicals.bulk_approve');
         Route::post('/incoming-chemical/{id}/approve/{type}', [IncomingChemicalController::class, 'approve'])->name('incoming.chemicals.approve');
         Route::post('/incoming-chemical/{id}/reject/{type}', [IncomingChemicalController::class, 'reject'])->name('incoming.chemicals.reject');
 

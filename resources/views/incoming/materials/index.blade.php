@@ -468,6 +468,10 @@
                                     @endif
                                 </td>
                                 <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                    @if($loop->first)
+                                        @include('partials.bulk_approve_button')
+                                    @endif
+
                                     @if($canApproveKashift)
                                         <form action="{{ route('incoming.materials.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                             @csrf
@@ -549,6 +553,9 @@
             </div>
         </div>
     </div>
+    @php $bulkApproveRoute = route('incoming.materials.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
+
 @endsection
 
 @push('scripts')

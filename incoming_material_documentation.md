@@ -164,3 +164,59 @@ Semua tombol *action* dalam tabel sebaiknya berukuran sangat mini agar selaras d
     <i class="fas fa-edit"></i>
 </button>
 ```
+
+---
+
+## 5. Validasi Form Khusus (Custom Validation)
+
+Browser bawaan HTML5 (*required*) memiliki peringatan pop-up default yang kurang sesuai dengan tampilan modern. Oleh karena itu, form harus dimatikan validasi browsernya dengan atribut `novalidate` pada tag `<form>`, dan proses validasi ditangani sepenuhnya via JavaScript.
+
+### A. Nonaktifkan Default Validasi HTML5
+Gunakan sintaks `novalidate` pada deklarasi form:
+```html
+<form id="createChecksheetForm" action="{{ route('incoming.materials.store') }}" method="POST" novalidate>
+```
+
+### B. SweetAlert untuk Alert Form Kosong
+Tangkap *submit event*, kumpulkan peringatan berdasarkan kolom yang wajib diisi namun kosong, lalu tampilkan list merah (class `is-invalid`) dan rincian pesan via SweetAlert.
+```javascript
+// Hapus class invalid saat pengguna mulai mengetik/memilih
+$(document).on('input change', 'input, select', function() {
+    $(this).removeClass('is-invalid');
+});
+
+$('#createChecksheetForm').on('submit', function(e) {
+    e.preventDefault();
+    let missingFields = [];
+    
+    // Pengecekan setiap field mandatory
+    if (!$('input[name="date"]').val()) {
+        missingFields.push('Tanggal');
+        $('input[name="date"]').addClass('is-invalid');
+    }
+    // Lanjutkan untuk field lain...
+
+    if (missingFields.length > 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Kolom Belum Lengkap',
+            html: 'Harap isi kolom berikut:<br><ul class="text-left mt-2 mb-0" style="list-style-position: inside;">' + 
+                  missingFields.map(f => '<li>' + f + '</li>').join('') + '</ul>',
+        });
+        return false;
+    }
+    
+    // Lanjut ke eksekusi form / AJAX
+});
+```
+
+---
+
+## 6. Otomatisasi & Efisiensi UI (UI/UX Efficiency)
+
+### A. Perhitungan Otomatis (Auto-Calculation)
+Hindari meminta operator untuk menghitung parameter secara manual jika sistem dapat mendeduksinya. Contoh: Pada Incoming Material, ketika ada ketetapan 1 Karung = 25 Kg, nilai konversi *Komper/Karung* dan *Sampling Size* (AQL) harus langsung dikalkulasi dan diisi ke dalam form *input*.
+*Gunakan event `input` di JQuery untuk mendengarkan perubahan nilai `Qty (Kg)` dan mengisi field turunan secara real-time.*
+
+### B. Penghapusan Kolom Redundan
+Efisiensi ruang tabel sangat dianjurkan. Hapus kolom yang informasinya saling tumpang tindih (*redundant*). Contoh: Jika kolom `Nama Item` sudah memberikan rincian yang cukup jelas, maka kolom khusus `Part No` di dalam *index report* dapat dihilangkan untuk memberi ruang kosong (*whitespace*) yang lebih lega bagi kolom lain seperti `Description` atau `Defect`.

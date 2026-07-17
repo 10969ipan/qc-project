@@ -75,27 +75,19 @@ $(document).ready(function () {
         }
     });
 
-    // Hitung Otomatis Komper/Karung dan Ukuran Sampel dari Qty (Kg)
-    // Asumsi: 1 karung = 25 kg
-    $('input[name="quantity_kg"]').on('input', function() {
-        const qtyKg = parseFloat($(this).val()) || 0;
-        
-        if (qtyKg > 0) {
-            const totalKarung = Math.ceil(qtyKg / 25);
-            $('input[name="komper_karung_kg"]').val(totalKarung);
-            
-            const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalKarung);
-            $('input[name="sampling_size_karung_kg"]').val(sampleSize);
-        } else {
-            $('input[name="komper_karung_kg"]').val(0);
-            $('input[name="sampling_size_karung_kg"]').val(0);
-        }
-    });
+    // Qty (Kg, liter, Botol) sekarang diisi manual tanpa memicu perhitungan otomatis
 
-    // Jika user mengedit manual Komper/Karung
+    // Hitung otomatis AQL (Sampling Size) hanya dari input Komper/Karung (untuk Material)
     $('input[name="komper_karung_kg"]').on('input', function() {
         const totalKarung = parseFloat($(this).val()) || 0;
         const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalKarung);
         $('input[name="sampling_size_karung_kg"]').val(sampleSize);
+    });
+
+    // Hitung otomatis AQL (Sampling Size) hanya dari input Komp/Jirigen (untuk Chemical)
+    $('input[name="komper_jirigen_kg"]').on('input', function() {
+        const totalJirigen = parseFloat($(this).val()) || 0;
+        const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalJirigen);
+        $('input[name="sampling_size_jirigen_kg"]').val(sampleSize);
     });
 });

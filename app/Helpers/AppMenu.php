@@ -26,24 +26,32 @@ class AppMenu
             return true;
         }
 
-        // Find the menu by route
-        $menu = AppMenuModel::where('route', $route)->first();
+        // Find ALL menus by route
+        $menus = AppMenuModel::where('route', $route)->get();
 
         // If not found, try to find the base module index route
-        if (!$menu) {
+        if ($menus->isEmpty()) {
             // Strip suffixes like .bulk_approve, .store, .update, etc., and append .index
-            $baseRoute = preg_replace('/\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject)$/', '.index', $route);
+            $baseRoute = preg_replace('/\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject|export_pdf)$/', '.index', $route);
             if ($baseRoute !== $route) {
-                $menu = AppMenuModel::where('route', $baseRoute)->first();
+                $menus = AppMenuModel::where('route', $baseRoute)->get();
             }
         }
 
-        if (!$menu) {
-            // If menu not found, we might want to check by slug or allow it
-            // For now, if it's not registered in AppMenu, we fallback to false for safety
+        if ($menus->isEmpty()) {
+            // If menu not found, we fallback to false for safety
             return false;
         }
 
-        return $user->hasPermission($menu->id, $action);
+        // If user has permission in ANY of the matched menus, grant it.
+        // This fixes the issue where a route exists in both Jakarta and Karawang, 
+        // and first() was checking the wrong one.
+        foreach ($menus as $m) {
+            if ($user->hasPermission($m->id, $action)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
