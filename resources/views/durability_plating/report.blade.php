@@ -683,7 +683,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="POST" id="formEditThickness" enctype="multipart/form-data">
+            <form action="" method="POST" id="formEditThickness" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
@@ -910,7 +910,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST" id="formInputCorrodkote" enctype="multipart/form-data">
+            <form action="#" method="POST" id="formInputCorrodkote" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="corrodkote_report_id">
@@ -931,15 +931,15 @@
                     </div>
                     <div class="row">
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time of test (hours) Standard</label>
+                            <label class="small font-weight-bold text-gray-700">Time (hrs) STD.</label>
                             <input type="text" name="standard_time" id="corrodkote_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time of test (hours) Actual</label>
+                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
                             <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                         </div>
                         <div class="col-md-3 form-group mb-3">
@@ -1078,7 +1078,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST" id="formInputCass" enctype="multipart/form-data">
+            <form action="#" method="POST" id="formInputCass" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="cass_report_id">
@@ -1242,7 +1242,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST" id="formInputSaltSpray" enctype="multipart/form-data">
+            <form action="#" method="POST" id="formInputSaltSpray" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="salt_report_id">
@@ -1406,7 +1406,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="#" method="POST" id="formInputPorecount" enctype="multipart/form-data">
+            <form action="#" method="POST" id="formInputPorecount" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="porecount_report_id">
@@ -1677,6 +1677,50 @@
                 return false;
             }
         });
+        
+        function validateForm(formId) {
+            var form = document.getElementById(formId);
+            if (!form) return;
+            
+            form.addEventListener('submit', function(e) {
+                var emptyFields = [];
+                var inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+                
+                inputs.forEach(function(input) {
+                    if (input.value.trim() === '') {
+                        var formGroup = input.closest('.form-group');
+                        var label = formGroup ? formGroup.querySelector('label') : null;
+                        var labelText = label ? label.innerText.replace('*', '').trim() : input.name;
+                        
+                        var section = formGroup ? formGroup.closest('.row').previousElementSibling : null;
+                        if (section && section.tagName === 'H6') {
+                            var sectionName = section.innerText.trim();
+                            labelText = sectionName + ' - ' + labelText;
+                        }
+                        
+                        emptyFields.push(labelText);
+                    }
+                });
+                
+                if (emptyFields.length > 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap!',
+                        html: '<div class="text-center mb-3">Mohon isi semua kolom berikut:<br><small>(Isi dengan tanda strip "-" jika data tidak ada)</small></div><div class="text-left" style="max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 8px;"><ul><li class="text-danger">' + emptyFields.join('</li><li class="text-danger">') + '</li></ul></div>',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Baik, Mengerti'
+                    });
+                }
+            });
+        }
+        
+        validateForm('formEditThickness');
+        validateForm('formInputCorrodkote');
+        validateForm('formInputCass');
+        validateForm('formInputSaltSpray');
+        validateForm('formInputPorecount');
+        validateForm('formAddData');
     });
 </script>
 @endpush
@@ -1694,7 +1738,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="formAddData" action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="formAddData" action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     
@@ -1734,7 +1778,7 @@
                     @if($testType == 'corrodkote')
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
                             <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">

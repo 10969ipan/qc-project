@@ -300,105 +300,122 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('standard-performance-tests.store') }}" method="POST">
+            <form action="{{ route('standard-performance-tests.store') }}" method="POST" id="formTambahMaster" novalidate>
                 @csrf
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <div class="row">
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Nama Part <span class="text-danger">*</span></label>
-                            <input type="text" name="part_name" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <div class="d-flex align-items-center">
+                                <input type="text" name="part_name" id="tambah_part_name" list="partNamesList" class="form-control form-control-sm border-0 shadow-sm" required autocomplete="off">
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromDatalist('tambah_part_name', 'partNamesList', 'Nama Part')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToDatalist('tambah_part_name', 'partNamesList', 'Nama Part')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Part No.</label>
-                            <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Part No. <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center">
+                                <input type="text" name="part_number" id="tambah_part_number" list="partNumbersList" class="form-control form-control-sm border-0 shadow-sm" required autocomplete="off">
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromDatalist('tambah_part_number', 'partNumbersList', 'Part No')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToDatalist('tambah_part_number', 'partNumbersList', 'Part No')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" name="customer_name" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Customer <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center">
+                                <select name="customer_name" id="tambah_customer_name" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">- Pilih -</option>
+                                    @foreach($customers as $c)
+                                        <option value="{{ $c }}">{{ $c }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromSelect('tambah_customer_name', 'Customer')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToSelect('tambah_customer_name', 'Customer')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC</label>
-                            <input type="text" name="customer_standard" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_standard" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-layer-group mr-1"></i> Thickness (<span style="text-transform: none !important;">m&micro;</span>)</h6>
                     <div class="row">
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cr <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_cr" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="thickness_ni" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Ni <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_ni" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cu <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_cu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="thickness_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-vial mr-1"></i> Corrodkote</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="corrodkote_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std Max % Corrosion</label>
-                            <input type="text" name="corrodkote_std_max_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std Max % Corrosion <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_std_max_corrosion" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="corrodkote_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-flask mr-1"></i> Cass Test</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="cass_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Min RN</label>
-                            <input type="text" name="cass_std_min_rn" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Min RN <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_std_min_rn" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="cass_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-spray-can mr-1"></i> Salt Spray Test</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="salt_spray_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Rusting</label>
-                            <input type="text" name="salt_spray_std_rusting" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Rusting <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_std_rusting" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="salt_spray_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-primary border-bottom pb-2"><i class="fas fa-search-plus mr-1"></i> Porecount Test</h6>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Min</label>
-                            <input type="text" name="porecount_std_min" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Min <span class="text-danger">*</span></label>
+                            <input type="text" name="porecount_std_min" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="porecount_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="porecount_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                 </div>
@@ -425,106 +442,123 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="" method="POST" id="formEdit">
+            <form action="" method="POST" id="formEdit" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <div class="row">
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Nama Part <span class="text-danger">*</span></label>
-                            <input type="text" name="part_name" id="edit_part_name" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <div class="d-flex align-items-center">
+                                <input type="text" name="part_name" id="edit_part_name" list="partNamesList" class="form-control form-control-sm border-0 shadow-sm" required autocomplete="off">
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromDatalist('edit_part_name', 'partNamesList', 'Nama Part')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToDatalist('edit_part_name', 'partNamesList', 'Nama Part')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Part No.</label>
-                            <input type="text" name="part_number" id="edit_part_number" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Part No. <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center">
+                                <input type="text" name="part_number" id="edit_part_number" list="partNumbersList" class="form-control form-control-sm border-0 shadow-sm" required autocomplete="off">
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromDatalist('edit_part_number', 'partNumbersList', 'Part No')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToDatalist('edit_part_number', 'partNumbersList', 'Part No')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" name="customer_name" id="edit_customer_name" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Customer <span class="text-danger">*</span></label>
+                            <div class="d-flex align-items-center">
+                                <select name="customer_name" id="edit_customer_name" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">- Pilih -</option>
+                                    @foreach($customers as $c)
+                                        <option value="{{ $c }}">{{ $c }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm ml-1 py-0 px-2" onclick="deleteFromSelect('edit_customer_name', 'Customer')" title="Hapus dari Daftar"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1 py-0 px-2" onclick="addToSelect('edit_customer_name', 'Customer')" title="Tambah Baru"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC</label>
-                            <input type="text" name="customer_standard" id="edit_customer_standard" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_standard" id="edit_customer_standard" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                     
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-layer-group mr-1"></i> Thickness (<span style="text-transform: none !important;">m&micro;</span>)</h6>
                     <div class="row">
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="thickness_cr" id="edit_thickness_cr" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cr <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_cr" id="edit_thickness_cr" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="thickness_ni" id="edit_thickness_ni" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Ni <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_ni" id="edit_thickness_ni" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="thickness_cu" id="edit_thickness_cu" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Cu <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_cu" id="edit_thickness_cu" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="thickness_freq" id="edit_thickness_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="thickness_freq" id="edit_thickness_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-vial mr-1"></i> Corrodkote</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="corrodkote_time" id="edit_corrodkote_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_time" id="edit_corrodkote_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std Max % Corrosion</label>
-                            <input type="text" name="corrodkote_std_max_corrosion" id="edit_corrodkote_std_max_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std Max % Corrosion <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_std_max_corrosion" id="edit_corrodkote_std_max_corrosion" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="corrodkote_freq" id="edit_corrodkote_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="corrodkote_freq" id="edit_corrodkote_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-flask mr-1"></i> Cass Test</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="cass_time" id="edit_cass_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_time" id="edit_cass_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Min RN</label>
-                            <input type="text" name="cass_std_min_rn" id="edit_cass_std_min_rn" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Min RN <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_std_min_rn" id="edit_cass_std_min_rn" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="cass_freq" id="edit_cass_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="cass_freq" id="edit_cass_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-spray-can mr-1"></i> Salt Spray Test</h6>
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Waktu (Jam)</label>
-                            <input type="text" name="salt_spray_time" id="edit_salt_spray_time" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Waktu (Jam) <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_time" id="edit_salt_spray_time" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Rusting</label>
-                            <input type="text" name="salt_spray_std_rusting" id="edit_salt_spray_std_rusting" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Rusting <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_std_rusting" id="edit_salt_spray_std_rusting" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="salt_spray_freq" id="edit_salt_spray_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="salt_spray_freq" id="edit_salt_spray_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
 
                     <h6 class="font-weight-bold mt-3 mb-3 text-info border-bottom pb-2"><i class="fas fa-search-plus mr-1"></i> Porecount Test</h6>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label class="small font-weight-bold text-gray-700">Std. Min</label>
-                            <input type="text" name="porecount_std_min" id="edit_porecount_std_min" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Std. Min <span class="text-danger">*</span></label>
+                            <input type="text" name="porecount_std_min" id="edit_porecount_std_min" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label class="small font-weight-bold text-gray-700">Frek.</label>
-                            <input type="text" name="porecount_freq" id="edit_porecount_freq" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Frek. <span class="text-danger">*</span></label>
+                            <input type="text" name="porecount_freq" id="edit_porecount_freq" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                     </div>
                 </div>
@@ -589,26 +623,26 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('standard-performance-tests.thickness.store') }}" method="POST">
+            <form action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" id="formThickness" novalidate>
                 @csrf
                 <input type="hidden" name="standard_performance_test_id" id="thickness_test_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
-                            <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Tgl Produksi <span class="text-danger">*</span></label>
+                            <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
+                            <select name="shift" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
                             </select>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
+                            <label class="small font-weight-bold text-gray-700">No Lot <span class="text-danger">*</span></label>
+                            <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot" required>
                         </div>
                     </div>
                     <div class="form-group mb-3">
@@ -633,8 +667,8 @@
 
                     <div class="row mt-3">
                         <div class="col-md-6 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
+                            <label class="small font-weight-bold text-gray-700">Result / Judgment <span class="text-danger">*</span></label>
+                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm" required>
                                 <option value="-">-</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
@@ -656,6 +690,19 @@
         </div>
     </div>
 </div>
+
+<!-- Datalists for Autocomplete -->
+<datalist id="partNamesList">
+    @foreach($partNames as $pn)
+        <option value="{{ $pn }}">{{ $pn }}</option>
+    @endforeach
+</datalist>
+<datalist id="partNumbersList">
+    @foreach($partNumbers as $pno)
+        <option value="{{ $pno }}">{{ $pno }}</option>
+    @endforeach
+</datalist>
+
 @endsection
 
 @push('scripts')
@@ -772,7 +819,13 @@
             
             $('#edit_part_name').val(item.part_name);
             $('#edit_part_number').val(item.part_number);
+            
+            var selCust = document.getElementById('edit_customer_name');
+            if (selCust && item.customer_name && !Array.from(selCust.options).some(o => o.value == item.customer_name)) {
+                selCust.appendChild(new Option(item.customer_name, item.customer_name));
+            }
             $('#edit_customer_name').val(item.customer_name);
+            
             $('#edit_customer_standard').val(item.customer_standard);
             
             $('#edit_thickness_cr').val(item.thickness_cr);
@@ -816,6 +869,155 @@
                 }
             });
         });
+        
+        // Add form validation with SweetAlert
+        function validateForm(formId) {
+            var form = document.getElementById(formId);
+            if (!form) return;
+            
+            form.addEventListener('submit', function(e) {
+                var emptyFields = [];
+                var inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+                
+                inputs.forEach(function(input) {
+                    if (input.value.trim() === '') {
+                        var formGroup = input.closest('.form-group');
+                        var label = formGroup ? formGroup.querySelector('label') : null;
+                        var labelText = label ? label.innerText.replace('*', '').trim() : input.name;
+                        
+                        var section = formGroup ? formGroup.closest('.row').previousElementSibling : null;
+                        if (section && section.tagName === 'H6') {
+                            var sectionName = section.innerText.trim();
+                            labelText = sectionName + ' - ' + labelText;
+                        }
+                        
+                        emptyFields.push(labelText);
+                    }
+                });
+                
+                if (emptyFields.length > 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap!',
+                        html: '<div class="text-center mb-3">Mohon isi semua kolom berikut:<br><small>(Isi dengan tanda strip "-" jika data tidak ada)</small></div><div class="text-left" style="max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 8px;"><ul><li class="text-danger">' + emptyFields.join('</li><li class="text-danger">') + '</li></ul></div>',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Baik, Mengerti'
+                    });
+                }
+            });
+        }
+        
+        
+        validateForm('formTambahMaster');
+        validateForm('formEdit');
+        validateForm('formThickness');
     });
+    
+    // Global Functions for Datalist & Select manipulations
+    window.addToDatalist = function(inputId, listId, title) {
+        Swal.fire({
+            title: 'Tambah ' + title + ' Baru',
+            input: 'text',
+            inputAttributes: { autocapitalize: 'off', placeholder: 'Masukkan ' + title.toLowerCase() + ' baru...' },
+            showCancelButton: true,
+            confirmButtonText: 'Tambah',
+            cancelButtonText: 'Batal',
+            preConfirm: (val) => {
+                if (!val || !val.trim()) { Swal.showValidationMessage(title + ' tidak boleh kosong!'); return false; }
+                return val.trim();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var newVal = result.value;
+                var datalist = document.getElementById(listId);
+                if (datalist && !Array.from(datalist.options).some(o => o.value === newVal)) {
+                    datalist.appendChild(new Option(newVal, newVal));
+                }
+                var inp = document.getElementById(inputId);
+                if (inp) inp.value = newVal;
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: title + ' baru ditambahkan ke daftar saran.', timer: 1500, showConfirmButton: false });
+            }
+        });
+    };
+
+    window.deleteFromDatalist = function(inputId, listId, title) {
+        var inp = document.getElementById(inputId);
+        var val = inp ? inp.value.trim() : '';
+        if (!val) { Swal.fire('Peringatan', 'Isi ' + title + ' yang ingin dihapus dari daftar terlebih dahulu.', 'warning'); return; }
+        Swal.fire({
+            title: 'Hapus dari Daftar?',
+            text: '"' + val + '" akan dihapus dari opsi saran dropdown.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var datalist = document.getElementById(listId);
+                if (datalist) { Array.from(datalist.options).filter(o => o.value === val).forEach(o => o.remove()); }
+                if (inp && inp.value === val) inp.value = '';
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: title + ' dihapus dari daftar saran.', timer: 1500, showConfirmButton: false });
+            }
+        });
+    };
+
+    window.addToSelect = function(selectId, title) {
+        Swal.fire({
+            title: 'Tambah ' + title + ' Baru',
+            input: 'text',
+            inputAttributes: { autocapitalize: 'off', placeholder: 'Masukkan ' + title.toLowerCase() + ' baru...' },
+            showCancelButton: true,
+            confirmButtonText: 'Tambah',
+            cancelButtonText: 'Batal',
+            preConfirm: (val) => {
+                if (!val || !val.trim()) { Swal.showValidationMessage(title + ' tidak boleh kosong!'); return false; }
+                return val.trim();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var newVal = result.value;
+                // Add to both Add and Edit selects
+                ['tambah_customer_name', 'edit_customer_name'].forEach(function(id) {
+                    var s = document.getElementById(id);
+                    if (s && !Array.from(s.options).some(o => o.value === newVal)) {
+                        s.appendChild(new Option(newVal, newVal));
+                    }
+                });
+                var activeSelect = document.getElementById(selectId);
+                if (activeSelect) activeSelect.value = newVal;
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: title + ' baru ditambahkan.', timer: 1500, showConfirmButton: false });
+            }
+        });
+    };
+
+    window.deleteFromSelect = function(selectId, title) {
+        var activeSelect = document.getElementById(selectId);
+        var val = activeSelect ? activeSelect.value : '';
+        if (!val) { Swal.fire('Peringatan', 'Pilih ' + title + ' yang ingin dihapus dari daftar terlebih dahulu.', 'warning'); return; }
+        Swal.fire({
+            title: 'Hapus dari Daftar?',
+            text: '"' + val + '" akan dihapus dari opsi dropdown.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                ['tambah_customer_name', 'edit_customer_name'].forEach(function(id) {
+                    var s = document.getElementById(id);
+                    if (s) {
+                        Array.from(s.options).filter(o => o.value === val).forEach(o => o.remove());
+                        if (s.value === val) s.value = '';
+                    }
+                });
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: title + ' dihapus dari daftar.', timer: 1500, showConfirmButton: false });
+            }
+        });
+    };
 </script>
 @endpush

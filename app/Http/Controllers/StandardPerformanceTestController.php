@@ -9,6 +9,7 @@ use App\Helpers\ActivityLogger;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Validation\Rule;
 class StandardPerformanceTestController extends Controller
 {
     public function index(Request $request)
@@ -24,32 +25,43 @@ class StandardPerformanceTestController extends Controller
         }
 
         $standards = $query->orderBy('id', 'asc')->get();
+        
+        $partNames = StandardPerformanceTest::pluck('part_name')->unique()->filter()->values();
+        $partNumbers = StandardPerformanceTest::pluck('part_number')->unique()->filter()->values();
+        $customers = StandardPerformanceTest::pluck('customer_name')->unique()->filter()->values();
 
-        return view('durability_plating.index', compact('standards'));
+        return view('durability_plating.index', compact('standards', 'partNames', 'partNumbers', 'customers'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'part_name' => 'required|string|max:255',
-            'part_number' => 'nullable|string|max:255',
-            'customer_name' => 'nullable|string|max:255',
-            'customer_standard' => 'nullable|string|max:255',
-            'thickness_cu' => 'nullable|string|max:255',
-            'thickness_ni' => 'nullable|string|max:255',
-            'thickness_cr' => 'nullable|string|max:255',
-            'thickness_freq' => 'nullable|string|max:255',
-            'corrodkote_time' => 'nullable|string|max:255',
-            'corrodkote_std_max_corrosion' => 'nullable|string|max:255',
-            'corrodkote_freq' => 'nullable|string|max:255',
-            'cass_time' => 'nullable|string|max:255',
-            'cass_std_min_rn' => 'nullable|string|max:255',
-            'cass_freq' => 'nullable|string|max:255',
-            'salt_spray_time' => 'nullable|string|max:255',
-            'salt_spray_std_rusting' => 'nullable|string|max:255',
-            'salt_spray_freq' => 'nullable|string|max:255',
-            'porecount_std_min' => 'nullable|string|max:255',
-            'porecount_freq' => 'nullable|string|max:255',
+            'part_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('standard_performance_tests')->where(function ($query) use ($request) {
+                    return $query->where('part_number', $request->part_number);
+                })
+            ],
+            'part_number' => 'required|string|max:255',
+            'customer_name' => 'required|string|max:255',
+            'customer_standard' => 'required|string|max:255',
+            'thickness_cu' => 'required|string|max:255',
+            'thickness_ni' => 'required|string|max:255',
+            'thickness_cr' => 'required|string|max:255',
+            'thickness_freq' => 'required|string|max:255',
+            'corrodkote_time' => 'required|string|max:255',
+            'corrodkote_std_max_corrosion' => 'required|string|max:255',
+            'corrodkote_freq' => 'required|string|max:255',
+            'cass_time' => 'required|string|max:255',
+            'cass_std_min_rn' => 'required|string|max:255',
+            'cass_freq' => 'required|string|max:255',
+            'salt_spray_time' => 'required|string|max:255',
+            'salt_spray_std_rusting' => 'required|string|max:255',
+            'salt_spray_freq' => 'required|string|max:255',
+            'porecount_std_min' => 'required|string|max:255',
+            'porecount_freq' => 'required|string|max:255',
         ]);
 
         $standard = StandardPerformanceTest::create($validated);
@@ -64,25 +76,32 @@ class StandardPerformanceTestController extends Controller
         $standard = StandardPerformanceTest::findOrFail($id);
 
         $validated = $request->validate([
-            'part_name' => 'required|string|max:255',
-            'part_number' => 'nullable|string|max:255',
-            'customer_name' => 'nullable|string|max:255',
-            'customer_standard' => 'nullable|string|max:255',
-            'thickness_cu' => 'nullable|string|max:255',
-            'thickness_ni' => 'nullable|string|max:255',
-            'thickness_cr' => 'nullable|string|max:255',
-            'thickness_freq' => 'nullable|string|max:255',
-            'corrodkote_time' => 'nullable|string|max:255',
-            'corrodkote_std_max_corrosion' => 'nullable|string|max:255',
-            'corrodkote_freq' => 'nullable|string|max:255',
-            'cass_time' => 'nullable|string|max:255',
-            'cass_std_min_rn' => 'nullable|string|max:255',
-            'cass_freq' => 'nullable|string|max:255',
-            'salt_spray_time' => 'nullable|string|max:255',
-            'salt_spray_std_rusting' => 'nullable|string|max:255',
-            'salt_spray_freq' => 'nullable|string|max:255',
-            'porecount_std_min' => 'nullable|string|max:255',
-            'porecount_freq' => 'nullable|string|max:255',
+            'part_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('standard_performance_tests')->where(function ($query) use ($request) {
+                    return $query->where('part_number', $request->part_number);
+                })->ignore($id)
+            ],
+            'part_number' => 'required|string|max:255',
+            'customer_name' => 'required|string|max:255',
+            'customer_standard' => 'required|string|max:255',
+            'thickness_cu' => 'required|string|max:255',
+            'thickness_ni' => 'required|string|max:255',
+            'thickness_cr' => 'required|string|max:255',
+            'thickness_freq' => 'required|string|max:255',
+            'corrodkote_time' => 'required|string|max:255',
+            'corrodkote_std_max_corrosion' => 'required|string|max:255',
+            'corrodkote_freq' => 'required|string|max:255',
+            'cass_time' => 'required|string|max:255',
+            'cass_std_min_rn' => 'required|string|max:255',
+            'cass_freq' => 'required|string|max:255',
+            'salt_spray_time' => 'required|string|max:255',
+            'salt_spray_std_rusting' => 'required|string|max:255',
+            'salt_spray_freq' => 'required|string|max:255',
+            'porecount_std_min' => 'required|string|max:255',
+            'porecount_freq' => 'required|string|max:255',
         ]);
 
         $standard->update($validated);
@@ -215,39 +234,65 @@ class StandardPerformanceTestController extends Controller
             $rows = $sheet->toArray();
             
             $count = 0;
+            $processedIds = [];
             // Skip header (row 0)
             foreach (array_slice($rows, 1) as $row) {
                 if (empty(trim($row[1]))) continue; // Skip if Nama Part is empty
                 
-                StandardPerformanceTest::updateOrCreate(
-                    ['part_name' => trim($row[1])],
-                    [
-                        'part_number' => $row[2] ?? null,
-                        'customer_name' => $row[3] ?? null,
-                        'customer_standard' => $row[4] ?? null,
-                        'thickness_cr' => $row[5] ?? null,
-                        'thickness_ni' => $row[6] ?? null,
-                        'thickness_cu' => $row[7] ?? null,
-                        'thickness_freq' => $row[8] ?? null,
-                        'corrodkote_time' => $row[9] ?? null,
-                        'corrodkote_std_max_corrosion' => $row[10] ?? null,
-                        'corrodkote_freq' => $row[11] ?? null,
-                        'cass_time' => $row[12] ?? null,
-                        'cass_std_min_rn' => $row[13] ?? null,
-                        'cass_freq' => $row[14] ?? null,
-                        'salt_spray_time' => $row[15] ?? null,
-                        'salt_spray_std_rusting' => $row[16] ?? null,
-                        'salt_spray_freq' => $row[17] ?? null,
-                        'porecount_std_min' => $row[18] ?? null,
-                        'porecount_freq' => $row[19] ?? null,
-                    ]
-                );
+                $partName = trim($row[1]);
+                $rawPartNo = isset($row[2]) ? trim($row[2]) : '';
+                $partNo = ($rawPartNo === '' || $rawPartNo === '-') ? null : $rawPartNo;
+                
+                $query = StandardPerformanceTest::where('part_name', $partName);
+                
+                if (is_null($partNo)) {
+                    $query->whereNull('part_number');
+                } else {
+                    $query->where('part_number', $partNo);
+                }
+                
+                $standard = $query->first();
+                
+                $data = [
+                    'part_name' => $partName,
+                    'part_number' => $partNo,
+                    'customer_name' => $row[3] ?? null,
+                    'customer_standard' => $row[4] ?? null,
+                    'thickness_cr' => $row[5] ?? null,
+                    'thickness_ni' => $row[6] ?? null,
+                    'thickness_cu' => $row[7] ?? null,
+                    'thickness_freq' => $row[8] ?? null,
+                    'corrodkote_time' => $row[9] ?? null,
+                    'corrodkote_std_max_corrosion' => $row[10] ?? null,
+                    'corrodkote_freq' => $row[11] ?? null,
+                    'cass_time' => $row[12] ?? null,
+                    'cass_std_min_rn' => $row[13] ?? null,
+                    'cass_freq' => $row[14] ?? null,
+                    'salt_spray_time' => $row[15] ?? null,
+                    'salt_spray_std_rusting' => $row[16] ?? null,
+                    'salt_spray_freq' => $row[17] ?? null,
+                    'porecount_std_min' => $row[18] ?? null,
+                    'porecount_freq' => $row[19] ?? null,
+                ];
+
+                if ($standard) {
+                    $standard->update($data);
+                    $processedIds[] = $standard->id;
+                } else {
+                    $newStandard = StandardPerformanceTest::create($data);
+                    $processedIds[] = $newStandard->id;
+                }
                 $count++;
             }
             
-            ActivityLogger::log('imported', null, "Mengimport $count Master Data Standard Performance Test");
+            // Hapus data di database yang tidak ada di file Excel (Sync)
+            if (count($processedIds) > 0) {
+                StandardPerformanceTest::whereNotIn('id', $processedIds)->delete();
+            }
             
-            return redirect()->back()->with('success', "$count data berhasil diimport.");
+            ActivityLogger::log('imported', null, "Mengimport dan mensinkronkan $count Master Data Standard Performance Test");
+            
+            return redirect()->back()->with('success', "$count data berhasil diimport dan disinkronkan.");
             
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
