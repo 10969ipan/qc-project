@@ -32,6 +32,7 @@ class StandardPerformanceTestController extends Controller
     {
         $validated = $request->validate([
             'part_name' => 'required|string|max:255',
+            'part_number' => 'nullable|string|max:255',
             'customer_name' => 'nullable|string|max:255',
             'customer_standard' => 'nullable|string|max:255',
             'thickness_cu' => 'nullable|string|max:255',
@@ -64,6 +65,7 @@ class StandardPerformanceTestController extends Controller
 
         $validated = $request->validate([
             'part_name' => 'required|string|max:255',
+            'part_number' => 'nullable|string|max:255',
             'customer_name' => 'nullable|string|max:255',
             'customer_standard' => 'nullable|string|max:255',
             'thickness_cu' => 'nullable|string|max:255',
@@ -108,7 +110,7 @@ class StandardPerformanceTestController extends Controller
         $sheet->setTitle('Template Std Performance');
         
         $headers = [
-            'No.', 'Nama Part', 'Customer', 'Standard Customer', 'Cr', 'Ni', 'Cu', 'Frek. Thickness',
+            'No.', 'Nama Part', 'Part No.', 'Customer', 'Standard Customer', 'Cr', 'Ni', 'Cu', 'Frek. Thickness',
             'Corrodkote Waktu', 'Corrodkote Std Max', 'Corrodkote Frek',
             'Cass Waktu', 'Cass Std Min', 'Cass Frek',
             'Salt Spray Waktu', 'Salt Spray Std', 'Salt Spray Frek',
@@ -138,6 +140,7 @@ class StandardPerformanceTestController extends Controller
                 $rowsData[] = [
                     $no++,
                     $item->part_name,
+                    $item->part_number,
                     $item->customer_name,
                     $item->customer_standard,
                     $item->thickness_cr,
@@ -161,7 +164,7 @@ class StandardPerformanceTestController extends Controller
             // Default sample rows jika tidak ada data
             $rowsData = [
                 [
-                    1, 'Sample Part A', 'HONDA', 'HES', '20', '15', '10', '1x/Shift',
+                    1, 'Sample Part A', 'P-1234', 'HONDA', 'HES', '20', '15', '10', '1x/Shift',
                     '24', 'Max 5%', '1x/Shift',
                     '48', 'Min RN 8', '1x/Shift',
                     '72', 'Max 2%', '1x/Shift',
@@ -219,23 +222,24 @@ class StandardPerformanceTestController extends Controller
                 StandardPerformanceTest::updateOrCreate(
                     ['part_name' => trim($row[1])],
                     [
-                        'customer_name' => $row[2] ?? null,
-                        'customer_standard' => $row[3] ?? null,
-                        'thickness_cr' => $row[4] ?? null,
-                        'thickness_ni' => $row[5] ?? null,
-                        'thickness_cu' => $row[6] ?? null,
-                        'thickness_freq' => $row[7] ?? null,
-                        'corrodkote_time' => $row[8] ?? null,
-                        'corrodkote_std_max_corrosion' => $row[9] ?? null,
-                        'corrodkote_freq' => $row[10] ?? null,
-                        'cass_time' => $row[11] ?? null,
-                        'cass_std_min_rn' => $row[12] ?? null,
-                        'cass_freq' => $row[13] ?? null,
-                        'salt_spray_time' => $row[14] ?? null,
-                        'salt_spray_std_rusting' => $row[15] ?? null,
-                        'salt_spray_freq' => $row[16] ?? null,
-                        'porecount_std_min' => $row[17] ?? null,
-                        'porecount_freq' => $row[18] ?? null,
+                        'part_number' => $row[2] ?? null,
+                        'customer_name' => $row[3] ?? null,
+                        'customer_standard' => $row[4] ?? null,
+                        'thickness_cr' => $row[5] ?? null,
+                        'thickness_ni' => $row[6] ?? null,
+                        'thickness_cu' => $row[7] ?? null,
+                        'thickness_freq' => $row[8] ?? null,
+                        'corrodkote_time' => $row[9] ?? null,
+                        'corrodkote_std_max_corrosion' => $row[10] ?? null,
+                        'corrodkote_freq' => $row[11] ?? null,
+                        'cass_time' => $row[12] ?? null,
+                        'cass_std_min_rn' => $row[13] ?? null,
+                        'cass_freq' => $row[14] ?? null,
+                        'salt_spray_time' => $row[15] ?? null,
+                        'salt_spray_std_rusting' => $row[16] ?? null,
+                        'salt_spray_freq' => $row[17] ?? null,
+                        'porecount_std_min' => $row[18] ?? null,
+                        'porecount_freq' => $row[19] ?? null,
                     ]
                 );
                 $count++;

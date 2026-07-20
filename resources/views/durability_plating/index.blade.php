@@ -191,6 +191,7 @@
                     <tr>
                         <th rowspan="2">No.</th>
                         <th rowspan="2">Nama Part</th>
+                        <th rowspan="2">Part No.</th>
                         <th rowspan="2">Customer</th>
                         <th rowspan="2">Standard Customer<br>OEM / ELECTRONIC</th>
                         <th colspan="4" class="text-center">Thickness (<span style="text-transform: none !important;">m&micro;</span>)</th>
@@ -223,6 +224,7 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td class="text-left font-weight-bold">{{ $std->part_name }}</td>
+                            <td>{{ $std->part_number ?: '-' }}</td>
                             <td>{{ $std->customer_name }}</td>
                             <td>{{ $std->customer_standard }}</td>
                             
@@ -302,15 +304,19 @@
                 @csrf
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <div class="row">
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Nama Part <span class="text-danger">*</span></label>
                             <input type="text" name="part_name" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
+                            <label class="small font-weight-bold text-gray-700">Part No.</label>
+                            <input type="text" name="part_number" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Customer</label>
                             <input type="text" name="customer_name" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC</label>
                             <input type="text" name="customer_standard" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
@@ -424,15 +430,19 @@
                 @method('PUT')
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
                     <div class="row">
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Nama Part <span class="text-danger">*</span></label>
                             <input type="text" name="part_name" id="edit_part_name" class="form-control form-control-sm border-0 shadow-sm" required>
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
+                            <label class="small font-weight-bold text-gray-700">Part No.</label>
+                            <input type="text" name="part_number" id="edit_part_number" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Customer</label>
                             <input type="text" name="customer_name" id="edit_customer_name" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC</label>
                             <input type="text" name="customer_standard" id="edit_customer_standard" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
@@ -761,6 +771,7 @@
             $('#formEdit').attr('action', url);
             
             $('#edit_part_name').val(item.part_name);
+            $('#edit_part_number').val(item.part_number);
             $('#edit_customer_name').val(item.customer_name);
             $('#edit_customer_standard').val(item.customer_standard);
             

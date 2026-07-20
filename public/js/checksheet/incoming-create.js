@@ -16,6 +16,7 @@ const AQL_TABLE = {
         if (lotSize >= 151) return 32;
         if (lotSize >= 20) return 20;
         return lotSize; // 100% Check for lots < 20
+
     },
     getAqlLimits: function (sampleSize) {
         if (sampleSize >= 1250) return { acc: 14, rej: 15 };
@@ -38,6 +39,11 @@ function normalizePartNumber(pn) {
         .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
         .replace(/\s+/g, '')
         .toUpperCase();
+}
+
+function normalizeStandardValue(val) {
+    if (val === null || val === undefined) return "";
+    return String(val).replace(/,/g, ".").trim();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -115,6 +121,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Standard PDF tidak tersedia");
                 $(".standard-nav-controls").hide();
             }
+            
+            // Re-validate dimension when item changes
+            if(typeof validateDimensions === 'function') {
+                validateDimensions();
+            }
         } else {
             $('#addDefectBtn').hide();
             $("#standardPdfCanvas").addClass("d-none").hide();
@@ -162,19 +173,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Hitung Otomatis Komper/Karung dan Ukuran Sampel dari Qty (Kg)
-    // Asumsi: 1 karung = 25 kg
+    // Hitung Otomatis Komper/Karung dan Ukuran Sampel dari Qty
     $('#lotQtyInput').on('input', function() {
-        const qtyKg = parseFloat($(this).val()) || 0;
+        const qty = parseFloat($(this).val()) || 0;
         
-        if (qtyKg > 0) {
-            const totalKarung = Math.ceil(qtyKg / 25);
-            $('#komperKarungInput').val(totalKarung);
+        if (qty > 0) {
+            let lotSize = qty;
             
-            const sampleSize = AQL_TABLE.getSampleSize(totalKarung);
+            // Jika modul ini memiliki komperKarungInput (Chemical/Material),
+            // maka lot size dihitung berdasarkan qty kg / 25
+            if ($('#komperKarungInput').length > 0) {
+                lotSize = Math.ceil(qty / 25);
+                $('#komperKarungInput').val(lotSize);
+            }
+            
+            const sampleSize = AQL_TABLE.getSampleSize(lotSize);
             $('#totalCheckInput').val(sampleSize).trigger('input');
         } else {
-            $('#komperKarungInput').val(0);
+            if ($('#komperKarungInput').length > 0) {
+                $('#komperKarungInput').val(0);
+            }
             $('#totalCheckInput').val(0).trigger('input');
         }
     });
@@ -192,6 +210,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function calculateAndJudge() {
+        const isDimensiInvalid = window.hasInvalidDimension || false;
+
+        let hasDimensiDefect = false;
+        $(".defect-select").each(function () {
+            const text = $(this).find("option:selected").text().toLowerCase();
+            if (text === "dimensi" || $(this).val() === "dimension") {
+                hasDimensiDefect = true;
+                return false;
+            }
+        });
+
+        if (isDimensiInvalid && !hasDimensiDefect) {
+            autoAddDimensionDefect();
+            return;
+        } else if (!isDimensiInvalid && hasDimensiDefect) {
+            autoRemoveDimensionDefect();
+            return;
+        }
+
         let totalNg = 0;
         $('.defect-row').each(function () {
             const qtyInput = $(this).find('.defect-qty');
@@ -207,7 +244,8 @@ document.addEventListener('DOMContentLoaded', function () {
         
         $('#totalNgInput').val(totalNg);
         
-        const judgment = (totalNg >= aql.rej) ? 'NG' : 'OK';
+        const judgment = (totalNg >= aql.rej || isDimensiInvalid) ? 'NG' : 'OK';
+        
         $('#judgmentSelect').val(judgment);
         
         const badge = $('#judgmentBadge');
@@ -230,6 +268,82 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function autoAddDimensionDefect() {
+        let foundRow = null;
+        $(".defect-select").each(function () {
+            const val = $(this).val();
+            const text = $(this).find("option:selected").text().toLowerCase();
+            if (val === "dimension" || text === "dimensi") {
+                foundRow = $(this).closest(".defect-row");
+                return false;
+            }
+        });
+
+        if (foundRow) {
+            const qtyInput = foundRow.find(".defect-qty");
+            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0)
+                qtyInput.val(1).trigger("input");
+            return;
+        }
+
+        let targetSelect = null;
+        $(".defect-select").each(function () {
+            if ($(this).val() === "") {
+                targetSelect = $(this);
+                return false;
+            }
+        });
+
+        if (!targetSelect) {
+            if ($(".defect-row").length < 4) {
+                const container = $('#defectContainer');
+                const firstRow = container.find('.defect-row').first().clone();
+                firstRow.find('input').val('');
+                firstRow.find('select').val('');
+                const lastCol = firstRow.find('.action-col');
+                lastCol.empty().append('<button type="button" class="btn btn-danger btn-sm shadow-sm remove-defect-btn"><i class="fas fa-times"></i></button>');
+                container.append(firstRow);
+                targetSelect = $(".defect-select").last();
+            } else {
+                targetSelect = $(".defect-select").first();
+            }
+        }
+
+        if (targetSelect) {
+            let foundVal = "";
+            targetSelect.find("option").each(function () {
+                if ($(this).val() === "dimension" || $(this).text().toLowerCase() === "dimensi") {
+                    foundVal = $(this).val();
+                    return false;
+                }
+            });
+            if (!foundVal) {
+                targetSelect.append('<option value="dimension">Dimensi</option>');
+                foundVal = "dimension";
+            }
+            targetSelect.val(foundVal).trigger("change");
+            targetSelect.closest(".defect-row").find(".defect-qty").val(1).trigger("input");
+        }
+    }
+
+    function autoRemoveDimensionDefect() {
+        $(".defect-select").each(function () {
+            const val = $(this).val();
+            const text = $(this).find("option:selected").text().toLowerCase();
+            if (val === "dimension" || text === "dimensi") {
+                const row = $(this).closest(".defect-row");
+                if ($(".defect-row").length === 1) {
+                    $(this).val("").trigger("change");
+                    row.find(".defect-qty").val("");
+                } else {
+                    row.remove();
+                    if ($(".defect-row").length < 4) $("#addDefectBtn").show();
+                }
+            }
+        });
+        calculateAndJudge();
+    }
+
     // Pengiriman Formulir AJAX
     $('#checksheetForm').on('submit', function (e) {
         e.preventDefault();
@@ -243,12 +357,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const fieldNames = {
             'item_id': 'Material Name',
             'tanggal_datang': 'Tgl Datang',
-            'expired_date': 'Expired Date',
             'date': 'Tanggal Check',
             'lot_batch_number': 'Lot/Batch Number',
             'quantity_kg': 'Qty (Kg)',
             'komper_karung_kg': 'Komper/Karung',
             'sampling_size_karung_kg': 'Sampling Size',
+            'quantity': 'Quantity',
+            'sampling_size_pcs': 'Sampling Size',
             'judgment': 'Judgment',
             'operator_initials': 'QC'
         };
@@ -273,10 +388,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        const dimensionCheck = checkMandatoryDimensions();
+        if (!dimensionCheck.isValid) {
+            isValid = false;
+            dimensionCheck.missingPoints.forEach(p => missingFields.push('Check Dimensi (' + p + ')'));
+        }
+
         if (!isValid) {
             let errorHtml = 'Pastikan semua kolom yang wajib sudah terisi sebelum menyimpan data.<br><br>';
             if (missingFields.length > 0) {
-                errorHtml += '<div class="text-left"><strong class="text-danger">Kolom yang belum diisi:</strong><ul class="text-danger mt-1">';
+                errorHtml += '<div class="text-left"><strong class="text-danger">Kolom yang belum diisi:</strong><ul class="text-danger mt-1 mb-0">';
                 missingFields.forEach(function(field) {
                     errorHtml += `<li>${field}</li>`;
                 });
@@ -288,6 +409,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: 'Data Belum Lengkap!',
                 html: errorHtml,
                 confirmButtonColor: '#4e73df'
+            }).then(() => {
+                if (dimensionCheck.firstEmpty) {
+                    $("html, body").animate({ scrollTop: dimensionCheck.firstEmpty.offset().top - 200 }, 500);
+                    dimensionCheck.firstEmpty.focus();
+                } else {
+                    const firstInvalid = form.find('.is-invalid').first();
+                    if(firstInvalid.length) {
+                        $("html, body").animate({ scrollTop: firstInvalid.offset().top - 200 }, 500);
+                        firstInvalid.focus();
+                    }
+                }
             });
             return false;
         }
@@ -497,4 +629,176 @@ document.addEventListener('DOMContentLoaded', function () {
             $(this).removeClass('is-invalid');
         }
     });
+
+    // --- Dimension Table Logic (Point Only - Vertical) ---
+    const maxPoints = 50; // Increased max points since it's vertical
+
+    $('#addPointRowBtn').click(function () {
+        const tbody = $('#dimensionBody');
+        let currentPoints = tbody.find('tr.point-row').length;
+        
+        if (currentPoints < maxPoints) {
+            currentPoints++;
+            const newRow = `
+                <tr class="point-row">
+                    <td class="text-center font-weight-bold bg-light align-middle point-label" style="font-size:0.7rem;">P${currentPoints}</td>
+                    <td class="point-cell p-1">
+                        <input type="text" class="dimension-input form-control-sm border-0 shadow-sm w-100 text-center" name="dimensions[]" placeholder="...">
+                    </td>
+                    <td class="text-center align-middle p-1">
+                        <button type="button" class="btn btn-xs btn-danger shadow-sm delete-point-row" title="Hapus Point">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(newRow);
+            updatePointLabels();
+        } else {
+            Swal.fire({ icon: 'warning', title: 'Batas Maksimum', text: 'Maksimal ' + maxPoints + ' point.' });
+        }
+    });
+
+    $(document).on('click', '.delete-point-row', function () {
+        const tbody = $('#dimensionBody');
+        if (tbody.find('tr.point-row').length > 1) {
+            $(this).closest('tr.point-row').remove();
+            updatePointLabels();
+        } else {
+            Swal.fire({ icon: 'warning', title: 'Minimal 1 Point', text: 'Tidak bisa menghapus semua point.' });
+        }
+    });
+
+    function updatePointLabels() {
+        $('#dimensionBody tr.point-row').each(function(index) {
+            $(this).find('.point-label').text('P' + (index + 1));
+        });
+        validateDimensions();
+    }
+
+    $(document).on("input", ".dimension-input", function () {
+        let val = $(this).val();
+        if (val.startsWith("+0")) $(this).val(val.replace(/^\+0/, ""));
+        validateDimensions();
+    });
+
+    function validateDimensions() {
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const dimensionStandardsJson = selectedOption.data("dimension-standards");
+        let dimensionStandards = null;
+        if (dimensionStandardsJson) {
+            dimensionStandards = typeof dimensionStandardsJson === 'string' ? JSON.parse(dimensionStandardsJson) : dimensionStandardsJson;
+        }
+
+        let hasInvalidDimension = false;
+
+        $('input[name^="dimensions"]').each(function () {
+            const row = $(this).closest('tr.point-row');
+            const pointIndex = row.index() + 1;
+
+            let standard = null;
+            if (dimensionStandards) {
+                if (Array.isArray(dimensionStandards)) {
+                    standard = dimensionStandards.find(s => String(s.point) === String(pointIndex)) || dimensionStandards[pointIndex - 1];
+                } else {
+                    standard = dimensionStandards[pointIndex];
+                }
+            }
+
+            const valStr = $(this).val().trim();
+            const value = parseFloat(valStr.replace(",", "."));
+
+            $(this).removeClass("is-invalid is-valid text-danger text-success");
+
+            if (standard && valStr !== "" && !isNaN(value)) {
+                let isInvalid = false;
+                const epsilon = 0.00001;
+
+                if (standard.min != null && standard.min !== "") {
+                    const minBound = parseFloat(String(standard.min).replace(",", "."));
+                    if (!isNaN(minBound) && value < minBound - epsilon) isInvalid = true;
+                }
+                if (!isInvalid && standard.max != null && standard.max !== "") {
+                    const maxBound = parseFloat(String(standard.max).replace(",", "."));
+                    if (!isNaN(maxBound) && value > maxBound + epsilon) isInvalid = true;
+                }
+
+                if (!isInvalid && standard.size != null && standard.tolerance != null && standard.size !== "" && standard.tolerance !== "") {
+                    const stdSzStr = normalizeStandardValue(standard.size);
+                    if (!stdSzStr.startsWith("+") && !stdSzStr.startsWith("-")) {
+                        const base = parseFloat(stdSzStr);
+                        const tol = normalizeStandardValue(standard.tolerance);
+                        let lb = base, ub = base;
+
+                        if (tol.includes("/")) {
+                            tol.split("/").forEach(p => {
+                                p = normalizeStandardValue(p);
+                                const fv = parseFloat(p);
+                                if (p.startsWith("+") || fv > 0) ub = base + Math.abs(fv);
+                                else if (p.startsWith("-") || fv < 0) lb = base - Math.abs(fv);
+                            });
+                        } else if (tol.startsWith("+")) {
+                            ub = base + parseFloat(tol.substring(1));
+                        } else if (tol.startsWith("-")) {
+                            lb = base + parseFloat(tol);
+                        } else {
+                            const tv = parseFloat(tol);
+                            lb = base - tv;
+                            ub = base + tv;
+                        }
+
+                        if (value < lb - epsilon || value > ub + epsilon) isInvalid = true;
+                    }
+                }
+
+                if (isInvalid) {
+                    $(this).addClass("is-invalid text-danger");
+                    hasInvalidDimension = true;
+                } else {
+                    $(this).addClass("is-valid text-success");
+                }
+            } else if (valStr !== "" && isNaN(value) && valStr !== "-") {
+                 $(this).addClass("is-invalid text-danger");
+                 hasInvalidDimension = true;
+            } else if (valStr !== "" && !isNaN(value)) {
+                $(this).addClass("is-valid text-success");
+            }
+        });
+
+        window.hasInvalidDimension = hasInvalidDimension;
+        calculateAndJudge();
+    }
+
+    function checkMandatoryDimensions() {
+        const result = { isValid: true, missingPoints: [], firstEmpty: null };
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const dimensionStandardsJson = selectedOption.data("dimension-standards");
+        let dimensionStandards = null;
+        if (dimensionStandardsJson) {
+            dimensionStandards = typeof dimensionStandardsJson === 'string' ? JSON.parse(dimensionStandardsJson) : dimensionStandardsJson;
+        }
+
+        if (!dimensionStandards) return result;
+
+        $(".dimension-input").each(function () {
+            const row = $(this).closest('tr.point-row');
+            const pointIndex = row.index() + 1;
+            
+            let standard = null;
+            if (Array.isArray(dimensionStandards)) {
+                standard = dimensionStandards.find(s => String(s.point) === String(pointIndex)) || dimensionStandards[pointIndex - 1];
+            } else {
+                standard = dimensionStandards[pointIndex];
+            }
+
+            if (standard && $(this).val().trim() === "") {
+                result.isValid = false;
+                result.missingPoints.push('P' + pointIndex);
+                $(this).addClass("is-invalid text-danger");
+                if (!result.firstEmpty) result.firstEmpty = $(this);
+            }
+        });
+
+        return result;
+    }
 });

@@ -180,6 +180,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/report/incoming-material/{id}/update-approval', [IncomingMaterialController::class, 'updateApproval'])->name('admin.incoming.materials.update_approval');
         Route::get('/report/incoming-material/print', [IncomingMaterialController::class, 'printView'])->name('incoming.materials.print');
         Route::get('/report/incoming-sub-part/export-pdf', [IncomingSubPartController::class, 'exportPdf'])->name('incoming.sub_parts.export_pdf');
+        Route::get('/report/incoming-sub-part/print', [IncomingSubPartController::class, 'printView'])->name('incoming.sub_parts.print');
         Route::get('/report/incoming-export/export-pdf', [IncomingExportController::class, 'exportPdf'])->name('incoming.exports.export_pdf');
         Route::get('/report/incoming-chemical/export-pdf', [IncomingChemicalController::class, 'exportPdf'])->name('incoming.chemicals.export_pdf');
         Route::get('/report/incoming-chemical/print', [IncomingChemicalController::class, 'printView'])->name('incoming.chemicals.print');

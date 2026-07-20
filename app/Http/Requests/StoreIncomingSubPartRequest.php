@@ -22,7 +22,7 @@ class StoreIncomingSubPartRequest extends FormRequest
             'quantity' => 'required|integer',
             'sampling_size_pcs' => 'required|integer',
             'check_dimensi' => 'nullable|string',
-            'expired_date' => 'required|date',
+            'expired_date' => 'nullable|date',
             'judgment' => 'required|in:OK,NG',
             'total_ng' => 'nullable|integer',
             'remarks' => 'nullable|string',

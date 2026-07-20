@@ -175,4 +175,22 @@ class IncomingSubPartController extends Controller
 
         return $pdf->download('Incoming_SubPart_' . date('Ymd_His') . '.pdf');
     }
+
+    public function printView(Request $request)
+    {
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $query = $this->checksheetService->getQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(10)->get();
+        }
+        $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
+        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
+        $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
+
+        return view('incoming.sub_parts.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode'));
+    }
 }
