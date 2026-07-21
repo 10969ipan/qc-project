@@ -26,7 +26,7 @@
         document.getElementById('modalUnitName').textContent = unitName;
 
         let content = '';
-        const unitLabel = unitName.includes('MEJA') ? 'MEJA' : 'MESIN';
+        const unitLabel = unitName.includes('MEJA') ? 'MEJA' : (unitName.includes('DOUBLE TAPE') ? 'DOUBLE TAPE' : 'MESIN');
 
         if (status === 'active') {
             content = `
@@ -45,10 +45,12 @@
                             <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Nama Item</p>
                             <p class="text-sm font-bold">${itemName}</p>
                         </div>
+                        ${unitLabel !== 'MEJA' && tonnage !== '-' ? `
                         <div class="space-y-1">
                             <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Kapasitas (Tonnage)</p>
                             <p class="text-sm font-bold">${tonnage}T</p>
                         </div>
+                        ` : ''}
                         <div class="space-y-1">
                             <p class="text-[0.65rem] text-slate-500 uppercase font-bold">Waktu Update</p>
                             <p class="text-sm font-bold">${time} WIB</p>

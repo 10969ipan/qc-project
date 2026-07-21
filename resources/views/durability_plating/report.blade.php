@@ -366,6 +366,7 @@
                         <col style="width: 45px;">       <!-- Checkbox -->
                         <col style="width: 38px;">       <!-- No -->
                         <col style="width: 150px;">      <!-- Nama Part -->
+                        <col style="width: 150px;">      <!-- Part No -->
                         <col style="width: 110px;">      <!-- Customer -->
                         <col style="width: 130px;">      <!-- Std Customer -->
                         
@@ -425,9 +426,10 @@
                             </div>
                         </th>
                         <th rowspan="2" class="align-middle text-center">No.</th>
-                        <th rowspan="2" class="align-middle sticky-col">Name Part</th>
+                        <th rowspan="2" class="align-middle sticky-col">Nama Part</th>
+                        <th rowspan="2" class="align-middle text-center">Part No</th>
                         <th rowspan="2" class="align-middle">Customer</th>
-                        <th rowspan="2" class="align-middle">Standard Customer<br>OEM / ELECTRONIC</th>
+                        <th rowspan="2" class="align-middle">Standard Customer</th>
                         
                         @if($testType == 'thickness')
                             <th colspan="3" class="text-center th-standar">STANDARD</th>
@@ -521,6 +523,7 @@
                             </td>
                             <td class="text-center">{{ $reports->firstItem() + $index }}</td>
                             <td class="text-center font-weight-bold sticky-col">{{ $std->part_name ?? '-' }}</td>
+                            <td class="text-center font-mono">{{ $std->part_number ?? '-' }}</td>
                             <td class="text-center">{{ $std->customer_name ?? '-' }}</td>
                             <td class="text-center">{{ $std->customer_standard ?? '-' }}</td>
                             
@@ -529,27 +532,27 @@
                                 <td class="text-center td-standar">{{ $std->thickness_cr ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_ni ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_cu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cr ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_ni ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cr ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_ni ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cu ?? '-' }}</td>
                             @elseif($testType == 'corrodkote')
                                 <td class="text-center td-standar">{{ $std->corrodkote_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->corrodkote_std_max_corrosion ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_corrodkote ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_corrodkote ?? '-' }}</td>
                             @elseif($testType == 'cass')
                                 <td class="text-center td-standar">{{ $std->cass_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->cass_std_min_rn ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_cass_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_cass ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cass_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_cass ?? '-' }}</td>
                             @elseif($testType == 'salt_spray')
                                 <td class="text-center td-standar">{{ $std->salt_spray_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->salt_spray_std_rusting ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->standar_jam_salt_spray ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_salt_spray ?? '-' }}</td>
                             @elseif($testType == 'porecount')
                                 <td class="text-center td-standar">{{ $std->porecount_std_min ?? '-' }}</td>
-                                <td class="text-center font-weight-bold text-success td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
                             @endif
 
                             <td class="text-center">{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}</td>

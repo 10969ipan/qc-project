@@ -1651,6 +1651,7 @@
                                             @endphp
                                             <div class="col-6 col-md-4 col-lg-2 mb-3 px-2">
                                                 <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                                    onclick="showDetailModal(this)"
                                                     data-status="{{ $isActive ? 'active' : 'idle' }}"
                                                     @if($isActive) data-part-number="{{ $latestData->item->part_number ?? '-' }}"
                                                         data-item-name="{{ $latestData->item->name ?? '-' }}" data-judgment="{{ $latestData->judgment ?? $latestData->position_remark_judgment ?? '-' }}"
@@ -1739,7 +1740,19 @@
                                                     $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                                 }
                                             @endphp
-                                            <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}">
+                                            <div class="status-item bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 hover:shadow-lg transition group cursor-pointer {{ $statusClass === 'status-active-danger' ? 'border-2 border-red-500 dark:border-red-600 border-pulse-red' : '' }}"
+                                                onclick="showDetailModal(this)"
+                                                data-status="{{ $isActive ? 'active' : 'idle' }}"
+                                                @if($isActive) data-part-number="{{ $data->item->part_number ?? '-' }}"
+                                                    data-item-name="{{ $data->item->name ?? '-' }}" data-judgment="{{ $data->judgment }}"
+                                                    data-total-qty="{{ $data->total_qty ?? '-' }}"
+                                                    data-sampling-qty="{{ $data->sampling_qty ?? '-' }}"
+                                                    data-ok-count="{{ $data->total_ok ?? '-' }}" data-ng-count="{{ $data->total_ng ?? '-' }}"
+                                                    data-operator="{{ $operatorMap[$data->operator_initials] ?? $data->operator_initials ?? '-' }}"
+                                                    data-date="{{ $data->date ? \Carbon\Carbon::parse($data->date)->format('d/m/Y') : '-' }}"
+                                                    data-shift="{{ $data->shift ?? '-' }}"
+                                                data-time="{{ $data->created_at ? $data->created_at->format('H:i') : '-' }}" @endif
+                                                title="Click untuk detail">
                                                 <div class="flex justify-between items-start mb-2">
                                                     <div class="flex flex-col">
                                                         <h4 class="text-sm font-bold text-slate-800 dark:text-white mt-0.5 whitespace-nowrap">DOUBLE TAPE</h4>

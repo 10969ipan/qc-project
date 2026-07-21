@@ -289,7 +289,7 @@
 </div>
 
 <!-- Modal Tambah -->
-<div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modalTambah" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
@@ -431,7 +431,7 @@
 </div>
 
 <!-- Modal Edit -->
-<div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modalEdit" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
