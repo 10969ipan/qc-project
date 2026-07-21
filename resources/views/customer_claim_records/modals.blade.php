@@ -64,6 +64,15 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Eksternal/Internal <span class="text-danger">*</span></label>
+                                <div class="col-sm-8">
+                                    <select name="eksternal_internal" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <option value="EKSTERNAL">EKSTERNAL</option>
+                                        <option value="INTERNAL">INTERNAL</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row align-items-center mb-2">
@@ -335,6 +344,15 @@
                                         <option value="OFFICIAL">OFFICIAL</option>
                                         <option value="NON OFFICIAL">NON OFFICIAL</option>
                                         <option value="SUSPECT">SUSPECT</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Eksternal/Internal <span class="text-danger">*</span></label>
+                                <div class="col-sm-8">
+                                    <select name="eksternal_internal" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <option value="EKSTERNAL">EKSTERNAL</option>
+                                        <option value="INTERNAL">INTERNAL</option>
                                     </select>
                                 </div>
                             </div>

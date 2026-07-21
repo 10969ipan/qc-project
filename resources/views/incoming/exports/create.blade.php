@@ -2,69 +2,106 @@
 
 @section('title', 'Input Data Incoming Export')
 
+@push('styles')
+<style>
+    #checksheetTable th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f8f9fc; }
+    #checksheetTable td { font-size: 0.85rem; }
+    .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
+    .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
+    #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+</style>
+@endpush
+
 @section('content')
-        @php
-        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $headerPlantCode, [
-            'no_dokumen' => '-',
-            'tgl_terbit' => '-',
+    @php
+        $plant = request('plant') ?? auth()->user()->plant_id;
+        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0213',
+            'tgl_terbit' => '01/01/2026',
             'revisi' => '-',
             'halaman' => '- / -'
         ]);
     @endphp
-    <div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-center">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        CHECK SHEET INCOMING EXPORT
-                        @php
-                            $plant = request('plant') ?? auth()->user()->plant_id;
-                            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-                            $plantCode = strtolower($plantCode ?: 'karawang');
-                        @endphp
-                        <span
-                            class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
-                            style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end text-xs font-weight-bold">
-                    <div style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5">No. Dokumen</div>
-                            <div class="col-7">: {{ $docHeader['no_dokumen'] }}</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5">Tgl. Terbit</div>
-                            <div class="col-7">: {{ $docHeader['tgl_terbit'] }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    
+    <!-- Header Document -->
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            CHECK SHEET INCOMING EXPORT 
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Input Data Incoming Export</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('incoming.exports.store') }}" method="POST" id="checksheetForm">
+            <form action="{{ route('incoming.exports.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
 
                 <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
+                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <thead class="bg-light text-center small font-weight-bold">
                             <tr>
                                 <th>Item Part</th>
                                 <th>Tanggal Check</th>
                                 <th>Tanggal Delivery</th>
-                                <th style="min-width: 100px;">Lot Quantity</th>
-                                <th style="min-width: 100px;">Total Check</th>
+                                <th>Lot Quantity</th>
+                                <th>Total Check</th>
                                 <th style="min-width: 250px;">Detail NG</th>
                                 <th>Judgment</th>
                                 <th>QC Initials</th>
@@ -74,67 +111,254 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <select class="form-control select2" name="item_id" id="itemSelect" required
-                                        style="min-width: 200px;">
-                                        <option value="">-- Pilih Item --</option>
-                                        @foreach($items as $item)
-                                            <option value="{{ $item->id }}" data-defects="{{ json_encode($item->defects) }}">
-                                                {{ $item->name }} ({{ $item->part_number }})
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <div class="form-group mb-2">
+                                        <label class="font-weight-bold small font-weight-bold mb-1">
+                                        Scan Verifikasi Quanlity
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Tap kolom ini, lalu scan barcode label" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR"
+                                                    title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                    <span class="d-none d-md-inline ml-1"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Arahkan kursor ke sini sebelum menembak QR</small>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="font-weight-bold d-none">Item Part</label>
+                                        <select class="form-control select2" name="item_id" id="itemSelect" required style="min-width: 200px;">
+                                            <option value="" disabled selected style="font-weight:bold; color:#6c757d;">-- Pilih Item Part --</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-sap_code="{{ $item->sap_code ?? '' }}"
+                                                    data-name="{{ $item->name }}"
+                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
+                                                    data-description="{{ $item->description ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
+                                                    data-weight-standard="{{ $item->weight_standard ?? '' }}"
+                                                    data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: '.$item->sap_code : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </td>
-                                <td><input type="date" class="form-control text-center" name="date"
-                                        value="{{ $defaultDate }}" required></td>
-                                <td><input type="date" class="form-control text-center" name="tanggal_delivery" required>
-                                </td>
-                                <td><input type="number" class="form-control text-center" name="lot_qty" id="lotQtyInput" placeholder="0" min="0" required></td>
-                                <td><input type="number" class="form-control text-center" name="total_check" id="totalCheckInput" placeholder="0" min="0" required></td>
-                                <td>
+                                <td><input type="date" class="form-control" name="date" value="{{ $defaultDate }}" required></td>
+                                <td><input type="date" class="form-control" name="tanggal_delivery" required></td>
+                                <td><input type="number" class="form-control text-center" name="lot_qty" id="lotQtyInput" placeholder="0" min="0" required style="min-width: 100px;"></td>
+                                <td><input type="number" class="form-control text-center" name="total_check" id="totalCheckInput" placeholder="0" min="0" required style="min-width: 100px;"></td>
+                                
+                                <td class="align-middle" style="min-width: 250px;">
+                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
                                     <div id="defectContainer">
                                         <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
-                                                <select class="form-control defect-select font-weight-bold" name="defect_types[]">
+                                            <div class="col-7 pr-1">
+                                                <select class="form-control defect-select font-weight-bold" name="defect_types[]" id="defectSelect">
                                                     <option value="">-- Pilih Defect --</option>
                                                 </select>
                                             </div>
                                             <div class="col-3 pr-1">
-                                                <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]"
-                                                    placeholder="Qty" min="1">
+                                                <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
                                             </div>
-                                            <div class="col-1 text-center"></div>
+                                            <div class="col-2 text-center action-col">
+                                                <button type="button" id="addDefectBtn" class="btn btn-primary btn-sm shadow-sm" style="display: none;" title="Tambah Jenis">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-outline-info btn-xs mt-1"><i
-                                            class="fas fa-plus"></i></button>
                                 </td>
-                                <td>
-                                    <select class="form-control font-weight-bold" name="judgment" id="judgmentSelect"
-                                        required>
-                                        <option value="OK">OK</option>
-                                        <option value="NG">NG</option>
+
+                                <!-- Result -->
+                                <td class="align-middle text-center" style="min-width: 150px;">
+                                    <div id="judgmentBadge" class="mb-2 p-3 font-weight-bold h4 rounded d-none shadow-sm" style="border: 2px solid transparent;">-</div>
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect" required style="min-width: 100px;">
+                                        <option value="" disabled selected>-- Result --</option>
+                                        <option value="OK" class="text-success">OK</option>
+                                        <option value="NG" class="text-danger">NG</option>
                                     </select>
                                     <input type="hidden" name="total_ng" id="totalNgInput" value="0">
+                                    <div id="aql_info" class="small mt-1 font-weight-bold text-center" style="display:none;">
+                                        <span class="text-success">Acc: <span id="acc_val">-</span></span> |
+                                        <span class="text-danger">Rej: <span id="rej_val">-</span></span>
+                                    </div>
                                 </td>
-                                <td><input type="text" class="form-control text-center" name="operator_initials"
-                                        value="{{ auth()->user()->initials }}" required style="min-width: 80px;"></td>
-                                <td><textarea class="form-control" name="remarks" rows="2" placeholder="..."></textarea>
-                                </td>
+
+                                <td><input type="text" class="form-control text-center" name="operator_initials" value="{{ auth()->user()->initials ?? '' }}" required style="min-width: 60px;"></td>
+                                <td><textarea class="form-control" name="remarks" rows="2" placeholder="..."></textarea></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="text-right mt-3">
-                    <button type="submit" class="btn btn-success px-5 font-weight-bold shadow-sm">
-                        <i class="fas fa-check-circle mr-1"></i> SUBMIT DATA EXPORT
-                    </button>
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary px-5" id="saveBtn" disabled>
+                            <i class="fas fa-save mr-1"></i> SIMPAN DATA
+                        </button>
+                    </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bagian Tampilan PDF Berdampingan (selaras dengan in_process/create) -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Kolom Kiri: PCCP / Standard -->
+                <div class="col-md-6 border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN SIMILAR PART</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download Standard PDF" style="display:none;"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded border" style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="standardPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Kolom Kanan: Similar Part / Dimensi -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                            </div>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded border" style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="similarPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
+                            <p class="small mt-2" id="similarStatusText"></p>
+                        </div>
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pemindai QR -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" role="dialog" aria-labelledby="qrScannerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrScannerModalLabel"><i class="fas fa-qrcode mr-2"></i>QR Code Scanner</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="position-relative">
+                        <video id="qr-video" class="w-100" autoplay muted playsinline style="border-radius: 8px;"></video>
+                        <button type="button" id="toggleFlashBtn" class="btn btn-sm btn-dark position-absolute d-none" style="top: 10px; left: 10px; opacity: 0.7; z-index: 10;">
+                            <i class="fas fa-bolt text-white"></i> Flash
+                        </button>
+                        <button type="button" id="toggleMirrorBtn" class="btn btn-sm btn-dark position-absolute" style="top: 10px; right: 10px; opacity: 0.7; z-index: 10;">
+                            <i class="fas fa-arrows-alt-h text-white"></i> Flip
+                        </button>
+                    </div>
+                    <style>
+                        #qr-video.mirrored { transform: scaleX(-1) !important; }
+                        #zoomContainer { background: rgba(0,0,0,0.5); border-radius: 0 0 8px 8px; }
+                        #zoomSlider { height: 6px; cursor: pointer; }
+                    </style>
+                    <div id="zoomContainer" class="p-2 d-none">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-search-minus text-white mr-2"></i>
+                            <input type="range" id="zoomSlider" class="custom-range flex-grow-1" min="1" max="1" step="0.1" value="1">
+                            <i class="fas fa-search-plus text-white ml-2"></i>
+                        </div>
+                    </div>
+                    <div id="qr-reader-results" class="p-3 text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Memuat...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Memproses data QR...</p>
+                    </div>
+                    <div class="p-3 border-top bg-light">
+                        <label class="font-weight-bold">Atau Unggah Gambar QR:</label>
+                        <input type="file" id="qr-input-file" accept="image/*" class="form-control-file">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script>
+        window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
+        window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+    </script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            if(typeof window.initItemSearch === 'function') {
+                window.initItemSearch('itemSelect');
+            }
+        });
+    </script>
 @endpush

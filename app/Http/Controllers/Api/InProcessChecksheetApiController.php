@@ -31,6 +31,7 @@ class InProcessChecksheetApiController extends Controller
             'Double Tape' => \App\Models\DoubleTapeChecksheet::class,
             'Plating' => \App\Models\PlatingChecksheet::class,
             'Painting' => \App\Models\PaintingChecksheet::class,
+            'Incoming Export' => \App\Models\IncomingExport::class,
         ];
 
         $foundChecksheet = null;
@@ -38,16 +39,19 @@ class InProcessChecksheetApiController extends Controller
 
         foreach ($modelsToCheck as $processName => $modelClass) {
             if (class_exists($modelClass)) {
-                $checksheet = $modelClass::withoutGlobalScopes()
-                    ->where('unique_code_id', $unique_code_id)
-                    ->with(['item'])
-                    ->latest()
-                    ->first();
-                    
-                if ($checksheet) {
-                    $foundChecksheet = $checksheet;
-                    $processType = $processName;
-                    break; // Berhenti mencari jika sudah ketemu
+                $tableName = (new $modelClass)->getTable();
+                if (\Illuminate\Support\Facades\Schema::hasColumn($tableName, 'unique_code_id')) {
+                    $checksheet = $modelClass::withoutGlobalScopes()
+                        ->where('unique_code_id', $unique_code_id)
+                        ->with(['item'])
+                        ->latest()
+                        ->first();
+                        
+                    if ($checksheet) {
+                        $foundChecksheet = $checksheet;
+                        $processType = $processName;
+                        break; // Berhenti mencari jika sudah ketemu
+                    }
                 }
             }
         }

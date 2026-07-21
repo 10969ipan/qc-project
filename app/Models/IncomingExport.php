@@ -33,6 +33,14 @@ class IncomingExport extends Model
         'supervisor_approved_at',
         'asst_manager_approved_at',
         'manager_approved_at',
+        'part_code',
+        'supplier_id',
+        'quantity',
+        'unique_code_id',
+        'sap_code',
+        'scan_method',
+        'qrcode',
+        'cycle_time',
         'rejection_remarks',
     ];
 

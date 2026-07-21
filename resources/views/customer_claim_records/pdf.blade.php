@@ -101,6 +101,7 @@
         .col-cust { width: 6%; }
         .col-plant-up { width: 4.5%; }
         .col-type { width: 4.5%; }
+        .col-eks-int { width: 4.5%; }
         .col-report { width: 5%; }
         .col-project { width: 2.5%; }
         .col-part { width: 8%; }
@@ -172,6 +173,7 @@
                 <th class="col-cust">Customer</th>
                 <th class="col-plant-up">Plant / UP (Cust.)</th>
                 <th class="col-type">Claim Type</th>
+                <th class="col-eks-int">Eks/Int</th>
                 <th class="col-report">No. Report</th>
                 <th class="col-project">Proj</th>
                 <th class="col-part">Nama Part</th>
@@ -199,6 +201,7 @@
                     <td style="text-transform: uppercase; font-weight: bold;">{{ $record->customer }}</td>
                     <td>{{ Str::title($record->plant_up_customer) }}</td>
                     <td>{{ $record->claim_type }}</td>
+                    <td>{{ $record->eksternal_internal }}</td>
                     <td>{{ $record->no_report }}</td>
                     <td>{{ $record->project }}</td>
                     <td style="text-transform: uppercase;">{{ $record->nama_part }}</td>

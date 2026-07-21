@@ -3,102 +3,251 @@
 @section('title', 'Incoming Export')
 
 @section('content')
-    <div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-start">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        LAPORAN DATA INCOMING EXPORT
-                        @php
-                            $plant = request('plant') ?? auth()->user()->plant_id;
-                            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-                            $plantCode = strtolower($plantCode ?: 'karawang');
-                        @endphp
-                        <span
-                            class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0"
-                            style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end text-xs font-weight-bold">
-                    <div style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5">No. Dokumen</div>
-                            <div class="col-7">: QC-KRW-F-0213</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5">Tgl. Terbit</div>
-                            <div class="col-7">: 01/01/2026</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<style>
+    .table-responsive {
+        max-height: calc(100vh - 220px) !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+    #checksheetTable {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    #checksheetTable td, #checksheetTable th {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
+
+    #checksheetTable tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 4px 6px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Global TH sticky setup */
+    #checksheetTable > thead > tr > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 6px 12px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #e2e8f0;
+    }
+
+    /* Forced overrides for compact view */
+    #checksheetTable td.no-export {
+        min-width: 0 !important;
+        white-space: nowrap !important; 
+    }
+    #checksheetTable .btn {
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #checksheetTable .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+
+    /* Exact sticky heights since headers no longer wrap */
+    #checksheetTable > thead > tr:nth-child(1) > th {
+        top: 0 !important;
+        z-index: 105 !important;
+        height: 48px !important; 
+    }
+    #checksheetTable > thead > tr:nth-child(2) > th {
+        top: 48px !important; 
+        z-index: 104 !important;
+        height: 38px !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    }
+    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
+        top: 0 !important;
+        height: 86px !important;
+        z-index: 106 !important;
+    }
+</style>
+
+    @php
+        $plant = request('plant') ?? auth()->user()->plant_id;
+        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0213',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
+    @endphp
+
+    <!-- Header Document -->
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            LAPORAN DATA INCOMING EXPORT
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 pt-4 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Export</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('incoming.exports.index') }}" method="GET" class="mb-4">
-                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                <div class="row align-items-end small font-weight-bold">
-                    <div class="col-lg-3 mb-2"><label>Pencarian</label><input type="text" name="search"
-                            class="form-control form-control-sm" placeholder="Cari..." value="{{ request('search') }}">
-                    </div>
-                    <div class="col-lg-2 mb-2"><label>Dari Tanggal</label><input type="date" name="start_date"
-                            class="form-control form-control-sm" value="{{ request('start_date') }}"></div>
-                    <div class="col-lg-2 mb-2"><label>Sampai Tanggal</label><input type="date" name="end_date"
-                            class="form-control form-control-sm" value="{{ request('end_date') }}"></div>
-                    <div class="col-lg-3 mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Cari</button>
-                        <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Reset</a>
-                        <a href="{{ route('incoming.exports.export_pdf', request()->query()) }}"
-                            class="btn btn-danger btn-sm no-loader btn-download"><i class="fas fa-file-pdf"></i> PDF</a>
-                    </div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3 pt-4 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Export</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ route('incoming.exports.index') }}" method="GET" class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncoming">
+            <input type="hidden" name="plant" value="{{ request('plant') }}">
+            
+            <!-- Field: Part -->
+            <div class="d-flex align-items-center">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                <div style="width: 200px;" class="custom-filter-wrapper">
+                    <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                        <option value="">Ketik Material / Part No...</option>
+                        @foreach($items as $item)
+                            <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-            </form>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
+                <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                    <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0" style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                    <span class="px-1 text-gray-500 small">-</span>
+                    <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0" style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                </div>
+            </div>
+
+            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+                <style>
+                    .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                    .custom-filter-wrapper { position: relative; top: -1px; }
+                </style>
+                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data"><i class="fas fa-search fa-sm"></i></button>
+                <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter"><i class="fas fa-undo fa-sm"></i></a>
+                <a href="{{ route('incoming.exports.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF"><i class="fas fa-file-pdf fa-sm"></i></a>
+            </div>
+        </form>
 
             <div class="table-responsive">
-                <table class="table table-bordered text-center small" width="100%" cellspacing="0">
-                    <thead class="bg-light align-middle text-uppercase">
-                        <tr>
-                            <th rowspan="2">No</th>
-                            <th rowspan="2">Tgl Check</th>
-                            <th rowspan="2">Item Part</th>
-                            <th rowspan="2">Tgl Delivery</th>
-                            <th rowspan="2">Jdg</th>
-                            <th colspan="2">Detail NG</th>
-                            <th rowspan="2">QC</th>
-                            <th colspan="4">Approval</th>
-                            <th rowspan="2">Ket</th>
-                            <th rowspan="2">Action</th>
+                <table class="table table-hover" width="100%" cellspacing="0" id="checksheetTable">
+                    <thead>
+                        <tr class="text-center">
+                            <th rowspan="2" class="align-middle">No</th>
+                            <th rowspan="2" class="align-middle">QR-Code</th>
+                            <th rowspan="2" class="align-middle">Tanggal</th>
+                            <th rowspan="2" class="align-middle">Jam (Before)</th>
+                            <th rowspan="2" class="align-middle">Jam (After)</th>
+                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            <th rowspan="2" class="align-middle d-none">Kode SAP</th>
+                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Tgl Delivery</th>
+                            <th rowspan="2" class="align-middle">Lot Qty</th>
+                            <th rowspan="2" class="align-middle">Total Check</th>
+                            <th rowspan="2" class="align-middle">OK</th>
+                            <th rowspan="2" class="align-middle">NG</th>
+                            <th colspan="2" class="align-middle">Detail NG</th>
+                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle">Inspector</th>
+                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                            <th rowspan="2" class="no-export align-middle">Actions</th>
                         </tr>
-                        <tr>
-                            <th>Pcs</th>
-                            <th>Jenis</th>
-                            <th>KS</th>
-                            <th>SPV</th>
-                            <th>AM</th>
-                            <th>MGR</th>
+                        <tr class="text-center">
+                            <th style="width: 60px; min-width: 60px;">Pcs</th>
+                            <th style="min-width: 150px;">Jenis NG</th>
+                            <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px;">Supervisor QC</th>
+                            <th style="font-size: 10px;">Asst. Manager QC</th>
+                            <th style="font-size: 10px;">Manager QC</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
-                            <tr>
+                            <tr class="text-center">
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">{{ date('d/m/Y', strtotime($cs->date)) }}</td>
-                                <td class="align-middle text-left">{{ $cs->item->name }}<br><small
-                                        class="text-muted">{{ $cs->item->part_number }}</small></td>
-                                <td class="align-middle">{{ date('d/m/Y', strtotime($cs->tanggal_delivery)) }}</td>
                                 <td class="align-middle">
-                                    <span
-                                        class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">{{ $cs->judgment }}</span>
+                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
+                                        data-qr="{{ $cs->qrcode }}"
+                                        data-part="{{ $cs->part_code }}"
+                                        data-supplier="{{ $cs->supplier_id }}"
+                                        data-qty="{{ $cs->quantity }}"
+                                        data-unique="{{ $cs->unique_code_id }}"
+                                        data-sap="{{ $cs->sap_code ?? '-' }}">
+                                        <i class="fas fa-qrcode"></i> View
+                                    </button>
                                 </td>
+                                <td class="align-middle text-nowrap">{{ date('d-m-Y', strtotime($cs->date)) }}</td>
+                                <td class="align-middle">{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
+                                <td class="align-middle">{{ $cs->created_at->format('H:i') }}</td>
+                                <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
+                                <td class="align-middle text-nowrap d-none">{{ $cs->item->sap_code ?? '-' }}</td>
+                                <td class="align-middle text-nowrap text-left">{{ $cs->item->name }}<br><small class="text-muted">{{ $cs->item->part_number }}</small></td>
+                                <td class="align-middle">{{ date('d-m-Y', strtotime($cs->tanggal_delivery)) }}</td>
+                                <td class="align-middle">{{ $cs->lot_qty }}</td>
+                                <td class="align-middle">{{ $cs->total_check }}</td>
+                                <td class="align-middle text-success font-weight-bold">{{ $cs->total_check - $cs->total_ng }}</td>
+                                <td class="align-middle text-danger font-weight-bold">{{ $cs->total_ng }}</td>
                                 @php $defects = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true); @endphp
                                 <td class="p-0 align-middle">
                                     @foreach($defects ?? [] as $d) <div class="border-bottom py-1">{{ $d['qty'] ?? 0 }}</div>
@@ -109,29 +258,36 @@
                                         {{ $d['type'] ?? '-' }}
                                     </div> @endforeach
                                 </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">{{ $cs->judgment }}</span>
+                                </td>
                                 <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
-                                    <td class="align-middle">
-                                        <span
-                                            class="badge badge-{{ $cs->$lvl == 'REJECTED' ? 'danger' : ($cs->$lvl ? 'success' : 'warning') }}">
-                                            {{ $cs->$lvl == 'REJECTED' ? 'REJ' : ($cs->$lvl ? 'APP' : 'PEN') }}
-                                        </span>
+                                    <td class="align-middle text-center">
+                                        @if($cs->$lvl === 'REJECTED')
+                                            <span class="badge badge-danger" title="Rejected"><i class="fas fa-times"></i></span>
+                                        @elseif($cs->$lvl)
+                                            <span class="badge badge-success" title="Approved"><i class="fas fa-check"></i></span>
+                                        @else
+                                            <span class="badge badge-warning" title="Pending"><i class="fas fa-clock"></i></span>
+                                        @endif
                                     </td>
                                 @endforeach
                                 <td class="align-middle small">{{ $cs->remarks }}</td>
-                                <td class="align-middle">
+                                <td class="align-middle text-center">
                                     @if($loop->first)
                                         @include('partials.bulk_approve_button')
                                     @endif
                                     <div class="btn-group">
                                         @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <a href="{{ route('incoming.exports.edit', $cs->id) }}"
-                                                class="btn btn-warning btn-xs px-2"><i class="fas fa-edit"></i></a>
-                                            <form action="{{ route('incoming.exports.destroy', $cs->id) }}" method="POST"
-                                                class="d-inline">
+                                            <a href="{{ route('incoming.exports.edit', $cs->id) }}" class="btn btn-outline-primary btn-sm shadow-sm rounded mr-1" style="padding: 2px 6px; font-size: 0.65rem;" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('incoming.exports.destroy', $cs->id) }}" method="POST" class="d-inline form-delete">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-xs px-2"
-                                                    onclick="return confirm('Hapus?')"><i class="fas fa-trash"></i></button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm shadow-sm rounded btn-delete" style="padding: 2px 6px; font-size: 0.65rem;" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </form>
                                         @endif
                                     </div>
@@ -139,7 +295,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="15" class="py-4 text-muted">Data tidak ditemukan.</td>
+                                <td colspan="23" class="py-4 text-muted text-center">Data tidak ditemukan.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -150,4 +306,94 @@
     </div>
     @php $bulkApproveRoute = route('incoming.exports.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+
+    <!-- QR Detail Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="qrModalLabel">
+                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered table-striped">
+                        <tr>
+                            <th style="width: 25%">QR Raw</th>
+                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;"></td>
+                        </tr>
+                        <tr>
+                            <th>Part Code</th>
+                            <td id="modal-qr-part"></td>
+                        </tr>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <td id="modal-qr-supplier"></td>
+                        </tr>
+                        <tr>
+                            <th>Qty</th>
+                            <td id="modal-qr-qty"></td>
+                        </tr>
+                        <tr>
+                            <th>Unique ID</th>
+                            <td id="modal-qr-unique"></td>
+                        </tr>
+                        <tr>
+                            <th>SAP Code</th>
+                            <td id="modal-qr-sap"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/vendor/item-search.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        if (typeof initItemSearch === 'function') {
+            initItemSearch('filterItem', { placeholder: 'Ketik Material / Part No...', maxResults: 50 });
+        }
+
+        // Handle QR Detail Button Click
+        $('.btn-qr-detail').on('click', function() {
+            $('#modal-qr-raw').text($(this).data('qr') || '-');
+            $('#modal-qr-part').text($(this).data('part') || '-');
+            $('#modal-qr-supplier').text($(this).data('supplier') || '-');
+            $('#modal-qr-qty').text($(this).data('qty') || '-');
+            $('#modal-qr-unique').text($(this).data('unique') || '-');
+            $('#modal-qr-sap').text($(this).data('sap') || '-');
+            $('#qrModal').modal('show');
+        });
+
+        $('.btn-delete').on('click', function(e) {
+            e.preventDefault();
+            let form = $(this).closest('form');
+            Swal.fire({
+                title: 'Konfirmasi Hapus',
+                text: 'Data yang dihapus tidak dapat dikembalikan!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Menghapus...', allowOutsideClick: false });
+                    Swal.showLoading();
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+@endpush

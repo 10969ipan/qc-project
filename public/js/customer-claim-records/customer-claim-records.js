@@ -84,6 +84,7 @@ $(document).ready(function () {
         
         form.find('[name="plant_up_customer"]').val(data.plant_up_customer);
         form.find('[name="claim_type"]').val(data.claim_type);
+        form.find('[name="eksternal_internal"]').val(data.eksternal_internal);
         form.find('[name="no_report"]').val(data.no_report);
         form.find('[name="source_type"]').val(data.source_type);
         form.find('[name="project"]').val(data.project);

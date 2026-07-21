@@ -24,6 +24,14 @@ class UpdateIncomingExportRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'defect_types.*' => 'nullable|string',
             'defect_quantities.*' => 'nullable|integer',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|integer',
+            'unique_code_id' => 'nullable|string',
+            'sap_code' => 'nullable|string',
+            'scan_method' => 'nullable|string',
+            'qrcode' => 'nullable|string',
+            'cycle_time' => 'nullable|integer',
         ];
     }
 }

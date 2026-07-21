@@ -273,6 +273,7 @@
                             <th>Customer</th>
                             <th>Plant / UP (Customer)</th>
                             <th>Officially / Non Officially / Suspect</th>
+                            <th>Eksternal/Internal</th>
                             <th>No. Dokumen (Report)</th>
                             <th>Project (NM/MP)</th>
                             <th class="col-part">Nama Part</th>
@@ -318,6 +319,7 @@
                                         {{ $record->claim_type }}
                                     </span>
                                 </td>
+                                <td class="text-center align-middle">{{ $record->eksternal_internal }}</td>
                                 <td class="align-middle">{{ $record->no_report }}</td>
                                 <td class="text-center align-middle">{{ $record->project }}</td>
                                 <td class="align-middle text-nowrap font-weight-bold">{{ $record->nama_part }}</td>
