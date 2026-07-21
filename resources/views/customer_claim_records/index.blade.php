@@ -285,6 +285,8 @@
                             <th style="min-width: 150px;">Temporary Action</th>
                             <th>Cost Akomodasi (Rp)</th>
                             <th>Cost Overtime (Rp)</th>
+                            <th>Cost Irregular (Rp)</th>
+                            <th>Total Cost (Rp)</th>
                             <th style="min-width: 150px;">Feedback</th>
                             <th>Status Feedback</th>
                             <th>Status (C/M)</th>
@@ -330,6 +332,10 @@
                                 <td class="text-right align-middle">{{ $record->total_akomodasi == 0 ? '-' : number_format($record->total_akomodasi, 0, ',', '.') }}
                                 </td>
                                 <td class="text-right align-middle">{{ $record->total_overtime == 0 ? '-' : number_format($record->total_overtime, 0, ',', '.') }}
+                                </td>
+                                <td class="text-right align-middle">{{ $record->total_irregular == 0 ? '-' : number_format($record->total_irregular, 0, ',', '.') }}
+                                </td>
+                                <td class="text-right align-middle font-weight-bold text-danger">{{ $record->total_cost == 0 ? '-' : number_format($record->total_cost, 0, ',', '.') }}
                                 </td>
                                 <td class="align-middle small">{{ Str::title($record->feedback) }}</td>
                                 <td class="text-center align-middle">{{ $record->status_feedback }}</td>

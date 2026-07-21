@@ -296,8 +296,15 @@ class CustomerClaimRecordController extends Controller
         ]);
 
         $data = $request->except(['attachments']);
+        
+        // Remove dot separators for currency
+        $data['total_akomodasi'] = str_replace('.', '', $data['total_akomodasi'] ?? 0);
+        $data['total_overtime'] = str_replace('.', '', $data['total_overtime'] ?? 0);
+        $data['total_irregular'] = str_replace('.', '', $data['total_irregular'] ?? 0);
+        
         $data['attachments'] = []; // Default empty array
         $data['created_by'] = auth()->id();
+        $data['total_cost'] = ($data['total_akomodasi'] ?: 0) + ($data['total_overtime'] ?: 0) + ($data['total_irregular'] ?: 0);
 
         if ($request->hasFile('attachments')) {
             $paths = [];
@@ -337,6 +344,13 @@ class CustomerClaimRecordController extends Controller
         ]);
 
         $data = $request->except(['attachments']);
+        
+        // Remove dot separators for currency
+        $data['total_akomodasi'] = str_replace('.', '', $data['total_akomodasi'] ?? 0);
+        $data['total_overtime'] = str_replace('.', '', $data['total_overtime'] ?? 0);
+        $data['total_irregular'] = str_replace('.', '', $data['total_irregular'] ?? 0);
+
+        $data['total_cost'] = ($data['total_akomodasi'] ?: 0) + ($data['total_overtime'] ?: 0) + ($data['total_irregular'] ?: 0);
 
         if ($request->hasFile('attachments')) {
             $paths = is_array($customerClaimRecord->attachments) ? $customerClaimRecord->attachments : [];

@@ -90,13 +90,25 @@
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Akomodasi (Rp)</label>
                                 <div class="col-sm-8">
-                                    <input type="number" step="1" name="total_akomodasi" class="form-control form-control-sm border-0 shadow-sm" value="0">
+                                    <input type="text" name="total_akomodasi" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Overtime (Rp)</label>
                                 <div class="col-sm-8">
-                                    <input type="number" step="1" name="total_overtime" class="form-control form-control-sm border-0 shadow-sm" value="0">
+                                    <input type="text" name="total_overtime" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Irregular (Rp)</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="total_irregular" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Total Cost (Rp)</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="total_cost" class="form-control form-control-sm border-0 shadow-sm bg-light font-weight-bold text-danger format-rupiah" readonly>
                                 </div>
                             </div>
                         </div>
@@ -352,13 +364,25 @@
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Akomodasi (Rp)</label>
                                 <div class="col-sm-8">
-                                    <input type="number" step="1" name="total_akomodasi" class="form-control form-control-sm border-0 shadow-sm">
+                                    <input type="text" name="total_akomodasi" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Overtime (Rp)</label>
                                 <div class="col-sm-8">
-                                    <input type="number" step="1" name="total_overtime" class="form-control form-control-sm border-0 shadow-sm">
+                                    <input type="text" name="total_overtime" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Irregular (Rp)</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="total_irregular" class="form-control form-control-sm border-0 shadow-sm cost-input format-rupiah">
+                                </div>
+                            </div>
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Total Cost (Rp)</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="total_cost" class="form-control form-control-sm border-0 shadow-sm bg-light font-weight-bold text-danger format-rupiah" readonly>
                                 </div>
                             </div>
                         </div>

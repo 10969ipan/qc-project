@@ -27,6 +27,8 @@ class CustomerClaimRecord extends Model
         'action_taken',
         'total_akomodasi',
         'total_overtime',
+        'total_irregular',
+        'total_cost',
         'feedback',
         'status_feedback',
         'status_cm',
@@ -39,9 +41,11 @@ class CustomerClaimRecord extends Model
     ];
 
     protected $casts = [
-        'tanggal_claim' => 'date',
+        'tanggal_claim' => 'date:Y-m-d',
         'total_akomodasi' => 'decimal:2',
         'total_overtime' => 'decimal:2',
+        'total_irregular' => 'decimal:2',
+        'total_cost' => 'decimal:2',
         'qty' => 'integer',
         'attachments' => 'array',
     ];

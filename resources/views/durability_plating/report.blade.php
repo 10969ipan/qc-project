@@ -145,6 +145,17 @@
         font-weight: 700 !important;
         letter-spacing: 0.5px;
     }
+
+    /* Fix text colors overriding by td !important */
+    #dataTable tbody td.text-danger, #dataTable tbody td .text-danger {
+        color: #e74a3b !important;
+    }
+    #dataTable tbody td.text-primary, #dataTable tbody td .text-primary {
+        color: #000000ff !important;
+    }
+    #dataTable tbody td.text-success, #dataTable tbody td .text-success {
+        color: #1cc88a !important;
+    }
 </style>
 
 @php
@@ -532,9 +543,14 @@
                                 <td class="text-center td-standar">{{ $std->thickness_cr ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_ni ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_cu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cr ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_ni ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cu ?? '-' }}</td>
+                                @php
+                                    $is_cr_ng = (is_numeric($report->actual_cr) && is_numeric($std->thickness_cr)) ? ((float)$report->actual_cr < (float)$std->thickness_cr) : false;
+                                    $is_ni_ng = (is_numeric($report->actual_ni) && is_numeric($std->thickness_ni)) ? ((float)$report->actual_ni < (float)$std->thickness_ni) : false;
+                                    $is_cu_ng = (is_numeric($report->actual_cu) && is_numeric($std->thickness_cu)) ? ((float)$report->actual_cu < (float)$std->thickness_cu) : false;
+                                @endphp
+                                <td class="text-center font-weight-bold {{ $is_cr_ng ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cr ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ $is_ni_ng ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_ni ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ $is_cu_ng ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cu ?? '-' }}</td>
                             @elseif($testType == 'corrodkote')
                                 <td class="text-center td-standar">{{ $std->corrodkote_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->corrodkote_std_max_corrosion ?? '-' }}</td>

@@ -96,8 +96,16 @@ $(document).ready(function () {
         form.find('[name="initial_operator"]').val(data.initial_operator);
         form.find('[name="initial_inspektor"]').val(data.initial_inspektor);
         form.find('[name="action_taken"]').val(data.action_taken);
-        form.find('[name="total_akomodasi"]').val(data.total_akomodasi);
-        form.find('[name="total_overtime"]').val(data.total_overtime);
+        // Format and set values for edit
+        const formatNumber = (num) => {
+            if (!num || num == 0) return '';
+            return parseInt(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        };
+
+        form.find('[name="total_akomodasi"]').val(formatNumber(data.total_akomodasi));
+        form.find('[name="total_overtime"]').val(formatNumber(data.total_overtime));
+        form.find('[name="total_irregular"]').val(formatNumber(data.total_irregular));
+        form.find('[name="total_cost"]').val(formatNumber(data.total_cost));
         form.find('[name="feedback"]').val(data.feedback);
         form.find('[name="status_feedback"]').val(data.status_feedback);
         form.find('[name="status_cm"]').val(data.status_cm);
@@ -231,5 +239,44 @@ $(document).ready(function () {
                 confirmButtonText: 'Mengerti'
             });
         }
+    });
+
+    // Format Rupiah Helper
+    function formatRupiah(angka) {
+        let clean = angka.replace(/[^,\d]/g, '');
+        if (!clean) return '';
+        
+        var number_string = parseInt(clean, 10).toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0, sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+        
+        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+        return rupiah;
+    }
+
+    $(document).on('keyup', '.format-rupiah', function(e) {
+        $(this).val(formatRupiah($(this).val()));
+    });
+
+    $(document).on('input', '.cost-input', function() {
+        const modal = $(this).closest('.modal');
+        const parseRupiah = (val) => {
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(/\./g, '').replace(/,/g, '.')) || 0;
+        };
+
+        const akomodasi = parseRupiah(modal.find('[name="total_akomodasi"]').val());
+        const overtime = parseRupiah(modal.find('[name="total_overtime"]').val());
+        const irregular = parseRupiah(modal.find('[name="total_irregular"]').val());
+        
+        const total = akomodasi + overtime + irregular;
+        modal.find('[name="total_cost"]').val(total > 0 ? formatRupiah(total.toString()) : '');
     });
 });
