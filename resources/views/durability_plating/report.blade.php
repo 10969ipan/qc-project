@@ -622,7 +622,7 @@
                                                         (!empty(trim($report->actual_cr)) && trim($report->actual_cr) !== '-');
                                     @endphp
                                     @if($hasThickness)
-                                        <a href="{{ route('standard-performance-tests.report', ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                        <a href="{{ route($isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report', ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
                                             <i class="fas fa-external-link-alt"></i> Data
                                         </a>
                                     @else
@@ -692,7 +692,7 @@
 
 <!-- Modal Edit Thickness -->
 <div class="modal fade" id="modalEditThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -758,6 +758,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
@@ -912,6 +913,81 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            @if($testType == 'thickness')
+                            <div class="row mb-3">
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Cr</label>
+                                    <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Ni</label>
+                                    <input type="text" name="actual_ni" id="edit_actual_ni" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Cu</label>
+                                    <input type="text" name="actual_cu" id="edit_actual_cu" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
+                                </div>
+                            </div>
+                            @elseif($testType == 'corrodkote')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_corrodkote" id="edit_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                <input type="text" name="aktual_corrosion" id="edit_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            @elseif($testType == 'cass')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                <input type="text" name="actual_cass_waktu" id="edit_actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
+                            </div>
+                            @elseif($testType == 'salt_spray')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                <input type="text" name="actual_salt_spray_waktu" id="edit_actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
+                            </div>
+                            @elseif($testType == 'porecount')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            @endif
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                    <option value="-">-</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                     <input type="hidden" name="delete_evidence_before" id="delete_evidence_before" value="0">
@@ -1008,7 +1084,7 @@
 
 <!-- Modal Input Corrodkote -->
 <div class="modal fade" id="modalInputCorrodkote" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1086,6 +1162,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
@@ -1158,6 +1235,40 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
+                                <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                <input type="text" name="aktual_corrosion" id="corrodkote_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">Pilih...</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="row">
                         <!-- Evidence Before -->
                         <div class="col-md-6 form-group mb-3">
@@ -1229,7 +1340,7 @@
 
 <!-- Modal Input Cass -->
 <div class="modal fade" id="modalInputCass" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1307,6 +1418,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
@@ -1371,6 +1483,36 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                                <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">Pilih...</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="row">
                         <!-- Evidence Before -->
                         <div class="col-md-6 form-group mb-3">
@@ -1442,7 +1584,7 @@
 
 <!-- Modal Input Salt Spray -->
 <div class="modal fade" id="modalInputSaltSpray" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1520,6 +1662,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
@@ -1584,6 +1727,36 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                                <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                <input type="text" name="standar_jam_salt_spray" id="salt_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">Pilih...</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="row">
                         <!-- Evidence Before -->
                         <div class="col-md-6 form-group mb-3">
@@ -1655,7 +1828,7 @@
 
 <!-- Modal Input Porecount -->
 <div class="modal fade" id="modalInputPorecount" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1714,6 +1887,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
@@ -1770,6 +1944,32 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                                <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    <option value="">Pilih...</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     <div class="row">
                         <!-- Evidence Before -->
                         <div class="col-md-6 form-group mb-3">

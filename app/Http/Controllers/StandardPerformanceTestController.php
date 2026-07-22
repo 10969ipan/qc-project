@@ -362,6 +362,43 @@ class StandardPerformanceTestController extends Controller
             $evidenceAfterPath = 'uploads/durability_plating/' . $filenameAfter;
         }
 
+        // If inputting directly from Menu Data 2 (Trial)
+        if ($request->boolean('is_trial')) {
+            DurabilityThicknessReport::create([
+                'standard_performance_test_id' => $request->standard_performance_test_id,
+                'production_date' => $request->production_date,
+                'shift' => $request->shift,
+                'lot_no' => $request->lot_no,
+                'actual_cu' => $request->actual_cu,
+                'actual_ni' => $request->actual_ni,
+                'actual_cr' => $request->actual_cr,
+                'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu ?? '-',
+                'standar_jam_corrodkote' => $request->standar_jam_corrodkote ?? '-',
+                'aktual_corrosion' => $request->aktual_corrosion ?? null,
+                'actual_cass_waktu' => $request->actual_cass_waktu ?? '-',
+                'standar_jam_cass' => $request->standar_jam_cass ?? '-',
+                'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
+                'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
+                'actual_porecount' => $request->actual_porecount ?? '-',
+                'result_judgment' => $request->result_judgment ?? '-',
+                'tgl_masuk' => $request->tgl_masuk,
+                'jam_masuk' => $request->jam_masuk,
+                'tgl_keluar' => $request->tgl_keluar,
+                'jam_keluar' => $request->jam_keluar,
+                'tanggal_cek' => now()->toDateString(),
+                'analis_id' => auth()->id(),
+                'description' => $request->description,
+                'is_trial' => true,
+                'evidence_before' => $evidenceBeforePath,
+                'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
+                'evidence_after' => $evidenceAfterPath,
+                'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+            ]);
+
+            ActivityLogger::log('created', null, "Input Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
+            return redirect()->back()->with('success', 'Data 2 berhasil disimpan.');
+        }
+
         // Data 1 (Regular / Actual)
         $report1 = DurabilityThicknessReport::create([
             'standard_performance_test_id' => $request->standard_performance_test_id,
@@ -616,9 +653,23 @@ class StandardPerformanceTestController extends Controller
                 'analis_id' => auth()->id(),
             ]);
 
-            if ($request->has('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
-            if ($request->has('actual_ni_trial')) $trialReport->actual_ni = $request->actual_ni_trial;
-            if ($request->has('actual_cu_trial')) $trialReport->actual_cu = $request->actual_cu_trial;
+            if ($request->has('actual_cr_trial') && $request->actual_cr_trial !== null && $request->actual_cr_trial !== '') {
+                $trialReport->actual_cr = $request->actual_cr_trial;
+            } elseif ($request->has('actual_cr') && (empty($trialReport->actual_cr) || $trialReport->actual_cr === '-')) {
+                $trialReport->actual_cr = $request->actual_cr;
+            }
+
+            if ($request->has('actual_ni_trial') && $request->actual_ni_trial !== null && $request->actual_ni_trial !== '') {
+                $trialReport->actual_ni = $request->actual_ni_trial;
+            } elseif ($request->has('actual_ni') && (empty($trialReport->actual_ni) || $trialReport->actual_ni === '-')) {
+                $trialReport->actual_ni = $request->actual_ni;
+            }
+
+            if ($request->has('actual_cu_trial') && $request->actual_cu_trial !== null && $request->actual_cu_trial !== '') {
+                $trialReport->actual_cu = $request->actual_cu_trial;
+            } elseif ($request->has('actual_cu') && (empty($trialReport->actual_cu) || $trialReport->actual_cu === '-')) {
+                $trialReport->actual_cu = $request->actual_cu;
+            }
             if ($request->has('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
             if ($request->has('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
             if ($request->has('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;

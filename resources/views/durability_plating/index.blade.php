@@ -613,11 +613,11 @@
 </div>
 <!-- Modal Thickness -->
 <div class="modal fade" id="modalThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
-                    <i class="fas fa-layer-group mr-2 text-success"></i> Input Thickness (Data 1 & Data 2)
+                    <i class="fas fa-layer-group mr-2 text-success"></i> {{ !$isTrial ? 'Input Thickness (Data 1 & Data 2)' : 'Input Thickness' }}
                 </h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -626,6 +626,9 @@
             <form action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" id="formThickness" novalidate>
                 @csrf
                 <input type="hidden" name="standard_performance_test_id" id="thickness_test_id">
+                @if($isTrial)
+                <input type="hidden" name="is_trial" value="1">
+                @endif
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
                     {{-- Common Batch Fields --}}
@@ -656,6 +659,7 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     {{-- Horizontal 2-Column Split: DATA 1 & DATA 2 --}}
                     <div class="row">
                         {{-- DATA 1 Column (Left) --}}
@@ -732,12 +736,48 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    {{-- Single Column layout --}}
+                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Cr</label>
+                                    <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                </div>
+                                <div class="col-md-4 form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Ni</label>
+                                    <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                </div>
+                                <div class="col-md-4 form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Cu</label>
+                                    <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
+                                    <option value="-">-</option>
+                                    <option value="OK">OK</option>
+                                    <option value="NG">NG</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan Data 1 & 2
+                        <i class="fas fa-save mr-1"></i> Simpan Data
                     </button>
                 </div>
             </form>
