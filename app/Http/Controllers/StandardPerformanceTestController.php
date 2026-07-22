@@ -584,6 +584,54 @@ class StandardPerformanceTestController extends Controller
         if (!empty($updateData)) {
             $report->update($updateData);
         }
+
+        // Update or create Data 2 record if trial fields are supplied
+        if (!$report->is_trial && (
+            $request->filled('actual_cr_trial') || $request->filled('actual_ni_trial') || $request->filled('actual_cu_trial') ||
+            $request->filled('actual_corrodkote_waktu_trial') || $request->filled('standar_jam_corrodkote_trial') || $request->filled('aktual_corrosion_trial') ||
+            $request->filled('actual_cass_waktu_trial') || $request->filled('standar_jam_cass_trial') ||
+            $request->filled('actual_salt_spray_waktu_trial') || $request->filled('standar_jam_salt_spray_trial') ||
+            $request->filled('actual_porecount_trial') || $request->filled('result_judgment_trial') || $request->filled('description_trial')
+        )) {
+            $trialReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('is_trial', true)
+                ->where('lot_no', $report->lot_no)
+                ->first();
+
+            if (!$trialReport) {
+                $trialReport = new DurabilityThicknessReport();
+                $trialReport->standard_performance_test_id = $report->standard_performance_test_id;
+                $trialReport->is_trial = true;
+                $trialReport->lot_no = $report->lot_no;
+            }
+
+            $trialReport->fill([
+                'tanggal_cek' => $report->tanggal_cek,
+                'production_date' => $report->production_date,
+                'shift' => $report->shift,
+                'tgl_masuk' => $report->tgl_masuk,
+                'jam_masuk' => $report->jam_masuk,
+                'tgl_keluar' => $report->tgl_keluar,
+                'jam_keluar' => $report->jam_keluar,
+                'analis_id' => auth()->id(),
+            ]);
+
+            if ($request->has('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
+            if ($request->has('actual_ni_trial')) $trialReport->actual_ni = $request->actual_ni_trial;
+            if ($request->has('actual_cu_trial')) $trialReport->actual_cu = $request->actual_cu_trial;
+            if ($request->has('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
+            if ($request->has('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
+            if ($request->has('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;
+            if ($request->has('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
+            if ($request->has('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
+            if ($request->has('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
+            if ($request->has('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;
+            if ($request->has('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
+            if ($request->has('result_judgment_trial')) $trialReport->result_judgment = $request->result_judgment_trial;
+            if ($request->has('description_trial')) $trialReport->description = $request->description_trial;
+
+            $trialReport->save();
+        }
         
         // Handle X-button deletions before processing new uploads
         if ($request->input('delete_evidence_before') === '1') {
@@ -591,6 +639,10 @@ class StandardPerformanceTestController extends Controller
                 @unlink(public_path($report->evidence_before));
             }
             $report->update(['evidence_before' => null, 'evidence_before_uploaded_at' => null]);
+            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('is_trial', true)
+                ->where('lot_no', $report->lot_no)
+                ->update(['evidence_before' => null, 'evidence_before_uploaded_at' => null]);
         }
 
         if ($request->input('delete_evidence_after') === '1') {
@@ -598,6 +650,10 @@ class StandardPerformanceTestController extends Controller
                 @unlink(public_path($report->evidence_after));
             }
             $report->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('is_trial', true)
+                ->where('lot_no', $report->lot_no)
+                ->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
         }
 
         if ($request->hasFile('evidence_before')) {
@@ -607,10 +663,18 @@ class StandardPerformanceTestController extends Controller
             $fileBefore = $request->file('evidence_before');
             $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
             $fileBefore->move(public_path('uploads/durability_plating'), $filenameBefore);
+            $newBeforePath = 'uploads/durability_plating/' . $filenameBefore;
             $report->update([
-                'evidence_before' => 'uploads/durability_plating/' . $filenameBefore,
+                'evidence_before' => $newBeforePath,
                 'evidence_before_uploaded_at' => now()
             ]);
+            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('is_trial', true)
+                ->where('lot_no', $report->lot_no)
+                ->update([
+                    'evidence_before' => $newBeforePath,
+                    'evidence_before_uploaded_at' => now()
+                ]);
         }
 
         if ($request->hasFile('evidence_after')) {
@@ -620,13 +684,21 @@ class StandardPerformanceTestController extends Controller
             $fileAfter = $request->file('evidence_after');
             $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
             $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
+            $newAfterPath = 'uploads/durability_plating/' . $filenameAfter;
             $report->update([
-                'evidence_after' => 'uploads/durability_plating/' . $filenameAfter,
+                'evidence_after' => $newAfterPath,
                 'evidence_after_uploaded_at' => now()
             ]);
+            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('is_trial', true)
+                ->where('lot_no', $report->lot_no)
+                ->update([
+                    'evidence_after' => $newAfterPath,
+                    'evidence_after_uploaded_at' => now()
+                ]);
         }
         
-        ActivityLogger::log('updated', null, "Update Thickness Report untuk ID Laporan: {$id}");
+        ActivityLogger::log('updated', null, "Update Report (Data 1 & Data 2) untuk ID Laporan: {$id}");
 
         return redirect()->back()->with('success', 'Data berhasil diupdate.');
     }

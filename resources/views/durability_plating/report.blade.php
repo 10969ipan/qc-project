@@ -682,7 +682,7 @@
         
         <!-- Pagination -->
         @if($reports->hasPages())
-        <div class="pagination-container pt-2 mt-2 d-flex justify-content-end">
+        <div class="pagination-container pt-2 mt-2 w-100">
             {{ $reports->links() }}
         </div>
         @endif
@@ -692,7 +692,7 @@
 
 <!-- Modal Edit Thickness -->
 <div class="modal fade" id="modalEditThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -705,122 +705,211 @@
             <form action="" method="POST" id="formEditThickness" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
-                    <div class="row">
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                            <input type="date" name="tanggal_cek" id="edit_tanggal_cek" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
-                            <input type="date" name="production_date" id="edit_production_date" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" id="edit_shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" id="edit_lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
-                        </div>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                        <input type="text" id="edit_thickness_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                    </div>
-                    @if($testType == 'thickness')
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni" id="edit_actual_ni" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu" id="edit_actual_cu" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
-                        </div>
-                    </div>
-                    @elseif($testType == 'corrodkote')
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_corrodkote" id="edit_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
-                            <input type="text" name="aktual_corrosion" id="edit_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @elseif($testType == 'cass')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_cass_waktu" id="edit_actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
-                        </div>
-                    </div>
-                    @elseif($testType == 'salt_spray')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_salt_spray_waktu" id="edit_actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
-                        </div>
-                    </div>
-                    @elseif($testType == 'porecount')
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                    </div>
-                    @endif
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
+                    <!-- Metadata Header Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="form-group mb-2">
+                                <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                <input type="text" id="edit_thickness_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                                    <input type="date" name="tanggal_cek" id="edit_tanggal_cek" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
+                                    <input type="date" name="production_date" id="edit_production_date" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" id="edit_shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" id="edit_lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
+                                </div>
+                            </div>
 
-                    @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
-                            <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_masuk" id="edit_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="edit">
-                                <input type="time" name="jam_masuk" id="edit_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="edit">
+                            @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                            <div class="row mt-1">
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" name="tgl_masuk" id="edit_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="edit">
+                                        <input type="time" name="jam_masuk" id="edit_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="edit">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" name="tgl_keluar" id="edit_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                        <input type="time" name="jam_keluar" id="edit_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
-                            <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_keluar" id="edit_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
-                                <input type="time" name="jam_keluar" id="edit_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
-                            </div>
+                            @endif
                         </div>
                     </div>
-                    @endif
 
-                    <div class="row mt-2">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="-">-</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
+                    <div class="row">
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    @if($testType == 'thickness')
+                                    <div class="row mb-3">
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                                            <input type="text" name="actual_cr" id="edit_actual_cr" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
+                                        </div>
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Ni</label>
+                                            <input type="text" name="actual_ni" id="edit_actual_ni" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
+                                        </div>
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                                            <input type="text" name="actual_cu" id="edit_actual_cu" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input" required>
+                                        </div>
+                                    </div>
+                                    @elseif($testType == 'corrodkote')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_corrodkote_waktu" id="edit_actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_corrodkote" id="edit_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion" id="edit_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'cass')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_cass_waktu" id="edit_actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
+                                    </div>
+                                    @elseif($testType == 'salt_spray')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_salt_spray_waktu" id="edit_actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
+                                    </div>
+                                    @elseif($testType == 'porecount')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                        <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    @endif
+
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    @if($testType == 'thickness')
+                                    <div class="row mb-3">
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                                            <input type="text" name="actual_cr_trial" id="edit_actual_cr_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Ni</label>
+                                            <input type="text" name="actual_ni_trial" id="edit_actual_ni_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-0">
+                                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                                            <input type="text" name="actual_cu_trial" id="edit_actual_cu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        </div>
+                                    </div>
+                                    @elseif($testType == 'corrodkote')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                                        <input type="text" name="actual_corrodkote_waktu_trial" id="edit_actual_corrodkote_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_corrodkote_trial" id="edit_standar_jam_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion_trial" id="edit_aktual_corrosion_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'cass')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_cass_waktu_trial" id="edit_actual_cass_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_cass_trial" id="edit_standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'salt_spray')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_salt_spray_waktu_trial" id="edit_actual_salt_spray_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_salt_spray_trial" id="edit_standar_jam_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'porecount')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                        <input type="text" name="actual_porecount_trial" id="edit_actual_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @endif
+
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" id="edit_result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" id="edit_description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -919,11 +1008,11 @@
 
 <!-- Modal Input Corrodkote -->
 <div class="modal fade" id="modalInputCorrodkote" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
-                    <i class="fas fa-plus mr-2 text-primary"></i> Input Corrodkote
+                    <i class="fas fa-plus mr-2 text-primary"></i> Input Corrodkote Test
                 </h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -933,87 +1022,140 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="corrodkote_report_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                            <input type="text" id="corrodkote_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" id="corrodkote_customer" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Std. Customer</label>
-                            <input type="text" id="corrodkote_std" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hrs) STD.</label>
-                            <input type="text" name="standard_time" id="corrodkote_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
-                            <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
-                            <input type="text" name="aktual_corrosion" id="corrodkote_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                            <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="production_date" id="corrodkote_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" id="corrodkote_shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                            <input type="date" name="tgl_masuk" id="corrodkote_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
-                            <input type="time" name="jam_masuk" id="corrodkote_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
-                            <input type="date" name="tgl_keluar" id="corrodkote_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
-                            <input type="time" name="jam_keluar" id="corrodkote_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
+                    
+                    <!-- Metadata Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                    <input type="text" id="corrodkote_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Customer</label>
+                                    <input type="text" id="corrodkote_customer" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Std. Customer / Time STD</label>
+                                    <input type="text" id="corrodkote_std" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
+                                    <input type="date" name="production_date" id="corrodkote_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" id="corrodkote_shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="date" name="tgl_masuk" id="corrodkote_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
+                                    <input type="time" name="jam_masuk" id="corrodkote_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                                    <input type="date" name="tgl_keluar" id="corrodkote_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                                    <input type="time" name="jam_keluar" id="corrodkote_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
+                                        <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                        <input type="text" name="standar_jam_corrodkote" id="corrodkote_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion" id="corrodkote_aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            <option value="">Pilih...</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
-                                <option value="">Pilih...</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                                        <input type="text" name="actual_corrodkote_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1087,7 +1229,7 @@
 
 <!-- Modal Input Cass -->
 <div class="modal fade" id="modalInputCass" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1101,83 +1243,132 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="cass_report_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                            <input type="text" id="cass_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" id="cass_customer" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Std. Customer</label>
-                            <input type="text" id="cass_std" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hours) STD. Min RN</label>
-                            <input type="text" name="standard_time" id="cass_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hours) Actual</label>
-                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                            <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="production_date" id="cass_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" id="cass_shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                            <input type="date" name="tgl_masuk" id="cass_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
-                            <input type="time" name="jam_masuk" id="cass_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
-                            <input type="date" name="tgl_keluar" id="cass_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
-                            <input type="time" name="jam_keluar" id="cass_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
+                    
+                    <!-- Metadata Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                    <input type="text" id="cass_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Customer</label>
+                                    <input type="text" id="cass_customer" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Std. Customer / Time STD</label>
+                                    <input type="text" id="cass_std" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
+                                    <input type="date" name="production_date" id="cass_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" id="cass_shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="date" name="tgl_masuk" id="cass_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
+                                    <input type="time" name="jam_masuk" id="cass_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                                    <input type="date" name="tgl_keluar" id="cass_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                                    <input type="time" name="jam_keluar" id="cass_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                                        <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                        <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            <option value="">Pilih...</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
-                                <option value="">Pilih...</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_cass_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1251,7 +1442,7 @@
 
 <!-- Modal Input Salt Spray -->
 <div class="modal fade" id="modalInputSaltSpray" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1265,83 +1456,132 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="salt_report_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                            <input type="text" id="salt_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" id="salt_customer" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Std. Customer</label>
-                            <input type="text" id="salt_std" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hours) STD. Rusting</label>
-                            <input type="text" name="standard_time" id="salt_standard_time" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hours) STD. Rusting Actual</label>
-                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_salt_spray" id="salt_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                            <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="production_date" id="salt_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" id="salt_shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                            <input type="date" name="tgl_masuk" id="salt_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
-                            <input type="time" name="jam_masuk" id="salt_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
-                            <input type="date" name="tgl_keluar" id="salt_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-3 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
-                            <input type="time" name="jam_keluar" id="salt_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
+                    
+                    <!-- Metadata Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                    <input type="text" id="salt_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Customer</label>
+                                    <input type="text" id="salt_customer" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Std. Customer / Time STD</label>
+                                    <input type="text" id="salt_std" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
+                                    <input type="date" name="production_date" id="salt_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" id="salt_shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="date" name="tgl_masuk" id="salt_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Masuk</label>
+                                    <input type="time" name="jam_masuk" id="salt_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Keluar Chamber</label>
+                                    <input type="date" name="tgl_keluar" id="salt_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Jam Keluar</label>
+                                    <input type="time" name="jam_keluar" id="salt_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
+                                        <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
+                                        <input type="text" name="standar_jam_salt_spray" id="salt_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            <option value="">Pilih...</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
-                                <option value="">Pilih...</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_salt_spray_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1415,7 +1655,7 @@
 
 <!-- Modal Input Porecount -->
 <div class="modal fade" id="modalInputPorecount" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1429,61 +1669,105 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="report_id" id="porecount_report_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                            <input type="text" id="porecount_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Customer</label>
-                            <input type="text" id="porecount_customer" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Std. Customer</label>
-                            <input type="text" id="porecount_std" class="form-control form-control-sm border-0 shadow-sm" readonly>
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
+                    
+                    <!-- Metadata Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                    <input type="text" id="porecount_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Customer</label>
+                                    <input type="text" id="porecount_customer" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Std. Customer / Std. Min</label>
+                                    <input type="text" id="porecount_std" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
+                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
+                                    <input type="date" name="production_date" id="porecount_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" id="porecount_shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" id="porecount_lot" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Std. Min</label>
-                            <input type="text" name="standard_min" id="porecount_standard_min" class="form-control form-control-sm border-0 shadow-sm" readonly>
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
+                                        <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                            <option value="">Pilih...</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                            <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
-                            <input type="date" name="production_date" id="porecount_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" id="porecount_shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" id="porecount_lot" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
-                                <option value="">Pilih...</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                        <input type="text" name="actual_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -1747,7 +2031,7 @@
 @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
 <!-- Modal Input Data Baru -->
 <div class="modal fade" id="modalAddData" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -1759,191 +2043,184 @@
             </div>
             <form id="formAddData" action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
-                    <!-- Part Selection -->
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-gray-700">Pilih Part / Customer <span class="text-danger">*</span></label>
-                        <input type="text" id="add_part_search" list="masterPartList" class="form-control form-control-sm border-0 shadow-sm" placeholder="Ketik / Pilih Part..." autocomplete="off" required>
-                        <input type="hidden" name="standard_performance_test_id" id="hidden_standard_performance_test_id">
-                        <datalist id="masterPartList">
-                            @foreach($masterItems as $item)
-                                <option data-id="{{ $item->id }}" value="{{ $item->part_name }} - {{ $item->customer_name }}"></option>
-                            @endforeach
-                        </datalist>
+                    <!-- Batch Metadata Header Card -->
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="form-group mb-2">
+                                <label class="small font-weight-bold text-gray-700">Pilih Part / Customer <span class="text-danger">*</span></label>
+                                <input type="text" id="add_part_search" list="masterPartList" class="form-control form-control-sm border-0 shadow-sm" placeholder="Ketik / Pilih Part..." autocomplete="off" required>
+                                <input type="hidden" name="standard_performance_test_id" id="hidden_standard_performance_test_id">
+                                <datalist id="masterPartList">
+                                    @foreach($masterItems as $item)
+                                        <option data-id="{{ $item->id }}" value="{{ $item->part_name }} - {{ $item->customer_name }}"></option>
+                                    @endforeach
+                                </datalist>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
+                                    <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm">
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">Shift</label>
+                                    <select name="shift" class="form-control form-control-sm border-0 shadow-sm">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-group mb-2">
+                                    <label class="small font-weight-bold text-gray-700">No Lot</label>
+                                    <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
+                                </div>
+                            </div>
+
+                            @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
+                            <div class="row mt-1">
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" name="tgl_masuk" id="new_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="new">
+                                        <input type="time" name="jam_masuk" id="new_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="new">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="date" name="tgl_keluar" id="new_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
+                                        <input type="time" name="jam_keluar" id="new_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
                     </div>
 
-                    <!-- General Fields (Tanggal, Shift, Lot) -->
+                    <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
-                            <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift</label>
-                            <select name="shift" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot</label>
-                            <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot">
-                        </div>
-                    </div>
+                        <!-- DATA 1 Column (Left) -->
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    @if($testType == 'corrodkote')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                                        <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'cass')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                                    </div>
+                                    @elseif($testType == 'salt_spray')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                                    </div>
+                                    @elseif($testType == 'porecount')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                        <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @endif
 
-                    <!-- Section 1: Data 1 (Aktual) -->
-                    <div class="font-weight-bold text-primary mb-3 pb-2 mt-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
-                        <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
-                    </div>
-
-                    <!-- Test Specific Fields Data 1 -->
-                    @if($testType == 'corrodkote')
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
-                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
-                            <input type="text" name="aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @elseif($testType == 'cass')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
-                        </div>
-                    </div>
-                    @elseif($testType == 'salt_spray')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
-                        </div>
-                    </div>
-                    @elseif($testType == 'porecount')
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <!-- Chamber Time -->
-                    @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Masuk Chamber</label>
-                            <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_masuk" id="new_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm mr-2 auto-calc-trigger" data-target="new">
-                                <input type="time" name="jam_masuk" id="new_jam_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="new">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Keluar Chamber</label>
-                            <div class="d-flex align-items-center">
-                                <input type="date" name="tgl_keluar" id="new_tgl_keluar" class="form-control form-control-sm border-0 shadow-sm mr-2">
-                                <input type="time" name="jam_keluar" id="new_jam_keluar" class="form-control form-control-sm border-0 shadow-sm">
+
+                        <!-- DATA 2 Column (Right) -->
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    @if($testType == 'corrodkote')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                                        <input type="text" name="actual_corrodkote_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                        <input type="text" name="aktual_corrosion_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'cass')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_cass_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'salt_spray')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                        <input type="text" name="actual_salt_spray_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                        <input type="text" name="standar_jam_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @elseif($testType == 'porecount')
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                        <input type="text" name="actual_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    @endif
+
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    <div class="row mb-2">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="-">-</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Section 2: Data 2 -->
-                    <div class="font-weight-bold text-info mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
-                        <i class="fas fa-flask mr-1"></i> DATA 2
-                    </div>
-
-                    <!-- Test Specific Fields Data 2 -->
-                    @if($testType == 'corrodkote')
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
-                            <input type="text" name="actual_corrodkote_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
-                            <input type="text" name="aktual_corrosion_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @elseif($testType == 'cass')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_cass_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @elseif($testType == 'salt_spray')
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
-                            <input type="text" name="actual_salt_spray_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
-                            <input type="text" name="standar_jam_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @elseif($testType == 'porecount')
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual</label>
-                            <input type="text" name="actual_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
-                        </div>
-                    </div>
-                    @endif
-
-                    <div class="row mb-3">
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="-">-</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan..."></textarea>
                         </div>
                     </div>
 

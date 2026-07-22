@@ -613,11 +613,11 @@
 </div>
 <!-- Modal Thickness -->
 <div class="modal fade" id="modalThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
-                    <i class="fas fa-layer-group mr-2 text-success"></i> Input Aktual Thickness
+                    <i class="fas fa-layer-group mr-2 text-success"></i> Input Thickness (Data 1 & Data 2)
                 </h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -626,95 +626,110 @@
             <form action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" id="formThickness" novalidate>
                 @csrf
                 <input type="hidden" name="standard_performance_test_id" id="thickness_test_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
                     {{-- Common Batch Fields --}}
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Tgl Produksi <span class="text-danger">*</span></label>
-                            <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm" required>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
-                            <select name="shift" class="form-control form-control-sm border-0 shadow-sm" required>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">No Lot <span class="text-danger">*</span></label>
-                            <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot" required>
-                        </div>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label class="small font-weight-bold text-gray-700">Nama Part</label>
-                        <input type="text" id="thickness_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
-                    </div>
-
-                    {{-- Section 1: Data 1 (Aktual) --}}
-                    <div class="font-weight-bold text-primary mb-3 pb-2 mt-3" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
-                        <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-6 form-group mb-2">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment <span class="text-danger">*</span></label>
-                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="-">-</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 form-group mb-2">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
+                    <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                        <div class="card-body p-3">
+                            <div class="form-group mb-2">
+                                <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                                <input type="text" id="thickness_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Tgl Produksi <span class="text-danger">*</span></label>
+                                    <input type="date" name="production_date" class="form-control form-control-sm border-0 shadow-sm" required>
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">Shift <span class="text-danger">*</span></label>
+                                    <select name="shift" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-group mb-0">
+                                    <label class="small font-weight-bold text-gray-700">No Lot <span class="text-danger">*</span></label>
+                                    <input type="text" name="lot_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="No Lot" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Section 2: Data 2 --}}
-                    <div class="font-weight-bold text-info mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
-                        <i class="fas fa-flask mr-1"></i> DATA 2
-                    </div>
+                    {{-- Horizontal 2-Column Split: DATA 1 & DATA 2 --}}
                     <div class="row">
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr_trial" id="actual_cr_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                        {{-- DATA 1 Column (Left) --}}
+                        <div class="col-md-6">
+                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                                            <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Ni</label>
+                                            <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                                            <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni_trial" id="actual_ni_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
-                        </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu_trial" id="actual_cu_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                            <select name="result_judgment_trial" id="result_judgment_trial_select" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="-">-</option>
-                                <option value="OK">OK</option>
-                                <option value="NG">NG</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
+
+                        {{-- DATA 2 Column (Right) --}}
+                        <div class="col-md-6">
+                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                                            <input type="text" name="actual_cr_trial" id="actual_cr_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Ni</label>
+                                            <input type="text" name="actual_ni_trial" id="actual_ni_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                        <div class="col-md-4 form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                                            <input type="text" name="actual_cu_trial" id="actual_cu_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                        <select name="result_judgment_trial" id="result_judgment_trial_select" class="form-control form-control-sm border-0 shadow-sm">
+                                            <option value="-">-</option>
+                                            <option value="OK">OK</option>
+                                            <option value="NG">NG</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
