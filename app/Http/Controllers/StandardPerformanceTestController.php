@@ -433,48 +433,39 @@ class StandardPerformanceTestController extends Controller
 
         ActivityLogger::log('created', null, "Input Thickness Report (Data 1) untuk ID: {$request->standard_performance_test_id}");
 
-        // Check if Data 2 (Trial) inputs are provided
-        $hasTrialInput = $request->filled('actual_cu_trial') || $request->filled('actual_ni_trial') || $request->filled('actual_cr_trial')
-            || $request->filled('actual_corrodkote_waktu_trial') || $request->filled('standar_jam_corrodkote_trial')
-            || $request->filled('aktual_corrosion_trial') || $request->filled('actual_cass_waktu_trial') || $request->filled('standar_jam_cass_trial')
-            || $request->filled('actual_salt_spray_waktu_trial') || $request->filled('standar_jam_salt_spray_trial')
-            || $request->filled('actual_porecount_trial') || ($request->filled('result_judgment_trial') && $request->result_judgment_trial !== '-')
-            || $request->filled('description_trial');
+        // Always create/update Data 2 (Trial) record automatically when Data 1 is created
+        DurabilityThicknessReport::create([
+            'standard_performance_test_id' => $request->standard_performance_test_id,
+            'production_date' => $request->production_date,
+            'shift' => $request->shift,
+            'lot_no' => $request->lot_no,
+            'actual_cu' => $request->filled('actual_cu_trial') ? $request->actual_cu_trial : $request->actual_cu,
+            'actual_ni' => $request->filled('actual_ni_trial') ? $request->actual_ni_trial : $request->actual_ni,
+            'actual_cr' => $request->filled('actual_cr_trial') ? $request->actual_cr_trial : $request->actual_cr,
+            'actual_corrodkote_waktu' => $request->filled('actual_corrodkote_waktu_trial') ? $request->actual_corrodkote_waktu_trial : ($request->actual_corrodkote_waktu ?? '-'),
+            'standar_jam_corrodkote' => $request->filled('standar_jam_corrodkote_trial') ? $request->standar_jam_corrodkote_trial : ($request->standar_jam_corrodkote ?? '-'),
+            'aktual_corrosion' => $request->filled('aktual_corrosion_trial') ? $request->aktual_corrosion_trial : $request->aktual_corrosion,
+            'actual_cass_waktu' => $request->filled('actual_cass_waktu_trial') ? $request->actual_cass_waktu_trial : ($request->actual_cass_waktu ?? '-'),
+            'standar_jam_cass' => $request->filled('standar_jam_cass_trial') ? $request->standar_jam_cass_trial : ($request->standar_jam_cass ?? '-'),
+            'actual_salt_spray_waktu' => $request->filled('actual_salt_spray_waktu_trial') ? $request->actual_salt_spray_waktu_trial : ($request->actual_salt_spray_waktu ?? '-'),
+            'standar_jam_salt_spray' => $request->filled('standar_jam_salt_spray_trial') ? $request->standar_jam_salt_spray_trial : ($request->standar_jam_salt_spray ?? '-'),
+            'actual_porecount' => $request->filled('actual_porecount_trial') ? $request->actual_porecount_trial : ($request->actual_porecount ?? '-'),
+            'result_judgment' => ($request->filled('result_judgment_trial') && $request->result_judgment_trial !== '-') ? $request->result_judgment_trial : ($request->result_judgment ?? '-'),
+            'tgl_masuk' => $request->tgl_masuk,
+            'jam_masuk' => $request->jam_masuk,
+            'tgl_keluar' => $request->tgl_keluar,
+            'jam_keluar' => $request->jam_keluar,
+            'tanggal_cek' => now()->toDateString(),
+            'analis_id' => auth()->id(),
+            'description' => $request->filled('description_trial') ? $request->description_trial : $request->description,
+            'is_trial' => true,
+            'evidence_before' => $evidenceBeforePath,
+            'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
+            'evidence_after' => $evidenceAfterPath,
+            'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+        ]);
 
-        if ($hasTrialInput) {
-            DurabilityThicknessReport::create([
-                'standard_performance_test_id' => $request->standard_performance_test_id,
-                'production_date' => $request->production_date,
-                'shift' => $request->shift,
-                'lot_no' => $request->lot_no,
-                'actual_cu' => $request->actual_cu_trial ?? $request->actual_cu,
-                'actual_ni' => $request->actual_ni_trial ?? $request->actual_ni,
-                'actual_cr' => $request->actual_cr_trial ?? $request->actual_cr,
-                'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu_trial ?? ($request->actual_corrodkote_waktu ?? '-'),
-                'standar_jam_corrodkote' => $request->standar_jam_corrodkote_trial ?? ($request->standar_jam_corrodkote ?? '-'),
-                'aktual_corrosion' => $request->aktual_corrosion_trial ?? $request->aktual_corrosion,
-                'actual_cass_waktu' => $request->actual_cass_waktu_trial ?? ($request->actual_cass_waktu ?? '-'),
-                'standar_jam_cass' => $request->standar_jam_cass_trial ?? ($request->standar_jam_cass ?? '-'),
-                'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu_trial ?? ($request->actual_salt_spray_waktu ?? '-'),
-                'standar_jam_salt_spray' => $request->standar_jam_salt_spray_trial ?? ($request->standar_jam_salt_spray ?? '-'),
-                'actual_porecount' => $request->actual_porecount_trial ?? ($request->actual_porecount ?? '-'),
-                'result_judgment' => $request->result_judgment_trial ?? ($request->result_judgment ?? '-'),
-                'tgl_masuk' => $request->tgl_masuk,
-                'jam_masuk' => $request->jam_masuk,
-                'tgl_keluar' => $request->tgl_keluar,
-                'jam_keluar' => $request->jam_keluar,
-                'tanggal_cek' => now()->toDateString(),
-                'analis_id' => auth()->id(),
-                'description' => $request->description_trial ?? $request->description,
-                'is_trial' => true,
-                'evidence_before' => $evidenceBeforePath,
-                'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
-                'evidence_after' => $evidenceAfterPath,
-                'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
-            ]);
-
-            ActivityLogger::log('created', null, "Input Thickness Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
-        }
+        ActivityLogger::log('created', null, "Input Thickness Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
 
         return redirect()->back()->with('success', 'Data Thickness (Data 1 & Data 2) berhasil disimpan.');
     }
@@ -622,14 +613,8 @@ class StandardPerformanceTestController extends Controller
             $report->update($updateData);
         }
 
-        // Update or create Data 2 record if trial fields are supplied
-        if (!$report->is_trial && (
-            $request->filled('actual_cr_trial') || $request->filled('actual_ni_trial') || $request->filled('actual_cu_trial') ||
-            $request->filled('actual_corrodkote_waktu_trial') || $request->filled('standar_jam_corrodkote_trial') || $request->filled('aktual_corrosion_trial') ||
-            $request->filled('actual_cass_waktu_trial') || $request->filled('standar_jam_cass_trial') ||
-            $request->filled('actual_salt_spray_waktu_trial') || $request->filled('standar_jam_salt_spray_trial') ||
-            $request->filled('actual_porecount_trial') || $request->filled('result_judgment_trial') || $request->filled('description_trial')
-        )) {
+        // Update or create Data 2 record when updating Data 1
+        if (!$report->is_trial) {
             $trialReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
                 ->where('is_trial', true)
                 ->where('lot_no', $report->lot_no)
@@ -653,33 +638,47 @@ class StandardPerformanceTestController extends Controller
                 'analis_id' => auth()->id(),
             ]);
 
-            if ($request->has('actual_cr_trial') && $request->actual_cr_trial !== null && $request->actual_cr_trial !== '') {
-                $trialReport->actual_cr = $request->actual_cr_trial;
-            } elseif ($request->has('actual_cr') && (empty($trialReport->actual_cr) || $trialReport->actual_cr === '-')) {
-                $trialReport->actual_cr = $request->actual_cr;
+            if ($request->filled('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
+            elseif ($request->has('actual_cr')) $trialReport->actual_cr = $request->actual_cr;
+
+            if ($request->filled('actual_ni_trial')) $trialReport->actual_ni = $request->actual_ni_trial;
+            elseif ($request->has('actual_ni')) $trialReport->actual_ni = $request->actual_ni;
+
+            if ($request->filled('actual_cu_trial')) $trialReport->actual_cu = $request->actual_cu_trial;
+            elseif ($request->has('actual_cu')) $trialReport->actual_cu = $request->actual_cu;
+
+            if ($request->filled('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
+            elseif ($request->has('actual_corrodkote_waktu')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu;
+
+            if ($request->filled('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
+            elseif ($request->has('standar_jam_corrodkote')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote;
+
+            if ($request->filled('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;
+            elseif ($request->has('aktual_corrosion')) $trialReport->aktual_corrosion = $request->aktual_corrosion;
+
+            if ($request->filled('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
+            elseif ($request->has('actual_cass_waktu')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu;
+
+            if ($request->filled('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
+            elseif ($request->has('standar_jam_cass')) $trialReport->standar_jam_cass = $request->standar_jam_cass;
+
+            if ($request->filled('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
+            elseif ($request->has('actual_salt_spray_waktu')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu;
+
+            if ($request->filled('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;
+            elseif ($request->has('standar_jam_salt_spray')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray;
+
+            if ($request->filled('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
+            elseif ($request->has('actual_porecount')) $trialReport->actual_porecount = $request->actual_porecount;
+
+            if ($request->filled('result_judgment_trial') && $request->result_judgment_trial !== '-') {
+                $trialReport->result_judgment = $request->result_judgment_trial;
+            } elseif ($request->has('result_judgment')) {
+                $trialReport->result_judgment = $request->result_judgment;
             }
 
-            if ($request->has('actual_ni_trial') && $request->actual_ni_trial !== null && $request->actual_ni_trial !== '') {
-                $trialReport->actual_ni = $request->actual_ni_trial;
-            } elseif ($request->has('actual_ni') && (empty($trialReport->actual_ni) || $trialReport->actual_ni === '-')) {
-                $trialReport->actual_ni = $request->actual_ni;
-            }
-
-            if ($request->has('actual_cu_trial') && $request->actual_cu_trial !== null && $request->actual_cu_trial !== '') {
-                $trialReport->actual_cu = $request->actual_cu_trial;
-            } elseif ($request->has('actual_cu') && (empty($trialReport->actual_cu) || $trialReport->actual_cu === '-')) {
-                $trialReport->actual_cu = $request->actual_cu;
-            }
-            if ($request->has('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
-            if ($request->has('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
-            if ($request->has('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;
-            if ($request->has('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
-            if ($request->has('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
-            if ($request->has('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
-            if ($request->has('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;
-            if ($request->has('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
-            if ($request->has('result_judgment_trial')) $trialReport->result_judgment = $request->result_judgment_trial;
-            if ($request->has('description_trial')) $trialReport->description = $request->description_trial;
+            if ($request->filled('description_trial')) $trialReport->description = $request->description_trial;
+            elseif ($request->has('description')) $trialReport->description = $request->description;
 
             $trialReport->save();
         }

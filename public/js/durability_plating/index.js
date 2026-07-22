@@ -73,8 +73,21 @@ $(document).ready(function() {
         });
         // Thickness Modal
         $('#dataTable').on('click', '.btn-thickness', function() {
-            $('#thickness_test_id').val($(this).data('id'));
-            $('#thickness_part_name').val($(this).data('name'));
+            var item = $(this).data('item');
+            var cr = (item && item.thickness_cr !== null && item.thickness_cr !== undefined && item.thickness_cr !== '') ? item.thickness_cr : ($(this).attr('data-cr') || $(this).data('cr') || '-');
+            var ni = (item && item.thickness_ni !== null && item.thickness_ni !== undefined && item.thickness_ni !== '') ? item.thickness_ni : ($(this).attr('data-ni') || $(this).data('ni') || '-');
+            var cu = (item && item.thickness_cu !== null && item.thickness_cu !== undefined && item.thickness_cu !== '') ? item.thickness_cu : ($(this).attr('data-cu') || $(this).data('cu') || '-');
+
+            var name = (item && item.part_name) ? item.part_name : ($(this).data('name') || '');
+            var id = (item && item.id) ? item.id : $(this).data('id');
+
+            $('#thickness_test_id').val(id);
+            $('#thickness_part_name').val(name);
+
+            $('#thickness_std_cr_display, #thickness_std_cr_display_2, #thickness_std_cr_display_single').text(cr);
+            $('#thickness_std_ni_display, #thickness_std_ni_display_2, #thickness_std_ni_display_single').text(ni);
+            $('#thickness_std_cu_display, #thickness_std_cu_display_2, #thickness_std_cu_display_single').text(cu);
+
             $('#modalThickness').modal('show');
         });
 

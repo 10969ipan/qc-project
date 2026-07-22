@@ -261,7 +261,7 @@
                                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $std->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
                                         <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Data</div>
                                         
-                                        <button type="button" class="dropdown-item btn-thickness" data-id="{{ $std->id }}" data-name="{{ $std->part_name }}" data-cu="{{ $std->thickness_cu }}" data-ni="{{ $std->thickness_ni }}" data-cr="{{ $std->thickness_cr }}">
+                                        <button type="button" class="dropdown-item btn-thickness" data-id="{{ $std->id }}" data-name="{{ $std->part_name }}" data-cu="{{ $std->thickness_cu }}" data-ni="{{ $std->thickness_ni }}" data-cr="{{ $std->thickness_cr }}" data-item="{{ json_encode($std) }}">
                                             <i class="fas fa-layer-group text-success fa-fw mr-2"></i> Input Thickness
                                         </button>
                                         
@@ -665,8 +665,13 @@
                         {{-- DATA 1 Column (Left) --}}
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <div>
+                                        DATA 1 (AKTUAL)
+                                    </div>
+                                    <div class="badge badge-light text-primary font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                        STD: Cr <span id="thickness_std_cr_display">-</span> | Ni <span id="thickness_std_ni_display">-</span> | Cu <span id="thickness_std_cu_display">-</span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="row">
@@ -702,8 +707,13 @@
                         {{-- DATA 2 Column (Right) --}}
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <div>
+                                        DATA 2
+                                    </div>
+                                    <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                        STD: Cr <span id="thickness_std_cr_display_2">-</span> | Ni <span id="thickness_std_ni_display_2">-</span> | Cu <span id="thickness_std_cu_display_2">-</span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="row">
@@ -739,8 +749,13 @@
                     @else
                     {{-- Single Column layout --}}
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div>
+                                HASIL PENGUJIAN
+                            </div>
+                            <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                STD: Cr <span id="thickness_std_cr_display_single">-</span> | Ni <span id="thickness_std_ni_display_single">-</span> | Cu <span id="thickness_std_cu_display_single">-</span>
+                            </div>
                         </div>
                         <div class="card-body p-3">
                             <div class="row">
@@ -877,11 +892,26 @@
         // Thickness Modal
         var stdCr = 0, stdNi = 0, stdCu = 0;
         $('#dataTable').on('click', '.btn-thickness', function() {
-            $('#thickness_test_id').val($(this).data('id'));
-            $('#thickness_part_name').val($(this).data('name'));
-            stdCr = parseFloat($(this).data('cr')) || 0;
-            stdNi = parseFloat($(this).data('ni')) || 0;
-            stdCu = parseFloat($(this).data('cu')) || 0;
+            var item = $(this).data('item');
+            var rawCr = (item && item.thickness_cr !== null && item.thickness_cr !== undefined && item.thickness_cr !== '') ? item.thickness_cr : ($(this).attr('data-cr') || $(this).data('cr') || '-');
+            var rawNi = (item && item.thickness_ni !== null && item.thickness_ni !== undefined && item.thickness_ni !== '') ? item.thickness_ni : ($(this).attr('data-ni') || $(this).data('ni') || '-');
+            var rawCu = (item && item.thickness_cu !== null && item.thickness_cu !== undefined && item.thickness_cu !== '') ? item.thickness_cu : ($(this).attr('data-cu') || $(this).data('cu') || '-');
+
+            var name = (item && item.part_name) ? item.part_name : ($(this).data('name') || '');
+            var id = (item && item.id) ? item.id : $(this).data('id');
+
+            $('#thickness_test_id').val(id);
+            $('#thickness_part_name').val(name);
+
+            // Display standard values in badges
+            $('#thickness_std_cr_display, #thickness_std_cr_display_2, #thickness_std_cr_display_single').text(rawCr);
+            $('#thickness_std_ni_display, #thickness_std_ni_display_2, #thickness_std_ni_display_single').text(rawNi);
+            $('#thickness_std_cu_display, #thickness_std_cu_display_2, #thickness_std_cu_display_single').text(rawCu);
+
+            stdCr = parseFloat(rawCr) || 0;
+            stdNi = parseFloat(rawNi) || 0;
+            stdCu = parseFloat(rawCu) || 0;
+
             $('.actual-thickness-input').val('');
             $('#result_judgment_select').val('-');
             $('#result_judgment_trial_select').val('-');

@@ -764,8 +764,13 @@
                         <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <div>
+                                        DATA 1 (AKTUAL)
+                                    </div>
+                                    <div class="badge badge-light text-primary font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                        STD: Cr <span id="edit_std_cr_display">-</span> | Ni <span id="edit_std_ni_display">-</span> | Cu <span id="edit_std_cu_display">-</span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'thickness')
@@ -840,8 +845,13 @@
                         <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                                    <div>
+                                        DATA 2
+                                    </div>
+                                    <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                        STD: Cr <span id="edit_std_cr_display_2">-</span> | Ni <span id="edit_std_ni_display_2">-</span> | Cu <span id="edit_std_cu_display_2">-</span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'thickness')
@@ -916,8 +926,13 @@
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div>
+                                HASIL PENGUJIAN
+                            </div>
+                            <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                STD: Cr <span id="edit_std_cr_display_single">-</span> | Ni <span id="edit_std_ni_display_single">-</span> | Cu <span id="edit_std_cu_display_single">-</span>
+                            </div>
                         </div>
                         <div class="card-body p-3">
                             @if($testType == 'thickness')
@@ -1169,7 +1184,7 @@
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                    DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1204,7 +1219,7 @@
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                    DATA 2
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1239,7 +1254,7 @@
                     <!-- Single Column: DATA 2 ONLY -->
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                         <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                            HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
                             <div class="form-group mb-3">
@@ -1425,7 +1440,7 @@
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                    DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1456,7 +1471,7 @@
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                    DATA 2
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1487,7 +1502,7 @@
                     <!-- Single Column: DATA 2 ONLY -->
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                         <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                            HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
                             <div class="form-group mb-3">
@@ -1669,7 +1684,7 @@
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                    DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1700,7 +1715,7 @@
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                    DATA 2
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1731,7 +1746,7 @@
                     <!-- Single Column: DATA 2 ONLY -->
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                         <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                            HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
                             <div class="form-group mb-3">
@@ -1894,7 +1909,7 @@
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                    DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1921,7 +1936,7 @@
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                    DATA 2
                                 </div>
                                 <div class="card-body p-3">
                                     <div class="form-group mb-3">
@@ -1948,7 +1963,7 @@
                     <!-- Single Column: DATA 2 ONLY -->
                     <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                         <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <i class="fas fa-edit mr-1"></i> HASIL PENGUJIAN
+                            HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
                             <div class="form-group mb-3">
@@ -2305,7 +2320,7 @@
                         <div class="col-md-6">
                             <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                                    DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'corrodkote')
@@ -2366,7 +2381,7 @@
                         <div class="col-md-6">
                             <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
                                 <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <i class="fas fa-flask mr-1"></i> DATA 2
+                                    DATA 2
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'corrodkote')

@@ -47,9 +47,17 @@ $(document).ready(function() {
         $('#edit_description').val(item.description);
         
         
-        editStdCr = parseFloat($(this).data('stdcr')) || 0;
-        editStdNi = parseFloat($(this).data('stdni')) || 0;
-        editStdCu = parseFloat($(this).data('stdcu')) || 0;
+        let stdCr = $(this).attr('data-stdcr') !== undefined && $(this).attr('data-stdcr') !== '' ? $(this).attr('data-stdcr') : ($(this).data('stdcr') || '-');
+        let stdNi = $(this).attr('data-stdni') !== undefined && $(this).attr('data-stdni') !== '' ? $(this).attr('data-stdni') : ($(this).data('stdni') || '-');
+        let stdCu = $(this).attr('data-stdcu') !== undefined && $(this).attr('data-stdcu') !== '' ? $(this).attr('data-stdcu') : ($(this).data('stdcu') || '-');
+
+        $('#edit_std_cr_display, #edit_std_cr_display_2, #edit_std_cr_display_single').text(stdCr);
+        $('#edit_std_ni_display, #edit_std_ni_display_2, #edit_std_ni_display_single').text(stdNi);
+        $('#edit_std_cu_display, #edit_std_cu_display_2, #edit_std_cu_display_single').text(stdCu);
+
+        editStdCr = parseFloat(stdCr) || 0;
+        editStdNi = parseFloat(stdNi) || 0;
+        editStdCu = parseFloat(stdCu) || 0;
 
         let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
