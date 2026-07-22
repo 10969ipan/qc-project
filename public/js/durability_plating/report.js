@@ -4,6 +4,7 @@ $(document).ready(function() {
     }
 
     const config = window.__DURABILITY_PLATING_REPORT__ || {};
+    var editStdCr = 0, editStdNi = 0, editStdCu = 0;
 
     $('.btn-edit-thickness').click(function() {
         let item = $(this).data('item');
@@ -18,6 +19,7 @@ $(document).ready(function() {
         $('#edit_production_date').val(item.production_date);
         $('#edit_shift').val(item.shift);
         $('#edit_lot_no').val(item.lot_no);
+        // Data 1
         $('#edit_actual_cr').val(item.actual_cr);
         $('#edit_actual_ni').val(item.actual_ni);
         $('#edit_actual_cu').val(item.actual_cu);
@@ -33,7 +35,30 @@ $(document).ready(function() {
         $('#edit_standar_jam_salt_spray').val(item.standar_jam_salt_spray);
         
         $('#edit_actual_porecount').val(item.actual_porecount);
-        
+
+        $('#edit_result_judgment').val(item.result_judgment ?? '-');
+        $('#edit_description').val(item.description);
+
+        // Data 2 (Trial)
+        $('#edit_actual_cr_trial').val(item.actual_cr_trial ?? '');
+        $('#edit_actual_ni_trial').val(item.actual_ni_trial ?? '');
+        $('#edit_actual_cu_trial').val(item.actual_cu_trial ?? '');
+
+        $('#edit_actual_corrodkote_waktu_trial').val(item.actual_corrodkote_waktu_trial ?? '');
+        $('#edit_standar_jam_corrodkote_trial').val(item.standar_jam_corrodkote_trial ?? '');
+        $('#edit_aktual_corrosion_trial').val(item.aktual_corrosion_trial ?? '');
+
+        $('#edit_actual_cass_waktu_trial').val(item.actual_cass_waktu_trial ?? '');
+        $('#edit_standar_jam_cass_trial').val(item.standar_jam_cass_trial ?? '');
+
+        $('#edit_actual_salt_spray_waktu_trial').val(item.actual_salt_spray_waktu_trial ?? '');
+        $('#edit_standar_jam_salt_spray_trial').val(item.standar_jam_salt_spray_trial ?? '');
+
+        $('#edit_actual_porecount_trial').val(item.actual_porecount_trial ?? '');
+
+        $('#edit_result_judgment_trial').val(item.result_judgment_trial ?? '-');
+        $('#edit_description_trial').val(item.description_trial ?? '');
+
         $('#edit_tgl_masuk').val(item.tgl_masuk);
         if (item.jam_masuk) {
             $('#edit_jam_masuk').val(item.jam_masuk.substring(0, 5));
@@ -42,9 +67,6 @@ $(document).ready(function() {
         if (item.jam_keluar) {
             $('#edit_jam_keluar').val(item.jam_keluar.substring(0, 5));
         }
-        
-        $('#edit_result_judgment').val(item.result_judgment ?? '-');
-        $('#edit_description').val(item.description);
         
         
         let stdCr = $(this).attr('data-stdcr') !== undefined && $(this).attr('data-stdcr') !== '' ? $(this).attr('data-stdcr') : ($(this).data('stdcr') || '-');
@@ -58,6 +80,10 @@ $(document).ready(function() {
         editStdCr = parseFloat(stdCr) || 0;
         editStdNi = parseFloat(stdNi) || 0;
         editStdCu = parseFloat(stdCu) || 0;
+
+        if (typeof window.calculateEditThicknessJudgment === 'function') {
+            window.calculateEditThicknessJudgment();
+        }
 
         let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
@@ -195,22 +221,36 @@ $(document).ready(function() {
     }
 
     // Auto judgment logic for Edit Thickness Modal
-    var editStdCr = 0, editStdNi = 0, editStdCu = 0;
-    $('.edit-actual-thickness-input').on('keyup change', function() {
+    window.calculateEditThicknessJudgment = function() {
+        // Data 1
         var actCr = parseFloat($('#edit_actual_cr').val());
         var actNi = parseFloat($('#edit_actual_ni').val());
         var actCu = parseFloat($('#edit_actual_cu').val());
         
-        // Only judge if all inputs are filled and valid numbers
         if (!isNaN(actCr) && !isNaN(actNi) && !isNaN(actCu)) {
             if (actCr >= editStdCr && actNi >= editStdNi && actCu >= editStdCu) {
                 $('#edit_result_judgment').val('OK');
             } else {
                 $('#edit_result_judgment').val('NG');
             }
-        } else {
-            $('#edit_result_judgment').val('-');
         }
+
+        // Data 2
+        var actCrTrial = parseFloat($('#edit_actual_cr_trial').val());
+        var actNiTrial = parseFloat($('#edit_actual_ni_trial').val());
+        var actCuTrial = parseFloat($('#edit_actual_cu_trial').val());
+
+        if (!isNaN(actCrTrial) && !isNaN(actNiTrial) && !isNaN(actCuTrial)) {
+            if (actCrTrial >= editStdCr && actNiTrial >= editStdNi && actCuTrial >= editStdCu) {
+                $('#edit_result_judgment_trial').val('OK');
+            } else {
+                $('#edit_result_judgment_trial').val('NG');
+            }
+        }
+    };
+
+    $(document).on('keyup change input', '.edit-actual-thickness-input, #edit_actual_cr, #edit_actual_ni, #edit_actual_cu, #edit_actual_cr_trial, #edit_actual_ni_trial, #edit_actual_cu_trial', function() {
+        window.calculateEditThicknessJudgment();
     });
 
     $('.btn-input-corrodkote').click(function() {

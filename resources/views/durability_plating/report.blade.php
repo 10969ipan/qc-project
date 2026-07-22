@@ -858,15 +858,15 @@
                                     <div class="row mb-3">
                                         <div class="col-md-4 form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Cr</label>
-                                            <input type="text" name="actual_cr_trial" id="edit_actual_cr_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <input type="text" name="actual_cr_trial" id="edit_actual_cr_trial" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
                                         </div>
                                         <div class="col-md-4 form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Ni</label>
-                                            <input type="text" name="actual_ni_trial" id="edit_actual_ni_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <input type="text" name="actual_ni_trial" id="edit_actual_ni_trial" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
                                         </div>
                                         <div class="col-md-4 form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Cu</label>
-                                            <input type="text" name="actual_cu_trial" id="edit_actual_cu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                            <input type="text" name="actual_cu_trial" id="edit_actual_cu_trial" class="form-control form-control-sm border-0 shadow-sm edit-actual-thickness-input">
                                         </div>
                                     </div>
                                     @elseif($testType == 'corrodkote')
@@ -1078,12 +1078,6 @@
                         </div>
                     </div>
                     @endif
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="3" placeholder="Masukkan keterangan..."></textarea>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>

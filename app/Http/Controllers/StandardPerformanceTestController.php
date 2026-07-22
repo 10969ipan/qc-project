@@ -545,6 +545,39 @@ class StandardPerformanceTestController extends Controller
         }
 
         $reports = $query->paginate(10)->withQueryString();
+
+        if (!$isTrial) {
+            $stdIds = $reports->pluck('standard_performance_test_id')->filter()->unique();
+            $lotNos = $reports->pluck('lot_no')->filter()->unique();
+
+            $trialReports = DurabilityThicknessReport::where('is_trial', true)
+                ->whereIn('standard_performance_test_id', $stdIds)
+                ->whereIn('lot_no', $lotNos)
+                ->get()
+                ->keyBy(function ($item) {
+                    return $item->standard_performance_test_id . '_' . $item->lot_no;
+                });
+
+            foreach ($reports as $report) {
+                $key = $report->standard_performance_test_id . '_' . $report->lot_no;
+                $trial = $trialReports->get($key);
+                if ($trial) {
+                    $report->actual_cr_trial = $trial->actual_cr;
+                    $report->actual_ni_trial = $trial->actual_ni;
+                    $report->actual_cu_trial = $trial->actual_cu;
+                    $report->actual_corrodkote_waktu_trial = $trial->actual_corrodkote_waktu;
+                    $report->standar_jam_corrodkote_trial = $trial->standar_jam_corrodkote;
+                    $report->aktual_corrosion_trial = $trial->aktual_corrosion;
+                    $report->actual_cass_waktu_trial = $trial->actual_cass_waktu;
+                    $report->standar_jam_cass_trial = $trial->standar_jam_cass;
+                    $report->actual_salt_spray_waktu_trial = $trial->actual_salt_spray_waktu;
+                    $report->standar_jam_salt_spray_trial = $trial->standar_jam_salt_spray;
+                    $report->actual_porecount_trial = $trial->actual_porecount;
+                    $report->result_judgment_trial = $trial->result_judgment;
+                    $report->description_trial = $trial->description;
+                }
+            }
+        }
         
         $items = \App\Models\StandardPerformanceTest::whereIn('id', \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)->select('standard_performance_test_id'))
             ->orderBy('part_name', 'asc')
@@ -677,8 +710,11 @@ class StandardPerformanceTestController extends Controller
                 $trialReport->result_judgment = $request->result_judgment;
             }
 
-            if ($request->filled('description_trial')) $trialReport->description = $request->description_trial;
-            elseif ($request->has('description')) $trialReport->description = $request->description;
+            if ($request->has('description_trial')) {
+                $trialReport->description = $request->description_trial;
+            } elseif ($request->has('description')) {
+                $trialReport->description = $request->description;
+            }
 
             $trialReport->save();
         }
