@@ -332,23 +332,23 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuLaporan" style="font-size:0.85rem; border-radius:8px; min-width: 200px; z-index: 1050;">
                         <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Pilih Laporan</div>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report') }}">
                             <i class="fas fa-layer-group fa-fw mr-2 text-success"></i> Thickness
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.corrodkote') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.corrodkote' : 'standard-performance-tests.report.corrodkote') }}">
                             <i class="fas fa-vial fa-fw mr-2 text-info"></i> Corrodkote
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.cass') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.cass' : 'standard-performance-tests.report.cass') }}">
                             <i class="fas fa-flask fa-fw mr-2 text-primary"></i> Cass Test
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.salt_spray') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.salt_spray' : 'standard-performance-tests.report.salt_spray') }}">
                             <i class="fas fa-spray-can fa-fw mr-2 text-warning"></i> Salt Spray Test
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.porecount') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.porecount' : 'standard-performance-tests.report.porecount') }}">
                             <i class="fas fa-search-plus fa-fw mr-2 text-danger"></i> Porecount Test
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item py-2 font-weight-bold text-secondary" href="{{ route('standard-performance-tests.index') }}">
+                        <a class="dropdown-item py-2 font-weight-bold text-secondary" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.index' : 'standard-performance-tests.index') }}">
                             <i class="fas fa-table fa-fw mr-2"></i> Master Standar
                         </a>
                     </div>
@@ -1793,16 +1793,21 @@
                         </div>
                     </div>
 
-                    <!-- Test Specific Fields -->
+                    <!-- Section 1: Data 1 (Aktual) -->
+                    <div class="font-weight-bold text-primary mb-3 pb-2 mt-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
+                        <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                    </div>
+
+                    <!-- Test Specific Fields Data 1 -->
                     @if($testType == 'corrodkote')
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                            <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
-                            <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
@@ -1812,30 +1817,30 @@
                     @elseif($testType == 'cass')
                     <div class="row">
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
-                            <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
                         </div>
                     </div>
                     @elseif($testType == 'salt_spray')
                     <div class="row">
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours) <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                         <div class="col-md-6 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
-                            <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
                         </div>
                     </div>
                     @elseif($testType == 'porecount')
                     <div class="row">
                         <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Aktual <span class="text-danger">*</span></label>
-                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm">
                         </div>
                     </div>
                     @endif
@@ -1860,14 +1865,85 @@
                     </div>
                     @endif
 
-                    <div class="row mt-2">
-                        <div class="col-md-4 form-group mb-3">
+                    <div class="row mb-2">
+                        <div class="col-md-6 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                             <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                 <option value="-">-</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
                             </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Data 2 -->
+                    <div class="font-weight-bold text-info mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
+                        <i class="fas fa-flask mr-1"></i> DATA 2
+                    </div>
+
+                    <!-- Test Specific Fields Data 2 -->
+                    @if($testType == 'corrodkote')
+                    <div class="row">
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                            <input type="text" name="actual_corrodkote_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                            <input type="text" name="aktual_corrosion_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                    </div>
+                    @elseif($testType == 'cass')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_cass_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                    </div>
+                    @elseif($testType == 'salt_spray')
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                            <input type="text" name="actual_salt_spray_waktu_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                            <input type="text" name="standar_jam_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                    </div>
+                    @elseif($testType == 'porecount')
+                    <div class="row">
+                        <div class="col-md-12 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Aktual</label>
+                            <input type="text" name="actual_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="row mb-3">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                            <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="-">-</option>
+                                <option value="OK">OK</option>
+                                <option value="NG">NG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                            <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan..."></textarea>
                         </div>
                     </div>
 
@@ -1939,18 +2015,11 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-0">
-                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3" placeholder="Masukkan keterangan..."></textarea>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan Data
+                        <i class="fas fa-save mr-1"></i> Simpan Data 1 & 2
                     </button>
                 </div>
             </form>

@@ -252,6 +252,34 @@
                     padding: 0.2rem 0.4rem !important; 
                     font-size: 0.65rem !important;
                 }
+
+                /* Pagination & Info bottom area */
+                .dataTables_wrapper > .row:last-child {
+                    background-color: #ffffff !important;
+                    padding: 10px 0 !important;
+                    margin: 0 !important;
+                    border-top: 1px solid #e2e8f0 !important;
+                    position: sticky;
+                    bottom: 0;
+                    z-index: 10;
+                    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+                }
+                
+                .dataTables_info {
+                    font-size: 0.7rem !important;
+                    color: #475569 !important;
+                    font-weight: 600 !important;
+                    padding-top: 5px !important;
+                }
+                
+                .dataTables_paginate .pagination {
+                    margin: 0 !important;
+                }
+                
+                .page-link {
+                    padding: 0.3rem 0.6rem !important;
+                    font-size: 0.7rem !important;
+                }
             </style>
 
         <!-- Loading Spinner -->
@@ -264,8 +292,7 @@
 
         <!-- Table Container (Hidden until initialized) -->
         <div id="tableContainer" style="display: none;">
-            <div class="table-responsive">
-                <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead class="bg-light">
                         <tr>
                             <th>No</th>
@@ -399,7 +426,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
         </div>
 
         </div>

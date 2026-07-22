@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if ($(this).val()) {
             $('#addDefectBtn').show();
             
-            // PDF Logic
+            // --- Panel Kiri: Standard (file index 0) ---
             const files = selected.data('files');
             const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
             
@@ -118,21 +118,54 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             } else {
                 $("#standardPdfCanvas").addClass("d-none").hide();
-                $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Standard PDF tidak tersedia");
+                $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").first().text("Standard PDF tidak tersedia");
                 $(".standard-nav-controls").hide();
             }
-            
+
+            // --- Panel Kanan: Dimensi (file index 1, atau data-similar) ---
+            const similarUrl = selected.data('similar') || '';
+            similarDoc = null;
+            similarPageNum = 1;
+            similarZoomLevel = 1.0;
+
+            // Prioritas: data-similar, lalu file index 1 jika ada
+            let dimensiUrl = similarUrl;
+            if (!dimensiUrl && validFiles.length > 1) {
+                dimensiUrl = window.pdfUrlPattern
+                    .replace('ID_PLACEHOLDER', $(this).val())
+                    .replace('INDEX_PLACEHOLDER', 1);
+            }
+
+            if (dimensiUrl) {
+                renderSimilarPdfToCanvas(dimensiUrl, 1);
+                $("#downloadSimilarBtn").attr('href', dimensiUrl).show();
+                $("#fullSimilarBtn").show();
+            } else {
+                $("#similarPdfCanvas").addClass("d-none").hide();
+                $("#similarPdfPlaceholder").removeClass("d-none").addClass("d-flex");
+                $("#similarStatusText").text("Dokumen dimensi tidak tersedia");
+                $(".similar-nav-controls").hide();
+                $("#downloadSimilarBtn").hide();
+                $("#fullSimilarBtn").hide();
+            }
+
             // Re-validate dimension when item changes
             if(typeof validateDimensions === 'function') {
                 validateDimensions();
             }
         } else {
             $('#addDefectBtn').hide();
+            // Reset kedua panel
             $("#standardPdfCanvas").addClass("d-none").hide();
-            $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Pilih Item untuk menampilkan Standard PDF");
+            $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").first().text("Pilih Item untuk menampilkan Standard PDF");
             $(".standard-nav-controls").hide();
+            $("#similarPdfCanvas").addClass("d-none").hide();
+            $("#similarPdfPlaceholder").removeClass("d-none").addClass("d-flex");
+            $("#similarStatusText").text('');
+            $(".similar-nav-controls").hide();
         }
     });
+
 
     function updateDefectOptions(defects) {
         const defectSelects = $('.defect-select');
@@ -512,9 +545,105 @@ document.addEventListener('DOMContentLoaded', function () {
     let standardFiles = [], standardFileIndex = 0;
     let pdfCache = {};
 
+    // Panel Kanan (Similar/Dimensi)
+    let similarDoc = null, similarPageNum = 1, similarZoomLevel = 1.0;
+
     if (typeof pdfjsLib !== 'undefined' && window.pdfWorkerSrc) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfWorkerSrc;
     }
+
+    function renderSimilarPdfToCanvas(url, pNum = 1) {
+        const canvas = document.getElementById('similarPdfCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const $placeholder = $('#similarPdfPlaceholder');
+        const $loading = $('#similarPdfLoading');
+        const $canvas = $(canvas);
+
+        $placeholder.removeClass('d-flex').addClass('d-none');
+        $canvas.addClass('d-none').hide();
+        $loading.removeClass('d-none').addClass('d-flex');
+
+        if (pdfCache[url]) {
+            drawSimilarPage(pdfCache[url], canvas, ctx, $loading, $canvas, pNum);
+            return;
+        }
+
+        pdfjsLib.getDocument(url).promise.then((pdf) => {
+            pdfCache[url] = pdf;
+            drawSimilarPage(pdf, canvas, ctx, $loading, $canvas, pNum);
+        }).catch(() => {
+            $loading.removeClass('d-flex').addClass('d-none');
+            $placeholder.removeClass('d-none').addClass('d-flex');
+            $('#similarStatusText').text('Gagal memuat PDF dimensi');
+        });
+    }
+
+    function drawSimilarPage(pdf, canvas, ctx, $loading, $canvas, pNum) {
+        pdf.getPage(pNum).then((page) => {
+            const containerWidth = $canvas.parent().width() || 500;
+            const viewport = page.getViewport({ scale: 1.0 });
+            const scale = ((containerWidth - 40) / viewport.width) * similarZoomLevel;
+            const scaledViewport = page.getViewport({ scale });
+
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+            if (similarZoomLevel > 1.0) $canvas.css({ width: 'auto', 'max-width': 'none' });
+            else $canvas.css({ width: '100%', 'max-width': '100%' });
+            $canvas.css('height', 'auto');
+
+            page.render({ canvasContext: ctx, viewport: scaledViewport }).promise.then(() => {
+                $loading.removeClass('d-flex').addClass('d-none');
+                $canvas.removeClass('d-none').show();
+                similarDoc = pdf;
+                similarPageNum = pNum;
+                $('#similarPageInfo').text(`P ${pNum}/${pdf.numPages}`);
+                if (pdf.numPages > 1) $('.similar-nav-controls').attr('style', 'display: flex !important;');
+                else $('.similar-nav-controls').hide();
+            });
+        });
+    }
+
+    $('#prevSimilarPage').click(() => {
+        if (similarDoc && similarPageNum > 1) {
+            similarPageNum--;
+            const canvas = document.getElementById('similarPdfCanvas');
+            drawSimilarPage(similarDoc, canvas, canvas.getContext('2d'), $('#similarPdfLoading'), $(canvas), similarPageNum);
+        }
+    });
+
+    $('#nextSimilarPage').click(() => {
+        if (similarDoc && similarPageNum < similarDoc.numPages) {
+            similarPageNum++;
+            const canvas = document.getElementById('similarPdfCanvas');
+            drawSimilarPage(similarDoc, canvas, canvas.getContext('2d'), $('#similarPdfLoading'), $(canvas), similarPageNum);
+        }
+    });
+
+    $('#zoomInSimilar').click(() => {
+        similarZoomLevel += 0.25;
+        if (similarDoc) {
+            const canvas = document.getElementById('similarPdfCanvas');
+            drawSimilarPage(similarDoc, canvas, canvas.getContext('2d'), $('#similarPdfLoading'), $(canvas), similarPageNum);
+        }
+    });
+    $('#zoomOutSimilar').click(() => {
+        if (similarZoomLevel > 0.5) {
+            similarZoomLevel -= 0.25;
+            if (similarDoc) {
+                const canvas = document.getElementById('similarPdfCanvas');
+                drawSimilarPage(similarDoc, canvas, canvas.getContext('2d'), $('#similarPdfLoading'), $(canvas), similarPageNum);
+            }
+        }
+    });
+    $('#zoomResetSimilar').click(() => {
+        similarZoomLevel = 1.0;
+        if (similarDoc) {
+            const canvas = document.getElementById('similarPdfCanvas');
+            drawSimilarPage(similarDoc, canvas, canvas.getContext('2d'), $('#similarPdfLoading'), $(canvas), similarPageNum);
+        }
+    });
+
 
     function renderPdfToCanvas(url, canvasId, placeholderId, loadingId, pNum = 1) {
         const canvas = document.getElementById(canvasId);

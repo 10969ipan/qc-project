@@ -149,19 +149,19 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuLaporan" style="font-size:0.85rem; border-radius:8px; min-width: 200px; z-index: 1050;">
                         <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Pilih Laporan</div>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report') }}">
                             <i class="fas fa-layer-group fa-fw mr-2 text-success"></i> Thickness
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.corrodkote') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.corrodkote' : 'standard-performance-tests.report.corrodkote') }}">
                             <i class="fas fa-vial fa-fw mr-2 text-info"></i> Corrodkote
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.cass') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.cass' : 'standard-performance-tests.report.cass') }}">
                             <i class="fas fa-flask fa-fw mr-2 text-primary"></i> Cass Test
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.salt_spray') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.salt_spray' : 'standard-performance-tests.report.salt_spray') }}">
                             <i class="fas fa-spray-can fa-fw mr-2 text-warning"></i> Salt Spray Test
                         </a>
-                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route('standard-performance-tests.report.porecount') }}">
+                        <a class="dropdown-item py-2 font-weight-bold" href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report.porecount' : 'standard-performance-tests.report.porecount') }}">
                             <i class="fas fa-search-plus fa-fw mr-2 text-danger"></i> Porecount Test
                         </a>
                     </div>
@@ -613,7 +613,7 @@
 </div>
 <!-- Modal Thickness -->
 <div class="modal fade" id="modalThickness" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -626,7 +626,9 @@
             <form action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" id="formThickness" novalidate>
                 @csrf
                 <input type="hidden" name="standard_performance_test_id" id="thickness_test_id">
-                <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 65vh; overflow-y: auto;">
+                    
+                    {{-- Common Batch Fields --}}
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Tgl Produksi <span class="text-danger">*</span></label>
@@ -649,26 +651,62 @@
                         <label class="small font-weight-bold text-gray-700">Nama Part</label>
                         <input type="text" id="thickness_part_name" class="form-control form-control-sm border-0 shadow-sm" readonly>
                     </div>
+
+                    {{-- Section 1: Data 1 (Aktual) --}}
+                    <div class="font-weight-bold text-primary mb-3 pb-2 mt-3" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
+                        <i class="fas fa-database mr-1"></i> DATA 1 (AKTUAL)
+                    </div>
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Cr</label>
-                            <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
+                            <input type="text" name="actual_cr" id="actual_cr_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Ni</label>
-                            <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
+                            <input type="text" name="actual_ni" id="actual_ni_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
                         </div>
                         <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Cu</label>
-                            <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input" required>
+                            <input type="text" name="actual_cu" id="actual_cu_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
                         </div>
                     </div>
-                    
-
-                    <div class="row mt-3">
-                        <div class="col-md-6 form-group mb-0">
+                    <div class="row mb-2">
+                        <div class="col-md-6 form-group mb-2">
                             <label class="small font-weight-bold text-gray-700">Result / Judgment <span class="text-danger">*</span></label>
-                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm" required>
+                            <select name="result_judgment" id="result_judgment_select" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="-">-</option>
+                                <option value="OK">OK</option>
+                                <option value="NG">NG</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-2">
+                            <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
+                        </div>
+                    </div>
+
+                    {{-- Section 2: Data 2 --}}
+                    <div class="font-weight-bold text-info mb-3 pb-2 mt-4" style="border-bottom: 2px solid #e2e8f0; font-size: 0.88rem;">
+                        <i class="fas fa-flask mr-1"></i> DATA 2
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Cr</label>
+                            <input type="text" name="actual_cr_trial" id="actual_cr_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Ni</label>
+                            <input type="text" name="actual_ni_trial" id="actual_ni_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Cu</label>
+                            <input type="text" name="actual_cu_trial" id="actual_cu_trial_input" class="form-control form-control-sm border-0 shadow-sm actual-thickness-input">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-0">
+                            <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                            <select name="result_judgment_trial" id="result_judgment_trial_select" class="form-control form-control-sm border-0 shadow-sm">
                                 <option value="-">-</option>
                                 <option value="OK">OK</option>
                                 <option value="NG">NG</option>
@@ -676,14 +714,15 @@
                         </div>
                         <div class="col-md-6 form-group mb-0">
                             <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
+                            <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="1" placeholder="Masukkan keterangan (opsional)..."></textarea>
                         </div>
                     </div>
+
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan
+                        <i class="fas fa-save mr-1"></i> Simpan Data 1 & 2
                     </button>
                 </div>
             </form>
@@ -790,16 +829,17 @@
             stdCu = parseFloat($(this).data('cu')) || 0;
             $('.actual-thickness-input').val('');
             $('#result_judgment_select').val('-');
+            $('#result_judgment_trial_select').val('-');
             $('#modalThickness').modal('show');
         });
 
-        // Auto judgment logic
+        // Auto judgment logic Data 1 & Data 2
         $('.actual-thickness-input').on('keyup change', function() {
+            // Data 1
             var actCr = parseFloat($('#actual_cr_input').val());
             var actNi = parseFloat($('#actual_ni_input').val());
             var actCu = parseFloat($('#actual_cu_input').val());
             
-            // Only judge if all inputs are filled and valid numbers
             if (!isNaN(actCr) && !isNaN(actNi) && !isNaN(actCu)) {
                 if (actCr >= stdCr && actNi >= stdNi && actCu >= stdCu) {
                     $('#result_judgment_select').val('OK');
@@ -808,6 +848,21 @@
                 }
             } else {
                 $('#result_judgment_select').val('-');
+            }
+
+            // Data 2
+            var actCrTrial = parseFloat($('#actual_cr_trial_input').val());
+            var actNiTrial = parseFloat($('#actual_ni_trial_input').val());
+            var actCuTrial = parseFloat($('#actual_cu_trial_input').val());
+
+            if (!isNaN(actCrTrial) && !isNaN(actNiTrial) && !isNaN(actCuTrial)) {
+                if (actCrTrial >= stdCr && actNiTrial >= stdNi && actCuTrial >= stdCu) {
+                    $('#result_judgment_trial_select').val('OK');
+                } else {
+                    $('#result_judgment_trial_select').val('NG');
+                }
+            } else {
+                $('#result_judgment_trial_select').val('-');
             }
         });
 

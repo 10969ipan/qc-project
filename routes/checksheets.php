@@ -267,10 +267,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('standard-performance-tests/report/cass', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportCass'])->name('standard-performance-tests.report.cass');
         Route::get('standard-performance-tests/report/salt-spray', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportSaltSpray'])->name('standard-performance-tests.report.salt_spray');
         Route::get('standard-performance-tests/report/porecount', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportPorecount'])->name('standard-performance-tests.report.porecount');
-                Route::put('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateThickness'])->name('standard-performance-tests.thickness.update');
+        Route::put('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateThickness'])->name('standard-performance-tests.thickness.update');
         Route::post('standard-performance-tests/thickness/bulk-delete', [\App\Http\Controllers\StandardPerformanceTestController::class, 'bulkDestroyThickness'])->name('standard-performance-tests.thickness.bulk_destroy');
         Route::delete('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'destroyThickness'])->name('standard-performance-tests.thickness.destroy');
         Route::resource('standard-performance-tests', \App\Http\Controllers\StandardPerformanceTestController::class);
+
+        // Durability Plating Trial Routes (Data 2)
+        Route::get('standard-performance-tests-trial', [\App\Http\Controllers\StandardPerformanceTestController::class, 'indexTrial'])->name('standard-performance-tests-trial.index');
+        Route::get('standard-performance-tests-trial/report', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportTrial'])->name('standard-performance-tests-trial.report');
+        Route::get('standard-performance-tests-trial/report/corrodkote', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportCorrodkoteTrial'])->name('standard-performance-tests-trial.report.corrodkote');
+        Route::get('standard-performance-tests-trial/report/cass', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportCassTrial'])->name('standard-performance-tests-trial.report.cass');
+        Route::get('standard-performance-tests-trial/report/salt-spray', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportSaltSprayTrial'])->name('standard-performance-tests-trial.report.salt_spray');
+        Route::get('standard-performance-tests-trial/report/porecount', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportPorecountTrial'])->name('standard-performance-tests-trial.report.porecount');
+
 
         // Edit/Update/Delete (General Management)
         Route::prefix('admin')->group(function () {

@@ -99,8 +99,6 @@
                             <tr>
                                 <th>Item Part</th>
                                 <th>Tanggal Check</th>
-                                <th>Tanggal Delivery</th>
-                                <th>Lot Quantity</th>
                                 <th>Total Check</th>
                                 <th style="min-width: 250px;">Detail NG</th>
                                 <th>Judgment</th>
@@ -154,8 +152,6 @@
                                     </div>
                                 </td>
                                 <td><input type="date" class="form-control" name="date" value="{{ $defaultDate }}" required></td>
-                                <td><input type="date" class="form-control" name="tanggal_delivery" required></td>
-                                <td><input type="number" class="form-control text-center" name="lot_qty" id="lotQtyInput" placeholder="0" min="0" required style="min-width: 100px;"></td>
                                 <td><input type="number" class="form-control text-center" name="total_check" id="totalCheckInput" placeholder="0" min="0" required style="min-width: 100px;"></td>
                                 
                                 <td class="align-middle" style="min-width: 250px;">

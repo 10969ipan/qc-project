@@ -12,7 +12,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Validation\Rule;
 class StandardPerformanceTestController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, $isTrial = false)
     {
         $query = StandardPerformanceTest::query();
 
@@ -30,7 +30,12 @@ class StandardPerformanceTestController extends Controller
         $partNumbers = StandardPerformanceTest::pluck('part_number')->unique()->filter()->values();
         $customers = StandardPerformanceTest::pluck('customer_name')->unique()->filter()->values();
 
-        return view('durability_plating.index', compact('standards', 'partNames', 'partNumbers', 'customers'));
+        return view('durability_plating.index', compact('standards', 'partNames', 'partNumbers', 'customers', 'isTrial'));
+    }
+
+    public function indexTrial(Request $request)
+    {
+        return $this->index($request, true);
     }
 
     public function store(Request $request)
@@ -322,10 +327,43 @@ class StandardPerformanceTestController extends Controller
             'jam_masuk' => 'nullable|date_format:H:i',
             'tgl_keluar' => 'nullable|date',
             'jam_keluar' => 'nullable|date_format:H:i',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+
+            // Trial fields (Data 2)
+            'actual_cu_trial' => 'nullable|string|max:255',
+            'actual_ni_trial' => 'nullable|string|max:255',
+            'actual_cr_trial' => 'nullable|string|max:255',
+            'actual_corrodkote_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_corrodkote_trial' => 'nullable|string|max:255',
+            'aktual_corrosion_trial' => 'nullable|string|max:255',
+            'actual_cass_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_cass_trial' => 'nullable|string|max:255',
+            'actual_salt_spray_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_salt_spray_trial' => 'nullable|string|max:255',
+            'actual_porecount_trial' => 'nullable|string|max:255',
+            'result_judgment_trial' => 'nullable|string|max:255',
+            'description_trial' => 'nullable|string'
         ]);
 
-        $report = DurabilityThicknessReport::create([
+        $evidenceBeforePath = null;
+        $evidenceAfterPath = null;
+
+        if ($request->hasFile('evidence_before')) {
+            $fileBefore = $request->file('evidence_before');
+            $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
+            $fileBefore->move(public_path('uploads/durability_plating'), $filenameBefore);
+            $evidenceBeforePath = 'uploads/durability_plating/' . $filenameBefore;
+        }
+
+        if ($request->hasFile('evidence_after')) {
+            $fileAfter = $request->file('evidence_after');
+            $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
+            $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
+            $evidenceAfterPath = 'uploads/durability_plating/' . $filenameAfter;
+        }
+
+        // Data 1 (Regular / Actual)
+        $report1 = DurabilityThicknessReport::create([
             'standard_performance_test_id' => $request->standard_performance_test_id,
             'production_date' => $request->production_date,
             'shift' => $request->shift,
@@ -349,46 +387,78 @@ class StandardPerformanceTestController extends Controller
             'tanggal_cek' => now()->toDateString(),
             'analis_id' => auth()->id(),
             'description' => $request->description,
+            'is_trial' => false,
+            'evidence_before' => $evidenceBeforePath,
+            'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
+            'evidence_after' => $evidenceAfterPath,
+            'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
         ]);
-        
-        if ($request->hasFile('evidence_before')) {
-            $fileBefore = $request->file('evidence_before');
-            $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
-            $fileBefore->move(public_path('uploads/durability_plating'), $filenameBefore);
-            $report->update([
-                'evidence_before' => 'uploads/durability_plating/' . $filenameBefore,
-                'evidence_before_uploaded_at' => now()
-            ]);
-        }
-        
-        if ($request->hasFile('evidence_after')) {
-            $fileAfter = $request->file('evidence_after');
-            $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
-            $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
-            $report->update([
-                'evidence_after' => 'uploads/durability_plating/' . $filenameAfter,
-                'evidence_after_uploaded_at' => now()
-            ]);
-        }
-        
-        ActivityLogger::log('created', null, "Input Thickness Report untuk ID: {$request->standard_performance_test_id}");
 
-        return redirect()->back()->with('success', 'Data Thickness berhasil disimpan.');
+        ActivityLogger::log('created', null, "Input Thickness Report (Data 1) untuk ID: {$request->standard_performance_test_id}");
+
+        // Check if Data 2 (Trial) inputs are provided
+        $hasTrialInput = $request->filled('actual_cu_trial') || $request->filled('actual_ni_trial') || $request->filled('actual_cr_trial')
+            || $request->filled('actual_corrodkote_waktu_trial') || $request->filled('standar_jam_corrodkote_trial')
+            || $request->filled('aktual_corrosion_trial') || $request->filled('actual_cass_waktu_trial') || $request->filled('standar_jam_cass_trial')
+            || $request->filled('actual_salt_spray_waktu_trial') || $request->filled('standar_jam_salt_spray_trial')
+            || $request->filled('actual_porecount_trial') || ($request->filled('result_judgment_trial') && $request->result_judgment_trial !== '-')
+            || $request->filled('description_trial');
+
+        if ($hasTrialInput) {
+            DurabilityThicknessReport::create([
+                'standard_performance_test_id' => $request->standard_performance_test_id,
+                'production_date' => $request->production_date,
+                'shift' => $request->shift,
+                'lot_no' => $request->lot_no,
+                'actual_cu' => $request->actual_cu_trial ?? $request->actual_cu,
+                'actual_ni' => $request->actual_ni_trial ?? $request->actual_ni,
+                'actual_cr' => $request->actual_cr_trial ?? $request->actual_cr,
+                'actual_corrodkote_waktu' => $request->actual_corrodkote_waktu_trial ?? ($request->actual_corrodkote_waktu ?? '-'),
+                'standar_jam_corrodkote' => $request->standar_jam_corrodkote_trial ?? ($request->standar_jam_corrodkote ?? '-'),
+                'aktual_corrosion' => $request->aktual_corrosion_trial ?? $request->aktual_corrosion,
+                'actual_cass_waktu' => $request->actual_cass_waktu_trial ?? ($request->actual_cass_waktu ?? '-'),
+                'standar_jam_cass' => $request->standar_jam_cass_trial ?? ($request->standar_jam_cass ?? '-'),
+                'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu_trial ?? ($request->actual_salt_spray_waktu ?? '-'),
+                'standar_jam_salt_spray' => $request->standar_jam_salt_spray_trial ?? ($request->standar_jam_salt_spray ?? '-'),
+                'actual_porecount' => $request->actual_porecount_trial ?? ($request->actual_porecount ?? '-'),
+                'result_judgment' => $request->result_judgment_trial ?? ($request->result_judgment ?? '-'),
+                'tgl_masuk' => $request->tgl_masuk,
+                'jam_masuk' => $request->jam_masuk,
+                'tgl_keluar' => $request->tgl_keluar,
+                'jam_keluar' => $request->jam_keluar,
+                'tanggal_cek' => now()->toDateString(),
+                'analis_id' => auth()->id(),
+                'description' => $request->description_trial ?? $request->description,
+                'is_trial' => true,
+                'evidence_before' => $evidenceBeforePath,
+                'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
+                'evidence_after' => $evidenceAfterPath,
+                'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+            ]);
+
+            ActivityLogger::log('created', null, "Input Thickness Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
+        }
+
+        return redirect()->back()->with('success', 'Data Thickness (Data 1 & Data 2) berhasil disimpan.');
     }
 
-    public function report(Request $request)
-    {
-        return $this->renderReport($request, 'thickness');
-    }
+    public function report(Request $request) { return $this->renderReport($request, 'thickness', false); }
+    public function reportCorrodkote(Request $request) { return $this->renderReport($request, 'corrodkote', false); }
+    public function reportCass(Request $request) { return $this->renderReport($request, 'cass', false); }
+    public function reportSaltSpray(Request $request) { return $this->renderReport($request, 'salt_spray', false); }
+    public function reportPorecount(Request $request) { return $this->renderReport($request, 'porecount', false); }
 
-    public function reportCorrodkote(Request $request) { return $this->renderReport($request, 'corrodkote'); }
-    public function reportCass(Request $request) { return $this->renderReport($request, 'cass'); }
-    public function reportSaltSpray(Request $request) { return $this->renderReport($request, 'salt_spray'); }
-    public function reportPorecount(Request $request) { return $this->renderReport($request, 'porecount'); }
+    public function reportTrial(Request $request) { return $this->renderReport($request, 'thickness', true); }
+    public function reportCorrodkoteTrial(Request $request) { return $this->renderReport($request, 'corrodkote', true); }
+    public function reportCassTrial(Request $request) { return $this->renderReport($request, 'cass', true); }
+    public function reportSaltSprayTrial(Request $request) { return $this->renderReport($request, 'salt_spray', true); }
+    public function reportPorecountTrial(Request $request) { return $this->renderReport($request, 'porecount', true); }
 
-    private function renderReport(Request $request, $testType)
+    private function renderReport(Request $request, $testType, $isTrial = false)
     {
-        $query = DurabilityThicknessReport::with('standard')->orderBy('created_at', 'desc');
+        $query = DurabilityThicknessReport::with('standard')
+            ->where('is_trial', $isTrial)
+            ->orderBy('created_at', 'desc');
 
         // Hanya tampilkan baris yang benar-benar memiliki data aktual untuk jenis tes ini
         $query->where(function ($q) use ($testType) {
@@ -443,12 +513,12 @@ class StandardPerformanceTestController extends Controller
                 'revisi' => '- / -',
                 'halaman' => '1 / 1'
             ]);
-            return view('durability_plating.print', compact('reports', 'docHeader', 'testType'));
+            return view('durability_plating.print', compact('reports', 'docHeader', 'testType', 'isTrial'));
         }
 
         $reports = $query->paginate(10)->withQueryString();
         
-        $items = \App\Models\StandardPerformanceTest::whereIn('id', \App\Models\DurabilityThicknessReport::select('standard_performance_test_id'))
+        $items = \App\Models\StandardPerformanceTest::whereIn('id', \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)->select('standard_performance_test_id'))
             ->orderBy('part_name', 'asc')
             ->get();
 
@@ -460,7 +530,7 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('customer_name')
             ->pluck('customer_name');
 
-        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'testType'));
+        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'testType', 'isTrial'));
     }
 
     public function updateThickness(Request $request, $id)
