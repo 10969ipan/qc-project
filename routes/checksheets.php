@@ -271,6 +271,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('standard-performance-tests/report/porecount', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reportPorecount'])->name('standard-performance-tests.report.porecount');
         Route::put('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateThickness'])->name('standard-performance-tests.thickness.update');
         Route::post('standard-performance-tests/thickness/bulk-delete', [\App\Http\Controllers\StandardPerformanceTestController::class, 'bulkDestroyThickness'])->name('standard-performance-tests.thickness.bulk_destroy');
+        Route::post('standard-performance-tests/thickness/bulk-copy', [\App\Http\Controllers\StandardPerformanceTestController::class, 'bulkCopyThickness'])->name('standard-performance-tests.thickness.bulk_copy');
         Route::delete('standard-performance-tests/thickness/{id}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'destroyThickness'])->name('standard-performance-tests.thickness.destroy');
         Route::resource('standard-performance-tests', \App\Http\Controllers\StandardPerformanceTestController::class);
 

@@ -6,10 +6,19 @@
 <style>
     .table-responsive {
         max-height: calc(100vh - 220px) !important;
-        min-height: 300px !important; /* Mencegah dropdown terpotong saat baris sedikit */
+        min-height: 300px !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+    body > .dropdown-menu {
+        width: 200px !important;
+        min-width: 200px !important;
+        max-width: 200px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.18) !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        z-index: 1095 !important;
     }
 
     @media (max-width: 992px) {
@@ -373,64 +382,13 @@
         <div id="tableContainer" style="display: none;">
             <div class="table-responsive mb-0" style="min-height: 280px;">
                 <table class="table table-bordered table-hover" id="dataTable">
-                    <colgroup>
-                        <col style="width: 45px;">       <!-- Checkbox -->
-                        <col style="width: 38px;">       <!-- No -->
-                        <col style="width: 150px;">      <!-- Nama Part -->
-                        <col style="width: 150px;">      <!-- Part No -->
-                        <col style="width: 110px;">      <!-- Customer -->
-                        <col style="width: 130px;">      <!-- Std Customer -->
-                        
-                        @if($testType == 'thickness')
-                            <!-- STANDAR -->
-                            <col style="width: 60px;"> <col style="width: 60px;"> <col style="width: 60px;">
-                            <!-- AKTUAL -->
-                            <col style="width: 60px;"> <col style="width: 60px;"> <col style="width: 60px;">
-                        @elseif($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                            <col style="width: 80px;"> <col style="width: 80px;">
-                            <col style="width: 80px;"> <col style="width: 80px;">
-                        @elseif($testType == 'porecount')
-                            <col style="width: 100px;">
-                            <col style="width: 100px;">
-                        @endif
-
-                        <col style="width: 85px;">       <!-- Tanggal Test -->
-                        <col style="width: 90px;">       <!-- Tgl Produksi -->
-                        <col style="width: 50px;">       <!-- Shift -->
-                        
-                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                            <col style="width: 90px;">       <!-- Tgl Masuk -->
-                            <col style="width: 70px;">       <!-- Jam Masuk -->
-                            <col style="width: 90px;">       <!-- Tgl Keluar -->
-                            <col style="width: 70px;">       <!-- Jam Keluar -->
-                        @endif
-
-                        <col style="width: 80px;">       <!-- No Lot -->
-                        @if($testType == 'corrodkote')
-                        <col style="width: 80px;">       <!-- Aktual % Corrosion -->
-                        @endif
-                        <col style="width: 100px;">      <!-- Result/Judgment -->
-                        
-                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
-                            <col style="width: 80px;">       <!-- Evidence -->
-                        @endif
-                        
-                        <col style="width: 95px;">       <!-- PIC -->
-                        
-                        <col style="width: auto;">       <!-- Description (auto to stretch) -->
-                        
-                        @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
-                            <col style="width: 80px;">       <!-- Thickness Data -->
-                        @endif
-
-                        <col style="width: 65px;">       <!-- Actions -->
-                    </colgroup>
+                    {{-- ponytail: Hapus colgroup fixed-width, biarkan table-layout:auto menentukan lebar kolom otomatis --}}
                                                 <thead>
                                         <tr>
                         <th rowspan="2" class="align-middle text-center">
                             <div class="d-flex flex-column align-items-center justify-content-center">
                                 <span style="font-size: 10px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; line-height: 1.2;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
-                                <div class="custom-control custom-checkbox">
+                                <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
                                     <input type="checkbox" class="custom-control-input" id="checkAllRows">
                                     <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
                                 </div>
@@ -526,9 +484,9 @@
                         @endphp
                         <tr>
                             <td class="align-middle text-center">
-                                <div class="custom-control custom-checkbox d-flex justify-content-center align-items-center">
+                                <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
                                     <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $report->id }}" value="{{ $report->id }}">
-                                    <label class="custom-control-label" for="checkRow{{ $report->id }}" style="cursor:pointer; margin-left: 0.5rem;"></label>
+                                    <label class="custom-control-label" for="checkRow{{ $report->id }}" style="cursor:pointer;"></label>
                                 </div>
                             </td>
                             <td class="text-center">{{ $reports->firstItem() + $index }}</td>
@@ -657,7 +615,7 @@
 
                             <td class="align-middle text-center" style="width: 50px;">
                                 <div class="dropdown no-arrow">
-                                    <button class="btn btn-sm btn-light border dropdown-toggle" data-boundary="window" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" data-display="static" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
                                         <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $report->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
@@ -710,6 +668,28 @@
             {{ $reports->links() }}
         </div>
         @endif
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Bar for Selected Rows (Bottom Center - Minimalist White Blue Theme) -->
+<div id="bulkActionMenu" style="display: none; position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1080;">
+    <div class="bg-white rounded-pill px-4 py-2 shadow-lg d-flex align-items-center border" style="border-color: #e2e8f0 !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;">
+        <div class="d-flex align-items-center mr-3">
+            <span class="badge rounded-circle px-2 py-1 mr-2 text-white" style="font-size: 0.85rem; background-color: #2563eb;" id="bulkSelectedCount">0</span>
+            <span class="font-weight-bold text-dark small" style="color: #1e293b !important;">Baris Dipilih</span>
+        </div>
+        <div style="height: 20px; width: 1px; background: #cbd5e1;" class="mx-2"></div>
+        <div class="d-flex align-items-center">
+            <button type="button" class="btn btn-primary btn-sm rounded-pill font-weight-bold px-3 shadow-sm mr-2" id="btnBulkCopy" style="background-color: #2563eb; border-color: #2563eb;">
+                <i class="fas fa-copy mr-1"></i> Salin Data
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill font-weight-bold px-3 shadow-sm mr-2" id="btnBulkDelete">
+                <i class="fas fa-trash mr-1"></i> Hapus Data
+            </button>
+            <button type="button" class="btn btn-link text-muted p-0 ml-1" id="btnBulkCancel" title="Batal Pilih" style="font-size: 0.9rem;">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -787,12 +767,11 @@
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <div>
-                                        DATA 1 (AKTUAL)
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                                    <div class="font-weight-bold">DATA 1 (AKTUAL)
                                     </div>
-                                    <div class="badge badge-light text-primary font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                    <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                         STD: Cr <span id="edit_std_cr_display">-</span> | Ni <span id="edit_std_ni_display">-</span> | Cu <span id="edit_std_cu_display">-</span>
                                     </div>
                                 </div>
@@ -868,12 +847,11 @@
 
                         <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <div>
-                                        DATA 2
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                                    <div class="font-weight-bold">DATA 2
                                     </div>
-                                    <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                    <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                         STD: Cr <span id="edit_std_cr_display_2">-</span> | Ni <span id="edit_std_ni_display_2">-</span> | Cu <span id="edit_std_cu_display_2">-</span>
                                     </div>
                                 </div>
@@ -949,12 +927,11 @@
                     </div>
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <div>
-                                HASIL PENGUJIAN
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                            <div class="font-weight-bold">HASIL PENGUJIAN
                             </div>
-                            <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                            <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                 STD: Cr <span id="edit_std_cr_display_single">-</span> | Ni <span id="edit_std_ni_display_single">-</span> | Cu <span id="edit_std_cu_display_single">-</span>
                             </div>
                         </div>
@@ -1034,15 +1011,15 @@
 
                     <div class="mb-3">
                         <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                            <i class="fas fa-images mr-1 text-info"></i> Evidence Foto
+                            Evidence Foto
                         </label>
                         <div class="row">
                             {{-- BEFORE --}}
                             <div class="col-6">
-                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                        <span class="small font-weight-bold text-primary">
-                                            <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark">
+                                            BEFORE TEST
                                         </span>
                                         <button type="button" id="btn_delete_evidence_before"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
@@ -1061,7 +1038,7 @@
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                         <small class="text-info d-block mb-1" id="edit_evidence_before_time" style="font-size:0.62rem;"></small>
                                         <input type="file" name="evidence_before" id="input_evidence_before"
                                             class="form-control-file" style="font-size:0.72rem;" accept="image/*">
@@ -1070,10 +1047,10 @@
                             </div>
                             {{-- AFTER --}}
                             <div class="col-6">
-                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#edf7ed; border-bottom:1px solid #b7dbb7;">
-                                        <span class="small font-weight-bold text-success">
-                                            <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark">
+                                            AFTER TEST
                                         </span>
                                         <button type="button" id="btn_delete_evidence_after"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
@@ -1092,8 +1069,8 @@
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #edf7ed;">
-                                        <small class="text-success d-block mb-1" id="edit_evidence_after_time" style="font-size:0.62rem;"></small>
+                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <small class="text-info d-block mb-1" id="edit_evidence_after_time" style="font-size:0.62rem;"></small>
                                         <input type="file" name="evidence_after" id="input_evidence_after"
                                             class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                     </div>
@@ -1196,9 +1173,10 @@
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
+                        <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
@@ -1231,9 +1209,10 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
+                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 2
                                 </div>
                                 <div class="card-body p-3">
@@ -1267,8 +1246,8 @@
                     </div>
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                             HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
@@ -1305,10 +1284,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                    <span class="small font-weight-bold text-primary">
-                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        BEFORE TEST
                                     </span>
                                     <button type="button" id="btn_delete_corrodkote_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1319,7 +1298,7 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_before" id="input_corrodkote_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
@@ -1330,10 +1309,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence After
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
-                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
-                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST
                                     </span>
                                     <button type="button" id="btn_delete_corrodkote_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1344,10 +1323,11 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_corrodkote_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1442,9 +1422,10 @@
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
+                        <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
@@ -1473,9 +1454,10 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
+                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 2
                                 </div>
                                 <div class="card-body p-3">
@@ -1505,8 +1487,8 @@
                     </div>
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                             HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
@@ -1539,10 +1521,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                    <span class="small font-weight-bold text-primary">
-                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        BEFORE TEST
                                     </span>
                                     <button type="button" id="btn_delete_cass_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1553,7 +1535,7 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_before" id="input_cass_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
@@ -1564,10 +1546,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence After
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
-                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
-                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST
                                     </span>
                                     <button type="button" id="btn_delete_cass_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1578,10 +1560,11 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_cass_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1676,9 +1659,10 @@
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
+                        <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
@@ -1707,9 +1691,10 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
+                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 2
                                 </div>
                                 <div class="card-body p-3">
@@ -1739,8 +1724,8 @@
                     </div>
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                             HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
@@ -1773,10 +1758,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                    <span class="small font-weight-bold text-primary">
-                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        BEFORE TEST
                                     </span>
                                     <button type="button" id="btn_delete_salt_spray_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1787,7 +1772,7 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_before" id="input_salt_spray_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
@@ -1798,10 +1783,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence After
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
-                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
-                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST
                                     </span>
                                     <button type="button" id="btn_delete_salt_spray_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1812,10 +1797,11 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_salt_spray_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1894,9 +1880,10 @@
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
+                        <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
@@ -1921,9 +1908,10 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
+                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 2
                                 </div>
                                 <div class="card-body p-3">
@@ -1949,8 +1937,8 @@
                     </div>
                     @else
                     <!-- Single Column: DATA 2 ONLY -->
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                             HASIL PENGUJIAN
                         </div>
                         <div class="card-body p-3">
@@ -1979,10 +1967,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                    <span class="small font-weight-bold text-primary">
-                                        <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        BEFORE TEST
                                     </span>
                                     <button type="button" id="btn_delete_porecount_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
@@ -1993,7 +1981,7 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_before" id="input_porecount_evidence_before" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
@@ -2004,10 +1992,10 @@
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence After
                             </label>
-                            <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#fdf2e9; border-bottom:1px solid #f9e0cc;">
-                                    <span class="small font-weight-bold text-warning" style="color: #d35400 !important;">
-                                        <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST
                                     </span>
                                     <button type="button" id="btn_delete_porecount_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
@@ -2018,10 +2006,11 @@
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
-                                <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #f9e0cc;">
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_porecount_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -2062,7 +2051,7 @@
                             <a href="#" download id="btnDownloadBefore" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download Before"><i class="fas fa-download"></i></a>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <h6 class="font-weight-bold text-gray-700 mb-2">After Test</h6>
                         <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
                             <img id="evidenceAfterImg" src="" alt="Evidence After" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 270px; display: none;">
@@ -2093,6 +2082,7 @@
     window.__DURABILITY_PLATING_REPORT__ = {
         updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}",
         bulkDestroyUrl: "{{ route('standard-performance-tests.thickness.bulk_destroy') }}",
+        bulkCopyUrl: "{{ route('standard-performance-tests.thickness.bulk_copy') }}",
         csrfToken: "{{ csrf_token() }}",
         testType: "{{ $testType }}",
         baseUrl: "{{ rtrim(asset(''), '/') }}/"
@@ -2227,7 +2217,7 @@
 @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
 <!-- Modal Input Data Baru -->
 <div class="modal fade" id="modalAddData" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
@@ -2298,9 +2288,10 @@
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
                         <!-- DATA 1 Column (Left) -->
+                        <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 1 (AKTUAL)
                                 </div>
                                 <div class="card-body p-3">
@@ -2359,9 +2350,10 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
+                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     DATA 2
                                 </div>
                                 <div class="card-body p-3">
@@ -2423,15 +2415,15 @@
                     <!-- Evidence Upload (Card Style like Edit Modal) -->
                     <div class="mb-3">
                         <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                            <i class="fas fa-images mr-1 text-info"></i> Evidence Foto
+                            Evidence Foto
                         </label>
                         <div class="row">
                             {{-- BEFORE --}}
                             <div class="col-6">
-                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#e8f4fd; border-bottom:1px solid #bee3f8;">
-                                        <span class="small font-weight-bold text-primary">
-                                            <i class="fas fa-circle-notch mr-1"></i>BEFORE TEST
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark">
+                                            BEFORE TEST
                                         </span>
                                         <button type="button" id="btn_delete_new_evidence_before"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
@@ -2450,7 +2442,7 @@
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #e8f4fd;">
+                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                         <input type="file" name="evidence_before" id="input_new_evidence_before"
                                             class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                     </div>
@@ -2458,10 +2450,10 @@
                             </div>
                             {{-- AFTER --}}
                             <div class="col-6">
-                                <div class="card border-0 shadow-sm" style="border-radius:10px; overflow:hidden;">
-                                    <div class="card-header py-2 px-3 d-flex align-items-center justify-content-between" style="background:#edf7ed; border-bottom:1px solid #b7dbb7;">
-                                        <span class="small font-weight-bold text-success">
-                                            <i class="fas fa-check-circle mr-1"></i>AFTER TEST
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark">
+                                            AFTER TEST
                                         </span>
                                         <button type="button" id="btn_delete_new_evidence_after"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
@@ -2480,7 +2472,7 @@
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3" style="background:#fff; border-top:1px solid #edf7ed;">
+                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                         <input type="file" name="evidence_after" id="input_new_evidence_after"
                                             class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                     </div>
@@ -2502,3 +2494,9 @@
 @endif
 
 @endsection
+
+
+
+
+
+

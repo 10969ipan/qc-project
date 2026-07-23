@@ -576,6 +576,72 @@ $(document).ready(function() {
         });
     }
 
+    const btnBulkCopy = $('#btnBulkCopy');
+    if (btnBulkCopy.length > 0) {
+        btnBulkCopy.on('click', function() {
+            const selectedIds = $('.row-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) return;
+
+            Swal.fire({
+                title: 'Salin ' + selectedIds.length + ' Data?',
+                text: "Data laporan yang dipilih akan diduplikasi.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#36b9cc',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Salin Data!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Menyalin...',
+                        text: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: config.bulkCopyUrl,
+                        type: 'POST',
+                        data: {
+                            _token: config.csrfToken,
+                            ids: selectedIds
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Gagal!', 'Terjadi kesalahan saat menyalin data.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    const btnBulkCancel = $('#btnBulkCancel');
+    if (btnBulkCancel.length > 0) {
+        btnBulkCancel.on('click', function() {
+            $('.row-checkbox, #checkAllRows').prop('checked', false);
+            updateCount();
+        });
+    }
+
     // Delete SweetAlert
     $('.delete-form').submit(function(e) {
         e.preventDefault();
@@ -704,6 +770,86 @@ $(document).ready(function() {
     $(document).on('change input', 'input[name="tgl_masuk"]', function() {
         var $form = $(this).closest('form');
         $form.find('input[name="tanggal_test"]').val($(this).val());
+    });
+
+    // ponytail: Dynamic body-append positioning for action dropdown menu.
+    // Fixes table container clipping, z-index sticky header coverage, and ensures fixed compact width (200px).
+    $(document).on('show.bs.dropdown', '.table-responsive .dropdown, #tableContainer .dropdown', function () {
+        var $dropdown = $(this);
+        var $menu = $dropdown.children('.dropdown-menu');
+        if (!$menu.length) return;
+
+        $menu.data('parent', $dropdown);
+        $('body').append($menu);
+
+        // Explicit compact width and display setup
+        $menu.css({
+            'display': 'block',
+            'width': '200px',
+            'min-width': '200px',
+            'max-width': '200px',
+            'position': 'absolute',
+            'z-index': '1095',
+            'margin': '0'
+        });
+
+        var eOffset = $dropdown.offset();
+        var btnWidth = $dropdown.outerWidth();
+        var btnHeight = $dropdown.outerHeight();
+        var menuWidth = 200;
+        var menuHeight = $menu.outerHeight() || 250;
+
+        var windowScrollTop = $(window).scrollTop();
+        var windowHeight = $(window).height();
+        var windowBottom = windowScrollTop + windowHeight;
+
+        var top = eOffset.top + btnHeight + 2;
+        var left = eOffset.left + btnWidth - menuWidth;
+
+        // Auto flip up if bottom of viewport is reached
+        if (top + menuHeight > windowBottom - 10 && eOffset.top - menuHeight > windowScrollTop + 10) {
+            top = eOffset.top - menuHeight - 2;
+        }
+
+        if (left < 10) left = 10;
+
+        $menu.css({
+            'top': top + 'px',
+            'left': left + 'px'
+        });
+    });
+
+    $(document).on('hide.bs.dropdown', '.table-responsive .dropdown, #tableContainer .dropdown', function () {
+        var $dropdown = $(this);
+        var $menu = $('body').children('.dropdown-menu').filter(function() {
+            return $(this).data('parent') && $(this).data('parent').is($dropdown);
+        });
+
+        if ($menu.length) {
+            $menu.css({
+                'display': '',
+                'width': '',
+                'min-width': '',
+                'max-width': '',
+                'position': '',
+                'top': '',
+                'left': '',
+                'z-index': '',
+                'margin': ''
+            });
+            $dropdown.append($menu);
+        }
+    });
+
+    $(window).on('scroll resize', function () {
+        $('body > .dropdown-menu').each(function () {
+            var $parent = $(this).data('parent');
+            if ($parent && $parent.length) {
+                $parent.removeClass('show');
+                $(this).removeClass('show').hide();
+                $parent.append($(this));
+            }
+        });
     });
 
 });

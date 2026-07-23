@@ -792,7 +792,7 @@ class StandardPerformanceTestController extends Controller
         return is_null($value) || $val === '' || $val === '-';
     }
 
-    private function clearTestData($report, $type) {
+    private function clearTestData($report, $type, $clearPaired = true) {
         if ($type === 'thickness') {
             $report->actual_cu = null;
             $report->actual_ni = null;
@@ -821,6 +821,17 @@ class StandardPerformanceTestController extends Controller
             $report->delete();
         } else {
             $report->save();
+        }
+
+        if ($clearPaired && $report->standard_performance_test_id && $report->lot_no) {
+            $pairedReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                ->where('lot_no', $report->lot_no)
+                ->where('is_trial', !$report->is_trial)
+                ->first();
+
+            if ($pairedReport) {
+                $this->clearTestData($pairedReport, $type, false);
+            }
         }
     }
 
@@ -861,6 +872,54 @@ class StandardPerformanceTestController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Berhasil menghapus {$count} data laporan $typeName."
+        ]);
+    }
+
+    public function bulkCopyThickness(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:durability_thickness_reports,id',
+        ]);
+
+        $count = 0;
+        foreach ($request->ids as $id) {
+            $sourceReport = DurabilityThicknessReport::find($id);
+            if (!$sourceReport) continue;
+
+            $newLotNo = $sourceReport->lot_no;
+
+            // Replicate Data 1 record
+            $newReport = $sourceReport->replicate();
+            $newReport->lot_no = $newLotNo;
+            $newReport->created_at = now();
+            $newReport->updated_at = now();
+            $newReport->save();
+
+            // Replicate Data 2 Trial record if exists
+            if (!$sourceReport->is_trial) {
+                $sourceTrial = DurabilityThicknessReport::where('standard_performance_test_id', $sourceReport->standard_performance_test_id)
+                    ->where('is_trial', true)
+                    ->where('lot_no', $sourceReport->lot_no)
+                    ->first();
+
+                if ($sourceTrial) {
+                    $newTrial = $sourceTrial->replicate();
+                    $newTrial->lot_no = $newLotNo;
+                    $newTrial->created_at = now();
+                    $newTrial->updated_at = now();
+                    $newTrial->save();
+                }
+            }
+
+            $count++;
+        }
+
+        ActivityLogger::log('created', null, "Duplikasi Massal Laporan Durability Plating ({$count} data)");
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menyalin {$count} data laporan."
         ]);
     }
 }

@@ -255,7 +255,7 @@
 
                             <td class="align-middle text-center" style="width:50px;">
                                 <div class="dropdown no-arrow">
-                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" id="dropdownMenuButton-{{ $std->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" data-display="static" type="button" id="dropdownMenuButton-{{ $std->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
                                         <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $std->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
@@ -664,12 +664,12 @@
                     <div class="row">
                         {{-- DATA 1 Column (Left) --}}
                         <div class="col-md-6">
-                            <div class="card border-primary shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-primary text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <div>
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                                    <div class="font-weight-bold">
                                         DATA 1 (AKTUAL)
                                     </div>
-                                    <div class="badge badge-light text-primary font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                    <div class="badge badge-light border font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                         STD: Cr <span id="thickness_std_cr_display">-</span> | Ni <span id="thickness_std_ni_display">-</span> | Cu <span id="thickness_std_cu_display">-</span>
                                     </div>
                                 </div>
@@ -706,12 +706,12 @@
 
                         {{-- DATA 2 Column (Right) --}}
                         <div class="col-md-6">
-                            <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                                <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                                    <div>
+                            <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                                    <div class="font-weight-bold">
                                         DATA 2
                                     </div>
-                                    <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                    <div class="badge badge-light border text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                         STD: Cr <span id="thickness_std_cr_display_2">-</span> | Ni <span id="thickness_std_ni_display_2">-</span> | Cu <span id="thickness_std_cu_display_2">-</span>
                                     </div>
                                 </div>
@@ -748,12 +748,12 @@
                     </div>
                     @else
                     {{-- Single Column layout --}}
-                    <div class="card border-info shadow-sm mb-3" style="border-radius: 10px; border-width: 1px;">
-                        <div class="card-header bg-info text-white py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0;">
-                            <div>
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                            <div class="font-weight-bold">
                                 HASIL PENGUJIAN
                             </div>
-                            <div class="badge badge-light text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                            <div class="badge badge-light border text-info font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                 STD: Cr <span id="thickness_std_cr_display_single">-</span> | Ni <span id="thickness_std_ni_display_single">-</span> | Cu <span id="thickness_std_cu_display_single">-</span>
                             </div>
                         </div>
