@@ -28,4 +28,5 @@ Thumbs.db
 
 /public/uploads/
 
-AGENTS.md
+*.md
+!README.md

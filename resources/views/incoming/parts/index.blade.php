@@ -1,45 +1,158 @@
 @extends('layouts.admin')
 
-@section('title', 'Incoming Part')
+@section('title', 'Laporan Data Incoming Part')
 
 @section('content')
-    <div class="card shadow mb-4 border-left-primary">
-        <div class="card-body py-3">
-            <div class="row align-items-start">
-                <div class="col-md-8 border-right">
-                    <h1 class="h4 mb-0 text-gray-800 font-weight-bold text-uppercase">
-                        LAPORAN DATA INCOMING PART
-                        @php
-                            $plant = request('plant') ?? auth()->user()->plant_id;
-                            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-                            $plantCode = strtolower($plantCode ?: 'karawang');
+<style>
+    .table-responsive {
+        max-height: 75vh !important;
+        overflow: auto !important;
+        border: none !important;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+    }
+    #checksheetTable {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    #checksheetTable td, #checksheetTable th {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
 
-                            // Resolve menu ID for permission checks
-                            $currentMenu = \App\Models\AppMenu::where('route', 'incoming.parts.index')->first();
-                            $menuId = $currentMenu ? $currentMenu->id : null;
-                            $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-                            $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-                            $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
-                        @endphp
-                        <span class="badge badge-{{ $plantCode === 'jakarta' ? 'info' : 'primary' }} d-block d-md-inline-block ml-md-2 mt-2 mt-md-0" style="font-size: 0.8rem; width: fit-content;">
-                            <i class="fas fa-building mr-1"></i>
-                            Plant {{ ucfirst($plantCode) }}
-                        </span>
-                    </h1>
-                </div>
-                <div class="col-md-4 d-flex justify-content-end">
-                    <div class="col p-0" style="max-width: 250px;">
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">No. Dokumen</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: QC-KRW-F-0210</div>
-                        </div>
-                        <div class="row mb-1">
-                            <div class="col-5 text-xs font-weight-bold text-gray-800 text-uppercase">Tgl. Terbit</div>
-                            <div class="col-7 text-xs font-weight-bold text-gray-800">: 01/01/2026</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    #checksheetTable tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 6px 8px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Global TH sticky setup */
+    #checksheetTable > thead > tr > th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px;
+        padding: 6px 10px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        line-height: 1.2;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #e2e8f0;
+    }
+
+    #checksheetTable .btn {
+        min-width: 0 !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+        margin: 1px !important;
+    }
+    #checksheetTable .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+
+    /* Natural sticky positions without artificial height clipping */
+    #checksheetTable > thead > tr:nth-child(1) > th {
+        top: 0 !important;
+        z-index: 105 !important;
+    }
+    #checksheetTable > thead > tr:nth-child(2) > th {
+        top: 26px !important; 
+        z-index: 104 !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    }
+    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
+        top: 0 !important;
+        z-index: 106 !important;
+    }
+
+    /* Sticky Pagination */
+    .pagination-container {
+        position: sticky !important;
+        bottom: 0 !important;
+        background-color: #ffffff !important;
+        z-index: 106 !important;
+        padding: 12px 20px !important;
+        margin: 0 -20px -20px -20px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+        border-bottom-left-radius: 0.35rem;
+        border-bottom-right-radius: 0.35rem;
+    }
+
+    /* Smart Filter Dropdown Style (In-Process Pattern) */
+    .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+    .custom-filter-wrapper { position: relative; top: -1px; }
+</style>
+
+    @php
+        $plant = request('plant') ?? auth()->user()->plant_id;
+        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'incoming.parts.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+    @endphp
+
+    <!-- Header Dokumen IPP (Desain Selaras In-Process) -->
+    <div class="card shadow mb-2">
+        <div class="card-body p-0">
+            <table style="width:100%; border-collapse:collapse;">
+                <tr>
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            LAPORAN DATA CHECKSHEET INCOMING PART
+                        </h1>
+                    </td>
+                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                        <table style="border-collapse:collapse; font-size:0.68rem;">
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0210</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">01/01/2026</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">0</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                <td style="padding:1px 2px;">:</td>
+                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 
@@ -48,161 +161,319 @@
             <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Part</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('incoming.parts.index') }}" method="GET" class="mb-4">
-                <div class="row align-items-end">
-                    <input type="hidden" name="plant" value="{{ request('plant') }}">
-                    
-                    <div class="col-lg-3 mb-2">
-                        <label class="small font-weight-bold">Pencarian</label>
-                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari..." value="{{ request('search') }}">
+            <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
+            <form action="{{ route('incoming.parts.index') }}" method="GET"
+                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
+                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncomingPart">
+                
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                
+                <!-- Field: Part (Smart Autocomplete Dropdown Search - Presisi In-Process) -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
+                    <div style="width: 210px;" class="custom-filter-wrapper">
+                        <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Item / Part No.</option>
+                            @foreach($items as $item)
+                                <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
+                                    {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
+                </div>
 
-                    <div class="col-lg-2 mb-2">
-                        <label class="small font-weight-bold">Dari Tanggal</label>
-                        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ request('start_date') }}">
-                    </div>
+                <!-- Field: Pencarian Inisial / Remarks -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
+                        placeholder="Inisial / Remarks..." value="{{ request('search') }}" style="width: 150px;">
+                </div>
 
-                    <div class="col-lg-2 mb-2">
-                        <label class="small font-weight-bold">Sampai Tanggal</label>
-                        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request('end_date') }}">
+                <!-- Range Tanggal Check -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Check:</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+                        <input type="date" name="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <span class="px-1 text-gray-500 small">-</span>
+                        <input type="date" name="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
+                </div>
 
-                    <div class="col-lg-3 mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm mr-2">
-                            <i class="fas fa-search"></i> Cari
-                        </button>
-                        <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}" class="btn btn-secondary btn-sm mr-2">
-                            <i class="fas fa-undo"></i> Reset
-                        </a>
-                        @if($canExport)
-                        <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm no-loader btn-download">
-                            <i class="fas fa-file-pdf"></i> Export
-                        </a>
-                        @endif
-                    </div>
+                <!-- Tombol Aksi -->
+                <div class="ml-auto d-flex" style="gap: 5px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
+                        <i class="fas fa-search fa-sm"></i> Cari
+                    </button>
+                    <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm"></i> Reset
+                    </a>
+                    @if($canExport)
+                    <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
+                        <i class="fas fa-file-pdf fa-sm"></i> Export PDF
+                    </a>
+                    @endif
                 </div>
             </form>
 
             <div class="table-responsive">
-                <table class="table table-bordered text-center" width="100%" cellspacing="0">
-                    <thead class="bg-light">
+                <table class="table table-hover text-center" width="100%" cellspacing="0" id="checksheetTable">
+                    <thead>
                         <tr>
                             <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Tanggal Check</th>
-                            <th rowspan="2" class="align-middle">Shift</th>
+                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Check</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Customer / Supplier</th>
+                            <th rowspan="2" class="align-middle">Qty Datang Awal</th>
+                            <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             <th rowspan="2" class="align-middle">Total Check</th>
-                            <th rowspan="2" class="align-middle">Tgl Datang</th>
+                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
-                            <th colspan="2">Detail NG</th>
+                            <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="4">Approval Status</th>
+                            <th colspan="4" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">Remarks</th>
                             <th rowspan="2" class="align-middle">Action</th>
                         </tr>
                         <tr>
-                            <th>Pcs</th>
-                            <th>Jenis NG</th>
-                            <th>KS</th>
-                            <th>SPV</th>
-                            <th>AM</th>
-                            <th>MGR</th>
+                            <th style="width: 60px;">Pcs</th>
+                            <th style="min-width: 140px;">Jenis NG</th>
+                            <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px;">Supervisor QC</th>
+                            <th style="font-size: 10px;">Asst. Manager QC</th>
+                            <th style="font-size: 10px;">Manager QC</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
                             <tr>
-                                <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">{{ date('d/m/Y', strtotime($cs->date)) }}</td>
-                                <td class="align-middle">{{ $cs->shift }}</td>
-                                <td class="align-middle">
-                                    {{ $cs->item->name }}<br>
-                                    <small class="text-muted">{{ $cs->item->part_number }}</small>
+                                <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                <td class="align-middle text-nowrap">
+                                    {{ date('d/m/Y', strtotime($cs->date)) }}
+                                    <br><small class="text-muted">Shift {{ $cs->shift }}</small>
                                 </td>
-                                <td class="align-middle">{{ $cs->total_check }}</td>
-                                <td class="align-middle">{{ $cs->tanggal_datang ? date('d/m/Y', strtotime($cs->tanggal_datang)) : '-' }}</td>
-                                <td class="align-middle text-success font-weight-bold">{{ $cs->total_check - $cs->total_ng }}</td>
-                                <td class="align-middle text-danger font-weight-bold">{{ $cs->total_ng }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $cs->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $cs->item->part_number ?? '-' }}</small>
+                                </td>
+                                
+                                {{-- Kolom Customer / Supplier --}}
+                                <td class="align-middle text-nowrap font-weight-bold text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
+
+                                {{-- Qty Kedatangan Awal --}}
+                                <td class="align-middle text-nowrap font-weight-bold">
+                                    {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
+                                </td>
+
+                                {{-- Qty Balance Sisa --}}
+                                <td class="align-middle text-nowrap">
+                                    @if($cs->arrival)
+                                        <span class="font-weight-bold {{ $cs->arrival->qty_sisa > 0 ? 'text-primary' : 'text-success' }}">
+                                            {{ number_format($cs->arrival->qty_sisa) }} pcs
+                                        </span>
+                                        <br>
+                                        <span class="badge badge-{{ $cs->arrival->status === 'OPEN' ? 'warning' : 'success' }}">
+                                            {{ $cs->arrival->status }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+
+                                {{-- Total Check --}}
+                                <td class="align-middle text-nowrap font-weight-bold">{{ number_format($cs->total_check) }} pcs</td>
+                                
+                                {{-- Tgl & Shift Datang --}}
+                                <td class="align-middle text-nowrap">
+                                    @if($cs->tanggal_datang)
+                                        {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
+                                        @if($cs->arrival && $cs->arrival->shift_datang)
+                                            <br><small class="text-muted">Shift {{ $cs->arrival->shift_datang }}</small>
+                                        @endif
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
+                                {{-- OK & NG --}}
+                                <td class="align-middle text-nowrap text-success font-weight-bold">{{ number_format($cs->total_check - $cs->total_ng) }}</td>
+                                <td class="align-middle text-nowrap text-danger font-weight-bold">{{ number_format($cs->total_ng) }}</td>
                                 
                                 @php
                                     $defects = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true);
                                 @endphp
-                                <td class="p-0 align-middle">
+                                <td class="p-0 align-middle text-nowrap">
                                     @foreach($defects ?? [] as $d)
                                         <div class="border-bottom py-1">{{ $d['qty'] ?? 0 }}</div>
                                     @endforeach
                                 </td>
-                                <td class="p-0 align-middle">
+                                <td class="p-0 align-middle text-left pl-2 text-nowrap">
                                     @foreach($defects ?? [] as $d)
                                         <div class="border-bottom py-1">{{ $d['type'] ?? '-' }}</div>
                                     @endforeach
                                 </td>
 
-                                <td class="align-middle">
-                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
+                                <td class="align-middle text-nowrap">
+                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }} px-2 py-1">
                                         {{ $cs->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
+                                <td class="align-middle text-nowrap text-uppercase font-weight-bold">{{ $cs->operator_initials }}</td>
                                 
                                 {{-- Approval Columns --}}
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
-                                    <td class="align-middle h6">
+                                    <td class="align-middle text-nowrap">
                                         @if($cs->$lvl == 'REJECTED')
                                             <span class="badge badge-danger">REJ</span>
                                         @elseif($cs->$lvl)
                                             <span class="badge badge-success">APP</span>
-                                            <br><small class="text-muted">{{ $cs->$lvl }}</small>
+                                            <br><small class="text-muted" style="font-size: 0.55rem;">{{ $cs->$lvl }}</small>
                                         @else
                                             <span class="badge badge-warning">PEN</span>
                                         @endif
                                     </td>
                                 @endforeach
 
-                                <td class="align-middle small">{{ $cs->remarks }}</td>
+                                <td class="align-middle text-left small" style="min-width: 150px; white-space: normal;">{{ $cs->remarks ?? '-' }}</td>
+
                                 <td class="align-middle text-nowrap">
                                     @if($loop->first)
                                         @include('partials.bulk_approve_button')
                                     @endif
-                                    <div class="btn-group">
-                                        {{-- Approval Actions --}}
-                                        @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <button type="button" class="btn btn-success btn-xs mx-1 approve-btn" data-id="{{ $cs->id }}" data-type="kashift">
-                                                Approve
-                                            </button>
-                                            @if($canEdit)
-                                                <a href="{{ route('incoming.parts.edit', $cs->id) }}" class="btn btn-warning btn-sm mx-1">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            @endif
-                                            @if($canDelete)
-                                                <form action="{{ route('incoming.parts.destroy', $cs->id) }}" method="POST" class="d-inline">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm mx-1" onclick="return confirm('Hapus data?')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        @endif
-                                    </div>
+                                    
+                                    {{-- Action 3-dot Dropdown Selaras In-Process --}}
+                                    @include('partials.action_dropdown', [
+                                        'canEdit'      => $canEdit,
+                                        'canDelete'    => $canDelete,
+                                        'editUrl'      => route('incoming.parts.edit', array_merge(['id' => $cs->id], request()->all())),
+                                        'deleteRoute'  => route('incoming.parts.destroy', array_merge(request()->query(), ['id' => $cs->id])),
+                                        'deleteParams' => [],
+                                        'statusUrl'    => auth()->user()->role === 'admin' && Route::has('incoming.parts.edit_approval') ? route('incoming.parts.edit_approval', array_merge(['id' => $cs->id], request()->all())) : null,
+                                    ])
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="18" class="text-center">Data tidak ditemukan.</td>
+                                <td colspan="20" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
+                                    Data checksheet tidak ditemukan.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4">
-                {{ $checksheets->withQueryString()->links() }}
+
+            <!-- Sticky Bottom Pagination Bar -->
+            <div class="pagination-container d-flex justify-content-between align-items-center mt-3">
+                <div class="small text-muted font-weight-bold">
+                    Menampilkan {{ $checksheets->firstItem() ?? 0 }} - {{ $checksheets->lastItem() ?? 0 }} dari total {{ $checksheets->total() ?? 0 }} data
+                </div>
+                <div>
+                    {{ $checksheets->withQueryString()->links() }}
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Edit Modal (Standar UI In-Process) -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document" style="max-width: 760px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                <div class="modal-header bg-white" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem;">
+                    <h5 class="modal-title text-primary font-weight-bold" id="editModalLabel">
+                        Edit Checksheet Incoming Part
+                    </h5>
+                    <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light px-4 py-4" id="editModalBody">
+                    <!-- Loaded via AJAX -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted small">Memuat data checksheet...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Smart Item Autocomplete Search Dropdown (Pattern In-Process)
+        if (typeof initItemSearch === 'function') {
+            initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+        }
+
+        // Handle SweetAlert2 Delete Confirmation (Selaras In-Process UI Standardization)
+        $(document).on('click', '.btn-delete', function (e) {
+            e.preventDefault();
+            const form = $(this).closest('form');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: 'Data checksheet Incoming Part akan dihapus!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    form.submit();
+                }
+            }
+        });
+
+        // AJAX Edit Modal Handler
+        $(document).on('click', '.btn-edit-modal', function (e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+            $('#editModal').modal('show');
+            $('#editModalBody').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted small">Memuat data checksheet...</p>
+                </div>
+            `);
+
+            $.get(url, function (data) {
+                $('#editModalBody').html(data);
+                if ($.fn.select2) {
+                    $('#editModalBody .select2').select2({ dropdownParent: $('#editModal') });
+                }
+            }).fail(function () {
+                $('#editModalBody').html(`
+                    <div class="alert alert-danger text-center mb-0">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> Gagal memuat form edit checksheet.
+                    </div>
+                `);
+            });
+        });
+    });
+</script>
+@endpush

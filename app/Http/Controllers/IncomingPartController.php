@@ -123,7 +123,7 @@ class IncomingPartController extends Controller
 
     public function edit($id)
     {
-        $checksheet = IncomingPart::findOrFail($id);
+        $checksheet = IncomingPart::with(['item', 'arrival'])->findOrFail($id);
         $items = Item::byCategory('Incoming Part')->orderBy('name')->get();
 
         if (request()->ajax()) {
@@ -147,6 +147,28 @@ class IncomingPartController extends Controller
         $this->checksheetService->deleteChecksheet($id);
         ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Part: {$itemName}");
         return redirect()->route('incoming.parts.index', $request->query())->with('success', 'Incoming Part berhasil dihapus.');
+    }
+
+    public function getArrivals(Request $request)
+    {
+        $itemId = $request->query('item_id');
+        if (!$itemId) {
+            return response()->json([]);
+        }
+
+        $arrivals = $this->checksheetService->getOutstandingArrivals($itemId);
+        return response()->json($arrivals);
+    }
+
+    public function checkFirstTimeArrival(Request $request)
+    {
+        $itemId = $request->query('item_id');
+        if (!$itemId) {
+            return response()->json(['is_first_time' => true]);
+        }
+
+        $isFirstTime = $this->checksheetService->isFirstTimeArrival($itemId);
+        return response()->json(['is_first_time' => $isFirstTime]);
     }
 
     public function exportPdf(Request $request)

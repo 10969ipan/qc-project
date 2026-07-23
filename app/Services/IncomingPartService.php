@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\IncomingPart;
+use App\Models\IncomingPartArrival;
 use App\Models\Item;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
@@ -64,25 +65,73 @@ class IncomingPartService extends BaseService
         return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
     }
 
+    public function getOutstandingArrivals($itemId)
+    {
+        return \App\Models\IncomingPartArrival::where('item_id', $itemId)
+            ->where('status', 'OPEN')
+            ->where('qty_sisa', '>', 0)
+            ->orderBy('tanggal_datang', 'asc')
+            ->orderBy('shift_datang', 'asc')
+            ->get();
+    }
+
+    public function isFirstTimeArrival($itemId)
+    {
+        $count = \App\Models\IncomingPartArrival::where('item_id', $itemId)->count();
+        if ($count > 0) {
+            return false;
+        }
+        return \App\Models\IncomingPart::where('item_id', $itemId)->whereNotNull('tanggal_datang')->count() === 0;
+    }
+
     public function createChecksheet(array $data): array
     {
         DB::beginTransaction();
         try {
             $defects = $this->processDefects($data);
+            $plantId = $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id);
+            $arrival = null;
+
+            // Handle Arrival record
+            if (!empty($data['arrival_id'])) {
+                $arrival = \App\Models\IncomingPartArrival::find($data['arrival_id']);
+            } elseif (!empty($data['tanggal_datang']) && !empty($data['qty_datang']) && (int)$data['qty_datang'] > 0) {
+                $arrival = \App\Models\IncomingPartArrival::create([
+                    'plant_id'       => $plantId,
+                    'item_id'        => $data['item_id'],
+                    'tanggal_datang' => $data['tanggal_datang'],
+                    'shift_datang'   => $data['shift_datang'] ?? '1',
+                    'qty_datang'     => (int)$data['qty_datang'],
+                    'qty_sisa'       => (int)$data['qty_datang'],
+                    'status'         => 'OPEN',
+                ]);
+            }
+
+            // Deduct sisa qty on arrival if associated
+            if ($arrival) {
+                $checkQty = (int)($data['total_check'] ?? 0);
+                $newSisa = max(0, $arrival->qty_sisa - $checkQty);
+                $arrival->qty_sisa = $newSisa;
+                if ($newSisa <= 0) {
+                    $arrival->status = 'COMPLETED';
+                }
+                $arrival->save();
+            }
 
             $checksheet = IncomingPart::create([
-                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id),
-                'item_id' => $data['item_id'],
-                'date' => $data['date'],
-                'shift' => $data['shift'],
-                'lot_qty' => $data['lot_qty'],
-                'total_check' => $data['total_check'],
-                'tanggal_datang' => $data['tanggal_datang'],
-                'judgment' => $data['judgment'],
-                'total_ng' => $data['total_ng'] ?? 0,
+                'plant_id'          => $plantId,
+                'item_id'           => $data['item_id'],
+                'arrival_id'        => $arrival ? $arrival->id : null,
+                'date'              => $data['date'],
+                'shift'             => $data['shift'],
+                'lot_qty'           => $data['lot_qty'] ?? ($arrival ? $arrival->qty_datang : 0),
+                'total_check'       => $data['total_check'],
+                'tanggal_datang'    => $data['tanggal_datang'] ?? ($arrival ? $arrival->tanggal_datang : $data['date']),
+                'judgment'          => $data['judgment'],
+                'total_ng'          => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,
-                'remarks' => $data['remarks'] ?? null,
-                'defects' => json_encode($defects),
+                'remarks'           => $data['remarks'] ?? null,
+                'defects'           => json_encode($defects),
             ]);
 
             DB::commit();
@@ -104,21 +153,36 @@ class IncomingPartService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = IncomingPart::findOrFail($id);
+            $oldTotalCheck = (int) $checksheet->total_check;
+            $newTotalCheck = (int) $data['total_check'];
+            $diffCheck = $newTotalCheck - $oldTotalCheck;
+
             $defects = $this->processDefects($data);
 
             $checksheet->update([
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
                 'shift' => $data['shift'],
-                'lot_qty' => $data['lot_qty'],
-                'total_check' => $data['total_check'],
-                'tanggal_datang' => $data['tanggal_datang'],
+                'lot_qty' => $data['lot_qty'] ?? $checksheet->lot_qty,
+                'total_check' => $newTotalCheck,
+                'tanggal_datang' => $data['tanggal_datang'] ?? $checksheet->tanggal_datang,
                 'judgment' => $data['judgment'],
                 'total_ng' => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'defects' => json_encode($defects),
             ]);
+
+            // Sync Arrival Qty Balance if arrival_id is present and check qty changed
+            if ($checksheet->arrival_id && $diffCheck !== 0) {
+                $arrival = IncomingPartArrival::find($checksheet->arrival_id);
+                if ($arrival) {
+                    $newQtySisa = $arrival->qty_sisa - $diffCheck;
+                    $arrival->qty_sisa = max(0, min($arrival->qty_datang, $newQtySisa));
+                    $arrival->status = ($arrival->qty_sisa === 0) ? 'COMPLETED' : 'OPEN';
+                    $arrival->save();
+                }
+            }
 
             DB::commit();
             return $checksheet;
@@ -131,8 +195,31 @@ class IncomingPartService extends BaseService
 
     public function deleteChecksheet(int $id): bool
     {
-        $checksheet = IncomingPart::findOrFail($id);
-        return $checksheet->delete();
+        DB::beginTransaction();
+        try {
+            $checksheet = IncomingPart::findOrFail($id);
+
+            // Sync Arrival Qty Balance if arrival_id is present
+            if ($checksheet->arrival_id) {
+                $arrival = IncomingPartArrival::find($checksheet->arrival_id);
+                if ($arrival) {
+                    $newQtySisa = $arrival->qty_sisa + (int) $checksheet->total_check;
+                    $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
+                    if ($arrival->qty_sisa > 0) {
+                        $arrival->status = 'OPEN';
+                    }
+                    $arrival->save();
+                }
+            }
+
+            $deleted = $checksheet->delete();
+            DB::commit();
+            return $deleted;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal menghapus checksheet Incoming Part', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 
     public function updateApprovalStatus(int $id, array $data): IncomingPart

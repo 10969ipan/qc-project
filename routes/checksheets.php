@@ -75,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
         // --- Incoming Routes (Input) ---
         Route::get('/checksheet/incoming-part', [IncomingPartController::class, 'create'])->name('incoming.parts.create');
         Route::post('/checksheet/incoming-part', [IncomingPartController::class, 'store'])->name('incoming.parts.store');
+        Route::get('/checksheet/incoming-part/arrivals', [IncomingPartController::class, 'getArrivals'])->name('incoming.parts.arrivals');
+        Route::get('/checksheet/incoming-part/check-first-time', [IncomingPartController::class, 'checkFirstTimeArrival'])->name('incoming.parts.check_first_time');
         Route::get('/checksheet/incoming-material', [IncomingMaterialController::class, 'create'])->name('incoming.materials.create');
         Route::post('/checksheet/incoming-material', [IncomingMaterialController::class, 'store'])->name('incoming.materials.store');
         Route::get('/checksheet/incoming-sub-part', [IncomingSubPartController::class, 'create'])->name('incoming.sub_parts.create');

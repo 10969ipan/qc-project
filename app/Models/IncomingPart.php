@@ -14,6 +14,7 @@ class IncomingPart extends Model
     protected $fillable = [
         'plant_id',
         'item_id',
+        'arrival_id',
         'date',
         'shift',
         'lot_qty',
@@ -54,5 +55,10 @@ class IncomingPart extends Model
     public function plant()
     {
         return $this->belongsTo(Plant::class);
+    }
+
+    public function arrival()
+    {
+        return $this->belongsTo(IncomingPartArrival::class, 'arrival_id');
     }
 }

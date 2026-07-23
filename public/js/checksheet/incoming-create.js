@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selected = $(this).find(':selected');
         const defects = selected.data('defects');
         updateDefectOptions(defects);
+        fetchOutstandingArrivals($(this).val());
         
         if ($(this).val()) {
             $('#addDefectBtn').show();
@@ -388,9 +389,11 @@ document.addEventListener('DOMContentLoaded', function () {
         let missingFields = [];
         
         const fieldNames = {
-            'item_id': 'Material Name',
-            'tanggal_datang': 'Tgl Datang',
-            'date': 'Tanggal Check',
+            'item_id': 'Item Part / Part Name',
+            'tanggal_datang': 'Tgl. Kedatangan Supplier',
+            'date': 'Tanggal Check QC',
+            'shift': 'Shift QC',
+            'total_check': 'Total Check',
             'lot_batch_number': 'Lot/Batch Number',
             'quantity_kg': 'Qty (Kg)',
             'komper_karung_kg': 'Komper/Karung',
@@ -398,7 +401,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'quantity': 'Quantity',
             'sampling_size_pcs': 'Sampling Size',
             'judgment': 'Judgment',
-            'operator_initials': 'QC'
+            'operator_initials': 'QC Initials'
         };
 
         form.find('input[required], select[required], textarea[required]').each(function() {
@@ -473,58 +476,288 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+        const doSubmit = function() {
+            saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
 
-        $.ajax({
-            url: form.attr('action'),
-            method: 'POST',
-            data: new FormData(this),
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if (typeof $('#global-loader').hide === 'function') {
-                    $('#global-loader').hide();
-                }
+            $.ajax({
+                url: form.attr('action'),
+                method: 'POST',
+                data: new FormData(form[0]),
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (typeof $('#global-loader').hide === 'function') {
+                        $('#global-loader').hide();
+                    }
 
-                if (response.success) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: response.message || 'Data Berhasil Disimpan',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Lihat Data',
+                            cancelButtonText: 'Tutup',
+                            reverseButtons: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = response.index_url;
+                            } else {
+                                resetState(form);
+                            }
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    if (typeof $('#global-loader').hide === 'function') {
+                        $('#global-loader').hide();
+                    }
+
+                    let errorMsg = 'Gagal menyimpan data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+
                     Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: response.message || 'Data Berhasil Disimpan',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Lihat Data',
-                        cancelButtonText: 'Tutup',
-                        reverseButtons: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = response.index_url;
-                        } else {
-                            resetState(form);
-                        }
+                        icon: 'error',
+                        title: 'Error',
+                        text: errorMsg
                     });
+                    saveBtn.prop('disabled', false).html(originalHtml);
                 }
-            },
-            error: function (xhr) {
-                if (typeof $('#global-loader').hide === 'function') {
-                    $('#global-loader').hide();
-                }
+            });
+        };
 
-                let errorMsg = 'Gagal menyimpan data.';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
-                }
+        checkFirstTimeAndConfirm(doSubmit);
+    });
 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMsg
-                });
-                saveBtn.prop('disabled', false).html(originalHtml);
+    // --- Barcode / QR Scanner Handler ---
+    $('#sapCodeInput').on('keydown input', function(e) {
+        if (e.type === 'keydown' && e.which !== 13) return;
+        let val = $(this).val().trim();
+        if (!val) return;
+        let matchedOption = null;
+
+        $('#itemSelect option').each(function() {
+            let sap = String($(this).data('sap-code') || '').trim();
+            let partNo = normalizePartNumber($(this).data('part-number') || '');
+            let name = String($(this).data('name') || '').trim().toLowerCase();
+            let searchVal = val.toLowerCase();
+            let normVal = normalizePartNumber(val);
+
+            if ((sap && sap === val) || (partNo && partNo === normVal) || (name && name.includes(searchVal))) {
+                matchedOption = $(this);
+                return false;
             }
         });
+
+        if (matchedOption) {
+            $('#itemSelect').val(matchedOption.val()).trigger('change');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Item Ditemukan',
+                    text: matchedOption.text(),
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            }
+        } else if (e.type === 'keydown' && e.which === 13) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak Ditemukan',
+                    text: 'Item Part dengan kode "' + val + '" tidak ditemukan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        }
     });
+
+    // --- Outstanding Arrivals Helper Functions & Dynamic Balance Calculation ---
+    function fetchOutstandingArrivals(itemId) {
+        if (!itemId || !window.INCOMING_PART_CONFIG || !window.INCOMING_PART_CONFIG.arrivalsUrl) {
+            $('#outstandingArrivalsWrap').addClass('d-none');
+            clearArrivalFields();
+            return;
+        }
+
+        $.ajax({
+            url: window.INCOMING_PART_CONFIG.arrivalsUrl,
+            data: { item_id: itemId },
+            success: function(arrivals) {
+                const $wrap = $('#outstandingArrivalsWrap');
+                const $tbody = $('#outstandingArrivalsBody');
+                $tbody.empty();
+
+                if (arrivals && arrivals.length > 0) {
+                    arrivals.forEach(function(arr, index) {
+                        const tgl = arr.tanggal_datang ? new Date(arr.tanggal_datang).toLocaleDateString('id-ID') : '-';
+                        const checked = index === 0 ? 'checked' : '';
+                        $tbody.append(`
+                            <tr>
+                                <td>
+                                    <input type="radio" name="arrival_radio" value="${arr.id}" data-sisa="${arr.qty_sisa}" data-tgl="${arr.tanggal_datang}" data-shift="${arr.shift_datang}" ${checked}>
+                                </td>
+                                <td>${tgl}</td>
+                                <td>Shift ${arr.shift_datang}</td>
+                                <td>${arr.qty_datang.toLocaleString('id-ID')} pcs</td>
+                                <td class="font-weight-bold text-primary">${arr.qty_sisa.toLocaleString('id-ID')} pcs</td>
+                            </tr>
+                        `);
+                    });
+
+                    if (arrivals.length > 1) {
+                        $wrap.removeClass('d-none');
+                    } else {
+                        $wrap.addClass('d-none');
+                    }
+
+                    selectArrival(arrivals[0]);
+                } else {
+                    $wrap.addClass('d-none');
+                    clearArrivalFields();
+                }
+            },
+            error: function() {
+                $('#outstandingArrivalsWrap').addClass('d-none');
+                clearArrivalFields();
+            }
+        });
+    }
+
+    function selectArrival(arr) {
+        if (!arr) return;
+        $('#arrivalIdInput').val(arr.id);
+        $('#tanggalDatangInput').val(arr.tanggal_datang || '');
+        $('#shiftDatangSelect').val(arr.shift_datang || '');
+        $('#initialBalanceInput').val(arr.qty_sisa);
+        
+        updateDynamicBalance();
+    }
+
+    function clearArrivalFields() {
+        $('#arrivalIdInput').val('');
+        $('#initialBalanceInput').val(0);
+        $('#tanggalDatangInput').val('');
+        $('#shiftDatangSelect').val('');
+        $('#qtyBalanceInput').val('');
+        $('#maxCheckHint').text('');
+        $('#totalCheckInput').removeAttr('max');
+        $('#arrivalStatusHint').text('Opsional/Lot Baru');
+    }
+
+    function updateDynamicBalance() {
+        const arrivalId = $('#arrivalIdInput').val();
+        const initialBalance = parseFloat($('#initialBalanceInput').val()) || 0;
+        const totalCheck = parseFloat($('#totalCheckInput').val()) || 0;
+
+        if (arrivalId && initialBalance > 0) {
+            const remaining = Math.max(0, initialBalance - totalCheck);
+            $('#qtyBalanceInput').val(remaining);
+            $('#maxCheckHint').text('Maks. check: ' + initialBalance.toLocaleString('id-ID') + ' pcs');
+            $('#totalCheckInput').attr('max', initialBalance);
+            $('#arrivalStatusHint').text('Kedatangan Terdaftar');
+
+            updateRemarksSelisih(initialBalance, totalCheck);
+        } else {
+            const enteredBalance = parseFloat($('#qtyBalanceInput').val()) || 0;
+            if (enteredBalance > 0 && totalCheck > 0) {
+                updateRemarksSelisih(enteredBalance, totalCheck);
+            }
+            $('#maxCheckHint').text('');
+            $('#totalCheckInput').removeAttr('max');
+            $('#arrivalStatusHint').text('Opsional/Lot Baru');
+        }
+    }
+
+    function updateRemarksSelisih(expected, actual) {
+        const $remarks = $('textarea[name="remarks"]');
+        if (!$remarks.length) return;
+
+        let currentText = $remarks.val() || '';
+        currentText = currentText.replace(/\[Selisih:[^\]]+\]\s*/gi, '').trim();
+
+        if (expected > 0 && actual > 0 && expected !== actual) {
+            const diff = actual - expected;
+            let selisihTag = '';
+            if (diff < 0) {
+                selisihTag = `[Selisih: -${Math.abs(diff)} pcs (Kurang)]`;
+            } else {
+                selisihTag = `[Selisih: +${diff} pcs (Lebih)]`;
+            }
+            $remarks.val(currentText ? `${selisihTag} ${currentText}` : selisihTag);
+        } else {
+            $remarks.val(currentText);
+        }
+    }
+
+    $(document).on('input change', '#totalCheckInput, #qtyBalanceInput', function() {
+        updateDynamicBalance();
+    });
+
+    $(document).on('change', 'input[name="arrival_radio"]', function() {
+        const arrivalId = $(this).val();
+        const sisa = $(this).data('sisa');
+        const tgl = $(this).data('tgl');
+        const shift = $(this).data('shift');
+
+        selectArrival({
+            id: arrivalId,
+            qty_sisa: sisa,
+            tanggal_datang: tgl,
+            shift_datang: shift
+        });
+    });
+
+    $('#btnResetArrivalSelection').on('click', function() {
+        $('input[name="arrival_radio"]').prop('checked', false);
+        clearArrivalFields();
+    });
+
+    function checkFirstTimeAndConfirm(callback) {
+        const itemId = $('#itemSelect').val();
+        const tglDatang = $('#tanggalDatangInput').val();
+        const qtyDatang = $('#qtyDatangInput').val();
+        const arrivalId = $('#arrivalIdInput').val();
+
+        if (!arrivalId && tglDatang && qtyDatang && parseInt(qtyDatang) > 0 && window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.checkFirstTimeUrl) {
+            $.ajax({
+                url: window.INCOMING_PART_CONFIG.checkFirstTimeUrl,
+                data: { item_id: itemId },
+                success: function(res) {
+                    if (!res.is_first_time) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan Kedatangan Berulang!',
+                            text: 'Part ini sudah pernah tercatat kedatangannya sebelumnya. Mengisi Qty Kedatangan baru akan membuat Lot Kedatangan baru.',
+                            showCancelButton: true,
+                            confirmButtonColor: '#4e73df',
+                            cancelButtonColor: '#858796',
+                            confirmButtonText: 'Ya, Buat Lot Baru & Simpan',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                callback();
+                            } else {
+                                $('#btnSubmitForm').prop('disabled', false).html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
+                            }
+                        });
+                    } else {
+                        callback();
+                    }
+                },
+                error: function() {
+                    callback();
+                }
+            });
+        } else {
+            callback();
+        }
+    }
 
     function resetState(form) {
         form[0].reset();
