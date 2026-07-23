@@ -558,8 +558,14 @@
                             @endif
                             <td class="text-center">
                                 @php
-                                    $rj = $report->result_judgment ?? '-';
-                                    $rjClass = match(strtolower($rj)) {
+                                    $rj = match($testType) {
+                                        'corrodkote' => $report->result_judgment_corrodkote ?? '-',
+                                        'cass' => $report->result_judgment_cass ?? '-',
+                                        'salt_spray' => $report->result_judgment_salt_spray ?? '-',
+                                        'porecount' => $report->result_judgment_porecount ?? '-',
+                                        default => $report->result_judgment ?? '-'
+                                    };
+                                    $rjClass = match(strtolower(trim($rj))) {
                                         'ok' => 'text-success font-weight-bold',
                                         'ng' => 'text-danger font-weight-bold',
                                         default => 'text-muted'
@@ -709,6 +715,7 @@
             <form action="" method="POST" id="formEditThickness" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="test_type" value="{{ $testType }}">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
                     <!-- Metadata Header Card -->
@@ -769,10 +776,16 @@
                         <div class="col-md-6">
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
-                                    <div class="font-weight-bold">DATA 1 (AKTUAL)
-                                    </div>
-                                    <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
-                                        STD: Cr <span id="edit_std_cr_display">-</span> | Ni <span id="edit_std_ni_display">-</span> | Cu <span id="edit_std_cu_display">-</span>
+                                    <div class="font-weight-bold">DATA 1 (AKTUAL)</div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                            STD: Cr <span id="edit_std_cr_display">-</span> | Ni <span id="edit_std_ni_display">-</span> | Cu <span id="edit_std_cu_display">-</span>
+                                        </div>
+                                        @if($testType != 'thickness')
+                                        <div class="badge badge-light border text-primary font-weight-bold shadow-sm ml-2" style="font-size: 0.75rem; padding: 4px 8px;">
+                                            THICKNESS: Cr <span id="edit_actual_cr_text">-</span> | Ni <span id="edit_actual_ni_text">-</span> | Cu <span id="edit_actual_cu_text">-</span>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="card-body p-3">
@@ -831,7 +844,7 @@
 
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="{{ $testType == 'corrodkote' ? 'result_judgment_corrodkote' : ($testType == 'cass' ? 'result_judgment_cass' : ($testType == 'salt_spray' ? 'result_judgment_salt_spray' : ($testType == 'porecount' ? 'result_judgment_porecount' : 'result_judgment'))) }}" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -849,10 +862,16 @@
                         <div class="col-md-6">
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
-                                    <div class="font-weight-bold">DATA 2
-                                    </div>
-                                    <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
-                                        STD: Cr <span id="edit_std_cr_display_2">-</span> | Ni <span id="edit_std_ni_display_2">-</span> | Cu <span id="edit_std_cu_display_2">-</span>
+                                    <div class="font-weight-bold">DATA 2</div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
+                                            STD: Cr <span id="edit_std_cr_display_2">-</span> | Ni <span id="edit_std_ni_display_2">-</span> | Cu <span id="edit_std_cu_display_2">-</span>
+                                        </div>
+                                        @if($testType != 'thickness')
+                                        <div class="badge badge-light border text-primary font-weight-bold shadow-sm ml-2" style="font-size: 0.75rem; padding: 4px 8px;">
+                                            THICKNESS: Cr <span id="edit_actual_cr_text_2">-</span> | Ni <span id="edit_actual_ni_text_2">-</span> | Cu <span id="edit_actual_cu_text_2">-</span>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="card-body p-3">
@@ -911,7 +930,7 @@
 
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment_trial" id="edit_result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="{{ $testType == 'corrodkote' ? 'result_judgment_corrodkote_trial' : ($testType == 'cass' ? 'result_judgment_cass_trial' : ($testType == 'salt_spray' ? 'result_judgment_salt_spray_trial' : ($testType == 'porecount' ? 'result_judgment_porecount_trial' : 'result_judgment_trial'))) }}" id="edit_result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1107,6 +1126,7 @@
             <form action="#" method="POST" id="formInputCorrodkote" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="test_type" value="corrodkote">
                 <input type="hidden" name="report_id" id="corrodkote_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
@@ -1194,7 +1214,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <select name="result_judgment_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1230,7 +1250,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="result_judgment_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1356,6 +1376,7 @@
             <form action="#" method="POST" id="formInputCass" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="test_type" value="cass">
                 <input type="hidden" name="report_id" id="cass_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
@@ -1439,7 +1460,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <select name="result_judgment_cass" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1471,7 +1492,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="result_judgment_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1593,6 +1614,7 @@
             <form action="#" method="POST" id="formInputSaltSpray" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="test_type" value="salt_spray">
                 <input type="hidden" name="report_id" id="salt_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
@@ -1676,7 +1698,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <select name="result_judgment_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1708,7 +1730,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="result_judgment_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1830,6 +1852,7 @@
             <form action="#" method="POST" id="formInputPorecount" enctype="multipart/form-data" novalidate>
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="test_type" value="porecount">
                 <input type="hidden" name="report_id" id="porecount_report_id">
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
@@ -1893,7 +1916,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
+                                        <select name="result_judgment_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
@@ -1921,7 +1944,7 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                        <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                        <select name="result_judgment_porecount_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>

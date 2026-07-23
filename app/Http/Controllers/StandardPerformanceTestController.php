@@ -395,7 +395,9 @@ class StandardPerformanceTestController extends Controller
                 'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
             ]);
 
-            ActivityLogger::log('created', null, "Input Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
+            $std = StandardPerformanceTest::find($request->standard_performance_test_id);
+            $partName = $std ? $std->part_name : 'Part';
+            ActivityLogger::log('created', $reportTrial, "Menambahkan Laporan Durability Plating (Data 2 Trial): {$partName} (Lot: {$request->lot_no})");
             return redirect()->back()->with('success', 'Data 2 berhasil disimpan.');
         }
 
@@ -435,10 +437,12 @@ class StandardPerformanceTestController extends Controller
             'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
         ]);
 
-        ActivityLogger::log('created', null, "Input Thickness Report (Data 1) untuk ID: {$request->standard_performance_test_id}");
+        $std = StandardPerformanceTest::find($request->standard_performance_test_id);
+        $partName = $std ? $std->part_name : 'Part';
+        ActivityLogger::log('created', $report1, "Menambahkan Laporan Durability Plating [DATA 1]: {$partName} (Lot: {$report1->lot_no})");
 
         // Always create/update Data 2 (Trial) record automatically when Data 1 is created
-        DurabilityThicknessReport::create([
+        $report2 = DurabilityThicknessReport::create([
             'standard_performance_test_id' => $request->standard_performance_test_id,
             'production_date' => $request->production_date,
             'shift' => $request->shift,
@@ -473,7 +477,7 @@ class StandardPerformanceTestController extends Controller
             'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
         ]);
 
-        ActivityLogger::log('created', null, "Input Thickness Report (Data 2 Trial) untuk ID: {$request->standard_performance_test_id}");
+        ActivityLogger::log('created', $report2, "Menambahkan Laporan Durability Plating [DATA 2]: {$partName} (Lot: {$report2->lot_no})");
 
         return redirect()->back()->with('success', 'Data Thickness (Data 1 & Data 2) berhasil disimpan.');
     }
@@ -582,6 +586,10 @@ class StandardPerformanceTestController extends Controller
                     $report->standar_jam_salt_spray_trial = $trial->standar_jam_salt_spray;
                     $report->actual_porecount_trial = $trial->actual_porecount;
                     $report->result_judgment_trial = $trial->result_judgment;
+                    $report->result_judgment_corrodkote_trial = $trial->result_judgment_corrodkote;
+                    $report->result_judgment_cass_trial = $trial->result_judgment_cass;
+                    $report->result_judgment_salt_spray_trial = $trial->result_judgment_salt_spray;
+                    $report->result_judgment_porecount_trial = $trial->result_judgment_porecount;
                     $report->description_trial = $trial->description;
                     $report->description_corrodkote_trial = $trial->description_corrodkote;
                     $report->description_cass_trial = $trial->description_cass;
@@ -649,12 +657,19 @@ class StandardPerformanceTestController extends Controller
             'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr',
             'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'aktual_corrosion', 'actual_cass_waktu', 'standar_jam_cass',
             'actual_salt_spray_waktu', 'standar_jam_salt_spray', 'actual_porecount',
-            'result_judgment', 'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek',
+            'result_judgment', 'result_judgment_corrodkote', 'result_judgment_cass', 'result_judgment_salt_spray', 'result_judgment_porecount',
+            'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek',
             'description', 'description_corrodkote', 'description_cass', 'description_salt_spray', 'description_porecount'
         ];
 
+        $testType = $request->input('test_type', $request->query('type', 'thickness'));
+
         foreach ($fields as $field) {
             if ($request->has($field)) {
+                // Protect actual thickness fields, main thickness judgment & main thickness description from being altered outside Thickness test
+                if ($testType !== 'thickness' && in_array($field, ['actual_cu', 'actual_ni', 'actual_cr', 'description', 'result_judgment'])) {
+                    continue;
+                }
                 $updateData[$field] = $request->$field;
             }
         }
@@ -688,9 +703,13 @@ class StandardPerformanceTestController extends Controller
                 'analis_id' => auth()->id(),
             ]);
 
-            if ($request->has('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
-            if ($request->has('actual_ni_trial')) $trialReport->actual_ni = $request->actual_ni_trial;
-            if ($request->has('actual_cu_trial')) $trialReport->actual_cu = $request->actual_cu_trial;
+            if ($testType === 'thickness') {
+                if ($request->has('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
+                if ($request->has('actual_ni_trial')) $trialReport->actual_ni = $request->actual_ni_trial;
+                if ($request->has('actual_cu_trial')) $trialReport->actual_cu = $request->actual_cu_trial;
+                if ($request->has('result_judgment_trial') && $request->result_judgment_trial !== '-') $trialReport->result_judgment = $request->result_judgment_trial;
+                if ($request->has('description_trial')) $trialReport->description = $request->description_trial;
+            }
 
             if ($request->has('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
             if ($request->has('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
@@ -704,11 +723,11 @@ class StandardPerformanceTestController extends Controller
 
             if ($request->has('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
 
-            if ($request->has('result_judgment_trial') && $request->result_judgment_trial !== '-') {
-                $trialReport->result_judgment = $request->result_judgment_trial;
-            }
+            if ($request->has('result_judgment_corrodkote_trial') && $request->result_judgment_corrodkote_trial !== '-') $trialReport->result_judgment_corrodkote = $request->result_judgment_corrodkote_trial;
+            if ($request->has('result_judgment_cass_trial') && $request->result_judgment_cass_trial !== '-') $trialReport->result_judgment_cass = $request->result_judgment_cass_trial;
+            if ($request->has('result_judgment_salt_spray_trial') && $request->result_judgment_salt_spray_trial !== '-') $trialReport->result_judgment_salt_spray = $request->result_judgment_salt_spray_trial;
+            if ($request->has('result_judgment_porecount_trial') && $request->result_judgment_porecount_trial !== '-') $trialReport->result_judgment_porecount = $request->result_judgment_porecount_trial;
 
-            if ($request->has('description_trial')) $trialReport->description = $request->description_trial;
             if ($request->has('description_corrodkote_trial')) $trialReport->description_corrodkote = $request->description_corrodkote_trial;
             if ($request->has('description_cass_trial')) $trialReport->description_cass = $request->description_cass_trial;
             if ($request->has('description_salt_spray_trial')) $trialReport->description_salt_spray = $request->description_salt_spray_trial;
@@ -782,7 +801,16 @@ class StandardPerformanceTestController extends Controller
                 ]);
         }
         
-        ActivityLogger::log('updated', null, "Update Report (Data 1 & Data 2) untuk ID Laporan: {$id}");
+        $std = $report->standardPerformanceTest;
+        $partName = $std ? $std->part_name : 'Part';
+        $lotNo = $report->lot_no ?: '-';
+        $dataTag = $report->is_trial ? '[DATA 2]' : '[DATA 1]';
+
+        ActivityLogger::log('updated', $report, "Memperbarui Laporan Durability Plating {$dataTag}: {$partName} (Lot: {$lotNo})");
+
+        if (isset($trialReport) && $trialReport) {
+            ActivityLogger::log('updated', $trialReport, "Memperbarui Laporan Durability Plating [DATA 2]: {$partName} (Lot: {$lotNo})");
+        }
 
         return redirect()->back()->with('success', 'Data berhasil diupdate.');
     }
@@ -837,13 +865,16 @@ class StandardPerformanceTestController extends Controller
 
     public function destroyThickness(Request $request, $id)
     {
-        $report = DurabilityThicknessReport::findOrFail($id);
+        $report = DurabilityThicknessReport::with('standardPerformanceTest')->findOrFail($id);
         $type = $request->query('type', 'thickness');
+        $std = $report->standardPerformanceTest;
+        $partName = $std ? $std->part_name : 'Part';
+        $lotNo = $report->lot_no ?: '-';
+        $typeName = ucwords(str_replace('_', ' ', $type));
         
         $this->clearTestData($report, $type);
 
-        $typeName = strtoupper(str_replace('_', ' ', $type));
-        ActivityLogger::log('deleted', null, "Hapus Data $typeName Report untuk ID Laporan: {$id}");
+        ActivityLogger::log('deleted', $report, "Menghapus data pengujian {$typeName}: {$partName} (Lot: {$lotNo})");
 
         return redirect()->back()->with('success', "Data $typeName berhasil dihapus.");
     }

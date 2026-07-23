@@ -830,7 +830,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 'kashift_qc': 'Approval Ka.Shift',
                 'supervisor_qc': 'Approval Supervisor',
                 'asst_manager_qc': 'Approval Asst. Manager',
-                'manager_qc': 'Approval Manager'
+                'manager_qc': 'Approval Manager',
+                'actual_cr': 'Aktual Cr',
+                'actual_ni': 'Aktual Ni',
+                'actual_cu': 'Aktual Cu',
+                'actual_corrodkote_waktu': 'Waktu Corrodkote',
+                'standar_jam_corrodkote': 'Std Jam Corrodkote',
+                'aktual_corrosion': 'Aktual % Corrosion',
+                'actual_cass_waktu': 'Waktu CASS',
+                'standar_jam_cass': 'Std Jam CASS',
+                'actual_salt_spray_waktu': 'Waktu Salt Spray',
+                'standar_jam_salt_spray': 'Std Jam Salt Spray',
+                'actual_porecount': 'Aktual Porecount',
+                'result_judgment': 'Result Judgment',
+                'description': 'Deskripsi Thickness',
+                'description_corrodkote': 'Deskripsi Corrodkote',
+                'description_cass': 'Deskripsi CASS',
+                'description_salt_spray': 'Deskripsi Salt Spray',
+                'description_porecount': 'Deskripsi Porecount',
+                'tgl_masuk': 'Tgl Masuk Chamber',
+                'jam_masuk': 'Jam Masuk Chamber',
+                'tgl_keluar': 'Tgl Keluar Chamber',
+                'jam_keluar': 'Jam Keluar Chamber',
+                'production_date': 'Tgl Produksi',
+                'lot_no': 'No Lot',
+                'shift': 'Shift'
             };
             if (customLabels[field]) return customLabels[field];
             return field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');

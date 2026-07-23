@@ -36,22 +36,32 @@ $(document).ready(function() {
         
         $('#edit_actual_porecount').val(item.actual_porecount);
 
-        $('#edit_result_judgment').val(item.result_judgment ?? '-');
+        let rj = item.result_judgment;
+        let rjTrial = item.result_judgment_trial;
         let desc = item.description;
         let descTrial = item.description_trial;
         if (config.testType === 'corrodkote') {
+            rj = item.result_judgment_corrodkote;
+            rjTrial = item.result_judgment_corrodkote_trial;
             desc = item.description_corrodkote;
             descTrial = item.description_corrodkote_trial;
         } else if (config.testType === 'cass') {
+            rj = item.result_judgment_cass;
+            rjTrial = item.result_judgment_cass_trial;
             desc = item.description_cass;
             descTrial = item.description_cass_trial;
         } else if (config.testType === 'salt_spray') {
+            rj = item.result_judgment_salt_spray;
+            rjTrial = item.result_judgment_salt_spray_trial;
             desc = item.description_salt_spray;
             descTrial = item.description_salt_spray_trial;
         } else if (config.testType === 'porecount') {
+            rj = item.result_judgment_porecount;
+            rjTrial = item.result_judgment_porecount_trial;
             desc = item.description_porecount;
             descTrial = item.description_porecount_trial;
         }
+        $('#edit_result_judgment').val(rj ?? '-');
         $('#edit_description').val(desc || '');
 
         // Data 2 (Trial)
@@ -71,7 +81,7 @@ $(document).ready(function() {
 
         $('#edit_actual_porecount_trial').val(item.actual_porecount_trial ?? '');
 
-        $('#edit_result_judgment_trial').val(item.result_judgment_trial ?? '-');
+        $('#edit_result_judgment_trial').val(rjTrial ?? '-');
         $('#edit_description_trial').val(descTrial || '');
 
         $('#edit_tgl_masuk').val(item.tgl_masuk);
@@ -91,6 +101,13 @@ $(document).ready(function() {
         $('#edit_std_cr_display, #edit_std_cr_display_2, #edit_std_cr_display_single').text(stdCr);
         $('#edit_std_ni_display, #edit_std_ni_display_2, #edit_std_ni_display_single').text(stdNi);
         $('#edit_std_cu_display, #edit_std_cu_display_2, #edit_std_cu_display_single').text(stdCu);
+
+        $('#edit_actual_cr_text').text(item.actual_cr || '-');
+        $('#edit_actual_ni_text').text(item.actual_ni || '-');
+        $('#edit_actual_cu_text').text(item.actual_cu || '-');
+        $('#edit_actual_cr_text_2').text(item.actual_cr_trial || '-');
+        $('#edit_actual_ni_text_2').text(item.actual_ni_trial || '-');
+        $('#edit_actual_cu_text_2').text(item.actual_cu_trial || '-');
 
         editStdCr = parseFloat(stdCr) || 0;
         editStdNi = parseFloat(stdNi) || 0;
@@ -301,14 +318,14 @@ $(document).ready(function() {
         form.find('[name="actual_corrodkote_waktu"]').val(item.actual_corrodkote_waktu && item.actual_corrodkote_waktu !== '-' ? item.actual_corrodkote_waktu : '');
         form.find('[name="standar_jam_corrodkote"]').val(item.standar_jam_corrodkote && item.standar_jam_corrodkote !== '-' ? item.standar_jam_corrodkote : ($(this).data('time') || ''));
         form.find('[name="aktual_corrosion"]').val(item.aktual_corrosion || '');
-        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="result_judgment_corrodkote"]').val(item.result_judgment_corrodkote || '');
         form.find('[name="description_corrodkote"]').val(item.description_corrodkote || '');
 
         // Data 2 Fields
         form.find('[name="actual_corrodkote_waktu_trial"]').val(item.actual_corrodkote_waktu_trial && item.actual_corrodkote_waktu_trial !== '-' ? item.actual_corrodkote_waktu_trial : '');
         form.find('[name="standar_jam_corrodkote_trial"]').val(item.standar_jam_corrodkote_trial && item.standar_jam_corrodkote_trial !== '-' ? item.standar_jam_corrodkote_trial : ($(this).data('time') || ''));
         form.find('[name="aktual_corrosion_trial"]').val(item.aktual_corrosion_trial || '');
-        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="result_judgment_corrodkote_trial"]').val(item.result_judgment_corrodkote_trial || '-');
         form.find('[name="description_corrodkote_trial"]').val(item.description_corrodkote_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
@@ -353,13 +370,13 @@ $(document).ready(function() {
         // Data 1 Fields
         form.find('[name="actual_cass_waktu"]').val(item.actual_cass_waktu && item.actual_cass_waktu !== '-' ? item.actual_cass_waktu : '');
         form.find('[name="standar_jam_cass"]').val(item.standar_jam_cass && item.standar_jam_cass !== '-' ? item.standar_jam_cass : ($(this).data('time') || ''));
-        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="result_judgment_cass"]').val(item.result_judgment_cass || '');
         form.find('[name="description_cass"]').val(item.description_cass || '');
 
         // Data 2 Fields
         form.find('[name="actual_cass_waktu_trial"]').val(item.actual_cass_waktu_trial && item.actual_cass_waktu_trial !== '-' ? item.actual_cass_waktu_trial : '');
         form.find('[name="standar_jam_cass_trial"]').val(item.standar_jam_cass_trial && item.standar_jam_cass_trial !== '-' ? item.standar_jam_cass_trial : ($(this).data('time') || ''));
-        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="result_judgment_cass_trial"]').val(item.result_judgment_cass_trial || '-');
         form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
@@ -404,13 +421,13 @@ $(document).ready(function() {
         // Data 1 Fields
         form.find('[name="actual_salt_spray_waktu"]').val(item.actual_salt_spray_waktu && item.actual_salt_spray_waktu !== '-' ? item.actual_salt_spray_waktu : '');
         form.find('[name="standar_jam_salt_spray"]').val(item.standar_jam_salt_spray && item.standar_jam_salt_spray !== '-' ? item.standar_jam_salt_spray : ($(this).data('time') || ''));
-        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="result_judgment_salt_spray"]').val(item.result_judgment_salt_spray || '');
         form.find('[name="description_salt_spray"]').val(item.description_salt_spray || '');
 
         // Data 2 Fields
         form.find('[name="actual_salt_spray_waktu_trial"]').val(item.actual_salt_spray_waktu_trial && item.actual_salt_spray_waktu_trial !== '-' ? item.actual_salt_spray_waktu_trial : '');
         form.find('[name="standar_jam_salt_spray_trial"]').val(item.standar_jam_salt_spray_trial && item.standar_jam_salt_spray_trial !== '-' ? item.standar_jam_salt_spray_trial : ($(this).data('time') || ''));
-        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="result_judgment_salt_spray_trial"]').val(item.result_judgment_salt_spray_trial || '-');
         form.find('[name="description_salt_spray_trial"]').val(item.description_salt_spray_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
@@ -448,12 +465,12 @@ $(document).ready(function() {
 
         // Data 1 Fields
         form.find('[name="actual_porecount"]').val(item.actual_porecount && item.actual_porecount !== '-' ? item.actual_porecount : '');
-        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="result_judgment_porecount"]').val(item.result_judgment_porecount || '');
         form.find('[name="description_porecount"]').val(item.description_porecount || '');
 
         // Data 2 Fields
         form.find('[name="actual_porecount_trial"]').val(item.actual_porecount_trial && item.actual_porecount_trial !== '-' ? item.actual_porecount_trial : '');
-        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="result_judgment_porecount_trial"]').val(item.result_judgment_porecount_trial || '-');
         form.find('[name="description_porecount_trial"]').val(item.description_porecount_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
@@ -717,47 +734,47 @@ $(document).ready(function() {
         let actCorr1 = parseFloat($form.find('input[name="actual_corrodkote_waktu"]').val());
         let stdCorr1 = parseFloat($form.find('input[name="standar_jam_corrodkote"]').val());
         if (!isNaN(actCorr1) && !isNaN(stdCorr1)) {
-            $form.find('select[name="result_judgment"]').val(actCorr1 >= stdCorr1 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_corrodkote"]').val(actCorr1 >= stdCorr1 ? 'OK' : 'NG');
         }
         let actCorr2 = parseFloat($form.find('input[name="actual_corrodkote_waktu_trial"]').val());
         let stdCorr2 = parseFloat($form.find('input[name="standar_jam_corrodkote_trial"]').val()) || stdCorr1;
         if (!isNaN(actCorr2) && !isNaN(stdCorr2)) {
-            $form.find('select[name="result_judgment_trial"]').val(actCorr2 >= stdCorr2 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_corrodkote_trial"]').val(actCorr2 >= stdCorr2 ? 'OK' : 'NG');
         }
 
         // 2. CASS
         let actCass1 = parseFloat($form.find('input[name="actual_cass_waktu"]').val());
         let stdCass1 = parseFloat($form.find('input[name="standar_jam_cass"]').val());
         if (!isNaN(actCass1) && !isNaN(stdCass1)) {
-            $form.find('select[name="result_judgment"]').val(actCass1 >= stdCass1 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_cass"]').val(actCass1 >= stdCass1 ? 'OK' : 'NG');
         }
         let actCass2 = parseFloat($form.find('input[name="actual_cass_waktu_trial"]').val());
         let stdCass2 = parseFloat($form.find('input[name="standar_jam_cass_trial"]').val()) || stdCass1;
         if (!isNaN(actCass2) && !isNaN(stdCass2)) {
-            $form.find('select[name="result_judgment_trial"]').val(actCass2 >= stdCass2 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_cass_trial"]').val(actCass2 >= stdCass2 ? 'OK' : 'NG');
         }
 
         // 3. Salt Spray
         let actSalt1 = parseFloat($form.find('input[name="actual_salt_spray_waktu"]').val());
         let stdSalt1 = parseFloat($form.find('input[name="standar_jam_salt_spray"]').val());
         if (!isNaN(actSalt1) && !isNaN(stdSalt1)) {
-            $form.find('select[name="result_judgment"]').val(actSalt1 >= stdSalt1 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_salt_spray"]').val(actSalt1 >= stdSalt1 ? 'OK' : 'NG');
         }
         let actSalt2 = parseFloat($form.find('input[name="actual_salt_spray_waktu_trial"]').val());
         let stdSalt2 = parseFloat($form.find('input[name="standar_jam_salt_spray_trial"]').val()) || stdSalt1;
         if (!isNaN(actSalt2) && !isNaN(stdSalt2)) {
-            $form.find('select[name="result_judgment_trial"]').val(actSalt2 >= stdSalt2 ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_salt_spray_trial"]').val(actSalt2 >= stdSalt2 ? 'OK' : 'NG');
         }
 
         // 4. Porecount
         let actPore1 = parseFloat($form.find('input[name="actual_porecount"]').val());
         let stdPoreMin = parseFloat($('#porecount_standard_min').val());
         if (!isNaN(actPore1) && !isNaN(stdPoreMin)) {
-            $form.find('select[name="result_judgment"]').val(actPore1 >= stdPoreMin ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_porecount"]').val(actPore1 >= stdPoreMin ? 'OK' : 'NG');
         }
         let actPore2 = parseFloat($form.find('input[name="actual_porecount_trial"]').val());
         if (!isNaN(actPore2) && !isNaN(stdPoreMin)) {
-            $form.find('select[name="result_judgment_trial"]').val(actPore2 >= stdPoreMin ? 'OK' : 'NG');
+            $form.find('select[name="result_judgment_porecount_trial"]').val(actPore2 >= stdPoreMin ? 'OK' : 'NG');
         }
     }
 
