@@ -37,7 +37,22 @@ $(document).ready(function() {
         $('#edit_actual_porecount').val(item.actual_porecount);
 
         $('#edit_result_judgment').val(item.result_judgment ?? '-');
-        $('#edit_description').val(item.description);
+        let desc = item.description;
+        let descTrial = item.description_trial;
+        if (config.testType === 'corrodkote') {
+            desc = item.description_corrodkote;
+            descTrial = item.description_corrodkote_trial;
+        } else if (config.testType === 'cass') {
+            desc = item.description_cass;
+            descTrial = item.description_cass_trial;
+        } else if (config.testType === 'salt_spray') {
+            desc = item.description_salt_spray;
+            descTrial = item.description_salt_spray_trial;
+        } else if (config.testType === 'porecount') {
+            desc = item.description_porecount;
+            descTrial = item.description_porecount_trial;
+        }
+        $('#edit_description').val(desc || '');
 
         // Data 2 (Trial)
         $('#edit_actual_cr_trial').val(item.actual_cr_trial ?? '');
@@ -57,7 +72,7 @@ $(document).ready(function() {
         $('#edit_actual_porecount_trial').val(item.actual_porecount_trial ?? '');
 
         $('#edit_result_judgment_trial').val(item.result_judgment_trial ?? '-');
-        $('#edit_description_trial').val(item.description_trial ?? '');
+        $('#edit_description_trial').val(descTrial || '');
 
         $('#edit_tgl_masuk').val(item.tgl_masuk);
         if (item.jam_masuk) {
@@ -255,17 +270,17 @@ $(document).ready(function() {
 
     $('.btn-input-corrodkote').click(function() {
         let item = $(this).data('item');
+        let form = $('#formInputCorrodkote');
         
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
-        $('#formInputCorrodkote').attr('action', url);
+        form.attr('action', url);
         
         $('#corrodkote_report_id').val(item.id);
         $('#corrodkote_part_name').val($(this).data('part'));
         $('#corrodkote_customer').val($(this).data('customer'));
         $('#corrodkote_std').val($(this).data('std'));
         $('#corrodkote_standard_time').val($(this).data('time'));
-        $('#corrodkote_aktual_corrosion').val(item.aktual_corrosion || '');
         $('#corrodkote_produksi').val(item.production_date);
         $('#corrodkote_shift').val(item.shift);
         if (item.lot_no) {
@@ -274,26 +289,44 @@ $(document).ready(function() {
             $('#corrodkote_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
+        // Tgl/Jam Masuk & Keluar Chamber
+        let tglM = item.tgl_masuk || item.tanggal_cek || '';
+        form.find('[name="tgl_masuk"]').val(tglM);
+        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
+        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
+        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
+        form.find('[name="tanggal_test"]').val(tglM);
 
-        // Reset Tgl/Jam Masuk & Keluar
-        $('#corrodkote_tgl_masuk, #corrodkote_jam_masuk').val('');
-        $('#corrodkote_tgl_keluar').val('');
-        $('#corrodkote_jam_keluar').val('');
+        // Data 1 Fields
+        form.find('[name="actual_corrodkote_waktu"]').val(item.actual_corrodkote_waktu && item.actual_corrodkote_waktu !== '-' ? item.actual_corrodkote_waktu : '');
+        form.find('[name="standar_jam_corrodkote"]').val(item.standar_jam_corrodkote && item.standar_jam_corrodkote !== '-' ? item.standar_jam_corrodkote : ($(this).data('time') || ''));
+        form.find('[name="aktual_corrosion"]').val(item.aktual_corrosion || '');
+        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="description_corrodkote"]').val(item.description_corrodkote || '');
+
+        // Data 2 Fields
+        form.find('[name="actual_corrodkote_waktu_trial"]').val(item.actual_corrodkote_waktu_trial && item.actual_corrodkote_waktu_trial !== '-' ? item.actual_corrodkote_waktu_trial : '');
+        form.find('[name="standar_jam_corrodkote_trial"]').val(item.standar_jam_corrodkote_trial && item.standar_jam_corrodkote_trial !== '-' ? item.standar_jam_corrodkote_trial : ($(this).data('time') || ''));
+        form.find('[name="aktual_corrosion_trial"]').val(item.aktual_corrosion_trial || '');
+        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="description_corrodkote_trial"]').val(item.description_corrodkote_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
         showEvidenceCard('corrodkote_evidence_before_preview', 'corrodkote_evidence_before_preview_wrap', 'corrodkote_evidence_before_empty', 'btn_delete_corrodkote_evidence_before', null, beforeUrl, null);
         showEvidenceCard('corrodkote_evidence_after_preview', 'corrodkote_evidence_after_preview_wrap', 'corrodkote_evidence_after_empty', 'btn_delete_corrodkote_evidence_after', null, afterUrl, null);
 
+        calculateTestAutoJudgment(form);
         $('#modalInputCorrodkote').modal('show');
     });
 
     $('.btn-input-cass').click(function() {
         let item = $(this).data('item');
+        let form = $('#formInputCass');
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
-        $('#formInputCass').attr('action', url);
+        form.attr('action', url);
 
         $('#cass_report_id').val(item.id);
         $('#cass_part_name').val($(this).data('part'));
@@ -309,26 +342,42 @@ $(document).ready(function() {
             $('#cass_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
+        // Tgl/Jam Masuk & Keluar Chamber
+        let tglM = item.tgl_masuk || item.tanggal_cek || '';
+        form.find('[name="tgl_masuk"]').val(tglM);
+        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
+        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
+        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
+        form.find('[name="tanggal_test"]').val(tglM);
 
-        // Reset Tgl/Jam Masuk & Keluar
-        $('#cass_tgl_masuk, #cass_jam_masuk').val('');
-        $('#cass_tgl_keluar').val('');
-        $('#cass_jam_keluar').val('');
+        // Data 1 Fields
+        form.find('[name="actual_cass_waktu"]').val(item.actual_cass_waktu && item.actual_cass_waktu !== '-' ? item.actual_cass_waktu : '');
+        form.find('[name="standar_jam_cass"]').val(item.standar_jam_cass && item.standar_jam_cass !== '-' ? item.standar_jam_cass : ($(this).data('time') || ''));
+        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="description_cass"]').val(item.description_cass || '');
+
+        // Data 2 Fields
+        form.find('[name="actual_cass_waktu_trial"]').val(item.actual_cass_waktu_trial && item.actual_cass_waktu_trial !== '-' ? item.actual_cass_waktu_trial : '');
+        form.find('[name="standar_jam_cass_trial"]').val(item.standar_jam_cass_trial && item.standar_jam_cass_trial !== '-' ? item.standar_jam_cass_trial : ($(this).data('time') || ''));
+        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
         showEvidenceCard('cass_evidence_before_preview', 'cass_evidence_before_preview_wrap', 'cass_evidence_before_empty', 'btn_delete_cass_evidence_before', null, beforeUrl, null);
         showEvidenceCard('cass_evidence_after_preview', 'cass_evidence_after_preview_wrap', 'cass_evidence_after_empty', 'btn_delete_cass_evidence_after', null, afterUrl, null);
 
+        calculateTestAutoJudgment(form);
         $('#modalInputCass').modal('show');
     });
 
     $('.btn-input-salt-spray').click(function() {
         let item = $(this).data('item');
+        let form = $('#formInputSaltSpray');
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
-        $('#formInputSaltSpray').attr('action', url);
+        form.attr('action', url);
 
         $('#salt_report_id').val(item.id);
         $('#salt_part_name').val($(this).data('part'));
@@ -344,26 +393,42 @@ $(document).ready(function() {
             $('#salt_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
+        // Tgl/Jam Masuk & Keluar Chamber
+        let tglM = item.tgl_masuk || item.tanggal_cek || '';
+        form.find('[name="tgl_masuk"]').val(tglM);
+        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
+        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
+        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
+        form.find('[name="tanggal_test"]').val(tglM);
 
-        // Reset Tgl/Jam Masuk & Keluar
-        $('#salt_tgl_masuk, #salt_jam_masuk').val('');
-        $('#salt_tgl_keluar').val('');
-        $('#salt_jam_keluar').val('');
+        // Data 1 Fields
+        form.find('[name="actual_salt_spray_waktu"]').val(item.actual_salt_spray_waktu && item.actual_salt_spray_waktu !== '-' ? item.actual_salt_spray_waktu : '');
+        form.find('[name="standar_jam_salt_spray"]').val(item.standar_jam_salt_spray && item.standar_jam_salt_spray !== '-' ? item.standar_jam_salt_spray : ($(this).data('time') || ''));
+        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="description_salt_spray"]').val(item.description_salt_spray || '');
+
+        // Data 2 Fields
+        form.find('[name="actual_salt_spray_waktu_trial"]').val(item.actual_salt_spray_waktu_trial && item.actual_salt_spray_waktu_trial !== '-' ? item.actual_salt_spray_waktu_trial : '');
+        form.find('[name="standar_jam_salt_spray_trial"]').val(item.standar_jam_salt_spray_trial && item.standar_jam_salt_spray_trial !== '-' ? item.standar_jam_salt_spray_trial : ($(this).data('time') || ''));
+        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="description_salt_spray_trial"]').val(item.description_salt_spray_trial || '');
 
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
         showEvidenceCard('salt_spray_evidence_before_preview', 'salt_spray_evidence_before_preview_wrap', 'salt_spray_evidence_before_empty', 'btn_delete_salt_spray_evidence_before', null, beforeUrl, null);
         showEvidenceCard('salt_spray_evidence_after_preview', 'salt_spray_evidence_after_preview_wrap', 'salt_spray_evidence_after_empty', 'btn_delete_salt_spray_evidence_after', null, afterUrl, null);
 
+        calculateTestAutoJudgment(form);
         $('#modalInputSaltSpray').modal('show');
     });
 
     $('.btn-input-porecount').click(function() {
         let item = $(this).data('item');
+        let form = $('#formInputPorecount');
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
-        $('#formInputPorecount').attr('action', url);
+        form.attr('action', url);
 
         $('#porecount_report_id').val(item.id);
         $('#porecount_part_name').val($(this).data('part'));
@@ -379,11 +444,24 @@ $(document).ready(function() {
             $('#porecount_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
+        form.find('[name="tanggal_test"]').val(item.tanggal_cek || '');
+
+        // Data 1 Fields
+        form.find('[name="actual_porecount"]').val(item.actual_porecount && item.actual_porecount !== '-' ? item.actual_porecount : '');
+        form.find('[name="result_judgment"]').val(item.result_judgment || '');
+        form.find('[name="description_porecount"]').val(item.description_porecount || '');
+
+        // Data 2 Fields
+        form.find('[name="actual_porecount_trial"]').val(item.actual_porecount_trial && item.actual_porecount_trial !== '-' ? item.actual_porecount_trial : '');
+        form.find('[name="result_judgment_trial"]').val(item.result_judgment_trial || '-');
+        form.find('[name="description_porecount_trial"]').val(item.description_porecount_trial || '');
+
         let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
         let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
         showEvidenceCard('porecount_evidence_before_preview', 'porecount_evidence_before_preview_wrap', 'porecount_evidence_before_empty', 'btn_delete_porecount_evidence_before', null, beforeUrl, null);
         showEvidenceCard('porecount_evidence_after_preview', 'porecount_evidence_after_preview_wrap', 'porecount_evidence_after_empty', 'btn_delete_porecount_evidence_after', null, afterUrl, null);
 
+        calculateTestAutoJudgment(form);
         $('#modalInputPorecount').modal('show');
     });
 
@@ -565,6 +643,67 @@ $(document).ready(function() {
         var $form = $(this).closest('.modal-content');
         if (!$form.length) { $form = $(this).closest('form'); }
         autoCalculateChamberTime($form);
+    });
+
+    // Auto calculate judgment for Data 1 and Data 2 in test modals
+    function calculateTestAutoJudgment($form) {
+        // 1. Corrodkote
+        let actCorr1 = parseFloat($form.find('input[name="actual_corrodkote_waktu"]').val());
+        let stdCorr1 = parseFloat($form.find('input[name="standar_jam_corrodkote"]').val());
+        if (!isNaN(actCorr1) && !isNaN(stdCorr1)) {
+            $form.find('select[name="result_judgment"]').val(actCorr1 >= stdCorr1 ? 'OK' : 'NG');
+        }
+        let actCorr2 = parseFloat($form.find('input[name="actual_corrodkote_waktu_trial"]').val());
+        let stdCorr2 = parseFloat($form.find('input[name="standar_jam_corrodkote_trial"]').val()) || stdCorr1;
+        if (!isNaN(actCorr2) && !isNaN(stdCorr2)) {
+            $form.find('select[name="result_judgment_trial"]').val(actCorr2 >= stdCorr2 ? 'OK' : 'NG');
+        }
+
+        // 2. CASS
+        let actCass1 = parseFloat($form.find('input[name="actual_cass_waktu"]').val());
+        let stdCass1 = parseFloat($form.find('input[name="standar_jam_cass"]').val());
+        if (!isNaN(actCass1) && !isNaN(stdCass1)) {
+            $form.find('select[name="result_judgment"]').val(actCass1 >= stdCass1 ? 'OK' : 'NG');
+        }
+        let actCass2 = parseFloat($form.find('input[name="actual_cass_waktu_trial"]').val());
+        let stdCass2 = parseFloat($form.find('input[name="standar_jam_cass_trial"]').val()) || stdCass1;
+        if (!isNaN(actCass2) && !isNaN(stdCass2)) {
+            $form.find('select[name="result_judgment_trial"]').val(actCass2 >= stdCass2 ? 'OK' : 'NG');
+        }
+
+        // 3. Salt Spray
+        let actSalt1 = parseFloat($form.find('input[name="actual_salt_spray_waktu"]').val());
+        let stdSalt1 = parseFloat($form.find('input[name="standar_jam_salt_spray"]').val());
+        if (!isNaN(actSalt1) && !isNaN(stdSalt1)) {
+            $form.find('select[name="result_judgment"]').val(actSalt1 >= stdSalt1 ? 'OK' : 'NG');
+        }
+        let actSalt2 = parseFloat($form.find('input[name="actual_salt_spray_waktu_trial"]').val());
+        let stdSalt2 = parseFloat($form.find('input[name="standar_jam_salt_spray_trial"]').val()) || stdSalt1;
+        if (!isNaN(actSalt2) && !isNaN(stdSalt2)) {
+            $form.find('select[name="result_judgment_trial"]').val(actSalt2 >= stdSalt2 ? 'OK' : 'NG');
+        }
+
+        // 4. Porecount
+        let actPore1 = parseFloat($form.find('input[name="actual_porecount"]').val());
+        let stdPoreMin = parseFloat($('#porecount_standard_min').val());
+        if (!isNaN(actPore1) && !isNaN(stdPoreMin)) {
+            $form.find('select[name="result_judgment"]').val(actPore1 >= stdPoreMin ? 'OK' : 'NG');
+        }
+        let actPore2 = parseFloat($form.find('input[name="actual_porecount_trial"]').val());
+        if (!isNaN(actPore2) && !isNaN(stdPoreMin)) {
+            $form.find('select[name="result_judgment_trial"]').val(actPore2 >= stdPoreMin ? 'OK' : 'NG');
+        }
+    }
+
+    $(document).on('keyup change input', '#modalInputCorrodkote input, #modalInputCass input, #modalInputSaltSpray input, #modalInputPorecount input', function() {
+        var $form = $(this).closest('.modal-content');
+        if (!$form.length) { $form = $(this).closest('form'); }
+        calculateTestAutoJudgment($form);
+    });
+
+    $(document).on('change input', 'input[name="tgl_masuk"]', function() {
+        var $form = $(this).closest('form');
+        $form.find('input[name="tanggal_test"]').val($(this).val());
     });
 
 });

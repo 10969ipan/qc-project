@@ -440,7 +440,7 @@
                         <th rowspan="2" class="align-middle sticky-col">Nama Part</th>
                         <th rowspan="2" class="align-middle text-center">Part No</th>
                         <th rowspan="2" class="align-middle">Customer</th>
-                        <th rowspan="2" class="align-middle">Standard Customer</th>
+                        <th rowspan="2" class="align-middle">Standard<br>Customer</th>
                         
                         @if($testType == 'thickness')
                             <th colspan="3" class="text-center th-standar">STANDARD</th>
@@ -459,18 +459,17 @@
                             <th class="text-center th-aktual">ACTUAL</th>
                         @endif
 
-                        <th rowspan="2" class="align-middle text-center">Tanggal Test</th>
-                        <th rowspan="2" class="align-middle text-center">Tgl Produksi</th>
+                        <th rowspan="2" class="align-middle text-center">Tgl<br>Produksi</th>
                         <th rowspan="2" class="align-middle text-center">Shift</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                            <th rowspan="2" class="align-middle text-center">Tgl Masuk</th>
-                            <th rowspan="2" class="align-middle text-center">Jam Masuk</th>
-                            <th rowspan="2" class="align-middle text-center">Tgl Keluar</th>
-                            <th rowspan="2" class="align-middle text-center">Jam Keluar</th>
+                            <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Tgl &amp; Jam<br>Masuk Chamber</th>
+                            <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Tgl &amp; Jam<br>Keluar Chamber</th>
+                        @else
+                            <th rowspan="2" class="align-middle text-center">Tgl Check</th>
                         @endif
                         <th rowspan="2" class="align-middle text-center">No Lot</th>
                         @if($testType == 'corrodkote')
-                        <th rowspan="2" class="align-middle text-center">Aktual % Corrosion</th>
+                        <th rowspan="2" class="align-middle text-center">Aktual<br>% Corrosion</th>
                         @endif
                         <th rowspan="2" class="align-middle text-center">Result</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
@@ -571,14 +570,27 @@
                                 <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
                             @endif
 
-                            <td class="text-center">{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}</td>
-                            <td class="text-center">{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d/m/Y') : '-' }}</td>
+                            <td class="text-center text-nowrap">{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d/m/Y') : '-' }}</td>
                             <td class="text-center">{{ $report->shift ?? '-' }}</td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
-                                <td class="text-center">{{ $report->tgl_masuk ? \Carbon\Carbon::parse($report->tgl_masuk)->format('d/m/Y') : '-' }}</td>
-                                <td class="text-center">{{ $report->jam_masuk ? \Carbon\Carbon::parse($report->jam_masuk)->format('H:i') : '-' }}</td>
-                                <td class="text-center">{{ $report->tgl_keluar ? \Carbon\Carbon::parse($report->tgl_keluar)->format('d/m/Y') : '-' }}</td>
-                                <td class="text-center">{{ $report->jam_keluar ? \Carbon\Carbon::parse($report->jam_keluar)->format('H:i') : '-' }}</td>
+                                <td class="text-center text-nowrap">
+                                    @php
+                                        $tglM = $report->tgl_masuk ? \Carbon\Carbon::parse($report->tgl_masuk)->format('d/m/Y') : ($report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-');
+                                        $jamM = $report->jam_masuk ? \Carbon\Carbon::parse($report->jam_masuk)->format('H:i') : '';
+                                    @endphp
+                                    {{ $tglM }}
+                                    @if($jamM) <br><small class="text-muted">{{ $jamM }}</small> @endif
+                                </td>
+                                <td class="text-center text-nowrap">
+                                    @php
+                                        $tglK = $report->tgl_keluar ? \Carbon\Carbon::parse($report->tgl_keluar)->format('d/m/Y') : '-';
+                                        $jamK = $report->jam_keluar ? \Carbon\Carbon::parse($report->jam_keluar)->format('H:i') : '';
+                                    @endphp
+                                    {{ $tglK }}
+                                    @if($jamK) <br><small class="text-muted">{{ $jamK }}</small> @endif
+                                </td>
+                            @else
+                                <td class="text-center text-nowrap">{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}</td>
                             @endif
                             <td class="text-center">{{ $report->lot_no ?? '-' }}</td>
                             @if($testType == 'corrodkote')
@@ -613,7 +625,19 @@
                                 </td>
                             @endif
                             <td class="text-center">{{ $report->analis ? $report->analis->name : '-' }}</td>
-                            <td class="text-center">{{ $report->description ?? '-' }}</td>
+                            <td class="text-center">
+                                @if($testType == 'corrodkote')
+                                    {{ $report->description_corrodkote ?? '-' }}
+                                @elseif($testType == 'cass')
+                                    {{ $report->description_cass ?? '-' }}
+                                @elseif($testType == 'salt_spray')
+                                    {{ $report->description_salt_spray ?? '-' }}
+                                @elseif($testType == 'porecount')
+                                    {{ $report->description_porecount ?? '-' }}
+                                @else
+                                    {{ $report->description ?? '-' }}
+                                @endif
+                            </td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
                                     @php
@@ -836,7 +860,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                        <textarea name="{{ $testType == 'corrodkote' ? 'description_corrodkote' : ($testType == 'cass' ? 'description_cass' : ($testType == 'salt_spray' ? 'description_salt_spray' : ($testType == 'porecount' ? 'description_porecount' : 'description'))) }}" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -917,7 +941,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description_trial" id="edit_description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                        <textarea name="{{ $testType == 'corrodkote' ? 'description_corrodkote_trial' : ($testType == 'cass' ? 'description_cass_trial' : ($testType == 'salt_spray' ? 'description_salt_spray_trial' : ($testType == 'porecount' ? 'description_porecount_trial' : 'description_trial'))) }}" id="edit_description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -998,7 +1022,7 @@
                             </div>
                             <div class="form-group mb-0">
                                 <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                <textarea name="description" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                                <textarea name="{{ $testType == 'corrodkote' ? 'description_corrodkote' : ($testType == 'cass' ? 'description_cass' : ($testType == 'salt_spray' ? 'description_salt_spray' : ($testType == 'porecount' ? 'description_porecount' : 'description'))) }}" id="edit_description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1128,15 +1152,11 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3 form-group mb-2">
-                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                                </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
                                     <input type="date" name="production_date" id="corrodkote_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Shift</label>
                                     <select name="shift" id="corrodkote_shift" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="1">1</option>
@@ -1144,7 +1164,7 @@
                                         <option value="3">3</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">No Lot</label>
                                     <input type="text" name="lot_no" id="corrodkote_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
@@ -1153,6 +1173,7 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="hidden" name="tanggal_test" id="corrodkote_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="corrodkote_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
@@ -1203,7 +1224,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                        <textarea name="description_corrodkote" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1238,7 +1259,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                        <textarea name="description_corrodkote_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1273,7 +1294,7 @@
                             </div>
                             <div class="form-group mb-0">
                                 <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                                <textarea name="description_corrodkote" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1327,13 +1348,6 @@
                                     <input type="file" name="evidence_after" id="input_corrodkote_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1384,15 +1398,11 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3 form-group mb-2">
-                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                                </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
                                     <input type="date" name="production_date" id="cass_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Shift</label>
                                     <select name="shift" id="cass_shift" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="1">1</option>
@@ -1400,7 +1410,7 @@
                                         <option value="3">3</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">No Lot</label>
                                     <input type="text" name="lot_no" id="cass_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
@@ -1409,6 +1419,7 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="hidden" name="tanggal_test" id="cass_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="cass_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
@@ -1455,7 +1466,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                        <textarea name="description_cass" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1486,7 +1497,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                        <textarea name="description_cass_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1517,7 +1528,7 @@
                             </div>
                             <div class="form-group mb-0">
                                 <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                                <textarea name="description_cass" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1571,13 +1582,6 @@
                                     <input type="file" name="evidence_after" id="input_cass_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1628,15 +1632,11 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3 form-group mb-2">
-                                    <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                                    <input type="date" name="tanggal_test" class="form-control form-control-sm border-0 shadow-sm" required>
-                                </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Tanggal Produksi</label>
                                     <input type="date" name="production_date" id="salt_produksi" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Shift</label>
                                     <select name="shift" id="salt_shift" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="1">1</option>
@@ -1644,7 +1644,7 @@
                                         <option value="3">3</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">No Lot</label>
                                     <input type="text" name="lot_no" id="salt_lot" class="form-control form-control-sm border-0 shadow-sm" required>
                                 </div>
@@ -1653,6 +1653,7 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
+                                    <input type="hidden" name="tanggal_test" id="salt_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="salt_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
@@ -1699,7 +1700,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                        <textarea name="description_salt_spray" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1730,7 +1731,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                        <textarea name="description_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1761,7 +1762,7 @@
                             </div>
                             <div class="form-group mb-0">
                                 <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                                <textarea name="description_salt_spray" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -1815,13 +1816,6 @@
                                     <input type="file" name="evidence_after" id="input_salt_spray_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
@@ -1920,7 +1914,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
+                                        <textarea name="description_porecount" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 1..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1947,7 +1941,7 @@
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                        <textarea name="description_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                                        <textarea name="description_porecount_trial" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1974,7 +1968,7 @@
                             </div>
                             <div class="form-group mb-0">
                                 <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
-                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
+                                <textarea name="description_porecount" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -2028,13 +2022,6 @@
                                     <input type="file" name="evidence_after" id="input_porecount_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Description</label>
-                            <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="3"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
