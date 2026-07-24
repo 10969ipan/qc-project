@@ -509,6 +509,8 @@ class StandardPerformanceTestController extends Controller
                 'standard', 'analis',
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
             ])
+            ->orderBy('created_at', 'desc');
+
         if ($request->filled('report_id')) {
             // Direct link: fetch specific report ID directly regardless of filters or empty values
             $query->where('id', $request->report_id);
