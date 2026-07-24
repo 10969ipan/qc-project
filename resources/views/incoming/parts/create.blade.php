@@ -299,33 +299,36 @@
     <!-- Card Daftar Scan Sementara (Queue List) -->
     <div class="card shadow mb-4 d-none" id="tempQueueCard">
         <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
-            <h6 class="m-0 font-weight-bold text-primary">
-                Daftar Antrean Scan Incoming Part
+            <h6 class="m-0 font-weight-bold text-gray-800">
+                Daftar Antrian Scan Incoming Part
             </h6>
-            <span class="badge badge-info px-3 py-2 font-weight-bold" id="queueBadge">0 Data</span>
+            <span class="badge badge-secondary px-3 py-2 font-weight-bold" id="queueBadge" style="font-size: 0.8rem; background-color: #eaecf4; color: #5a5c69;">0 Data</span>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered text-center mb-0" id="tempQueueTable" width="100%" cellspacing="0">
-                    <thead class="bg-light text-uppercase font-weight-bold text-secondary" style="font-size: 0.75rem;">
+                    <thead>
                         <tr>
-                            <th style="width: 45px;">No</th>
+                            <th style="width: 40px;">No</th>
                             <th>Item Part</th>
                             <th>QR Raw</th>
-                            <th>Qty Check</th>
-                            <th>Judgment</th>
-                            <th>Inisial QC</th>
-                            <th style="width: 90px;">Aksi</th>
+                            <th style="width: 140px;">Tanggal &amp; Shift Check</th>
+                            <th style="width: 100px;">Total Check</th>
+                            <th style="width: 100px;">Detail NG</th>
+                            <th style="width: 90px;">Judgment</th>
+                            <th style="width: 85px;">Inisial QC</th>
+                            <th>Remarks</th>
+                            <th style="width: 80px;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tempQueueBody" style="font-size: 0.85rem;">
+                    <tbody id="tempQueueBody">
                         <!-- Dinamik via JS -->
                     </tbody>
                     <tfoot class="bg-light font-weight-bold" style="font-size: 0.85rem;">
                         <tr>
-                            <td colspan="3" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
+                            <td colspan="4" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
                             <td id="totalQtyCheckDisplay" class="text-center font-weight-bold text-primary" style="font-size: 0.95rem;">0</td>
-                            <td colspan="3"></td>
+                            <td colspan="5"></td>
                         </tr>
                     </tfoot>
                 </table>

@@ -1302,23 +1302,39 @@ document.addEventListener('DOMContentLoaded', function () {
 
         $('#qrScannerModal').on('hidden.bs.modal', function () {
             stopQrScanner();
+            isProcessingScan = false;
         });
     }
 
+    let isProcessingScan = false;
+
     function handleQRScanned(decodedText) {
+        if (isProcessingScan) return;
+        isProcessingScan = true;
+
         playSuccessFeedback();
-        stopQrScanner();
-        $("#qrScannerModal").modal("hide");
         $("#scanMethodInput").val("camera");
 
         parseAndFillQR(decodedText, function (success) {
             if (success) {
                 unlockInputs();
-                // Otomatis membuka kembali kamera scanner untuk mempercepat proses scan berturut-turut
-                setTimeout(function () {
-                    $('#qrScannerModal').modal('show');
-                }, 350);
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    timerProgressBar: true
+                });
+                Toast.fire({
+                    icon: 'success',
+                    title: 'QR Berhasil Ditambahkan ke List!'
+                });
             }
+
+            // Cooldown 1.2 detik agar kamera siap scan QR berikutnya tanpa harus buka-tutup modal
+            setTimeout(function () {
+                isProcessingScan = false;
+            }, 1200);
         });
     }
 
@@ -1634,14 +1650,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const judgmentClass = item.judgment === 'OK' ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
             const initialsUpper = (item.operator_initials || '-').toUpperCase();
+
+            // Format Detail NG
+            let defectDetail = '-';
+            if (item.total_ng && parseInt(item.total_ng) > 0) {
+                defectDetail = `<span class="text-danger font-weight-bold">${item.total_ng} NG</span>`;
+            } else if (item.defect_types && item.defect_types.length > 0) {
+                defectDetail = `<span class="text-danger font-weight-bold">${item.defect_types.length} NG</span>`;
+            }
+
             const tr = `
                 <tr>
                     <td>${index + 1}</td>
-                    <td class="text-left font-weight-bold" style="max-width: 200px;">${item.itemNameDisplay || '-'}</td>
-                    <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 180px;">${item.qrcode || '-'}</td>
+                    <td class="text-left font-weight-bold" style="max-width: 180px;">${item.itemNameDisplay || '-'}</td>
+                    <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 160px;">${item.qrcode || '-'}</td>
+                    <td>${item.date || '-'} (Shift ${item.shift || '-'})</td>
                     <td class="font-weight-bold text-center">${qtyCheck.toLocaleString('id-ID')}</td>
+                    <td>${defectDetail}</td>
                     <td><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
                     <td>${initialsUpper}</td>
+                    <td class="text-left" style="max-width: 150px;">${item.remarks || '-'}</td>
                     <td>
                         <button type="button" class="btn btn-danger btn-xs btn-delete-queue-item" data-index="${index}" title="Hapus data">
                             <i class="fas fa-trash-alt"></i> Hapus
