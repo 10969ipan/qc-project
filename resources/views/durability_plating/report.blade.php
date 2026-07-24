@@ -511,21 +511,21 @@
                             @elseif($testType == 'corrodkote')
                                 <td class="text-center td-standar">{{ $std->corrodkote_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->corrodkote_std_max_corrosion ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_corrodkote ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_corrodkote ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_corrodkote_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_corrodkote ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_corrodkote ?? '-' }}</td>
                             @elseif($testType == 'cass')
                                 <td class="text-center td-standar">{{ $std->cass_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->cass_std_min_rn ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cass_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_cass ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_cass ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cass_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_cass ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_cass ?? '-' }}</td>
                             @elseif($testType == 'salt_spray')
                                 <td class="text-center td-standar">{{ $std->salt_spray_time ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->salt_spray_std_rusting ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_salt_spray ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_salt_spray ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_salt_spray_waktu ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_salt_spray ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->standar_jam_salt_spray ?? '-' }}</td>
                             @elseif($testType == 'porecount')
                                 <td class="text-center td-standar">{{ $std->porecount_std_min ?? '-' }}</td>
-                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
+                                <td class="text-center font-weight-bold {{ strtolower(trim($report->result_judgment_porecount ?? '')) === 'ng' ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_porecount ?? '-' }}</td>
                             @endif
 
                             <td class="text-center text-nowrap">{{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('d/m/Y') : '-' }}</td>
@@ -1145,6 +1145,17 @@
                                 <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Std. Customer / Time STD</label>
                                     <input type="text" id="corrodkote_std" class="form-control form-control-sm border-0 bg-light" readonly>
+                                </div>
+                            </div>
+
+                            <div class="row bg-light rounded p-2 mx-0 mb-2 border">
+                                <div class="col-md-6 border-right">
+                                    <span class="small font-weight-bold text-primary"><i class="fas fa-layer-group mr-1"></i> Ref Thickness Data 1:</span>
+                                    <span class="small font-weight-bold text-dark ml-2" id="corrodkote_thickness_ref_1">-</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="small font-weight-bold text-info"><i class="fas fa-layer-group mr-1"></i> Ref Thickness Data 2:</span>
+                                    <span class="small font-weight-bold text-dark ml-2" id="corrodkote_thickness_ref_2">-</span>
                                 </div>
                             </div>
 

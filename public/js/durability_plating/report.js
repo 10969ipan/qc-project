@@ -298,6 +298,16 @@ $(document).ready(function() {
         $('#corrodkote_customer').val($(this).data('customer'));
         $('#corrodkote_std').val($(this).data('std'));
         $('#corrodkote_standard_time').val($(this).data('time'));
+        
+        let cu1 = item.actual_cu || '-';
+        let ni1 = item.actual_ni || '-';
+        let cr1 = item.actual_cr || '-';
+        let cu2 = item.actual_cu_trial || '-';
+        let ni2 = item.actual_ni_trial || '-';
+        let cr2 = item.actual_cr_trial || '-';
+        $('#corrodkote_thickness_ref_1').text(`Cu: ${cu1} | Ni: ${ni1} | Cr: ${cr1}`);
+        $('#corrodkote_thickness_ref_2').text(`Cu: ${cu2} | Ni: ${ni2} | Cr: ${cr2}`);
+
         $('#corrodkote_produksi').val(item.production_date);
         $('#corrodkote_shift').val(item.shift);
         if (item.lot_no) {
@@ -659,25 +669,7 @@ $(document).ready(function() {
         });
     }
 
-    // Delete SweetAlert
-    $('.delete-form').submit(function(e) {
-        e.preventDefault();
-        let form = this;
-        Swal.fire({
-            title: 'Hapus Laporan?',
-            text: "Laporan yang dihapus tidak dapat dikembalikan!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#e74a3b',
-            cancelButtonColor: '#858796',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    });
+
 
     // Dynamically set sticky top for thead rows 2 and 3
     function fixStickyHeaderTops() {

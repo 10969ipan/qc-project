@@ -990,25 +990,6 @@
 
             $('#modalEdit').modal('show');
         });
-
-        $('#dataTable').on('click', '.btn-delete', function(e) {
-            e.preventDefault();
-            var form = $(this).closest('form');
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
         
         // Add form validation with SweetAlert
         function validateForm(formId) {

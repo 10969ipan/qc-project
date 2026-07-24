@@ -58,19 +58,30 @@ document.addEventListener('DOMContentLoaded', function () {
     // Global Delete Confirmation
     $(document).on('click', '.btn-delete', function (e) {
         e.preventDefault();
+        // ponytail: jangan stopPropagation — biarkan Bootstrap menutup dropdown via event bubbling
+
         const form = $(this).closest('form');
+        if (!form.length || form.data('swal-open')) return;
+        form.data('swal-open', true);
+
         Swal.fire({
             title: 'Apakah Anda yakin?',
             text: "Data yang dihapus tidak dapat dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            willOpen: function () {
+                // Force-close any Bootstrap 4 dropdown still open after bubbling
+                $('.dropdown-menu.show').removeClass('show');
+                $('.dropdown-toggle[aria-expanded="true"]').attr('aria-expanded', 'false');
+            }
         }).then((result) => {
+            form.data('swal-open', false);
             if (result.isConfirmed) {
-                form.submit();
+                form[0].submit();
             }
         });
     });
