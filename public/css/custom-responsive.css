@@ -608,7 +608,8 @@ footer.sticky-footer {
 /* ═══════════════════════════════════════════════════════════
    INDUSTRIAL MINIMALIST TABLE — Global (semua modul create)
    ═══════════════════════════════════════════════════════════ */
-#checksheetTable {
+#checksheetTable,
+#tempQueueTable {
     border-collapse: collapse !important;
     border-spacing: 0 !important;
     border: 1px solid #e2e8f0 !important;
@@ -617,11 +618,14 @@ footer.sticky-footer {
 }
 
 #checksheetTable td,
-#checksheetTable th {
+#checksheetTable th,
+#tempQueueTable td,
+#tempQueueTable th {
     border: 1px solid #e2e8f0 !important;
 }
 
-#checksheetTable > thead > tr > th {
+#checksheetTable > thead > tr > th,
+#tempQueueTable > thead > tr > th {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 0 !important;
@@ -640,7 +644,8 @@ footer.sticky-footer {
     white-space: nowrap !important;
 }
 
-#checksheetTable > tbody > tr > td {
+#checksheetTable > tbody > tr > td,
+#tempQueueTable > tbody > tr > td {
     border: 1px solid #e2e8f0 !important;
     vertical-align: middle !important;
     color: #334155 !important;

@@ -10,45 +10,54 @@
     .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
-    /* Style Daftar Antrian Scan (Queue Table) selaras dengan #checksheetTable */
+    /* Style Daftar Antrian Scan (Queue Table) presisi 100% selaras dengan #checksheetTable */
     #tempQueueCard {
-        border: 1px solid #e3e6f0 !important;
-        border-radius: 0.35rem !important;
-        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
     }
     #tempQueueCard .card-header {
-        background-color: #f8f9fc !important;
-        border-bottom: 1px solid #e3e6f0 !important;
+        background-color: #f8fafc !important;
+        border-bottom: 1px solid #e2e8f0 !important;
     }
     #tempQueueTable {
         border-collapse: collapse !important;
         border-spacing: 0 !important;
-        border: 1px solid #dee2e6 !important;
+        border: 1px solid #e2e8f0 !important;
         width: 100% !important;
     }
+    #tempQueueTable > thead > tr > th,
     #tempQueueTable th {
-        font-size: 0.68rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-        background-color: #f8f9fc !important;
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 105 !important;
+        background-color: #f1f5f9 !important;
         color: #475569 !important;
-        vertical-align: middle !important;
-        border: 1px solid #dee2e6 !important;
-        padding: 8px 10px !important;
         font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.2px !important;
+        padding: 8px 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
         text-align: center !important;
     }
+    #tempQueueTable > tbody > tr > td,
     #tempQueueTable td {
-        font-size: 0.75rem !important;
-        color: #334155 !important;
+        border: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        border: 1px solid #dee2e6 !important;
-        padding: 6px 10px !important;
+        color: #334155 !important;
+        font-size: 0.8rem !important;
+        padding: 8px 10px !important;
     }
     #tempQueueTable tfoot td {
-        background-color: #f8f9fc !important;
+        background-color: #f8fafc !important;
         border-top: 2px solid #cbd5e1 !important;
-        font-size: 0.75rem !important;
+        font-size: 0.8rem !important;
     }
 </style>
 @endpush

@@ -119,19 +119,32 @@ class IncomingPartService extends BaseService
             $plantId = $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id);
             $arrival = null;
 
-            // Handle Arrival record
+            // Handle Arrival record (FIFO matching based on date & shift)
             if (!empty($data['arrival_id'])) {
                 $arrival = \App\Models\IncomingPartArrival::find($data['arrival_id']);
-            } elseif (!empty($data['tanggal_datang']) && !empty($data['qty_datang']) && (int)$data['qty_datang'] > 0) {
-                $arrival = \App\Models\IncomingPartArrival::create([
-                    'plant_id'       => $plantId,
-                    'item_id'        => $data['item_id'],
-                    'tanggal_datang' => $data['tanggal_datang'],
-                    'shift_datang'   => $data['shift_datang'] ?? '1',
-                    'qty_datang'     => (int)$data['qty_datang'],
-                    'qty_sisa'       => (int)$data['qty_datang'],
-                    'status'         => 'OPEN',
-                ]);
+            } elseif (!empty($data['tanggal_datang'])) {
+                $shiftDatang = $data['shift_datang'] ?? '1';
+                // Find existing OPEN arrival for this exact date & shift
+                $existingArrival = \App\Models\IncomingPartArrival::where('plant_id', $plantId)
+                    ->where('item_id', $data['item_id'])
+                    ->where('tanggal_datang', $data['tanggal_datang'])
+                    ->where('shift_datang', $shiftDatang)
+                    ->where('status', 'OPEN')
+                    ->first();
+
+                if ($existingArrival) {
+                    $arrival = $existingArrival;
+                } elseif (!empty($data['qty_datang']) && (int)$data['qty_datang'] > 0) {
+                    $arrival = \App\Models\IncomingPartArrival::create([
+                        'plant_id'       => $plantId,
+                        'item_id'        => $data['item_id'],
+                        'tanggal_datang' => $data['tanggal_datang'],
+                        'shift_datang'   => $shiftDatang,
+                        'qty_datang'     => (int)$data['qty_datang'],
+                        'qty_sisa'       => (int)$data['qty_datang'],
+                        'status'         => 'OPEN',
+                    ]);
+                }
             }
 
             // Deduct sisa qty on arrival if associated

@@ -583,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function fetchOutstandingArrivals(itemId) {
         if (!itemId || !window.INCOMING_PART_CONFIG || !window.INCOMING_PART_CONFIG.arrivalsUrl) {
             $('#outstandingArrivalsWrap').addClass('d-none');
+            window.currentArrivalsList = [];
             clearArrivalFields();
             return;
         }
@@ -594,6 +595,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const $wrap = $('#outstandingArrivalsWrap');
                 const $tbody = $('#outstandingArrivalsBody');
                 $tbody.empty();
+                window.currentArrivalsList = arrivals || [];
 
                 if (arrivals && arrivals.length > 0) {
                     arrivals.forEach(function(arr, index) {
@@ -618,6 +620,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         $wrap.addClass('d-none');
                     }
 
+                    // Auto FIFO: Pick oldest active lot (index 0)
                     selectArrival(arrivals[0]);
                 } else {
                     $wrap.addClass('d-none');
@@ -626,10 +629,33 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             error: function() {
                 $('#outstandingArrivalsWrap').addClass('d-none');
+                window.currentArrivalsList = [];
                 clearArrivalFields();
             }
         });
     }
+
+    // Dynamic FIFO Matcher when date or shift is manually changed
+    $(document).on('change', '#tanggalDatangInput, #shiftDatangSelect', function() {
+        const currentTgl = $('#tanggalDatangInput').val();
+        const currentShift = $('#shiftDatangSelect').val();
+        
+        if (currentTgl && currentShift && window.currentArrivalsList && window.currentArrivalsList.length > 0) {
+            const matched = window.currentArrivalsList.find(a => 
+                a.tanggal_datang === currentTgl && String(a.shift_datang) === String(currentShift)
+            );
+            if (matched) {
+                $(`input[name="arrival_radio"][value="${matched.id}"]`).prop('checked', true);
+                selectArrival(matched);
+                return;
+            }
+        }
+        
+        $('input[name="arrival_radio"]').prop('checked', false);
+        $('#arrivalIdInput').val('');
+        $('#initialBalanceInput').val('0');
+        updateDynamicBalance();
+    });
 
     function selectArrival(arr) {
         if (!arr) return;
