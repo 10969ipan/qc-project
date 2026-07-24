@@ -605,12 +605,12 @@
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
                                     @php
-                                        $hasThickness = (!empty(trim($report->actual_cu)) && trim($report->actual_cu) !== '-') ||
-                                                        (!empty(trim($report->actual_ni)) && trim($report->actual_ni) !== '-') ||
-                                                        (!empty(trim($report->actual_cr)) && trim($report->actual_cr) !== '-');
+                                        // DATA 1 (is_trial=false) is always its own Thickness source
+                                        // DATA 2 (is_trial=true) has a source if data1_id is set
+                                        $thicknessId = $isTrial ? ($report->data1_id ?? null) : $report->id;
                                     @endphp
-                                    @if($hasThickness)
-                                        <a href="{{ route($isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report', ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                    @if($thicknessId)
+                                        <a href="{{ route('standard-performance-tests.report', ['report_id' => $thicknessId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
                                             <i class="fas fa-external-link-alt"></i> Data
                                         </a>
                                     @else

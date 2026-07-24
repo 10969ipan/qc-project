@@ -364,7 +364,7 @@ class StandardPerformanceTestController extends Controller
 
         // If inputting directly from Menu Data 2 (Trial)
         if ($request->boolean('is_trial')) {
-            DurabilityThicknessReport::create([
+            $reportTrial = DurabilityThicknessReport::create([
                 'standard_performance_test_id' => $request->standard_performance_test_id,
                 'production_date' => $request->production_date,
                 'shift' => $request->shift,
@@ -479,6 +479,7 @@ class StandardPerformanceTestController extends Controller
             'description_salt_spray' => $request->filled('description_salt_spray_trial') ? $request->description_salt_spray_trial : null,
             'description_porecount' => $request->filled('description_porecount_trial') ? $request->description_porecount_trial : null,
             'is_trial' => true,
+            'data1_id' => $report1->id,
             'evidence_before' => $evidenceBeforePath,
             'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
             'evidence_after' => $evidenceAfterPath,
@@ -567,10 +568,19 @@ class StandardPerformanceTestController extends Controller
         $reports = $query->paginate(10)->withQueryString();
 
         if (!$isTrial) {
+            $reportIds = $reports->pluck('id')->filter()->unique();
+
+            // ponytail: prefer data1_id (explicit pairing), fall back to lot_no for legacy rows
+            $trialReports = DurabilityThicknessReport::where('is_trial', true)
+                ->whereIn('data1_id', $reportIds)
+                ->get()
+                ->keyBy('data1_id');
+
+            // Legacy fallback: rows created before data1_id column existed
             $stdIds = $reports->pluck('standard_performance_test_id')->filter()->unique();
             $lotNos = $reports->pluck('lot_no')->filter()->unique();
-
-            $trialReports = DurabilityThicknessReport::where('is_trial', true)
+            $legacyTrials = DurabilityThicknessReport::where('is_trial', true)
+                ->whereNull('data1_id')
                 ->whereIn('standard_performance_test_id', $stdIds)
                 ->whereIn('lot_no', $lotNos)
                 ->get()
@@ -579,8 +589,9 @@ class StandardPerformanceTestController extends Controller
                 });
 
             foreach ($reports as $report) {
-                $key = $report->standard_performance_test_id . '_' . $report->lot_no;
-                $trial = $trialReports->get($key);
+                // Prefer explicit pairing, then legacy lot_no pairing
+                $trial = $trialReports->get($report->id)
+                    ?? $legacyTrials->get($report->standard_performance_test_id . '_' . $report->lot_no);
                 if ($trial) {
                     $report->actual_cr_trial = $trial->actual_cr;
                     $report->actual_ni_trial = $trial->actual_ni;
@@ -686,18 +697,32 @@ class StandardPerformanceTestController extends Controller
             $report->update($updateData);
         }
 
+        // Update analis_id on DATA 1 when submitting non-thickness test data
+        if ($testType !== 'thickness') {
+            $report->update(['analis_id' => auth()->id()]);
+        }
+
         // Update or create Data 2 record when updating Data 1
         if (!$report->is_trial) {
-            $trialReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
-                ->where('is_trial', true)
-                ->where('lot_no', $report->lot_no)
-                ->first();
+            // ponytail: prefer explicit data1_id FK, fall back to lot_no for legacy rows
+            $trialReport = DurabilityThicknessReport::where('is_trial', true)
+                ->where('data1_id', $report->id)
+                ->first()
+                ?? DurabilityThicknessReport::where('is_trial', true)
+                    ->whereNull('data1_id')
+                    ->where('standard_performance_test_id', $report->standard_performance_test_id)
+                    ->where('lot_no', $report->lot_no)
+                    ->first();
 
             if (!$trialReport) {
                 $trialReport = new DurabilityThicknessReport();
                 $trialReport->standard_performance_test_id = $report->standard_performance_test_id;
                 $trialReport->is_trial = true;
                 $trialReport->lot_no = $report->lot_no;
+                $trialReport->data1_id = $report->id;
+            } elseif (!$trialReport->data1_id) {
+                // Backfill data1_id on legacy rows on first encounter
+                $trialReport->data1_id = $report->id;
             }
 
             $trialReport->fill([
@@ -719,27 +744,28 @@ class StandardPerformanceTestController extends Controller
                 if ($request->has('description_trial')) $trialReport->description = $request->description_trial;
             }
 
-            if ($request->has('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
-            if ($request->has('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
-            if ($request->has('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;
+            // ponytail: use filled() not has() — has() returns true for empty string, overwriting saved data
+            if ($request->filled('actual_corrodkote_waktu_trial')) $trialReport->actual_corrodkote_waktu = $request->actual_corrodkote_waktu_trial;
+            if ($request->filled('standar_jam_corrodkote_trial')) $trialReport->standar_jam_corrodkote = $request->standar_jam_corrodkote_trial;
+            if ($request->filled('aktual_corrosion_trial')) $trialReport->aktual_corrosion = $request->aktual_corrosion_trial;
 
-            if ($request->has('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
-            if ($request->has('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
+            if ($request->filled('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
+            if ($request->filled('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
 
-            if ($request->has('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
-            if ($request->has('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;
+            if ($request->filled('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
+            if ($request->filled('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;
 
-            if ($request->has('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
+            if ($request->filled('actual_porecount_trial')) $trialReport->actual_porecount = $request->actual_porecount_trial;
 
-            if ($request->has('result_judgment_corrodkote_trial') && $request->result_judgment_corrodkote_trial !== '-') $trialReport->result_judgment_corrodkote = $request->result_judgment_corrodkote_trial;
-            if ($request->has('result_judgment_cass_trial') && $request->result_judgment_cass_trial !== '-') $trialReport->result_judgment_cass = $request->result_judgment_cass_trial;
-            if ($request->has('result_judgment_salt_spray_trial') && $request->result_judgment_salt_spray_trial !== '-') $trialReport->result_judgment_salt_spray = $request->result_judgment_salt_spray_trial;
-            if ($request->has('result_judgment_porecount_trial') && $request->result_judgment_porecount_trial !== '-') $trialReport->result_judgment_porecount = $request->result_judgment_porecount_trial;
+            if ($request->filled('result_judgment_corrodkote_trial') && $request->result_judgment_corrodkote_trial !== '-') $trialReport->result_judgment_corrodkote = $request->result_judgment_corrodkote_trial;
+            if ($request->filled('result_judgment_cass_trial') && $request->result_judgment_cass_trial !== '-') $trialReport->result_judgment_cass = $request->result_judgment_cass_trial;
+            if ($request->filled('result_judgment_salt_spray_trial') && $request->result_judgment_salt_spray_trial !== '-') $trialReport->result_judgment_salt_spray = $request->result_judgment_salt_spray_trial;
+            if ($request->filled('result_judgment_porecount_trial') && $request->result_judgment_porecount_trial !== '-') $trialReport->result_judgment_porecount = $request->result_judgment_porecount_trial;
 
-            if ($request->has('description_corrodkote_trial')) $trialReport->description_corrodkote = $request->description_corrodkote_trial;
-            if ($request->has('description_cass_trial')) $trialReport->description_cass = $request->description_cass_trial;
-            if ($request->has('description_salt_spray_trial')) $trialReport->description_salt_spray = $request->description_salt_spray_trial;
-            if ($request->has('description_porecount_trial')) $trialReport->description_porecount = $request->description_porecount_trial;
+            if ($request->filled('description_corrodkote_trial')) $trialReport->description_corrodkote = $request->description_corrodkote_trial;
+            if ($request->filled('description_cass_trial')) $trialReport->description_cass = $request->description_cass_trial;
+            if ($request->filled('description_salt_spray_trial')) $trialReport->description_salt_spray = $request->description_salt_spray_trial;
+            if ($request->filled('description_porecount_trial')) $trialReport->description_porecount = $request->description_porecount_trial;
 
             $trialReport->save();
         }
