@@ -177,6 +177,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/incoming-export', [IncomingExportController::class, 'index'])->name('incoming.exports.index');
         Route::get('/report/incoming-chemical', [IncomingChemicalController::class, 'index'])->name('incoming.chemicals.index');
         Route::get('/report/incoming-part/export-pdf', [IncomingPartController::class, 'exportPdf'])->name('incoming.parts.export_pdf');
+        Route::get('/report/incoming-part/print', [IncomingPartController::class, 'printView'])->name('incoming.parts.print');
         Route::get('/report/incoming-material/export-pdf', [IncomingMaterialController::class, 'exportPdf'])->name('incoming.materials.export_pdf');
         Route::get('/report/incoming-material/{id}/edit-approval', [IncomingMaterialController::class, 'editApproval'])->name('admin.incoming.materials.edit_approval');
         Route::put('/report/incoming-material/{id}/update-approval', [IncomingMaterialController::class, 'updateApproval'])->name('admin.incoming.materials.update_approval');

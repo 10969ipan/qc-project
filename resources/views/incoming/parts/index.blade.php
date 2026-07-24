@@ -157,8 +157,12 @@
     </div>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Part</h6>
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            @if(request('view_mode') === 'verifikasi')
+                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-2"></i>Data Hasil Verifikasi Incoming Part</h6>
+            @else
+                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Part</h6>
+            @endif
         </div>
         <div class="card-body">
             <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
@@ -167,6 +171,12 @@
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncomingPart">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @if(request()->has('view_mode'))
+                    <input type="hidden" name="view_mode" value="{{ request('view_mode') }}">
+                @endif
+                @if(request()->has('entry_method'))
+                    <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
+                @endif
                 
                 <!-- Field: Part (Smart Autocomplete Dropdown Search - Presisi In-Process) -->
                 <div class="d-flex align-items-center">
@@ -205,16 +215,35 @@
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i> Cari
+                        <i class="fas fa-search fa-sm"></i>
                     </button>
                     <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i> Reset
+                        <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if(request('view_mode') !== 'verifikasi')
+                        <a href="{{ route('incoming.parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'qr', 'plant' => request('plant')])) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
+                            style="background-color: #6f42c1; color: white;">
+                            <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
+                        </a>
+                    @else
+                        <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
+                            style="background-color: #6c757d; color: white;">
+                            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
+                        </a>
+                    @endif
                     @if($canExport)
                     <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i> Export PDF
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a>
+                    <a href="{{ route('incoming.parts.print', request()->query()) }}"
+                        target="_blank"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Laporan"
+                        style="background-color: #17a589; color: white;">
+                        <i class="fas fa-print fa-sm"></i>
                     </a>
                     @endif
                 </div>
@@ -225,6 +254,9 @@
                     <thead>
                         <tr>
                             <th rowspan="2" class="align-middle">No</th>
+                            @if(request('view_mode') === 'verifikasi')
+                                <th rowspan="2" class="align-middle">QR-Code</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Check</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
@@ -254,6 +286,23 @@
                         @forelse($checksheets as $cs)
                             <tr>
                                 <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                @if(request('view_mode') === 'verifikasi')
+                                    <td class="align-middle text-nowrap">
+                                        @if(!empty($cs->qrcode) || !empty($cs->unique_code_id) || in_array($cs->scan_method, ['hardware', 'camera']))
+                                            <button type="button" class="btn btn-sm btn-primary shadow-sm btn-qr-detail py-1 px-2" 
+                                                data-qr="{{ $cs->qrcode }}"
+                                                data-part="{{ $cs->part_code }}"
+                                                data-supplier="{{ $cs->supplier_id }}"
+                                                data-qty="{{ $cs->quantity }}"
+                                                data-unique="{{ $cs->unique_code_id }}"
+                                                data-sap="{{ $cs->sap_code ?? '-' }}">
+                                                <i class="fas fa-qrcode mr-1"></i> Traceability
+                                            </button>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td class="align-middle text-nowrap">
                                     {{ date('d/m/Y', strtotime($cs->date)) }}
                                     <br><small class="text-muted">Shift {{ $cs->shift }}</small>
@@ -382,6 +431,53 @@
         </div>
     </div>
 
+    <!-- QR Code Traceability Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                <div class="modal-header bg-primary text-white" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold" id="qrModalLabel">
+                        <i class="fas fa-qrcode mr-2"></i> Traceability QR Code
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <table class="table table-bordered table-striped bg-white shadow-sm mb-0">
+                        <tr>
+                            <th style="width: 30%" class="bg-light text-dark font-weight-bold">QR Raw</th>
+                            <td id="modal-qr-raw" style="word-break: break-all; font-family: monospace;" class="text-primary font-weight-bold"></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light text-dark font-weight-bold">Part Code</th>
+                            <td id="modal-qr-part" class="font-weight-bold"></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light text-dark font-weight-bold">Supplier ID</th>
+                            <td id="modal-qr-supplier"></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light text-dark font-weight-bold">Qty</th>
+                            <td id="modal-qr-qty" class="font-weight-bold text-success"></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light text-dark font-weight-bold">Unique ID</th>
+                            <td id="modal-qr-unique" class="font-weight-bold text-info"></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light text-dark font-weight-bold">SAP Code</th>
+                            <td id="modal-qr-sap"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer bg-white" style="border-radius: 0 0 12px 12px;">
+                    <button type="button" class="btn btn-secondary px-4 shadow-sm" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Modal (Standar UI In-Process) -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document" style="max-width: 760px;">
@@ -420,6 +516,25 @@
         if (typeof initItemSearch === 'function') {
             initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
         }
+
+        // Traceability QR Code Modal Handler
+        $(document).on('click', '.btn-qr-detail', function () {
+            const qr = $(this).data('qr') || '-';
+            const part = $(this).data('part') || '-';
+            const supplier = $(this).data('supplier') || '-';
+            const qty = $(this).data('qty') || '-';
+            const unique = $(this).data('unique') || '-';
+            const sap = $(this).data('sap') || '-';
+
+            $('#modal-qr-raw').text(qr);
+            $('#modal-qr-part').text(part);
+            $('#modal-qr-supplier').text(supplier);
+            $('#modal-qr-qty').text(qty);
+            $('#modal-qr-unique').text(unique);
+            $('#modal-qr-sap').text(sap);
+
+            $('#qrModal').modal('show');
+        });
 
         // Handle SweetAlert2 Delete Confirmation (Selaras In-Process UI Standardization)
         $(document).on('click', '.btn-delete', function (e) {

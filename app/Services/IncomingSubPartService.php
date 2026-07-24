@@ -53,6 +53,31 @@ class IncomingSubPartService extends BaseService
             });
         }
 
+        if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
+            $query->where(function ($q) {
+                $q->whereNotNull('qrcode')
+                  ->orWhereNotNull('unique_code_id')
+                  ->orWhereIn('scan_method', ['hardware', 'camera']);
+            });
+        } elseif (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'qr') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('qrcode')
+                      ->orWhereNotNull('unique_code_id')
+                      ->orWhereIn('scan_method', ['hardware', 'camera']);
+                });
+            } elseif ($filters['entry_method'] === 'manual') {
+                $query->where(function ($q) {
+                    $q->whereNull('qrcode')
+                      ->whereNull('unique_code_id')
+                      ->where(function ($sub) {
+                          $sub->whereNull('scan_method')
+                              ->orWhere('scan_method', 'manual');
+                      });
+                });
+            }
+        }
+
         if (!empty($filters['id'])) {
             $query->where($query->getModel()->getTable() . '.id', $filters['id']);
         }

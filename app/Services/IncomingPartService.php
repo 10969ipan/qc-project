@@ -49,8 +49,35 @@ class IncomingPartService extends BaseService
                 $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
                     $itemQuery->where('name', 'like', "%{$searchTerm}%")
                         ->orWhere('part_number', 'like', "%{$searchTerm}%");
-                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
+                })->orWhere('operator_initials', 'like', "%{$searchTerm}%")
+                  ->orWhere('qrcode', 'like', "%{$searchTerm}%")
+                  ->orWhere('unique_code_id', 'like', "%{$searchTerm}%");
             });
+        }
+
+        if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
+            $query->where(function ($q) {
+                $q->whereNotNull('qrcode')
+                  ->orWhereNotNull('unique_code_id')
+                  ->orWhereIn('scan_method', ['hardware', 'camera']);
+            });
+        } elseif (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'qr') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('qrcode')
+                      ->orWhereNotNull('unique_code_id')
+                      ->orWhereIn('scan_method', ['hardware', 'camera']);
+                });
+            } elseif ($filters['entry_method'] === 'manual') {
+                $query->where(function ($q) {
+                    $q->whereNull('qrcode')
+                      ->whereNull('unique_code_id')
+                      ->where(function ($sub) {
+                          $sub->whereNull('scan_method')
+                              ->orWhere('scan_method', 'manual');
+                      });
+                });
+            }
         }
 
         if (!empty($filters['id'])) {
@@ -132,6 +159,14 @@ class IncomingPartService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks'           => $data['remarks'] ?? null,
                 'defects'           => json_encode($defects),
+                'part_code'         => $data['part_code'] ?? null,
+                'supplier_id'       => $data['supplier_id'] ?? null,
+                'quantity'          => $data['quantity'] ?? null,
+                'unique_code_id'    => $data['unique_code_id'] ?? null,
+                'sap_code'          => $data['sap_code'] ?? null,
+                'scan_method'       => $data['scan_method'] ?? 'manual',
+                'qrcode'            => $data['qrcode'] ?? null,
+                'cycle_time'        => $data['cycle_time'] ?? null,
             ]);
 
             DB::commit();

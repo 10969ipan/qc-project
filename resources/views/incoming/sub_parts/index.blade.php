@@ -154,8 +154,12 @@
     </div>
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Sub-Part</h6>
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            @if(request('view_mode') === 'verifikasi')
+                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-2"></i>Data Hasil Verifikasi Incoming Sub-Part</h6>
+            @else
+                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Sub-Part</h6>
+            @endif
         </div>
         <div class="card-body">
             <form action="{{ route('incoming.sub_parts.index') }}" method="GET"
@@ -163,6 +167,12 @@
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncoming">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @if(request()->has('view_mode'))
+                    <input type="hidden" name="view_mode" value="{{ request('view_mode') }}">
+                @endif
+                @if(request()->has('entry_method'))
+                    <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
+                @endif
 
                 <!-- Field: Part -->
                 <div class="d-flex align-items-center">
@@ -218,6 +228,19 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @if(request('view_mode') !== 'verifikasi')
+                        <a href="{{ route('incoming.sub_parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'qr', 'plant' => request('plant')])) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
+                            style="background-color: #6f42c1; color: white;">
+                            <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
+                        </a>
+                    @else
+                        <a href="{{ route('incoming.sub_parts.index', ['plant' => request('plant')]) }}"
+                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
+                            style="background-color: #6c757d; color: white;">
+                            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
+                        </a>
+                    @endif
                     @if($canExport)
                     <a href="{{ route('incoming.sub_parts.export_pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">

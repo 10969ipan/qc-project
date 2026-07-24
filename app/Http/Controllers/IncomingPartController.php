@@ -64,7 +64,7 @@ class IncomingPartController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Part')->orderBy('name')->get();
 
@@ -190,5 +190,24 @@ class IncomingPartController extends Controller
             ->setPaper('a4', 'landscape');
 
         return $pdf->download('Incoming_Part_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function printView(Request $request)
+    {
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
+        $query = $this->checksheetService->buildFilteredQuery($filters)->latest();
+
+        if ($request->has('page')) {
+            $checksheets = $query->paginate(10)->getCollection();
+        } else {
+            $checksheets = $query->limit(50)->get();
+        }
+
+        $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
+        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
+
+        return view('incoming.parts.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
 }
