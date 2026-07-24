@@ -4,30 +4,45 @@
 
 $(document).ready(function () {
     // Initialize DataTable
-    if ($.fn.DataTable) {
-        $('#dataTable').DataTable({
-            dom: "<'row px-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-                "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
-                "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                infoEmpty: "Showing 0 to 0 of 0 entries",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "First",
-                    last: "Last",
-                    next: "Next",
-                    previous: "Previous"
+    if ($.fn.DataTable && $('#dataTable').length) {
+        try {
+            $('#dataTable').DataTable({
+                dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+                    "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    zeroRecords: "Tidak ada data hasil verifikasi",
+                    emptyTable: "Tidak ada data hasil verifikasi",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    }
+                },
+                initComplete: function(settings, json) {
+                    $('#tableLoader').hide();
+                    $('#tableContainer').fadeIn(300);
                 }
-            },
-            initComplete: function(settings, json) {
-                $('#tableLoader').hide();
-                $('#tableContainer').fadeIn(300);
-            }
-        });
+            });
+        } catch (e) {
+            console.error('DataTables init error:', e);
+            $('#tableLoader').hide();
+            $('#tableContainer').show();
+        }
     }
+
+    // Safety fallback to hide loader and show container if loader is still visible
+    setTimeout(function() {
+        if ($('#tableLoader').is(':visible')) {
+            $('#tableLoader').hide();
+            $('#tableContainer').fadeIn(300);
+        }
+    }, 400);
 
     // PDF Modal
     $('#pdfModal').on('show.bs.modal', function (event) {

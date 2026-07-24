@@ -284,6 +284,7 @@
                         <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
                         <div style="width: 85px;">
                             <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="all" {{ $year == 'all' ? 'selected' : '' }}>Semua</option>
                                 @foreach($availableYears as $ay)
                                     <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
                                 @endforeach
