@@ -145,36 +145,6 @@
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
                 <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
 
-                <!-- Outstanding Arrivals Selector (Jika Terdapat Banyak Active Lot) -->
-                <div id="outstandingArrivalsWrap" class="mb-3 d-none">
-                    <div class="alert alert-info border-left-info shadow-sm py-2 px-3 mb-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small font-weight-bold text-gray-800">
-                                <i class="fas fa-boxes mr-1"></i> Pilih Lot Kedatangan Belum Selesai (Outstanding)
-                            </span>
-                            <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold p-1 py-0" id="btnResetArrivalSelection">
-                                <i class="fas fa-plus-circle mr-1"></i> Input Lot Baru
-                            </button>
-                        </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered bg-white shadow-sm" id="outstandingArrivalsTable">
-                            <thead class="bg-light small font-weight-bold text-gray-700 text-center">
-                                <tr>
-                                    <th style="width: 40px;">Pilih</th>
-                                    <th>Tgl. Kedatangan Supplier</th>
-                                    <th>Shift Kedatangan Supplier</th>
-                                    <th>Qty Kedatangan Awal</th>
-                                    <th>Sisa Qty Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody class="small text-center" id="outstandingArrivalsBody">
-                                <!-- Populated via JS AJAX -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <!-- Main Checksheet Table (Combined Tgl & Shift Kedatangan) -->
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">

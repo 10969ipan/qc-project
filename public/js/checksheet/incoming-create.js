@@ -579,10 +579,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- Outstanding Arrivals Helper Functions & Dynamic Balance Calculation ---
+    // --- Silent Auto FIFO Lot Selection & Dynamic Balance Calculation ---
     function fetchOutstandingArrivals(itemId) {
         if (!itemId || !window.INCOMING_PART_CONFIG || !window.INCOMING_PART_CONFIG.arrivalsUrl) {
-            $('#outstandingArrivalsWrap').addClass('d-none');
             window.currentArrivalsList = [];
             clearArrivalFields();
             return;
@@ -592,50 +591,23 @@ document.addEventListener('DOMContentLoaded', function () {
             url: window.INCOMING_PART_CONFIG.arrivalsUrl,
             data: { item_id: itemId },
             success: function(arrivals) {
-                const $wrap = $('#outstandingArrivalsWrap');
-                const $tbody = $('#outstandingArrivalsBody');
-                $tbody.empty();
                 window.currentArrivalsList = arrivals || [];
 
                 if (arrivals && arrivals.length > 0) {
-                    arrivals.forEach(function(arr, index) {
-                        const tgl = arr.tanggal_datang ? new Date(arr.tanggal_datang).toLocaleDateString('id-ID') : '-';
-                        const checked = index === 0 ? 'checked' : '';
-                        $tbody.append(`
-                            <tr>
-                                <td>
-                                    <input type="radio" name="arrival_radio" value="${arr.id}" data-sisa="${arr.qty_sisa}" data-tgl="${arr.tanggal_datang}" data-shift="${arr.shift_datang}" ${checked}>
-                                </td>
-                                <td>${tgl}</td>
-                                <td>Shift ${arr.shift_datang}</td>
-                                <td>${arr.qty_datang.toLocaleString('id-ID')} pcs</td>
-                                <td class="font-weight-bold text-primary">${arr.qty_sisa.toLocaleString('id-ID')} pcs</td>
-                            </tr>
-                        `);
-                    });
-
-                    if (arrivals.length > 1) {
-                        $wrap.removeClass('d-none');
-                    } else {
-                        $wrap.addClass('d-none');
-                    }
-
                     // Auto FIFO: Pick oldest active lot (index 0)
                     selectArrival(arrivals[0]);
                 } else {
-                    $wrap.addClass('d-none');
                     clearArrivalFields();
                 }
             },
             error: function() {
-                $('#outstandingArrivalsWrap').addClass('d-none');
                 window.currentArrivalsList = [];
                 clearArrivalFields();
             }
         });
     }
 
-    // Dynamic FIFO Matcher when date or shift is manually changed
+    // Dynamic FIFO Matcher when date or shift is manually changed by operator
     $(document).on('change', '#tanggalDatangInput, #shiftDatangSelect', function() {
         const currentTgl = $('#tanggalDatangInput').val();
         const currentShift = $('#shiftDatangSelect').val();
@@ -645,13 +617,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 a.tanggal_datang === currentTgl && String(a.shift_datang) === String(currentShift)
             );
             if (matched) {
-                $(`input[name="arrival_radio"][value="${matched.id}"]`).prop('checked', true);
                 selectArrival(matched);
                 return;
             }
         }
         
-        $('input[name="arrival_radio"]').prop('checked', false);
         $('#arrivalIdInput').val('');
         $('#initialBalanceInput').val('0');
         updateDynamicBalance();
@@ -725,25 +695,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $(document).on('input change', '#totalCheckInput, #qtyBalanceInput', function() {
         updateDynamicBalance();
-    });
-
-    $(document).on('change', 'input[name="arrival_radio"]', function() {
-        const arrivalId = $(this).val();
-        const sisa = $(this).data('sisa');
-        const tgl = $(this).data('tgl');
-        const shift = $(this).data('shift');
-
-        selectArrival({
-            id: arrivalId,
-            qty_sisa: sisa,
-            tanggal_datang: tgl,
-            shift_datang: shift
-        });
-    });
-
-    $('#btnResetArrivalSelection').on('click', function() {
-        $('input[name="arrival_radio"]').prop('checked', false);
-        clearArrivalFields();
     });
 
     function checkFirstTimeAndConfirm(callback) {
