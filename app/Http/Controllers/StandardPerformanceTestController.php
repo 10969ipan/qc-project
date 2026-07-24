@@ -509,52 +509,53 @@ class StandardPerformanceTestController extends Controller
                 'standard', 'analis',
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
             ])
-            ->where('is_trial', $isTrial)
-            ->orderBy('created_at', 'desc');
-
-        // Hanya tampilkan baris yang benar-benar memiliki data aktual untuk jenis tes ini
-        $query->where(function ($q) use ($testType) {
-            if ($testType === 'thickness') {
-                $q->where(function($sub) {
-                    $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
-                        ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
-                        ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
-                });
-            } elseif ($testType === 'corrodkote') {
-                $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
-            } elseif ($testType === 'cass') {
-                $q->whereNotNull('standar_jam_cass')->where('standar_jam_cass', '!=', '')->where('standar_jam_cass', '!=', '-');
-            } elseif ($testType === 'salt_spray') {
-                $q->whereNotNull('standar_jam_salt_spray')->where('standar_jam_salt_spray', '!=', '')->where('standar_jam_salt_spray', '!=', '-');
-            } elseif ($testType === 'porecount') {
-                $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
-            }
-        });
-        
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('standard', function($q) use ($search) {
-                $q->where('part_name', 'like', "%$search%")
-                  ->orWhere('customer_name', 'like', "%$search%");
-            });
-        }
-        if ($request->filled('customer_name')) {
-            $customerName = $request->customer_name;
-            $query->whereHas('standard', function($q) use ($customerName) {
-                $q->where('customer_name', $customerName);
-            });
-        }
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal_cek', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal_cek', '<=', $request->end_date);
-        }
-        if ($request->filled('result_judgment')) {
-            $query->where('result_judgment', $request->result_judgment);
-        }
         if ($request->filled('report_id')) {
+            // Direct link: fetch specific report ID directly regardless of filters or empty values
             $query->where('id', $request->report_id);
+        } else {
+            $query->where('is_trial', $isTrial);
+
+            // Hanya tampilkan baris yang benar-benar memiliki data aktual untuk jenis tes ini
+            $query->where(function ($q) use ($testType) {
+                if ($testType === 'thickness') {
+                    $q->where(function($sub) {
+                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
+                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
+                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
+                    });
+                } elseif ($testType === 'corrodkote') {
+                    $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
+                } elseif ($testType === 'cass') {
+                    $q->whereNotNull('standar_jam_cass')->where('standar_jam_cass', '!=', '')->where('standar_jam_cass', '!=', '-');
+                } elseif ($testType === 'salt_spray') {
+                    $q->whereNotNull('standar_jam_salt_spray')->where('standar_jam_salt_spray', '!=', '')->where('standar_jam_salt_spray', '!=', '-');
+                } elseif ($testType === 'porecount') {
+                    $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
+                }
+            });
+            
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->whereHas('standard', function($q) use ($search) {
+                    $q->where('part_name', 'like', "%$search%")
+                      ->orWhere('customer_name', 'like', "%$search%");
+                });
+            }
+            if ($request->filled('customer_name')) {
+                $customerName = $request->customer_name;
+                $query->whereHas('standard', function($q) use ($customerName) {
+                    $q->where('customer_name', $customerName);
+                });
+            }
+            if ($request->filled('start_date')) {
+                $query->whereDate('tanggal_cek', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('tanggal_cek', '<=', $request->end_date);
+            }
+            if ($request->filled('result_judgment')) {
+                $query->where('result_judgment', $request->result_judgment);
+            }
         }
         
         if ($request->has('print')) {

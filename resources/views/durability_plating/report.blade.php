@@ -616,17 +616,11 @@
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
                                     @php
-                                        // DATA 1 (is_trial=false) is always its own Thickness source
-                                        // DATA 2 (is_trial=true) has a source if data1_id is set
-                                        $thicknessId = $isTrial ? ($report->data1_id ?? null) : $report->id;
+                                        $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
                                     @endphp
-                                    @if($thicknessId)
-                                        <a href="{{ route('standard-performance-tests.report', ['report_id' => $thicknessId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
-                                            <i class="fas fa-external-link-alt"></i> Data
-                                        </a>
-                                    @else
-                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">Tidak ada data</span>
-                                    @endif
+                                    <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                        <i class="fas fa-external-link-alt"></i> Data
+                                    </a>
                                 </td>
                             @endif
 
