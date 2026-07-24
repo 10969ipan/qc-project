@@ -1661,18 +1661,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const tr = `
                 <tr>
-                    <td>${index + 1}</td>
-                    <td class="text-left font-weight-bold" style="max-width: 180px;">${item.itemNameDisplay || '-'}</td>
-                    <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 160px;">${item.qrcode || '-'}</td>
-                    <td>${item.date || '-'} (Shift ${item.shift || '-'})</td>
-                    <td class="font-weight-bold text-center">${qtyCheck.toLocaleString('id-ID')}</td>
-                    <td>${defectDetail}</td>
-                    <td><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
-                    <td>${initialsUpper}</td>
-                    <td class="text-left" style="max-width: 150px;">${item.remarks || '-'}</td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-xs btn-delete-queue-item" data-index="${index}" title="Hapus data">
-                            <i class="fas fa-trash-alt"></i> Hapus
+                    <td class="text-center">${index + 1}</td>
+                    <td class="text-left font-weight-bold" style="max-width: 220px;">${item.itemNameDisplay || '-'}</td>
+                    <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 200px; font-family: monospace; font-size: 0.7rem;">${item.qrcode || '-'}</td>
+                    <td class="text-center">${item.date || '-'} <small class="text-muted">(Shift ${item.shift || '-'})</small></td>
+                    <td class="font-weight-bold text-center text-primary">${qtyCheck.toLocaleString('id-ID')}</td>
+                    <td class="text-center"><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
+                    <td class="text-center">${initialsUpper}</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm py-1 px-2 btn-delete-queue-item shadow-sm" data-index="${index}" title="Hapus data" style="font-size: 0.65rem;">
+                            <i class="fas fa-trash-alt mr-1"></i> Hapus
                         </button>
                     </td>
                 </tr>

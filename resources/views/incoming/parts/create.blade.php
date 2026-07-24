@@ -10,13 +10,46 @@
     .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
-    /* Style Daftar Antrian Scan (Queue Table) sesuai tabel input */
-    #tempQueueCard { border: 1px solid #cbd5e1; border-radius: 8px; }
-    #tempQueueCard .card-header { background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-    #tempQueueTable { border-collapse: collapse !important; border-spacing: 0 !important; border: 1px solid #cbd5e1 !important; width: 100% !important; }
-    #tempQueueTable td, #tempQueueTable th { border: 1px solid #cbd5e1 !important; vertical-align: middle !important; }
-    #tempQueueTable thead th { background-color: #f8f9fc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.75rem !important; letter-spacing: 0.5px; padding: 10px 12px !important; border-bottom: 2px solid #cbd5e1 !important; }
-    #tempQueueTable tbody td { font-size: 0.85rem !important; color: #334155 !important; padding: 8px 10px !important; }
+    /* Style Daftar Antrian Scan (Queue Table) selaras dengan #checksheetTable */
+    #tempQueueCard {
+        border: 1px solid #e3e6f0 !important;
+        border-radius: 0.35rem !important;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+    }
+    #tempQueueCard .card-header {
+        background-color: #f8f9fc !important;
+        border-bottom: 1px solid #e3e6f0 !important;
+    }
+    #tempQueueTable {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        border: 1px solid #dee2e6 !important;
+        width: 100% !important;
+    }
+    #tempQueueTable th {
+        font-size: 0.68rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        background-color: #f8f9fc !important;
+        color: #475569 !important;
+        vertical-align: middle !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 8px 10px !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+    }
+    #tempQueueTable td {
+        font-size: 0.75rem !important;
+        color: #334155 !important;
+        vertical-align: middle !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 6px 10px !important;
+    }
+    #tempQueueTable tfoot td {
+        background-color: #f8f9fc !important;
+        border-top: 2px solid #cbd5e1 !important;
+        font-size: 0.75rem !important;
+    }
 </style>
 @endpush
 
@@ -307,17 +340,15 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered text-center mb-0" id="tempQueueTable" width="100%" cellspacing="0">
-                    <thead>
+                    <thead class="bg-light text-center small font-weight-bold">
                         <tr>
                             <th style="width: 40px;">No</th>
                             <th>Item Part</th>
                             <th>QR Raw</th>
                             <th style="width: 140px;">Tanggal &amp; Shift Check</th>
                             <th style="width: 100px;">Total Check</th>
-                            <th style="width: 100px;">Detail NG</th>
                             <th style="width: 90px;">Judgment</th>
                             <th style="width: 85px;">Inisial QC</th>
-                            <th>Remarks</th>
                             <th style="width: 80px;">Aksi</th>
                         </tr>
                     </thead>
@@ -328,7 +359,7 @@
                         <tr>
                             <td colspan="4" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
                             <td id="totalQtyCheckDisplay" class="text-center font-weight-bold text-primary" style="font-size: 0.95rem;">0</td>
-                            <td colspan="5"></td>
+                            <td colspan="3"></td>
                         </tr>
                     </tfoot>
                 </table>
