@@ -9,6 +9,14 @@
     .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
     .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    
+    /* Style Daftar Antrian Scan (Queue Table) sesuai tabel input */
+    #tempQueueCard { border: 1px solid #cbd5e1; border-radius: 8px; }
+    #tempQueueCard .card-header { background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    #tempQueueTable { border-collapse: collapse !important; border-spacing: 0 !important; border: 1px solid #cbd5e1 !important; width: 100% !important; }
+    #tempQueueTable td, #tempQueueTable th { border: 1px solid #cbd5e1 !important; vertical-align: middle !important; }
+    #tempQueueTable thead th { background-color: #f8f9fc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase; font-size: 0.75rem !important; letter-spacing: 0.5px; padding: 10px 12px !important; border-bottom: 2px solid #cbd5e1 !important; }
+    #tempQueueTable tbody td { font-size: 0.85rem !important; color: #334155 !important; padding: 8px 10px !important; }
 </style>
 @endpush
 
@@ -292,28 +300,34 @@
     <div class="card shadow mb-4 d-none" id="tempQueueCard">
         <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
             <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-list-ol mr-2"></i>Daftar Antrean Scan Incoming Part
+                Daftar Antrean Scan Incoming Part
             </h6>
             <span class="badge badge-info px-3 py-2 font-weight-bold" id="queueBadge">0 Data</span>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table text-center table-striped table-hover mb-0" id="tempQueueTable" width="100%" cellspacing="0">
-                    <thead class="bg-light text-uppercase font-weight-bold text-secondary" style="font-size: 0.7rem;">
+                <table class="table table-bordered text-center mb-0" id="tempQueueTable" width="100%" cellspacing="0">
+                    <thead class="bg-light text-uppercase font-weight-bold text-secondary" style="font-size: 0.75rem;">
                         <tr>
-                            <th style="width: 40px;">No</th>
+                            <th style="width: 45px;">No</th>
                             <th>Item Part</th>
                             <th>QR Raw</th>
-                            <th>Tgl &amp; Shift Kedatangan</th>
                             <th>Qty Check</th>
                             <th>Judgment</th>
                             <th>Inisial QC</th>
-                            <th style="width: 80px;">Aksi</th>
+                            <th style="width: 90px;">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="tempQueueBody" style="font-size: 0.8rem;">
+                    <tbody id="tempQueueBody" style="font-size: 0.85rem;">
                         <!-- Dinamik via JS -->
                     </tbody>
+                    <tfoot class="bg-light font-weight-bold" style="font-size: 0.85rem;">
+                        <tr>
+                            <td colspan="3" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
+                            <td id="totalQtyCheckDisplay" class="text-center font-weight-bold text-primary" style="font-size: 0.95rem;">0</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
             <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap">

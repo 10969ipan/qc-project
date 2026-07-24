@@ -1309,11 +1309,15 @@ document.addEventListener('DOMContentLoaded', function () {
         playSuccessFeedback();
         stopQrScanner();
         $("#qrScannerModal").modal("hide");
-        $("#scanMethodInput").val("hardware");
-        
-        parseAndFillQR(decodedText, function(success) {
+        $("#scanMethodInput").val("camera");
+
+        parseAndFillQR(decodedText, function (success) {
             if (success) {
                 unlockInputs();
+                // Otomatis membuka kembali kamera scanner untuk mempercepat proses scan berturut-turut
+                setTimeout(function () {
+                    $('#qrScannerModal').modal('show');
+                }, 350);
             }
         });
     }
@@ -1622,7 +1626,12 @@ document.addEventListener('DOMContentLoaded', function () {
         $("#queueBadge").text(`${queue.length} Data`);
         $("#queueCountDisplay").text(queue.length);
 
+        let totalQtyCheckSum = 0;
+
         queue.forEach((item, index) => {
+            const qtyCheck = parseInt(item.total_check) || 0;
+            totalQtyCheckSum += qtyCheck;
+
             const judgmentClass = item.judgment === 'OK' ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
             const initialsUpper = (item.operator_initials || '-').toUpperCase();
             const tr = `
@@ -1630,8 +1639,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${index + 1}</td>
                     <td class="text-left font-weight-bold" style="max-width: 200px;">${item.itemNameDisplay || '-'}</td>
                     <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 180px;">${item.qrcode || '-'}</td>
-                    <td>${item.tanggal_datang || '-'} (Shift ${item.shift_datang || '-'})</td>
-                    <td>${item.total_check || '0'}</td>
+                    <td class="font-weight-bold text-center">${qtyCheck.toLocaleString('id-ID')}</td>
                     <td><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
                     <td>${initialsUpper}</td>
                     <td>
@@ -1643,6 +1651,8 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             tbody.append(tr);
         });
+
+        $("#totalQtyCheckDisplay").text(totalQtyCheckSum.toLocaleString('id-ID'));
     }
 
     function deleteQueueItem(index) {
