@@ -899,11 +899,25 @@ class StandardPerformanceTestController extends Controller
             $report->save();
         }
 
-        if ($clearPaired && $report->standard_performance_test_id && $report->lot_no) {
-            $pairedReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
-                ->where('lot_no', $report->lot_no)
-                ->where('is_trial', !$report->is_trial)
-                ->first();
+        if ($clearPaired) {
+            $pairedReport = null;
+            if (!$report->is_trial) {
+                // DATA 1 searching for DATA 2
+                $pairedReport = DurabilityThicknessReport::where('is_trial', true)
+                    ->where('data1_id', $report->id)
+                    ->first();
+            } else if ($report->data1_id) {
+                // DATA 2 searching for DATA 1
+                $pairedReport = DurabilityThicknessReport::find($report->data1_id);
+            }
+
+            // Fallback for legacy records without data1_id
+            if (!$pairedReport && $report->standard_performance_test_id && $report->lot_no) {
+                $pairedReport = DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
+                    ->where('lot_no', $report->lot_no)
+                    ->where('is_trial', !$report->is_trial)
+                    ->first();
+            }
 
             if ($pairedReport) {
                 $this->clearTestData($pairedReport, $type, false);
