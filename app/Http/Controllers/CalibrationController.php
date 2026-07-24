@@ -684,11 +684,12 @@ class CalibrationController extends Controller
         }
 
         $toolName = $tool->name_alat;
+        $plantCode = $request->input('plant') ?? ($tool->plant ? $tool->plant->code : 'jakarta');
         $tool->delete();
         ActivityLogger::log('deleted', null, "Menghapus Master Data Alat Kalibrasi: {$toolName}");
 
         return redirect()->route('calibration.tools.index', [
-            'plant' => $request->input('plant', 'jakarta'),
+            'plant' => $plantCode,
             'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Master Data Alat dan seluruh riwayat verifikasinya berhasil dihapus.');
@@ -1646,6 +1647,7 @@ class CalibrationController extends Controller
 
         $tool = $verification->tool;
         $toolName = $verification->name_alat;
+        $plantCode = $request->input('plant') ?? ($verification->plant ? $verification->plant->code : ($tool && $tool->plant ? $tool->plant->code : 'jakarta'));
         $verification->delete();
         ActivityLogger::log('deleted', null, "Menghapus data verifikasi alat kalibrasi: {$toolName}");
 
@@ -1656,7 +1658,7 @@ class CalibrationController extends Controller
         }
 
         return redirect()->route('calibration.verifications.index', [
-            'plant' => $request->input('plant', 'jakarta'),
+            'plant' => $plantCode,
             'year' => $request->input('year', date('Y'))
         ])
             ->with('success', 'Data Verifikasi berhasil dihapus.');

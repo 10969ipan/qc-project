@@ -6,6 +6,7 @@
 <style>
     .table-responsive {
         max-height: calc(100vh - 220px) !important;
+        min-height: 320px !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
@@ -385,8 +386,10 @@
 
                                         @if(in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor']))
                                         <div class="dropdown-divider"></div>
-                                        <form action="{{ route('calibration.tools.destroy', $tool->id) }}" method="POST" class="d-inline delete-form w-100">
+                                        <form action="{{ route('calibration.tools.destroy', [$tool->id, 'plant' => $plantCode]) }}" method="POST" class="d-inline delete-form w-100">
                                             @csrf @method('DELETE')
+                                            <input type="hidden" name="plant" value="{{ $plantCode }}">
+                                            <input type="hidden" name="year" value="{{ $year }}">
                                             <button type="button" class="dropdown-item text-danger btn-delete w-100 text-left">
                                                 <i class="fas fa-trash fa-fw mr-2"></i> Hapus
                                             </button>

@@ -58,6 +58,7 @@
         <style>
             .table-responsive {
         max-height: calc(100vh - 220px) !important;
+        min-height: 320px !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
