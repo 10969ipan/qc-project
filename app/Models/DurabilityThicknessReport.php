@@ -16,6 +16,11 @@ class DurabilityThicknessReport extends Model
         return $this->belongsTo(StandardPerformanceTest::class, 'standard_performance_test_id');
     }
 
+    public function standardPerformanceTest()
+    {
+        return $this->belongsTo(StandardPerformanceTest::class, 'standard_performance_test_id');
+    }
+
     public function analis()
     {
         return $this->belongsTo(User::class, 'analis_id');

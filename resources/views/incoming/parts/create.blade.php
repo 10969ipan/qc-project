@@ -288,6 +288,53 @@
         </div>
     </div>
 
+    <!-- Card Daftar Scan Sementara (Queue List) -->
+    <div class="card shadow mb-4 d-none" id="tempQueueCard">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list-ol mr-2"></i>Daftar Antrean Scan Incoming Part
+            </h6>
+            <span class="badge badge-info px-3 py-2 font-weight-bold" id="queueBadge">0 Data</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table text-center table-striped table-hover mb-0" id="tempQueueTable" width="100%" cellspacing="0">
+                    <thead class="bg-light text-uppercase font-weight-bold text-secondary" style="font-size: 0.7rem;">
+                        <tr>
+                            <th style="width: 40px;">No</th>
+                            <th>Item Part</th>
+                            <th>QR Raw</th>
+                            <th>Tgl &amp; Shift Kedatangan</th>
+                            <th>Qty Check</th>
+                            <th>Judgment</th>
+                            <th>Inisial QC</th>
+                            <th style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempQueueBody" style="font-size: 0.8rem;">
+                        <!-- Dinamik via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap">
+                <div id="saveProgressContainer" class="w-100 w-md-50 mb-3 mb-md-0 d-none">
+                    <div class="progress" style="height: 18px; border-radius: 9px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="saveProgressBar" role="progressbar" style="width: 0%; font-size: 0.75rem; font-weight: 700;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <small class="text-muted mt-1 d-block font-weight-bold" id="saveProgressText">Menyimpan data...</small>
+                </div>
+                <div class="text-right ml-auto">
+                    <button type="button" class="btn btn-danger btn-sm mr-2 shadow-sm" id="btnClearQueue">
+                        <i class="fas fa-trash-alt mr-1"></i> Kosongkan List
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm" id="btnSaveQueue">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Simpan Semua Data List (<span id="queueCountDisplay">0</span> Data)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bagian Tampilan PDF Berdampingan -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">
@@ -419,7 +466,10 @@
     <script>
         window.INCOMING_PART_CONFIG = {
             arrivalsUrl: "{{ route('incoming.parts.arrivals') }}",
-            checkFirstTimeUrl: "{{ route('incoming.parts.check_first_time') }}"
+            checkFirstTimeUrl: "{{ route('incoming.parts.check_first_time') }}",
+            qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
+            itemSearchUrl: "{{ route('items.search-by-part') }}",
+            useQueue: true
         };
     </script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>

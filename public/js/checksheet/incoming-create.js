@@ -66,9 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $("#startTimerBtn").on("click", function() {
         if (!timerRunning) {
-            formInputs.prop("disabled", false);
-            $("#saveBtn").prop("disabled", false);
-            form.removeClass("inputs-locked");
+            unlockInputs();
             
             $(this).removeClass('btn-success').addClass('btn-secondary text-white')
                    .html('<i class="far fa-clock"></i> Running...')
@@ -86,6 +84,10 @@ document.addEventListener('DOMContentLoaded', function () {
             timerRunning = true;
         }
     });
+
+    initQrScanner();
+    initHardwareScanner();
+    initTempQueue();
 
     // Tangani Pemilihan Item untuk memperbarui Dropdown Defect
     $('#itemSelect').on('change', function () {
@@ -1162,6 +1164,665 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         return result;
+    }
+
+    // ─── AUDIO FEEDBACK LOGIC ───
+    let audioCtx = null;
+    function unlockAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+    }
+
+    function playSuccessFeedback() {
+        try {
+            unlockAudio();
+            if (audioCtx) {
+                const oscillator = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.connect(gain);
+                gain.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        } catch (e) {
+            console.warn("Feedback error:", e);
+        }
+    }
+
+    // ─── CAMERA & MODAL QR SCANNER ───
+    let qrScanner = null;
+
+    function stopQrScanner() {
+        if (qrScanner) {
+            qrScanner.stop();
+            qrScanner.destroy();
+            qrScanner = null;
+        }
+    }
+
+    function initQrScanner() {
+        const btnScan = $('#btnScanQR');
+        if (!btnScan.length) return;
+
+        btnScan.on('click', function (e) {
+            e.preventDefault();
+            unlockAudio();
+            $('#qrScannerModal').modal('show');
+        });
+
+        $('#qrScannerModal').on('shown.bs.modal', function () {
+            const videoElem = document.getElementById("qr-video");
+            if (qrScanner) {
+                stopQrScanner();
+            }
+
+            if (typeof QrScanner !== 'undefined') {
+                qrScanner = new QrScanner(
+                    videoElem,
+                    (result) => handleQRScanned(result.data),
+                    {
+                        highlightScanRegion: true,
+                        highlightCodeOutline: true,
+                        maxScansPerSecond: 25,
+                        preferredCamera: "environment",
+                    }
+                );
+
+                qrScanner._setVideoMirror = function (facingMode) { };
+
+                $("#toggleMirrorBtn").off("click").on("click", function () {
+                    $(videoElem).toggleClass("mirrored");
+                });
+
+                qrScanner.start().then(() => {
+                    qrScanner.hasFlash().then((hasFlash) => {
+                        if (hasFlash) $("#toggleFlashBtn").removeClass("d-none");
+                    });
+
+                    $("#toggleFlashBtn").off("click").on("click", function () {
+                        qrScanner.toggleFlash();
+                    });
+
+                    const track = qrScanner.$video.srcObject ? qrScanner.$video.srcObject.getVideoTracks()[0] : null;
+                    if (track) {
+                        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                        if (capabilities.zoom) {
+                            $("#zoomContainer").removeClass("d-none");
+                            const $slider = $("#zoomSlider");
+                            $slider.attr({
+                                min: capabilities.zoom.min,
+                                max: capabilities.zoom.max,
+                                step: capabilities.zoom.step || 0.1,
+                            }).val(track.getSettings().zoom || capabilities.zoom.min);
+
+                            $slider.off("input").on("input", function () {
+                                track.applyConstraints({
+                                    advanced: [{ zoom: parseFloat($(this).val()) }],
+                                });
+                            });
+                        }
+                    }
+                }).catch(err => {
+                    console.error("Scanner error:", err);
+                });
+            }
+        });
+
+        $("#qr-input-file").on("change", async function (e) {
+            if (e.target.files.length === 0) return;
+            const imageFile = e.target.files[0];
+            $("#qr-video").addClass("d-none");
+            $("#qr-reader-results").removeClass("d-none");
+
+            try {
+                const result = await QrScanner.scanImage(imageFile, { returnDetailedScanResult: true });
+                handleQRScanned(result.data);
+            } catch (err) {
+                console.error("Error scanning file:", err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal Membaca QR",
+                    text: "Sistem tidak menemukan QR Code pada gambar ini.",
+                });
+            } finally {
+                $(this).val("");
+                $("#qr-reader-results").addClass("d-none");
+                $("#qr-video").removeClass("d-none");
+            }
+        });
+
+        $('#qrScannerModal').on('hidden.bs.modal', function () {
+            stopQrScanner();
+        });
+    }
+
+    function handleQRScanned(decodedText) {
+        playSuccessFeedback();
+        stopQrScanner();
+        $("#qrScannerModal").modal("hide");
+        $("#scanMethodInput").val("hardware");
+        
+        parseAndFillQR(decodedText, function(success) {
+            if (success) {
+                unlockInputs();
+            }
+        });
+    }
+
+    // ─── FORMAT QR PARSING & DOUBLE DUPLICATE VALIDATION ───
+    function parseAndFillQR(qrString, callback) {
+        const parts = qrString.split("|");
+
+        if (parts.length !== 5) {
+            Swal.fire({
+                icon: "warning",
+                title: "Format QR Salah",
+                html: "Data QR tidak sesuai standar.<br><br><b>Format wajib:</b><br><code>customer_part|supplier_id|qty|lot_id-unique_code-cav|kode_sap</code><br><br><b>Contoh:</b><br><code>53209-K3V -N001-AA|1200044|100|PN121225SHDM1A-001-202|7-02-0347</code>"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
+        const part_code = (parts[0] || "").trim();
+        const supplier_id = (parts[1] || "").trim();
+        const quantity = parseInt(parts[2]) || 0;
+        const unique_code_id = (parts[3] || "").trim();
+        const sap_code = (parts[4] || "").trim();
+
+        if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            Swal.fire({
+                icon: "warning",
+                title: "FORMAT QR SALAH!",
+                text: "Scan QR Internal, Bukan QR Customer!"
+            });
+            if (callback) callback(false);
+            return;
+        }
+
+        // 1. Validasi duplikat pada localStorage queue
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        const isDuplicateInQueue = queue.some(item => {
+            return (parseInt(item.quantity) || 0) === quantity &&
+                (item.unique_code_id || "").trim() === unique_code_id;
+        });
+
+        if (isDuplicateInQueue) {
+            Swal.fire(
+                "QR-Code Duplicate",
+                `QR Code dengan Qty: ${quantity} dan ID: ${unique_code_id} sudah ada di list antrean!`,
+                "error"
+            );
+            if (callback) callback(false);
+            return;
+        }
+
+        // 2. Validasi duplikat ke database via AJAX jika url tersedia
+        const qrUniqueUrl = (window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.qrUniqueUrl) ? window.INCOMING_PART_CONFIG.qrUniqueUrl : null;
+        
+        if (qrUniqueUrl) {
+            $.get(qrUniqueUrl, { qrcode: qrString }, function (res) {
+                if (res.success && !res.unique) {
+                    Swal.fire("QR-Code Duplicate", res.message, "error");
+                    if (callback) callback(false);
+                    return;
+                }
+                applyParsedQrData(qrString, part_code, supplier_id, quantity, unique_code_id, sap_code, callback);
+            }).fail(function() {
+                applyParsedQrData(qrString, part_code, supplier_id, quantity, unique_code_id, sap_code, callback);
+            });
+        } else {
+            applyParsedQrData(qrString, part_code, supplier_id, quantity, unique_code_id, sap_code, callback);
+        }
+    }
+
+    function applyParsedQrData(qrString, part_code, supplier_id, quantity, unique_code_id, sap_code, callback) {
+        $('#qrcodeInput').val(qrString);
+        $('#partCodeInput').val(part_code);
+        $('#supplierIdInput').val(supplier_id);
+        $('#quantityInput').val(quantity);
+        $('#uniqueCodeInput').val(unique_code_id);
+        $('#sapCodeInputHidden').val(sap_code);
+        $('#sapCodeInput').val(sap_code);
+
+        let matchedItemValue = null;
+        $('#itemSelect option').each(function () {
+            const optionSap = $(this).data('sap_code');
+            const optionPn = normalizePartNumber($(this).data('part-number'));
+
+            if (optionSap && String(optionSap).trim() === String(sap_code).trim()) {
+                matchedItemValue = $(this).val();
+                return false;
+            }
+            if (optionPn && optionPn === normalizePartNumber(part_code)) {
+                matchedItemValue = $(this).val();
+                return false;
+            }
+        });
+
+        if (matchedItemValue) {
+            $('#itemSelect').val(matchedItemValue).trigger('change');
+            
+            // Auto add directly to queue list upon scan (persis In-Process)
+            setTimeout(function() {
+                autoAddScanToQueue();
+                if (callback) callback(true);
+            }, 150);
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Item Part Tidak Ditemukan",
+                text: `Tidak ada Item Part dengan Kode SAP: ${sap_code} atau Part No: ${part_code}`
+            });
+            if (callback) callback(false);
+        }
+    }
+
+    // ─── HARDWARE BARCODE SCANNER LISTENER ───
+    function initHardwareScanner() {
+        let scanTimeout = null;
+
+        $('#sapCodeInput').on('input keydown', function (e) {
+            if (e.type === 'keydown' && e.key !== 'Enter') return;
+            const val = $(this).val().trim();
+
+            if (val.includes('|')) {
+                e.preventDefault();
+                clearTimeout(scanTimeout);
+                scanTimeout = setTimeout(() => {
+                    $('#scanMethodInput').val('hardware');
+                    parseAndFillQR(val, function(success) {
+                        if (success) {
+                            unlockInputs();
+                        }
+                    });
+                }, 100);
+            }
+        });
+    }
+
+    // ─── TEMPORARY QUEUE SYSTEM (LOCAL STORAGE & BATCH AJAX SAVE) ───
+    function initTempQueue() {
+        renderQueueTable();
+
+        $('#btnSaveQueue').on('click', function () {
+            saveQueueSequentially();
+        });
+
+        $('#btnClearQueue').on('click', function () {
+            clearQueue();
+        });
+
+        $(document).on('click', '.btn-delete-queue-item', function () {
+            const idx = $(this).data('index');
+            deleteQueueItem(idx);
+        });
+    }
+
+    function autoAddScanToQueue() {
+        const itemId = $('#itemSelect').val();
+        if (!itemId) return;
+
+        let totalCheck = $('#totalCheckInput').val();
+        if (!totalCheck || parseInt(totalCheck) <= 0) {
+            totalCheck = $('#quantityInput').val() || 1;
+            $('#totalCheckInput').val(totalCheck);
+        }
+
+        const defect_types = [];
+        $('.defect-select').each(function () {
+            if ($(this).val()) defect_types.push($(this).val());
+        });
+        const defect_quantities = [];
+        $('.defect-qty').each(function () {
+            if ($(this).val()) defect_quantities.push($(this).val());
+        });
+
+        const queueItem = {
+            plant_id: $('input[name="plant_id"]').val(),
+            arrival_id: $('#arrivalIdInput').val(),
+            qrcode: $('#qrcodeInput').val(),
+            part_code: $('#partCodeInput').val(),
+            supplier_id: $('#supplierIdInput').val(),
+            quantity: $('#quantityInput').val(),
+            unique_code_id: $('#uniqueCodeInput').val(),
+            sap_code: $('#sapCodeInputHidden').val(),
+            scan_method: $('#scanMethodInput').val() || "hardware",
+            item_id: itemId,
+            tanggal_datang: $('#tanggalDatangInput').val(),
+            shift_datang: $('#shiftDatangSelect').val(),
+            qty_datang: $('#qtyBalanceInput').val(),
+            date: $('input[name="date"]').val(),
+            shift: $('select[name="shift"]').val(),
+            total_check: totalCheck,
+            judgment: $('#judgmentSelect').val() || "OK",
+            operator_initials: $('input[name="operator_initials"]').val(),
+            remarks: $('textarea[name="remarks"]').val(),
+            defect_types: defect_types,
+            defect_quantities: defect_quantities,
+            itemNameDisplay: $("#itemSelect option:selected").text().trim(),
+            dimensions: $('input[name^="dimensions"]').map(function() { return $(this).val(); }).get()
+        };
+
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        queue.push(queueItem);
+        localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
+
+        resetFormForNextInput();
+        renderQueueTable();
+        applyAutoFocus();
+    }
+
+    function applyAutoFocus() {
+        setTimeout(function() {
+            const $input = $("#sapCodeInput");
+            if ($input.length) {
+                $input.attr('inputmode', 'none');
+                $input.focus();
+                $input.one('mousedown touchstart', function () {
+                    $(this).attr('inputmode', 'text');
+                });
+            }
+        }, 300);
+    }
+
+    function addToQueue() {
+        const itemId = $('#itemSelect').val();
+        if (!itemId) {
+            Swal.fire('Form Belum Lengkap', 'Silakan pilih Item Part terlebih dahulu.', 'warning');
+            return;
+        }
+
+        const totalCheck = $('#totalCheckInput').val();
+        if (!totalCheck || parseInt(totalCheck) <= 0) {
+            Swal.fire('Form Belum Lengkap', 'Total Check harus diisi dengan angka lebih dari 0.', 'warning');
+            return;
+        }
+
+        const defect_types = [];
+        $('.defect-select').each(function () {
+            if ($(this).val()) defect_types.push($(this).val());
+        });
+        const defect_quantities = [];
+        $('.defect-qty').each(function () {
+            if ($(this).val()) defect_quantities.push($(this).val());
+        });
+
+        const dimCheck = checkMandatoryDimensions();
+        if (!dimCheck.isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Dimensi Belum Lengkap',
+                text: `Point dimensi berikut wajib diisi: ${dimCheck.missingPoints.join(', ')}`
+            });
+            if (dimCheck.firstEmpty) dimCheck.firstEmpty.focus();
+            return;
+        }
+
+        const queueItem = {
+            plant_id: $('input[name="plant_id"]').val(),
+            arrival_id: $('#arrivalIdInput').val(),
+            qrcode: $('#qrcodeInput').val(),
+            part_code: $('#partCodeInput').val(),
+            supplier_id: $('#supplierIdInput').val(),
+            quantity: $('#quantityInput').val(),
+            unique_code_id: $('#uniqueCodeInput').val(),
+            sap_code: $('#sapCodeInputHidden').val(),
+            scan_method: $('#scanMethodInput').val() || "manual",
+            item_id: itemId,
+            tanggal_datang: $('#tanggalDatangInput').val(),
+            shift_datang: $('#shiftDatangSelect').val(),
+            qty_datang: $('#qtyBalanceInput').val(),
+            date: $('input[name="date"]').val(),
+            shift: $('select[name="shift"]').val(),
+            total_check: totalCheck,
+            judgment: $('#judgmentSelect').val(),
+            operator_initials: $('input[name="operator_initials"]').val(),
+            remarks: $('textarea[name="remarks"]').val(),
+            defect_types: defect_types,
+            defect_quantities: defect_quantities,
+            itemNameDisplay: $("#itemSelect option:selected").text().trim(),
+            dimensions: $('input[name^="dimensions"]').map(function() { return $(this).val(); }).get()
+        };
+
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        queue.push(queueItem);
+        localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
+
+        resetFormForNextInput();
+        renderQueueTable();
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Ditambahkan',
+            text: 'Data berhasil dimasukkan ke daftar antrean scan sementara.',
+            timer: 1200,
+            showConfirmButton: false
+        });
+    }
+
+    function renderQueueTable() {
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        const tbody = $("#tempQueueBody");
+        tbody.empty();
+
+        if (queue.length === 0) {
+            $("#tempQueueCard").addClass("d-none");
+            return;
+        }
+
+        $("#tempQueueCard").removeClass("d-none");
+        $("#queueBadge").text(`${queue.length} Data`);
+        $("#queueCountDisplay").text(queue.length);
+
+        queue.forEach((item, index) => {
+            const judgmentClass = item.judgment === 'OK' ? 'text-success font-weight-bold' : 'text-danger font-weight-bold';
+            const initialsUpper = (item.operator_initials || '-').toUpperCase();
+            const tr = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td class="text-left font-weight-bold" style="max-width: 200px;">${item.itemNameDisplay || '-'}</td>
+                    <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 180px;">${item.qrcode || '-'}</td>
+                    <td>${item.tanggal_datang || '-'} (Shift ${item.shift_datang || '-'})</td>
+                    <td>${item.total_check || '0'}</td>
+                    <td><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
+                    <td>${initialsUpper}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-xs btn-delete-queue-item" data-index="${index}" title="Hapus data">
+                            <i class="fas fa-trash-alt"></i> Hapus
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(tr);
+        });
+    }
+
+    function deleteQueueItem(index) {
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        if (index >= 0 && index < queue.length) {
+            queue.splice(index, 1);
+            localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
+            renderQueueTable();
+        }
+    }
+
+    function clearQueue() {
+        Swal.fire({
+            title: "Kosongkan Daftar Scan?",
+            text: "Semua data scan sementara akan dihapus dari browser ini!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#858796",
+            confirmButtonText: "Ya, Hapus Semua!",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('incoming_part_queue');
+                renderQueueTable();
+            }
+        });
+    }
+
+    function saveQueueSequentially() {
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        if (queue.length === 0) {
+            Swal.fire("Daftar Kosong", "Tidak ada data untuk disimpan.", "info");
+            return;
+        }
+
+        Swal.fire({
+            title: "Simpan Semua Data?",
+            text: `Sebanyak ${queue.length} data antrean akan disimpan ke database.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#4e73df",
+            cancelButtonColor: "#858796",
+            confirmButtonText: "Ya, Simpan Semua",
+            cancelButtonText: "Batal"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeSequentialSave();
+            }
+        });
+    }
+
+    async function executeSequentialSave() {
+        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
+        if (queue.length === 0) return;
+
+        $("#saveProgressContainer").removeClass("d-none");
+        $("#btnSaveQueue").prop("disabled", true);
+        $("#btnClearQueue").prop("disabled", true);
+        $(".btn-delete-queue-item").prop("disabled", true);
+
+        let successCount = 0;
+        let failedIndex = -1;
+        let errorMessage = "";
+
+        const formActionUrl = $("#checksheetForm").attr("action");
+
+        for (let i = 0; i < queue.length; i++) {
+            const percent = Math.round(((i + 1) / queue.length) * 100);
+            $("#saveProgressBar").css("width", percent + "%").attr("aria-valuenow", percent).text(percent + "%");
+            $("#saveProgressText").text(`Menyimpan data ${i + 1} dari ${queue.length}...`);
+
+            const item = queue[i];
+            const formData = new FormData();
+            const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+            formData.append('_token', csrfToken);
+
+            function appendToFormData(fd, data, parentKey) {
+                if (data === null || data === undefined) return;
+                if (Array.isArray(data)) {
+                    data.forEach((val) => {
+                        fd.append(parentKey + '[]', val);
+                    });
+                } else if (typeof data === 'object' && !(data instanceof File)) {
+                    Object.keys(data).forEach(key => {
+                        const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+                        appendToFormData(fd, data[key], fullKey);
+                    });
+                } else {
+                    fd.append(parentKey, data);
+                }
+            }
+
+            Object.keys(item).forEach(key => {
+                if (key === 'itemNameDisplay') return;
+                appendToFormData(formData, item[key], key);
+            });
+
+            try {
+                await new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: formActionUrl,
+                        method: "POST",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            if (response.success) {
+                                successCount++;
+                                resolve(response);
+                            } else {
+                                reject(new Error(response.message || "Gagal menyimpan data."));
+                            }
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON && xhr.responseJSON.message
+                                ? xhr.responseJSON.message
+                                : "Gagal menyimpan data.";
+                            reject(new Error(msg));
+                        }
+                    });
+                });
+            } catch (error) {
+                failedIndex = i;
+                errorMessage = error.message;
+                break;
+            }
+        }
+
+        $("#saveProgressContainer").addClass("d-none");
+        $("#btnSaveQueue").prop("disabled", false);
+        $("#btnClearQueue").prop("disabled", false);
+        $(".btn-delete-queue-item").prop("disabled", false);
+
+        if (failedIndex === -1) {
+            localStorage.removeItem('incoming_part_queue');
+            renderQueueTable();
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Disimpan!',
+                text: `Seluruh ${successCount} data antrean berhasil disimpan ke database.`,
+                confirmButtonColor: '#4e73df'
+            }).then(() => {
+                window.location.href = window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.index_url ? window.INCOMING_PART_CONFIG.index_url : window.location.href;
+            });
+        } else {
+            const remainingQueue = queue.slice(failedIndex);
+            localStorage.setItem('incoming_part_queue', JSON.stringify(remainingQueue));
+            renderQueueTable();
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menyimpan Data',
+                html: `Tersimpan: ${successCount} data.<br>Gagal pada baris ke-${failedIndex + 1}: <b>${errorMessage}</b>`
+            });
+        }
+    }
+
+    function unlockInputs() {
+        const form = $("#checksheetForm");
+        form.find("input, select, textarea, button").not('[type="hidden"]').prop("disabled", false);
+        $("#saveBtn").prop("disabled", false);
+        $("#btnAddQueueItem").prop("disabled", false);
+        form.removeClass("inputs-locked");
+    }
+
+    function resetFormForNextInput() {
+        $('#qrcodeInput').val('');
+        $('#partCodeInput').val('');
+        $('#supplierIdInput').val('');
+        $('#quantityInput').val('');
+        $('#uniqueCodeInput').val('');
+        $('#sapCodeInputHidden').val('');
+        $('#sapCodeInput').val('');
+        $('#totalCheckInput').val('');
+        $('textarea[name="remarks"]').val('');
+        $('#defectContainer .defect-row').not(':first').remove();
+        $('#defectSelect').val('');
+        $('.defect-qty').val('');
+        $('#judgmentSelect').val('OK').trigger('change');
     }
 });
 
