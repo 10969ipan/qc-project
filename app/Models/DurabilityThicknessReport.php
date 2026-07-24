@@ -25,4 +25,24 @@ class DurabilityThicknessReport extends Model
     {
         return $this->belongsTo(User::class, 'analis_id');
     }
+
+    public function analisCorrodkote()
+    {
+        return $this->belongsTo(User::class, 'analis_corrodkote_id');
+    }
+
+    public function analisCass()
+    {
+        return $this->belongsTo(User::class, 'analis_cass_id');
+    }
+
+    public function analisSaltSpray()
+    {
+        return $this->belongsTo(User::class, 'analis_salt_spray_id');
+    }
+
+    public function analisPorecount()
+    {
+        return $this->belongsTo(User::class, 'analis_porecount_id');
+    }
 }

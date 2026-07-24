@@ -588,7 +588,18 @@
                                     @endif
                                 </td>
                             @endif
-                            <td class="text-center">{{ $report->analis ? $report->analis->name : '-' }}</td>
+                            <td class="text-center">
+                                @php
+                                    $pic = match($testType) {
+                                        'corrodkote' => $report->analisCorrodkote ?? $report->analis,
+                                        'cass'       => $report->analisCass ?? $report->analis,
+                                        'salt_spray' => $report->analisSaltSpray ?? $report->analis,
+                                        'porecount'  => $report->analisPorecount ?? $report->analis,
+                                        default      => $report->analis,
+                                    };
+                                @endphp
+                                {{ $pic ? $pic->name : '-' }}
+                            </td>
                             <td class="text-center">
                                 @if($testType == 'corrodkote')
                                     {{ $report->description_corrodkote ?? '-' }}

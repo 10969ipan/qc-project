@@ -505,7 +505,10 @@ class StandardPerformanceTestController extends Controller
 
     private function renderReport(Request $request, $testType, $isTrial = false)
     {
-        $query = DurabilityThicknessReport::with('standard')
+        $query = DurabilityThicknessReport::with([
+                'standard', 'analis',
+                'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
+            ])
             ->where('is_trial', $isTrial)
             ->orderBy('created_at', 'desc');
 
@@ -685,8 +688,12 @@ class StandardPerformanceTestController extends Controller
 
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                // Protect actual thickness fields, main thickness judgment & main thickness description from being altered outside Thickness test
-                if ($testType !== 'thickness' && in_array($field, ['actual_cu', 'actual_ni', 'actual_cr', 'description', 'result_judgment'])) {
+                // Protect Thickness-only fields from being altered by non-thickness test inputs
+                if ($testType !== 'thickness' && in_array($field, [
+                    'actual_cu', 'actual_ni', 'actual_cr',
+                    'description', 'result_judgment',
+                    'production_date', 'shift', 'lot_no',
+                ])) {
                     continue;
                 }
                 $updateData[$field] = $request->$field;
@@ -697,9 +704,16 @@ class StandardPerformanceTestController extends Controller
             $report->update($updateData);
         }
 
-        // Update analis_id on DATA 1 when submitting non-thickness test data
-        if ($testType !== 'thickness') {
-            $report->update(['analis_id' => auth()->id()]);
+        // Set per-test-type PIC (analis_id stays as the original Thickness user)
+        $analisColumn = match($testType) {
+            'corrodkote'  => 'analis_corrodkote_id',
+            'cass'        => 'analis_cass_id',
+            'salt_spray'  => 'analis_salt_spray_id',
+            'porecount'   => 'analis_porecount_id',
+            default       => null,
+        };
+        if ($analisColumn) {
+            $report->update([$analisColumn => auth()->id()]);
         }
 
         // Update or create Data 2 record when updating Data 1
