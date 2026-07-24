@@ -32,6 +32,7 @@ class InProcessChecksheetApiController extends Controller
             'Plating' => \App\Models\PlatingChecksheet::class,
             'Painting' => \App\Models\PaintingChecksheet::class,
             'Incoming Export' => \App\Models\IncomingExport::class,
+            'Incoming Part' => \App\Models\IncomingPart::class,
         ];
 
         $foundChecksheet = null;
