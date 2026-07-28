@@ -47,8 +47,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'unique_code_id' => [
                 'nullable',
                 'string',
-                \Illuminate\Validation\Rule::unique('in_process_checksheets', 'unique_code_id')
-                    ->where('quantity', $this->quantity),
+                \Illuminate\Validation\Rule::unique('in_process_checksheets', 'unique_code_id'),
             ],
             'sap_code' => 'nullable|string',
             'plant' => 'required', // Can be Name, Code, or UUID

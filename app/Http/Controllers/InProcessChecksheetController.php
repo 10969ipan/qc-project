@@ -120,6 +120,7 @@ class InProcessChecksheetController extends Controller
             'entry_method' => $request->entry_method,
             'shift' => $request->shift,
             'tujuan' => $request->tujuan,
+            'view_mode' => $request->get('view_mode'),
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif

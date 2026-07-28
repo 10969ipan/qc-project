@@ -185,11 +185,28 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
-        if (!empty($filters['entry_method'])) {
-            if ($filters['entry_method'] === 'verification') {
-                $query->whereNotNull('in_process_checksheets.qrcode');
-            } elseif ($filters['entry_method'] === 'regular') {
-                $query->whereNull('in_process_checksheets.qrcode');
+        if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
+            $query->where(function ($q) {
+                $q->whereNotNull('in_process_checksheets.qrcode')
+                  ->orWhereNotNull('in_process_checksheets.unique_code_id')
+                  ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera']);
+            });
+        } elseif (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'verification' || $filters['entry_method'] === 'qr') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('in_process_checksheets.qrcode')
+                      ->orWhereNotNull('in_process_checksheets.unique_code_id')
+                      ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera']);
+                });
+            } elseif ($filters['entry_method'] === 'regular' || $filters['entry_method'] === 'manual') {
+                $query->where(function ($q) {
+                    $q->whereNull('in_process_checksheets.qrcode')
+                      ->whereNull('in_process_checksheets.unique_code_id')
+                      ->where(function ($sub) {
+                          $sub->whereNull('in_process_checksheets.scan_method')
+                              ->orWhere('in_process_checksheets.scan_method', 'manual');
+                      });
+                });
             }
         }
 

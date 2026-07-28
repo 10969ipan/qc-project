@@ -1097,8 +1097,7 @@ class InProcessCreate {
         // 1. Validasi Unik di Antrean Temporary Sisi Client (Local Storage)
         const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
         const isDuplicateInQueue = queue.some(item => {
-            return (parseInt(item.quantity) || 0) === quantity &&
-                (item.unique_code_id || "").trim() === unique_code_id;
+            return (item.unique_code_id || "").trim() === unique_code_id;
         });
         if (isDuplicateInQueue) {
             Swal.fire(

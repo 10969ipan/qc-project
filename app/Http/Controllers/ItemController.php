@@ -599,9 +599,8 @@ class ItemController extends Controller
         foreach ($tables as $table => $moduleName) {
             // Pengecekan composite: seluruh segmen raw barcode harus unik
             // KHUSUS untuk In-Process: hanya mengecek qty dan lot_id-unique_code-cav (yaitu quantity dan unique_code_id)
-            if ($table === 'in_process_checksheets') {
+            if (!empty($uniqueCodeId)) {
                 $record = DB::table($table)
-                    ->where('quantity',      $quantity)
                     ->where('unique_code_id', $uniqueCodeId)
                     ->latest()
                     ->first();
@@ -610,7 +609,6 @@ class ItemController extends Controller
                     ->where('part_code',     $partCode)
                     ->where('supplier_id',   $supplierId)
                     ->where('quantity',      $quantity)
-                    ->where('unique_code_id', $uniqueCodeId)
                     ->where('sap_code',      $sapCode)
                     ->latest()
                     ->first();

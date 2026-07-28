@@ -39,6 +39,18 @@ class StoreIncomingPartRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'defect_types.*' => 'nullable|string',
             'defect_quantities.*' => 'nullable|integer',
+            'qrcode' => 'nullable|string',
+            'part_code' => 'nullable|string',
+            'supplier_id' => 'nullable|string',
+            'quantity' => 'nullable|integer',
+            'unique_code_id' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('incoming_parts', 'unique_code_id'),
+            ],
+            'sap_code' => 'nullable|string',
+            'scan_method' => 'nullable|string|in:manual,hardware,camera',
+            'cycle_time' => 'nullable|integer',
         ];
     }
 }
