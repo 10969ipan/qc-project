@@ -529,7 +529,7 @@ class InProcessCreate {
             quantity: $('#quantityInput').val(),
             unique_code_id: $('#uniqueCodeInput').val(),
             sap_code: $('#sapCodeInputHidden').val(),
-            scan_method: "hardware",
+            scan_method: $('#scanMethodInput').val() || "hardware",
             item_id: $('#itemSelect').val(),
             date: $('input[name="date"]').val(),
             shift: $('select[name="shift"]').val(),
@@ -1026,21 +1026,42 @@ class InProcessCreate {
     }
 
     handleQRScanned(decodedText) {
-        this.playSuccessFeedback();
-        this.stopScanner();
-        $("#qrScannerModal").modal("hide");
+        // Cooldown guard: abaikan scan jika masih dalam proses scan sebelumnya
+        if (this.isProcessingScan) return;
+        this.isProcessingScan = true;
 
-        // Set to hardware method to trigger auto-fill dash and allow auto-submit
-        $("#scanMethodInput").val("hardware");
+        this.playSuccessFeedback();
+
+        // Set to camera method
+        $("#scanMethodInput").val("camera");
         this.startTimer();
 
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
-                // Auto-submit after a short delay to ensure UI is updated
-                setTimeout(() => {
-                    $("#checksheetForm").trigger("submit");
-                }, 100);
+                // Toast sukses di pojok kanan atas (non-blocking)
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                });
+                Toast.fire({ icon: 'success', title: 'QR Berhasil Discan!' });
+
+                if (this.config.useQueue) {
+                    // Karawang: masukkan ke antrian, modal tetap terbuka
+                    this.addToQueue();
+                } else {
+                    // Jakarta: submit form via AJAX, modal tetap terbuka
+                    setTimeout(() => {
+                        $("#checksheetForm").trigger("submit");
+                    }, 100);
+                }
             }
+            // Cooldown 1.2 detik agar kamera siap scan QR berikutnya tanpa buka-tutup modal
+            setTimeout(() => {
+                this.isProcessingScan = false;
+            }, 1200);
         });
     }
 
@@ -2048,7 +2069,8 @@ class InProcessCreate {
 
             const submitter = (e.originalEvent && e.originalEvent.submitter) || document.activeElement;
 
-            const isHardwareScan = $("#scanMethodInput").val() === "hardware";
+            const scanMethod = $("#scanMethodInput").val();
+            const isHardwareScan = scanMethod === "hardware" || scanMethod === "camera";
 
             if (!isHardwareScan && (!submitter || (submitter.id !== 'saveBtn' && $(submitter).closest('#saveBtn').length === 0))) {
                 console.warn("Submit diblokir karena tidak berasal dari tombol Save.");
@@ -2265,7 +2287,7 @@ class InProcessCreate {
                 }
             });
 
-            // Jika hardware scan DAN useQueue aktif (Karawang): masukkan ke antrian
+            // Jika hardware/camera scan DAN useQueue aktif (Karawang): masukkan ke antrian
             if (isHardwareScan && _this.config.useQueue) {
                 _this.addToQueue();
                 return;

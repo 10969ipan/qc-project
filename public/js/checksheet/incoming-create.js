@@ -51,18 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalSeconds = 0;
     let timerRunning = false;
 
-    // Lock UI on load
-    const form = $("#checksheetForm");
-    const formInputs = form.find("input, select, textarea, button")
-        .not("#startTimerBtn")
-        .not('[type="hidden"]');
-    
-    formInputs.prop("disabled", true);
-    form.addClass("inputs-locked");
-
-    if (!$("#lockStyle").length) {
-        $('<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo("head");
-    }
+    // Lock UI on load — must press Start to begin
+    lockInputs();
 
     $("#startTimerBtn").on("click", function() {
         if (!timerRunning) {
@@ -613,9 +603,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentShift = $('#shiftDatangSelect').val();
         
         if (currentTgl && currentShift && window.currentArrivalsList && window.currentArrivalsList.length > 0) {
-            const matched = window.currentArrivalsList.find(a => 
-                a.tanggal_datang === currentTgl && String(a.shift_datang) === String(currentShift)
-            );
+            const matched = window.currentArrivalsList.find(a => {
+                const aDate = a.tanggal_datang ? String(a.tanggal_datang).split('T')[0].substring(0, 10) : '';
+                return aDate === currentTgl && String(a.shift_datang) === String(currentShift);
+            });
             if (matched) {
                 selectArrival(matched);
                 return;
@@ -630,10 +621,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function selectArrival(arr) {
         if (!arr) return;
         $('#arrivalIdInput').val(arr.id);
-        $('#tanggalDatangInput').val(arr.tanggal_datang || '');
-        $('#shiftDatangSelect').val(arr.shift_datang || '');
+        
+        let cleanDate = '';
+        if (arr.tanggal_datang) {
+            cleanDate = String(arr.tanggal_datang).split('T')[0].substring(0, 10);
+        }
+        $('#tanggalDatangInput').val(cleanDate);
+        $('#shiftDatangSelect').val(String(arr.shift_datang || ''));
         $('#initialBalanceInput').val(arr.qty_sisa);
         
+        $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Kedatangan Terdaftar</small>');
+
         updateDynamicBalance();
     }
 
@@ -645,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#qtyBalanceInput').val('');
         $('#maxCheckHint').text('');
         $('#totalCheckInput').removeAttr('max');
-        $('#arrivalStatusHint').text('Opsional/Lot Baru');
+        $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Opsional/Lot Baru</small>');
     }
 
     function updateDynamicBalance() {
@@ -658,7 +656,6 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#qtyBalanceInput').val(remaining);
             $('#maxCheckHint').text('Maks. check: ' + initialBalance.toLocaleString('id-ID') + ' pcs');
             $('#totalCheckInput').attr('max', initialBalance);
-            $('#arrivalStatusHint').text('Kedatangan Terdaftar');
 
             updateRemarksSelisih(initialBalance, totalCheck);
         } else {
@@ -668,7 +665,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             $('#maxCheckHint').text('');
             $('#totalCheckInput').removeAttr('max');
-            $('#arrivalStatusHint').text('Opsional/Lot Baru');
+            if (!arrivalId) {
+                $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Opsional/Lot Baru</small>');
+            }
         }
     }
 
@@ -1595,13 +1594,16 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
 
         resetFormForNextInput();
-        renderQueueTable();
-        Swal.fire({
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 1500,
+            timerProgressBar: true
+        });
+        Toast.fire({
             icon: 'success',
-            title: 'Berhasil Ditambahkan',
-            text: 'Data berhasil dimasukkan ke daftar antrean scan sementara.',
-            timer: 1200,
-            showConfirmButton: false
+            title: 'Data Masuk ke Antrean'
         });
     }
 
@@ -1797,9 +1799,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 icon: 'success',
                 title: 'Berhasil Disimpan!',
                 text: `Seluruh ${successCount} data antrean berhasil disimpan ke database.`,
-                confirmButtonColor: '#4e73df'
-            }).then(() => {
-                window.location.href = window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.index_url ? window.INCOMING_PART_CONFIG.index_url : window.location.href;
+                showCancelButton: true,
+                confirmButtonColor: '#4e73df',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Lihat Data',
+                cancelButtonText: 'Tutup'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const targetUrl = window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.index_url ? window.INCOMING_PART_CONFIG.index_url : null;
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    resetAllForNewInput();
+                }
             });
         } else {
             const remainingQueue = queue.slice(failedIndex);
@@ -1814,12 +1829,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function lockInputs() {
+        const form = $("#checksheetForm");
+        form.addClass("inputs-locked");
+        form.find("input, select, textarea, button")
+            .not("#startTimerBtn")
+            .not('[type="hidden"]')
+            .prop("disabled", true);
+        if (!$("#lockStyle").length) {
+            $('<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo("head");
+        }
+    }
+
     function unlockInputs() {
         const form = $("#checksheetForm");
+        form.removeClass("inputs-locked");
         form.find("input, select, textarea, button").not('[type="hidden"]').prop("disabled", false);
         $("#saveBtn").prop("disabled", false);
         $("#btnAddQueueItem").prop("disabled", false);
-        form.removeClass("inputs-locked");
     }
 
     function resetFormForNextInput() {
@@ -1837,6 +1864,113 @@ document.addEventListener('DOMContentLoaded', function () {
         $('.defect-qty').val('');
         $('#judgmentSelect').val('OK').trigger('change');
     }
+
+    function resetAllForNewInput() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        totalSeconds = 0;
+        timerRunning = false;
+        $('#timerDisplay').text('00:00:00');
+        $('#cycleTimeInput').val(0);
+        $('#startTimerBtn')
+            .removeClass('btn-secondary text-white')
+            .addClass('btn-success')
+            .html('<i class="fas fa-play"></i> Start')
+            .css('cursor', 'pointer')
+            .prop('disabled', false);
+
+        resetFormForNextInput();
+        $('#itemSelect').val('').trigger('change');
+
+        // Re-lock: user must press Start again for next entry
+        lockInputs();
+        $('#saveBtn').html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
+    }
+
+    // Direct Form Submit via AJAX with single alert (Lihat Data / Tutup)
+    $('#checksheetForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const submitBtn = $('#saveBtn');
+
+        const itemId = $('#itemSelect').val();
+        if (!itemId) {
+            Swal.fire('Form Belum Lengkap', 'Silakan pilih Item Part terlebih dahulu.', 'warning');
+            return;
+        }
+
+        const totalCheck = $('#totalCheckInput').val();
+        if (!totalCheck || parseInt(totalCheck) <= 0) {
+            Swal.fire('Form Belum Lengkap', 'Total Check harus diisi dengan angka lebih dari 0.', 'warning');
+            return;
+        }
+
+        const dimCheck = checkMandatoryDimensions();
+        if (!dimCheck.isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Dimensi Belum Lengkap',
+                text: `Point dimensi berikut wajib diisi: ${dimCheck.missingPoints.join(', ')}`
+            });
+            if (dimCheck.firstEmpty) dimCheck.firstEmpty.focus();
+            return;
+        }
+
+        submitBtn.html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...').prop('disabled', true);
+
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Disimpan!',
+                    text: (response && response.message) ? response.message : 'Data Incoming Part berhasil disimpan.',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4e73df',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Lihat Data',
+                    cancelButtonText: 'Tutup'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const targetUrl = (response && response.index_url) 
+                            ? response.index_url 
+                            : (window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.index_url 
+                                ? window.INCOMING_PART_CONFIG.index_url 
+                                : null);
+                        if (targetUrl) {
+                            window.location.href = targetUrl;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        resetAllForNewInput();
+                    }
+                });
+            },
+            error: function (xhr) {
+                const msg = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Terjadi kesalahan saat menyimpan data.';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menyimpan',
+                    text: msg,
+                    confirmButtonColor: '#e74a3b'
+                }).then(() => {
+                    submitBtn.html('<i class="fas fa-save mr-1"></i> SIMPAN DATA').prop('disabled', false);
+                });
+            }
+        });
+    });
 });
 
 
