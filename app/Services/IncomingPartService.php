@@ -62,13 +62,13 @@ class IncomingPartService extends BaseService
                   ->orWhereIn('scan_method', ['hardware', 'camera']);
             });
         } elseif (!empty($filters['entry_method'])) {
-            if ($filters['entry_method'] === 'qr') {
+            if (in_array($filters['entry_method'], ['qr', 'verification'])) {
                 $query->where(function ($q) {
                     $q->whereNotNull('qrcode')
                       ->orWhereNotNull('unique_code_id')
                       ->orWhereIn('scan_method', ['hardware', 'camera']);
                 });
-            } elseif ($filters['entry_method'] === 'manual') {
+            } elseif (in_array($filters['entry_method'], ['manual', 'regular'])) {
                 $query->where(function ($q) {
                     $q->whereNull('qrcode')
                       ->whereNull('unique_code_id')
@@ -78,6 +78,16 @@ class IncomingPartService extends BaseService
                       });
                 });
             }
+        } else {
+            // Default saat view_mode bukan verifikasi: hanya tampilkan data manual (regular)
+            $query->where(function ($q) {
+                $q->whereNull('qrcode')
+                  ->whereNull('unique_code_id')
+                  ->where(function ($sub) {
+                      $sub->whereNull('scan_method')
+                          ->orWhere('scan_method', 'manual');
+                  });
+            });
         }
 
         if (!empty($filters['id'])) {
