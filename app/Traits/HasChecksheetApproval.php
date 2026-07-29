@@ -250,8 +250,9 @@ trait HasChecksheetApproval
     public function bulkApprove(Request $request)
     {
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => 'required_without:ids|nullable|date',
+            'end_date' => 'required_without:ids|nullable|date|after_or_equal:start_date',
+            'ids' => 'nullable|array',
         ]);
 
         $user = auth()->user();
@@ -306,10 +307,14 @@ trait HasChecksheetApproval
                 });
             }
 
-            // Filter by date range
-            $dateColumn = $this->getApprovalDateColumn();
-            $query->whereDate($dateColumn, '>=', $request->start_date)
-                ->whereDate($dateColumn, '<=', $request->end_date);
+            // Filter by IDs or date range
+            if ($request->filled('ids') && is_array($request->input('ids'))) {
+                $query->whereIn($query->getModel()->getTable() . '.id', $request->input('ids'));
+            } else {
+                $dateColumn = $this->getApprovalDateColumn();
+                $query->whereDate($dateColumn, '>=', $request->start_date)
+                    ->whereDate($dateColumn, '<=', $request->end_date);
+            }
 
             // Only records that are pending approval (field is NULL or REJECTED)
             $query->where(function ($q) use ($field) {

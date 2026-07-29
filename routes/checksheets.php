@@ -255,6 +255,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Incoming Bulk Approval Routes
         Route::post('/incoming-part/bulk-approve', [IncomingPartController::class, 'bulkApprove'])->name('incoming.parts.bulk_approve');
+        Route::post('/incoming-part/bulk-destroy', [IncomingPartController::class, 'bulkDestroy'])->name('incoming.parts.bulk_destroy');
         Route::post('/incoming-material/bulk-approve', [IncomingMaterialController::class, 'bulkApprove'])->name('incoming.materials.bulk_approve');
         Route::post('/incoming-sub-part/bulk-approve', [IncomingSubPartController::class, 'bulkApprove'])->name('incoming.sub_parts.bulk_approve');
         Route::post('/incoming-export/bulk-approve', [IncomingExportController::class, 'bulkApprove'])->name('incoming.exports.bulk_approve');

@@ -19,6 +19,7 @@ class IncomingPart extends Model
         'shift',
         'lot_qty',
         'total_check',
+        'sampling_qty',
         'tanggal_datang',
         'judgment',
         'defects',

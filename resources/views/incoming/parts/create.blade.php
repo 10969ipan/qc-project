@@ -154,7 +154,8 @@
                                 <th style="width: 160px;">Tgl &amp; Shift Kedatangan Supplier</th>
                                 <th style="width: 120px;">Qty Balance</th>
                                 <th style="width: 160px;">Tanggal &amp; Shift Check</th>
-                                <th style="width: 120px;">Total Check</th>
+                                <th style="width: 110px;">Total Check</th>
+                                <th style="width: 110px;">Qty Sampling</th>
                                 <th style="min-width: 230px;">Detail NG</th>
                                 <th style="width: 110px;">Judgment</th>
                                 <th style="width: 90px;">QC Initials</th>
@@ -237,11 +238,18 @@
                                 <!-- 5. Total Check -->
                                 <td>
                                     <input type="number" class="form-control text-center" 
-                                        name="total_check" id="totalCheckInput" placeholder="0" min="1" required style="min-width: 100px;">
+                                        name="total_check" id="totalCheckInput" placeholder="0" min="1" required style="min-width: 90px;">
                                     <small class="text-muted d-block text-center mt-1" id="maxCheckHint"></small>
                                 </td>
 
-                                <!-- 6. Detail NG -->
+                                <!-- 6. Qty Sampling (AQL Auto) -->
+                                <td>
+                                    <input type="number" class="form-control text-center" 
+                                        name="sampling_qty" id="qtySamplingInput" placeholder="0" min="0" style="min-width: 90px;">
+                                    <small class="text-muted d-block text-center mt-1">Auto AQL</small>
+                                </td>
+
+                                <!-- 7. Detail NG -->
                                 <td>
                                     <label class="font-weight-bold text-dark d-block mb-1 small">Defect List (NG):</label>
                                     <div id="defectContainer">

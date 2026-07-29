@@ -75,7 +75,16 @@ $(document).ready(function () {
         }
     });
 
-    // Qty (Kg, liter, Botol) sekarang diisi manual tanpa memicu perhitungan otomatis
+    // Hitung otomatis AQL (Sampling Size) dari Total Check pada modal edit
+    $(document).on('input change', 'input[name="total_check"]', function() {
+        const totalCheck = parseFloat($(this).val()) || 0;
+        if (totalCheck > 0) {
+            const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalCheck);
+            $('input[name="sampling_qty"]').val(sampleSize);
+        } else {
+            $('input[name="sampling_qty"]').val(0);
+        }
+    });
 
     // Hitung otomatis AQL (Sampling Size) hanya dari input Komper/Karung (untuk Material)
     $('input[name="komper_karung_kg"]').on('input', function() {

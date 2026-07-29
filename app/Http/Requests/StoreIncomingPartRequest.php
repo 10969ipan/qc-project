@@ -30,6 +30,7 @@ class StoreIncomingPartRequest extends FormRequest
             'shift' => 'required|string',
             'lot_qty' => 'nullable|integer|min:0',
             'total_check' => 'required|integer|min:0',
+            'sampling_qty' => 'nullable|integer|min:0',
             'tanggal_datang' => 'nullable|date',
             'shift_datang' => 'nullable|string',
             'qty_datang' => 'nullable|integer|min:0',

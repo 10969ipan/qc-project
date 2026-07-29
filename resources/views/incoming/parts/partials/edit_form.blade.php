@@ -55,7 +55,7 @@
 
     <div class="form-row mb-2">
         <div class="form-group col-md-6">
-            <label class="small font-weight-bold text-gray-700">Total Check QC (pcs) <span class="text-danger">*</span></label>
+            <label class="small font-weight-bold text-gray-700">Qty Sampling (pcs) <span class="text-danger">*</span></label>
             <input type="number" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-center" name="total_check" value="{{ $checksheet->total_check }}" required min="1">
         </div>
         <div class="form-group col-md-6">

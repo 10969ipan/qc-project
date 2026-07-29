@@ -152,6 +152,31 @@ class IncomingPartController extends Controller
         return redirect()->route('incoming.parts.index', $request->query())->with('success', 'Incoming Part berhasil dihapus.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (empty($ids) || !is_array($ids)) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang dipilih.'], 422);
+        }
+
+        try {
+            foreach ($ids as $id) {
+                $this->checksheetService->deleteChecksheet($id);
+            }
+            ActivityLogger::log('deleted', null, "Menghapus massal " . count($ids) . " data Incoming Part");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil menghapus ' . count($ids) . ' data Incoming Part.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getArrivals(Request $request)
     {
         $itemId = $request->query('item_id');

@@ -253,6 +253,15 @@
                 <table class="table table-hover text-center" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
                         <tr>
+                            <th rowspan="2" class="align-middle text-center" style="width: 55px;">
+                                <div class="d-flex flex-column align-items-center justify-content-center">
+                                    <span style="font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; line-height: 1.1;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
+                                    <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
+                                        <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                        <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                    </div>
+                                </div>
+                            </th>
                             <th rowspan="2" class="align-middle">No</th>
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
@@ -263,6 +272,7 @@
                             <th rowspan="2" class="align-middle">Qty Datang Awal</th>
                             <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             <th rowspan="2" class="align-middle">Total Check</th>
+                            <th rowspan="2" class="align-middle">Qty Sampling</th>
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
@@ -285,6 +295,12 @@
                     <tbody>
                         @forelse($checksheets as $cs)
                             <tr>
+                                <td class="align-middle text-center">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input row-checkbox" id="check_{{ $cs->id }}" value="{{ $cs->id }}">
+                                        <label class="custom-control-label" for="check_{{ $cs->id }}" style="cursor:pointer;"></label>
+                                    </div>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 @if(request('view_mode') === 'verifikasi')
                                     <td class="align-middle text-nowrap">
@@ -313,30 +329,29 @@
                                 </td>
                                 
                                 {{-- Kolom Customer / Supplier --}}
-                                <td class="align-middle text-nowrap font-weight-bold text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-nowrap text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
 
                                 {{-- Qty Kedatangan Awal --}}
-                                <td class="align-middle text-nowrap font-weight-bold">
+                                <td class="align-middle text-nowrap">
                                     {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
                                 </td>
 
                                 {{-- Qty Balance Sisa --}}
                                 <td class="align-middle text-nowrap">
                                     @if($cs->arrival)
-                                        <span class="font-weight-bold {{ $cs->arrival->qty_sisa > 0 ? 'text-primary' : 'text-success' }}">
-                                            {{ number_format($cs->arrival->qty_sisa) }} pcs
-                                        </span>
+                                        <span>{{ number_format($cs->arrival->qty_sisa) }} pcs</span>
                                         <br>
-                                        <span class="badge badge-{{ $cs->arrival->status === 'OPEN' ? 'warning' : 'success' }}">
-                                            {{ $cs->arrival->status }}
-                                        </span>
+                                        <small class="text-muted">({{ $cs->arrival->status }})</small>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
 
                                 {{-- Total Check --}}
-                                <td class="align-middle text-nowrap font-weight-bold">{{ number_format($cs->total_check) }} pcs</td>
+                                <td class="align-middle text-nowrap">{{ number_format($cs->total_check) }} pcs</td>
+
+                                {{-- Qty Sampling --}}
+                                <td class="align-middle text-nowrap text-primary">{{ number_format($cs->sampling_qty ?? $cs->total_check) }} pcs</td>
                                 
                                 {{-- Tgl & Shift Datang --}}
                                 <td class="align-middle text-nowrap">
@@ -373,7 +388,7 @@
                                         {{ $cs->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle text-nowrap text-uppercase font-weight-bold">{{ $cs->operator_initials }}</td>
+                                <td class="align-middle text-nowrap text-uppercase">{{ $cs->operator_initials }}</td>
                                 
                                 {{-- Approval Columns --}}
                                 @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
@@ -409,7 +424,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="20" class="text-center text-muted py-4">
+                                <td colspan="23" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
                                     Data checksheet tidak ditemukan.
                                 </td>
@@ -503,6 +518,23 @@
         </div>
     </div>
 
+    <!-- Float Menu untuk Selected Box (Bulk Actions) -->
+    <div id="bulkActionMenu" class="position-fixed shadow-lg rounded-pill" style="bottom: 40px; left: 50%; transform: translateX(-50%); display: none; z-index: 9999; background: white; padding: 12px 24px; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;">
+        <div class="d-flex align-items-center">
+            <span class="mr-3 font-weight-bold text-gray-800" style="font-size: 0.85rem;"><span id="bulkSelectedCount">0</span> Data Terpilih</span>
+            @if($canDelete)
+                <button type="button" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 mr-2" id="btnBulkDelete">
+                    <i class="fas fa-trash-alt mr-1"></i> Hapus Terpilih
+                </button>
+            @endif
+            @if(auth()->user()->role !== 'operator')
+                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" id="btnBulkApprove">
+                    <i class="fas fa-check-circle mr-1"></i> Approve Terpilih
+                </button>
+            @endif
+        </div>
+    </div>
+
     @php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
@@ -534,6 +566,159 @@
             $('#modal-qr-sap').text(sap);
 
             $('#qrModal').modal('show');
+        });
+
+        // Selected Box (Bulk Select All & Row Checkboxes) Handler
+        function updateSelectedCount() {
+            const checkedBoxes = $('.row-checkbox:checked');
+            const totalBoxes = $('.row-checkbox');
+            const count = checkedBoxes.length;
+
+            $('#checkedCountDisplay').text(count);
+            $('#bulkSelectedCount').text(count);
+
+            if (totalBoxes.length > 0) {
+                $('#checkAllRows').prop('checked', count === totalBoxes.length);
+            }
+
+            if (count > 0) {
+                $('#bulkActionMenu').css('display', 'flex').stop(true, true).fadeIn(200);
+            } else {
+                $('#bulkActionMenu').stop(true, true).fadeOut(200);
+            }
+
+            $('.row-checkbox').each(function () {
+                const row = $(this).closest('tr');
+                if ($(this).is(':checked')) {
+                    row.addClass('table-primary');
+                } else {
+                    row.removeClass('table-primary');
+                }
+            });
+        }
+
+        $(document).on('change', '#checkAllRows', function () {
+            const isChecked = $(this).prop('checked');
+            $('.row-checkbox').prop('checked', isChecked);
+            updateSelectedCount();
+        });
+
+        $(document).on('change', '.row-checkbox', function (e) {
+            e.stopPropagation();
+            updateSelectedCount();
+        });
+
+        $(document).on('click', '#btnBulkDelete', function () {
+            const selectedIds = $('.row-checkbox:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) return;
+
+            Swal.fire({
+                title: 'Hapus ' + selectedIds.length + ' Data Terpilih?',
+                text: "Data yang dipilih akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus Semua!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Menghapus Data...',
+                        text: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "{{ route('incoming.parts.bulk_destroy') }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            ids: selectedIds
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan saat menghapus data.';
+                            Swal.fire('Gagal!', msg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('click', '#btnBulkApprove', function () {
+            const selectedIds = $('.row-checkbox:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            if (selectedIds.length === 0) return;
+
+            Swal.fire({
+                title: 'Approve ' + selectedIds.length + ' Data Terpilih?',
+                text: "Seluruh data terpilih akan disetujui untuk level approval Anda.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1cc88a',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Approve Semua!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses Approval...',
+                        text: 'Mohon tunggu sebentar',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: "{{ route('incoming.parts.bulk_approve') }}",
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            ids: selectedIds,
+                            approval_type: "{{ auth()->user()->role }}"
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan saat approve data.';
+                            Swal.fire('Gagal!', msg, 'error');
+                        }
+                    });
+                }
+            });
         });
 
         // Handle SweetAlert2 Delete Confirmation (Selaras In-Process UI Standardization)

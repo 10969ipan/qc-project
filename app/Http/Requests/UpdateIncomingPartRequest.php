@@ -18,6 +18,7 @@ class UpdateIncomingPartRequest extends FormRequest
             'date' => 'required|date',
             'shift' => 'required|string',
             'total_check' => 'required|integer',
+            'sampling_qty' => 'nullable|integer|min:0',
             'tanggal_datang' => 'required|date',
             'judgment' => 'required|in:OK,NG',
             'total_ng' => 'nullable|integer',

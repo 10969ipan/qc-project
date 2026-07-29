@@ -57,36 +57,44 @@ class IncomingPartService extends BaseService
 
         if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
             $query->where(function ($q) {
-                $q->whereNotNull('qrcode')
-                  ->orWhereNotNull('unique_code_id')
-                  ->orWhereIn('scan_method', ['hardware', 'camera']);
+                $q->where(function ($sub) {
+                    $sub->whereNotNull('qrcode')->where('qrcode', '!=', '');
+                })->orWhere(function ($sub) {
+                    $sub->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
+                })->orWhereIn('scan_method', ['hardware', 'camera']);
             });
         } elseif (!empty($filters['entry_method'])) {
             if (in_array($filters['entry_method'], ['qr', 'verification'])) {
                 $query->where(function ($q) {
-                    $q->whereNotNull('qrcode')
-                      ->orWhereNotNull('unique_code_id')
-                      ->orWhereIn('scan_method', ['hardware', 'camera']);
+                    $q->where(function ($sub) {
+                        $sub->whereNotNull('qrcode')->where('qrcode', '!=', '');
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
+                    })->orWhereIn('scan_method', ['hardware', 'camera']);
                 });
             } elseif (in_array($filters['entry_method'], ['manual', 'regular'])) {
                 $query->where(function ($q) {
-                    $q->whereNull('qrcode')
-                      ->whereNull('unique_code_id')
-                      ->where(function ($sub) {
-                          $sub->whereNull('scan_method')
-                              ->orWhere('scan_method', 'manual');
-                      });
+                    $q->where(function ($sub) {
+                        $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                    })->where(function ($sub) {
+                        $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                    })->where(function ($sub) {
+                        $sub->whereNull('scan_method')
+                            ->orWhere('scan_method', 'manual');
+                    });
                 });
             }
         } else {
             // Default saat view_mode bukan verifikasi: hanya tampilkan data manual (regular)
             $query->where(function ($q) {
-                $q->whereNull('qrcode')
-                  ->whereNull('unique_code_id')
-                  ->where(function ($sub) {
-                      $sub->whereNull('scan_method')
-                          ->orWhere('scan_method', 'manual');
-                  });
+                $q->where(function ($sub) {
+                    $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('scan_method')
+                        ->orWhere('scan_method', 'manual');
+                });
             });
         }
 
@@ -176,19 +184,20 @@ class IncomingPartService extends BaseService
                 'shift'             => $data['shift'],
                 'lot_qty'           => $data['lot_qty'] ?? ($arrival ? $arrival->qty_datang : 0),
                 'total_check'       => $data['total_check'],
+                'sampling_qty'      => $data['sampling_qty'] ?? null,
                 'tanggal_datang'    => $data['tanggal_datang'] ?? ($arrival ? $arrival->tanggal_datang : $data['date']),
                 'judgment'          => $data['judgment'],
                 'total_ng'          => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks'           => $data['remarks'] ?? null,
                 'defects'           => json_encode($defects),
-                'part_code'         => $data['part_code'] ?? null,
-                'supplier_id'       => $data['supplier_id'] ?? null,
-                'quantity'          => $data['quantity'] ?? null,
-                'unique_code_id'    => $data['unique_code_id'] ?? null,
-                'sap_code'          => $data['sap_code'] ?? null,
-                'scan_method'       => $data['scan_method'] ?? 'manual',
-                'qrcode'            => $data['qrcode'] ?? null,
+                'part_code'         => !empty($data['part_code']) ? $data['part_code'] : null,
+                'supplier_id'       => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
+                'quantity'          => !empty($data['quantity']) ? $data['quantity'] : null,
+                'unique_code_id'    => !empty($data['unique_code_id']) ? $data['unique_code_id'] : null,
+                'sap_code'          => !empty($data['sap_code']) ? $data['sap_code'] : null,
+                'scan_method'       => !empty($data['scan_method']) ? $data['scan_method'] : 'manual',
+                'qrcode'            => !empty($data['qrcode']) ? $data['qrcode'] : null,
                 'cycle_time'        => $data['cycle_time'] ?? null,
             ]);
 
@@ -223,6 +232,7 @@ class IncomingPartService extends BaseService
                 'shift' => $data['shift'],
                 'lot_qty' => $data['lot_qty'] ?? $checksheet->lot_qty,
                 'total_check' => $newTotalCheck,
+                'sampling_qty' => $data['sampling_qty'] ?? $checksheet->sampling_qty,
                 'tanggal_datang' => $data['tanggal_datang'] ?? $checksheet->tanggal_datang,
                 'judgment' => $data['judgment'],
                 'total_ng' => $data['total_ng'] ?? 0,
