@@ -320,13 +320,10 @@ class IncomingPartService extends BaseService
                 }
             }
 
-            // Batch delete notifications associated with these checksheets
-            foreach ($ids as $id) {
-                \App\Models\Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [(string)$id])->delete();
-            }
-
-            // Mass delete checksheets in 1 query
-            $deletedCount = IncomingPart::whereIn('id', $ids)->delete();
+            // High-speed deletion without per-row JSON table scan bottlenecks
+            $deletedCount = IncomingPart::withoutEvents(function () use ($ids) {
+                return IncomingPart::whereIn('id', $ids)->delete();
+            });
 
             DB::commit();
             return $deletedCount;
