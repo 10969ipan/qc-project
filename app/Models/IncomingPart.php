@@ -20,6 +20,7 @@ class IncomingPart extends Model
         'lot_qty',
         'total_check',
         'sampling_qty',
+        'qty_balance_sisa',
         'tanggal_datang',
         'judgment',
         'defects',

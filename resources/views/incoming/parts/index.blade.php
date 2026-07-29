@@ -271,8 +271,8 @@
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                             <th rowspan="2" class="align-middle">Qty Datang Awal</th>
-                            <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             <th rowspan="2" class="align-middle">Total Check</th>
+                            <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             <th rowspan="2" class="align-middle">Qty Sampling</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
@@ -348,19 +348,20 @@
                                     {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
                                 </td>
 
-                                {{-- Qty Balance Sisa --}}
-                                <td class="align-middle text-nowrap">
-                                    @if($cs->arrival)
-                                        <span>{{ number_format($cs->arrival->qty_sisa) }} pcs</span>
-                                        <br>
-                                        <small class="text-muted">({{ $cs->arrival->status }})</small>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-
                                 {{-- Total Check --}}
                                 <td class="align-middle text-nowrap">{{ number_format($cs->total_check) }} pcs</td>
+
+                                {{-- Qty Balance Sisa --}}
+                                <td class="align-middle text-nowrap">
+                                    @php
+                                        $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                    @endphp
+                                    <span>{{ number_format($sisaDisplay) }} pcs</span>
+                                    @if($cs->arrival)
+                                        <br>
+                                        <small class="text-muted">({{ $cs->arrival->status }})</small>
+                                    @endif
+                                </td>
 
                                 {{-- Qty Sampling --}}
                                 <td class="align-middle text-nowrap text-primary">{{ number_format($cs->sampling_qty ?? $cs->total_check) }} pcs</td>
@@ -382,7 +383,7 @@
                                         <span class="text-muted">-</span>
                                     @endforelse
                                 </td>
-                                <td class="p-0 align-middle text-left pl-2 text-nowrap">
+                                <td class="p-0 align-middle text-center text-nowrap">
                                     @forelse($validDefects as $d)
                                         <div class="border-bottom py-1">{{ $d['type'] ?? '-' }}</div>
                                     @empty

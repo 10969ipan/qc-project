@@ -112,9 +112,15 @@ class IncomingPartService extends BaseService
 
     public function getOutstandingArrivals($itemId)
     {
-        return \App\Models\IncomingPartArrival::where('item_id', $itemId)
+        // Clean up orphan arrival records that have 0 checksheets attached
+        IncomingPartArrival::where('item_id', $itemId)
+            ->whereDoesntHave('checksheets')
+            ->delete();
+
+        return IncomingPartArrival::where('item_id', $itemId)
             ->where('status', 'OPEN')
             ->where('qty_sisa', '>', 0)
+            ->whereHas('checksheets')
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->get();
@@ -137,15 +143,22 @@ class IncomingPartService extends BaseService
             $plantId = $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id);
             $arrival = null;
 
-            // Handle Arrival record (FIFO matching based on date & shift)
+            // Handle Arrival record (strict date & shift matching)
+            $shiftDatang = $data['shift_datang'] ?? '1';
+            $tglDatang = !empty($data['tanggal_datang']) ? date('Y-m-d', strtotime($data['tanggal_datang'])) : null;
+
             if (!empty($data['arrival_id'])) {
-                $arrival = \App\Models\IncomingPartArrival::find($data['arrival_id']);
-            } elseif (!empty($data['tanggal_datang'])) {
-                $shiftDatang = $data['shift_datang'] ?? '1';
-                // Find existing OPEN arrival for this exact date & shift
+                $candidate = \App\Models\IncomingPartArrival::find($data['arrival_id']);
+                if ($candidate && $tglDatang && $candidate->tanggal_datang && $candidate->tanggal_datang->format('Y-m-d') === $tglDatang && (string)$candidate->shift_datang === (string)$shiftDatang) {
+                    $arrival = $candidate;
+                }
+            }
+
+            if (!$arrival && !empty($tglDatang)) {
+                // Find existing OPEN arrival for this exact item, plant, date & shift
                 $existingArrival = \App\Models\IncomingPartArrival::where('plant_id', $plantId)
                     ->where('item_id', $data['item_id'])
-                    ->where('tanggal_datang', $data['tanggal_datang'])
+                    ->where('tanggal_datang', $tglDatang)
                     ->where('shift_datang', $shiftDatang)
                     ->where('status', 'OPEN')
                     ->first();
@@ -156,7 +169,7 @@ class IncomingPartService extends BaseService
                     $arrival = \App\Models\IncomingPartArrival::create([
                         'plant_id'       => $plantId,
                         'item_id'        => $data['item_id'],
-                        'tanggal_datang' => $data['tanggal_datang'],
+                        'tanggal_datang' => $tglDatang,
                         'shift_datang'   => $shiftDatang,
                         'qty_datang'     => (int)$data['qty_datang'],
                         'qty_sisa'       => (int)$data['qty_datang'],
@@ -165,15 +178,20 @@ class IncomingPartService extends BaseService
                 }
             }
 
-            // Deduct sisa qty on arrival if associated
+            // Calculate Historical Snapshot of Qty Balance Sisa
+            $checkQty = (int)($data['total_check'] ?? 0);
+            $historicalSisaSnapshot = 0;
+
             if ($arrival) {
-                $checkQty = (int)($data['total_check'] ?? 0);
-                $newSisa = max(0, $arrival->qty_sisa - $checkQty);
-                $arrival->qty_sisa = $newSisa;
-                if ($newSisa <= 0) {
+                $historicalSisaSnapshot = max(0, $arrival->qty_sisa - $checkQty);
+                $arrival->qty_sisa = $historicalSisaSnapshot;
+                if ($historicalSisaSnapshot <= 0) {
                     $arrival->status = 'COMPLETED';
                 }
                 $arrival->save();
+            } else {
+                $initialStock = (int)($data['qty_balance'] ?? $data['lot_qty'] ?? 0);
+                $historicalSisaSnapshot = max(0, $initialStock - $checkQty);
             }
 
             $checksheet = IncomingPart::create([
@@ -185,6 +203,7 @@ class IncomingPartService extends BaseService
                 'lot_qty'           => $data['lot_qty'] ?? ($arrival ? $arrival->qty_datang : 0),
                 'total_check'       => $data['total_check'],
                 'sampling_qty'      => $data['sampling_qty'] ?? null,
+                'qty_balance_sisa'  => isset($data['qty_balance_sisa']) && $data['qty_balance_sisa'] !== '' ? (int)$data['qty_balance_sisa'] : $historicalSisaSnapshot,
                 'tanggal_datang'    => $data['tanggal_datang'] ?? ($arrival ? $arrival->tanggal_datang : $data['date']),
                 'judgment'          => $data['judgment'],
                 'total_ng'          => $data['total_ng'] ?? 0,
@@ -226,6 +245,10 @@ class IncomingPartService extends BaseService
 
             $defects = $this->processDefects($data);
 
+            $newSnapshotSisa = isset($data['qty_balance_sisa']) && $data['qty_balance_sisa'] !== ''
+                ? (int)$data['qty_balance_sisa']
+                : max(0, (int)($checksheet->qty_balance_sisa ?? 0) - $diffCheck);
+
             $checksheet->update([
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
@@ -233,6 +256,7 @@ class IncomingPartService extends BaseService
                 'lot_qty' => $data['lot_qty'] ?? $checksheet->lot_qty,
                 'total_check' => $newTotalCheck,
                 'sampling_qty' => $data['sampling_qty'] ?? $checksheet->sampling_qty,
+                'qty_balance_sisa' => $newSnapshotSisa,
                 'tanggal_datang' => $data['tanggal_datang'] ?? $checksheet->tanggal_datang,
                 'judgment' => $data['judgment'],
                 'total_ng' => $data['total_ng'] ?? 0,
@@ -266,21 +290,27 @@ class IncomingPartService extends BaseService
         DB::beginTransaction();
         try {
             $checksheet = IncomingPart::findOrFail($id);
+            $arrivalId = $checksheet->arrival_id;
 
-            // Sync Arrival Qty Balance if arrival_id is present
-            if ($checksheet->arrival_id) {
-                $arrival = IncomingPartArrival::find($checksheet->arrival_id);
+            $deleted = $checksheet->delete();
+
+            // Sync or cleanup Arrival Qty Balance if arrival_id was present
+            if ($arrivalId) {
+                $arrival = IncomingPartArrival::find($arrivalId);
                 if ($arrival) {
-                    $newQtySisa = $arrival->qty_sisa + (int) $checksheet->total_check;
-                    $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
-                    if ($arrival->qty_sisa > 0) {
-                        $arrival->status = 'OPEN';
+                    if ($arrival->checksheets()->count() === 0) {
+                        $arrival->delete();
+                    } else {
+                        $newQtySisa = $arrival->qty_sisa + (int) $checksheet->total_check;
+                        $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
+                        if ($arrival->qty_sisa > 0) {
+                            $arrival->status = 'OPEN';
+                        }
+                        $arrival->save();
                     }
-                    $arrival->save();
                 }
             }
 
-            $deleted = $checksheet->delete();
             DB::commit();
             return $deleted;
         } catch (\Exception $e) {
@@ -302,21 +332,11 @@ class IncomingPartService extends BaseService
 
             // Group & batch sync Arrival Qty Balances
             $arrivalAdjustments = [];
+            $affectedArrivalIds = [];
             foreach ($checksheets as $cs) {
                 if ($cs->arrival_id) {
                     $arrivalAdjustments[$cs->arrival_id] = ($arrivalAdjustments[$cs->arrival_id] ?? 0) + (int) $cs->total_check;
-                }
-            }
-
-            foreach ($arrivalAdjustments as $arrivalId => $addQty) {
-                $arrival = IncomingPartArrival::find($arrivalId);
-                if ($arrival) {
-                    $newQtySisa = $arrival->qty_sisa + $addQty;
-                    $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
-                    if ($arrival->qty_sisa > 0) {
-                        $arrival->status = 'OPEN';
-                    }
-                    $arrival->save();
+                    $affectedArrivalIds[] = $cs->arrival_id;
                 }
             }
 
@@ -324,6 +344,25 @@ class IncomingPartService extends BaseService
             $deletedCount = IncomingPart::withoutEvents(function () use ($ids) {
                 return IncomingPart::whereIn('id', $ids)->delete();
             });
+
+            // Cleanup or adjust arrival balances
+            $affectedArrivalIds = array_unique($affectedArrivalIds);
+            foreach ($affectedArrivalIds as $arrivalId) {
+                $arrival = IncomingPartArrival::find($arrivalId);
+                if ($arrival) {
+                    if ($arrival->checksheets()->count() === 0) {
+                        $arrival->delete();
+                    } else {
+                        $addQty = $arrivalAdjustments[$arrivalId] ?? 0;
+                        $newQtySisa = $arrival->qty_sisa + $addQty;
+                        $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
+                        if ($arrival->qty_sisa > 0) {
+                            $arrival->status = 'OPEN';
+                        }
+                        $arrival->save();
+                    }
+                }
+            }
 
             DB::commit();
             return $deletedCount;

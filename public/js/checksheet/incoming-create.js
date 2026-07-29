@@ -620,6 +620,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Auto FIFO: Pick oldest active lot (index 0)
                     selectArrival(arrivals[0]);
                 } else {
+                    // Tereset jika data kedatangan pada index sudah tidak ada lagi
                     clearArrivalFields();
                 }
             },
@@ -630,8 +631,23 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Trigger fetchOutstandingArrivals saat Item Part dipilih atau diubah
+    $(document).on('change', '#itemSelect', function() {
+        const itemId = $(this).val();
+        if (itemId) {
+            fetchOutstandingArrivals(itemId);
+        } else {
+            clearArrivalFields();
+        }
+    });
+
+    // Panggil otomatis saat halaman pertama kali dibuka jika item sudah terpilih
+    if ($('#itemSelect').length > 0 && $('#itemSelect').val()) {
+        fetchOutstandingArrivals($('#itemSelect').val());
+    }
+
     // Dynamic FIFO Matcher when date or shift is manually changed by operator
-    $(document).on('change', '#tanggalDatangInput, #shiftDatangSelect', function() {
+    $(document).on('change input', '#tanggalDatangInput, #shiftDatangSelect', function() {
         const currentTgl = $('#tanggalDatangInput').val();
         const currentShift = $('#shiftDatangSelect').val();
         
@@ -646,8 +662,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         
+        // Reset arrivalIdInput jika tanggal/shift diubah dan tidak cocok dengan lot aktif
         $('#arrivalIdInput').val('');
         $('#initialBalanceInput').val('0');
+        $('#qtyBalanceInput').val('');
         updateDynamicBalance();
     });
 

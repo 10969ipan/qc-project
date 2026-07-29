@@ -34,6 +34,7 @@ class UpdateIncomingPartRequest extends FormRequest
             'sap_code' => 'nullable|string',
             'scan_method' => 'nullable|string|in:manual,hardware,camera',
             'cycle_time' => 'nullable|integer',
+            'qty_balance_sisa' => 'nullable|integer|min:0',
         ];
     }
 }
