@@ -64,14 +64,49 @@ class IncomingPartController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
+        $plantId = Plant::resolveId($plantFilter);
+
+        $filters = [
+            'plant'             => $plantFilter,
+            'start_date'        => $request->start_date,
+            'end_date'          => $request->end_date,
+            'approval_status'   => $request->approval_status,
+            'item_id'           => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'customer'          => $request->customer,
+            'id'                => $request->id,
+            'search'            => $request->search,
+            'qr_raw'            => $request->qr_raw,
+            'entry_method'      => $request->entry_method,
+            'shift'             => $request->shift,
+            'view_mode'         => $request->view_mode,
+        ];
+
         if ($request->get('view_mode') !== 'verifikasi' && empty($filters['entry_method'])) {
             $filters['entry_method'] = 'manual';
         }
+
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Part')->orderBy('name')->get();
 
-        return view('incoming.parts.index', compact('checksheets', 'items'));
+        $customers = Item::whereIn('id', function ($query) use ($plantId) {
+            $query->select('item_id')->from('incoming_parts')->where('plant_id', $plantId);
+        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+
+        $initialsQuery = IncomingPart::where('plant_id', $plantId)
+            ->whereNotNull('operator_initials');
+
+        if (!empty($filters['start_date'])) {
+            $initialsQuery->whereDate('date', '>=', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $initialsQuery->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        $initials = $initialsQuery->distinct()->pluck('operator_initials')->sort();
+
+        return view('incoming.parts.index', compact('checksheets', 'items', 'customers', 'initials'));
     }
 
     public function create(Request $request)

@@ -43,6 +43,30 @@ class IncomingPartService extends BaseService
             $query->where('item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['operator_initials'])) {
+            $query->where('operator_initials', $filters['operator_initials']);
+        }
+
+        if (!empty($filters['customer'])) {
+            $query->whereHas('item', function ($q) use ($filters) {
+                $q->where('customer', $filters['customer']);
+            });
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
+        if (!empty($filters['qr_raw'])) {
+            $qrRaw = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qrRaw) {
+                $q->where('qrcode', 'like', "%{$qrRaw}%")
+                  ->orWhere('unique_code_id', 'like', "%{$qrRaw}%")
+                  ->orWhere('part_code', 'like', "%{$qrRaw}%")
+                  ->orWhere('sap_code', 'like', "%{$qrRaw}%");
+            });
+        }
+
         if (!empty($filters['search'])) {
             $searchTerm = $filters['search'];
             $query->where(function ($q) use ($searchTerm) {
@@ -120,7 +144,6 @@ class IncomingPartService extends BaseService
         return IncomingPartArrival::where('item_id', $itemId)
             ->where('status', 'OPEN')
             ->where('qty_sisa', '>', 0)
-            ->whereHas('checksheets')
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->get();
@@ -139,18 +162,51 @@ class IncomingPartService extends BaseService
     {
         DB::beginTransaction();
         try {
+            // Check for duplicate QR Code / Unique Code ID
+            $uniqueCode = !empty($data['unique_code_id']) ? trim($data['unique_code_id']) : null;
+            $qrCode = !empty($data['qrcode']) ? trim($data['qrcode']) : null;
+
+            if ($uniqueCode) {
+                $duplicate = IncomingPart::where('unique_code_id', $uniqueCode)->first();
+                if ($duplicate) {
+                    $tglScan = $duplicate->created_at ? $duplicate->created_at->format('d/m/Y H:i') : $duplicate->date;
+                    throw new \Exception("Gagal Menyimpan! QR Code / Unique Code ID ({$uniqueCode}) ini sudah pernah dipindai dan disimpan sebelumnya pada {$tglScan}.");
+                }
+            }
+
+            if ($qrCode) {
+                $duplicateQr = IncomingPart::where('qrcode', $qrCode)->first();
+                if ($duplicateQr) {
+                    $tglScan = $duplicateQr->created_at ? $duplicateQr->created_at->format('d/m/Y H:i') : $duplicateQr->date;
+                    throw new \Exception("Gagal Menyimpan! QR Code ini sudah pernah dipindai dan disimpan sebelumnya pada {$tglScan}.");
+                }
+            }
+
             $defects = $this->processDefects($data);
             $plantId = $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id);
             $arrival = null;
 
-            // Handle Arrival record (strict date & shift matching)
+            // Handle Arrival record (prioritize user submitted form date & shift)
             $shiftDatang = $data['shift_datang'] ?? '1';
             $tglDatang = !empty($data['tanggal_datang']) ? date('Y-m-d', strtotime($data['tanggal_datang'])) : null;
 
             if (!empty($data['arrival_id'])) {
                 $candidate = \App\Models\IncomingPartArrival::find($data['arrival_id']);
-                if ($candidate && $tglDatang && $candidate->tanggal_datang && $candidate->tanggal_datang->format('Y-m-d') === $tglDatang && (string)$candidate->shift_datang === (string)$shiftDatang) {
+                if ($candidate && $candidate->status === 'OPEN') {
                     $arrival = $candidate;
+                    // Preserve user submitted date if provided, otherwise fallback to arrival record date
+                    if (!empty($tglDatang)) {
+                        $arrival->tanggal_datang = $tglDatang;
+                    } else {
+                        $tglDatang = $arrival->tanggal_datang ? $arrival->tanggal_datang->format('Y-m-d') : null;
+                    }
+
+                    if (!empty($data['shift_datang'])) {
+                        $arrival->shift_datang = $data['shift_datang'];
+                    } else {
+                        $shiftDatang = (string)($arrival->shift_datang ?? $shiftDatang);
+                    }
+                    $arrival->save();
                 }
             }
 
@@ -204,7 +260,7 @@ class IncomingPartService extends BaseService
                 'total_check'       => $data['total_check'],
                 'sampling_qty'      => $data['sampling_qty'] ?? null,
                 'qty_balance_sisa'  => isset($data['qty_balance_sisa']) && $data['qty_balance_sisa'] !== '' ? (int)$data['qty_balance_sisa'] : $historicalSisaSnapshot,
-                'tanggal_datang'    => $data['tanggal_datang'] ?? ($arrival ? $arrival->tanggal_datang : $data['date']),
+                'tanggal_datang'    => $tglDatang ?? ($arrival ? $arrival->tanggal_datang : $data['date']),
                 'judgment'          => $data['judgment'],
                 'total_ng'          => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,

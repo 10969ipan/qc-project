@@ -49,8 +49,8 @@ class IncomingPart extends Model
 
     protected $casts = [
         'defects' => 'array',
-        'date' => 'date',
-        'tanggal_datang' => 'date',
+        'date' => 'date:Y-m-d',
+        'tanggal_datang' => 'date:Y-m-d',
         'kashift_approved_at' => 'datetime',
         'supervisor_approved_at' => 'datetime',
         'asst_manager_approved_at' => 'datetime',

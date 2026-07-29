@@ -22,7 +22,7 @@ class IncomingPartArrival extends Model
     ];
 
     protected $casts = [
-        'tanggal_datang' => 'date',
+        'tanggal_datang' => 'date:Y-m-d',
         'qty_datang' => 'integer',
         'qty_sisa' => 'integer',
     ];

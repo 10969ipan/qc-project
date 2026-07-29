@@ -590,10 +590,13 @@ class ItemController extends Controller
         }
 
         $tables = [
+            'incoming_parts'          => 'Incoming Part',
             'in_process_checksheets'  => 'In-Process',
             'sub_assy_checksheets'    => 'Sub Assy',
             'plating_checksheets'     => 'Plating',
             'double_tape_checksheets' => 'Double Tape',
+            'painting_checksheets'    => 'Painting',
+            'incoming_exports'        => 'Incoming Export',
         ];
 
         foreach ($tables as $table => $moduleName) {

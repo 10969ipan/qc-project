@@ -41,18 +41,34 @@ class StoreIncomingPartRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'defect_types.*' => 'nullable|string',
             'defect_quantities.*' => 'nullable|integer',
-            'qrcode' => 'nullable|string',
+            'qrcode' => [
+                'nullable',
+                'string',
+                \Illuminate\Validation\Rule::unique('incoming_parts', 'qrcode')->where(function ($query) {
+                    return $query->whereNotNull('qrcode')->where('qrcode', '!=', '');
+                }),
+            ],
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|integer',
             'unique_code_id' => [
                 'nullable',
                 'string',
-                \Illuminate\Validation\Rule::unique('incoming_parts', 'unique_code_id'),
+                \Illuminate\Validation\Rule::unique('incoming_parts', 'unique_code_id')->where(function ($query) {
+                    return $query->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
+                }),
             ],
             'sap_code' => 'nullable|string',
             'scan_method' => 'nullable|string|in:manual,hardware,camera',
             'cycle_time' => 'nullable|integer',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'unique_code_id.unique' => 'QR Code / Unique Code ID ini sudah pernah dipindai dan disimpan sebelumnya (duplicate).',
+            'qrcode.unique'         => 'Data QR Code ini sudah pernah dipindai dan disimpan sebelumnya (duplicate).',
         ];
     }
 }

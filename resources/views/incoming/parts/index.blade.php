@@ -166,6 +166,7 @@
         </div>
         <div class="card-body">
             <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
+            <!-- Filter Bar Terpadu (Action Bar Selaras Sub Assy & In-Process) -->
             <form action="{{ route('incoming.parts.index') }}" method="GET"
                 class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncomingPart">
@@ -178,10 +179,10 @@
                     <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
                 @endif
                 
-                <!-- Field: Part (Smart Autocomplete Dropdown Search - Presisi In-Process) -->
+                <!-- Field: Part -->
                 <div class="d-flex align-items-center">
                     <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 210px;" class="custom-filter-wrapper">
+                    <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($items as $item)
@@ -193,27 +194,81 @@
                     </div>
                 </div>
 
-                <!-- Field: Pencarian Inisial / Remarks -->
+                <!-- Field: Tanggal -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        placeholder="Inisial / Remarks..." value="{{ request('search') }}" style="width: 150px;">
-                </div>
-
-                <!-- Range Tanggal Check -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Check:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
                         <span class="px-1 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
                     </div>
                 </div>
 
+                <!-- Field: Inisial -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials ?? [] as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Customer -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers ?? [] as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: Shift -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Shift:</label>
+                    <div style="width: 90px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Field: QR Raw (Khusus Data Hasil Verifikasi) -->
+                @if(request('view_mode') === 'verifikasi')
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
+                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
+                                <i class="fas fa-qrcode" style="pointer-events: none;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
+                        .custom-filter-wrapper { position: relative; top: -1px; }
+                    </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
                         <i class="fas fa-search fa-sm"></i>
                     </button>
@@ -222,7 +277,7 @@
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
                     @if(request('view_mode') !== 'verifikasi')
-                        <a href="{{ route('incoming.parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'qr', 'plant' => request('plant')])) }}"
+                        <a href="{{ route('incoming.parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
                             class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
                             style="background-color: #6f42c1; color: white;">
                             <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
@@ -552,9 +607,11 @@
 <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize Smart Item Autocomplete Search Dropdown (Pattern In-Process)
+        // Initialize Smart Autocomplete Search Dropdowns (Matches Sub Assy behavior)
         if (typeof initItemSearch === 'function') {
             initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+            initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
+            initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
         }
 
         // Traceability QR Code Modal Handler
