@@ -290,6 +290,53 @@ class IncomingPartService extends BaseService
         }
     }
 
+    public function bulkDeleteChecksheets(array $ids): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        DB::beginTransaction();
+        try {
+            $checksheets = IncomingPart::whereIn('id', $ids)->get();
+
+            // Group & batch sync Arrival Qty Balances
+            $arrivalAdjustments = [];
+            foreach ($checksheets as $cs) {
+                if ($cs->arrival_id) {
+                    $arrivalAdjustments[$cs->arrival_id] = ($arrivalAdjustments[$cs->arrival_id] ?? 0) + (int) $cs->total_check;
+                }
+            }
+
+            foreach ($arrivalAdjustments as $arrivalId => $addQty) {
+                $arrival = IncomingPartArrival::find($arrivalId);
+                if ($arrival) {
+                    $newQtySisa = $arrival->qty_sisa + $addQty;
+                    $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
+                    if ($arrival->qty_sisa > 0) {
+                        $arrival->status = 'OPEN';
+                    }
+                    $arrival->save();
+                }
+            }
+
+            // Batch delete notifications associated with these checksheets
+            foreach ($ids as $id) {
+                \App\Models\Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [(string)$id])->delete();
+            }
+
+            // Mass delete checksheets in 1 query
+            $deletedCount = IncomingPart::whereIn('id', $ids)->delete();
+
+            DB::commit();
+            return $deletedCount;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal menghapus massal checksheet Incoming Part', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
     public function updateApprovalStatus(int $id, array $data): IncomingPart
     {
         DB::beginTransaction();

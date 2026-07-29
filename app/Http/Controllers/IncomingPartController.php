@@ -160,14 +160,12 @@ class IncomingPartController extends Controller
         }
 
         try {
-            foreach ($ids as $id) {
-                $this->checksheetService->deleteChecksheet($id);
-            }
-            ActivityLogger::log('deleted', null, "Menghapus massal " . count($ids) . " data Incoming Part");
+            $count = $this->checksheetService->bulkDeleteChecksheets($ids);
+            ActivityLogger::log('deleted', null, "Menghapus massal {$count} data Incoming Part");
 
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil menghapus ' . count($ids) . ' data Incoming Part.'
+                'message' => "Berhasil menghapus {$count} data Incoming Part."
             ]);
         } catch (\Exception $e) {
             return response()->json([

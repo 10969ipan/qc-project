@@ -269,11 +269,11 @@
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Check</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
+                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                             <th rowspan="2" class="align-middle">Qty Datang Awal</th>
                             <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             <th rowspan="2" class="align-middle">Total Check</th>
                             <th rowspan="2" class="align-middle">Qty Sampling</th>
-                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
@@ -331,6 +331,18 @@
                                 {{-- Kolom Customer / Supplier --}}
                                 <td class="align-middle text-nowrap text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
 
+                                {{-- Tgl & Shift Datang --}}
+                                <td class="align-middle text-nowrap">
+                                    @if($cs->tanggal_datang)
+                                        {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
+                                        @if($cs->arrival && $cs->arrival->shift_datang)
+                                            <br><small class="text-muted">Shift {{ $cs->arrival->shift_datang }}</small>
+                                        @endif
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
                                 {{-- Qty Kedatangan Awal --}}
                                 <td class="align-middle text-nowrap">
                                     {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
@@ -352,18 +364,6 @@
 
                                 {{-- Qty Sampling --}}
                                 <td class="align-middle text-nowrap text-primary">{{ number_format($cs->sampling_qty ?? $cs->total_check) }} pcs</td>
-                                
-                                {{-- Tgl & Shift Datang --}}
-                                <td class="align-middle text-nowrap">
-                                    @if($cs->tanggal_datang)
-                                        {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
-                                        @if($cs->arrival && $cs->arrival->shift_datang)
-                                            <br><small class="text-muted">Shift {{ $cs->arrival->shift_datang }}</small>
-                                        @endif
-                                    @else
-                                        -
-                                    @endif
-                                </td>
 
                                 {{-- OK & NG --}}
                                 <td class="align-middle text-nowrap text-success font-weight-bold">{{ number_format($cs->total_check - $cs->total_ng) }}</td>
@@ -371,16 +371,23 @@
                                 
                                 @php
                                     $defects = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true);
+                                    $validDefects = array_filter($defects ?? [], function($d) {
+                                        return !empty($d['type']) || (!empty($d['qty']) && $d['qty'] > 0);
+                                    });
                                 @endphp
                                 <td class="p-0 align-middle text-nowrap">
-                                    @foreach($defects ?? [] as $d)
+                                    @forelse($validDefects as $d)
                                         <div class="border-bottom py-1">{{ $d['qty'] ?? 0 }}</div>
-                                    @endforeach
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
                                 </td>
                                 <td class="p-0 align-middle text-left pl-2 text-nowrap">
-                                    @foreach($defects ?? [] as $d)
+                                    @forelse($validDefects as $d)
                                         <div class="border-bottom py-1">{{ $d['type'] ?? '-' }}</div>
-                                    @endforeach
+                                    @empty
+                                        <span class="text-muted">-</span>
+                                    @endforelse
                                 </td>
 
                                 <td class="align-middle text-nowrap">
