@@ -217,7 +217,7 @@
                     <td>{{ Str::title($record->feedback) }}</td>
                     <td>{{ $record->status_feedback }}</td>
                     <td>{{ Str::title($record->status_cm) }}</td>
-                    <td>{{ $record->evaluasi }}</td>
+                    <td class="text-center">{{ $record->evaluasi_formatted }}</td>
                     <td>{{ $record->monitoring_status }}</td>
                 </tr>
             @endforeach

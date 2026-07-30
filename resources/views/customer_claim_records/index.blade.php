@@ -394,7 +394,7 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="align-middle small">{{ $record->evaluasi }}</td>
+                                <td class="align-middle small text-center">{{ $record->evaluasi_formatted }}</td>
                                 <td class="text-center align-middle">
                                     <span
                                         class="badge badge-{{ strtolower($record->monitoring_status) == 'open' ? 'primary' : 'success' }}">

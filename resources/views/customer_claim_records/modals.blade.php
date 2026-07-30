@@ -140,7 +140,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kat Problem</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kategori Problem</label>
                                 <div class="col-sm-8">
                                     <select name="kategori_defect" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="">-- Pilih --</option>
@@ -153,7 +153,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kat Penyimpangan</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kategori Penyimpangan</label>
                                 <div class="col-sm-8">
                                     <select name="kategori_penyimpangan" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="">-- PILIH --</option>
@@ -203,12 +203,6 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Evaluasi Problem</label>
-                                <div class="col-sm-8">
-                                    <input type="text" name="evaluasi" id="tambah_evaluasi" class="form-control form-control-sm border-0 shadow-sm bg-light" placeholder="(Otomatis 6 Bln Kedepan)" readonly>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -241,6 +235,12 @@
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Evaluasi Problem</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="evaluasi" id="tambah_evaluasi" class="form-control form-control-sm border-0 shadow-sm bg-light" placeholder="(Otomatis 6 Bln Kedepan)" readonly>
+                                </div>
+                            </div>
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Monitoring</label>
                                 <div class="col-sm-8">
@@ -423,7 +423,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kat Problem</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kategori Problem</label>
                                 <div class="col-sm-8">
                                     <select name="kategori_defect" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="">-- Pilih --</option>
@@ -436,7 +436,7 @@
                                 </div>
                             </div>
                             <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kat Penyimpangan</label>
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Kategori Penyimpangan</label>
                                 <div class="col-sm-8">
                                     <select name="kategori_penyimpangan" class="form-control form-control-sm border-0 shadow-sm">
                                         <option value="">-- PILIH --</option>
@@ -486,12 +486,6 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group row align-items-center mb-2">
-                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Evaluasi Problem</label>
-                                <div class="col-sm-8">
-                                    <input type="text" name="evaluasi" id="edit_evaluasi" class="form-control form-control-sm border-0 shadow-sm no-autoupper" placeholder="Otomatis 6 Bulan / Bebas Diisi">
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -524,6 +518,12 @@
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <div class="form-group row align-items-center mb-2">
+                                <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Evaluasi Problem</label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="evaluasi" id="edit_evaluasi" class="form-control form-control-sm border-0 shadow-sm no-autoupper" placeholder="Otomatis 6 Bulan / Bebas Diisi">
+                                </div>
+                            </div>
                             <div class="form-group row align-items-center mb-2">
                                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Monitoring</label>
                                 <div class="col-sm-8">

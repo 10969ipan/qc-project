@@ -94,4 +94,34 @@ class CustomerClaimRecord extends Model
 
         return parent::setAttribute($key, $value);
     }
+
+    /**
+     * Get formatted evaluasi date (dd-mm-yyyy).
+     */
+    public function getEvaluasiFormattedAttribute()
+    {
+        if (empty($this->evaluasi)) {
+            return '-';
+        }
+
+        $val = trim($this->evaluasi);
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
+            return \Carbon\Carbon::parse($val)->format('d-m-Y');
+        }
+
+        if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $val)) {
+            return $val;
+        }
+
+        try {
+            if (strtotime($val)) {
+                return date('d-m-Y', strtotime($val));
+            }
+        } catch (\Throwable $e) {
+            // Fallback
+        }
+
+        return $val;
+    }
 }

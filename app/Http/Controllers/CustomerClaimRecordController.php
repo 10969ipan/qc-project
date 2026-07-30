@@ -319,6 +319,11 @@ class CustomerClaimRecordController extends Controller
         // Backend fallback for evaluasi date if not provided
         if (empty($data['evaluasi']) && !empty($data['tanggal_claim'])) {
             $data['evaluasi'] = date('d-m-Y', strtotime($data['tanggal_claim'] . ' +6 months'));
+        } elseif (!empty($data['evaluasi'])) {
+            $val = trim($data['evaluasi']);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
+                $data['evaluasi'] = \Carbon\Carbon::parse($val)->format('d-m-Y');
+            }
         }
 
         $record = CustomerClaimRecord::create($data);
@@ -360,6 +365,13 @@ class CustomerClaimRecordController extends Controller
                 $paths[] = $path;
             }
             $data['attachments'] = $paths;
+        }
+
+        if (!empty($data['evaluasi'])) {
+            $val = trim($data['evaluasi']);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
+                $data['evaluasi'] = \Carbon\Carbon::parse($val)->format('d-m-Y');
+            }
         }
 
         $customerClaimRecord->update($data);

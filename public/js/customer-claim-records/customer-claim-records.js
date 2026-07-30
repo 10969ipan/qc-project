@@ -111,7 +111,12 @@ $(document).ready(function () {
         form.find('[name="status_feedback"]').val(data.status_feedback);
         form.find('[name="status_cm"]').val(data.status_cm);
         form.find('[name="monitoring"]').val(data.monitoring);
-        form.find('[name="evaluasi"]').val(data.evaluasi);
+        let evaluasiVal = data.evaluasi || '';
+        if (evaluasiVal && evaluasiVal.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const parts = evaluasiVal.split('-');
+            evaluasiVal = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        form.find('[name="evaluasi"]').val(evaluasiVal);
         form.find('[name="monitoring_status"]').val(data.monitoring_status);
 
         const attachmentList = $('#edit_attachments_list');
