@@ -100,6 +100,7 @@
                 <th rowspan="3">Name Part</th>
                 <th rowspan="3">Customer</th>
                 <th rowspan="3">Standard Customer</th>
+                <th rowspan="3">Kategori</th>
                 <th colspan="7">STANDARD</th>
                 <th colspan="10">ACTUAL</th>
                 <th rowspan="3">Tgl Produksi</th>
@@ -157,6 +158,7 @@
                     <td style="text-align: left;">{{ optional($report->standard)->part_name ?? '-' }}</td>
                     <td>{{ optional($report->standard)->customer_name ?? '-' }}</td>
                     <td>{{ optional($report->standard)->customer_standard ?? '-' }}</td>
+                    <td>{{ optional($report->standard)->category ?? '-' }}</td>
                     <!-- STANDAR -->
                     <td>{{ optional($report->standard)->thickness_cr ?? '-' }}</td>
                     <td>{{ optional($report->standard)->thickness_ni ?? '-' }}</td>
@@ -187,12 +189,31 @@
                     @endif
                     <td>{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d-m-Y') : '-' }}</td>
                     <td>
-                        @if($report->result_judgment === 'OK')
-                            <span class="badge badge-ok">OK</span>
-                        @elseif($report->result_judgment === 'NG')
-                            <span class="badge badge-ng">NG</span>
+                        @php
+                            $rjRaw = $report->result_judgment ?? '-';
+                            if ($testType == 'salt_spray') {
+                                $rjRaw = $report->result_judgment_salt_spray ?? $report->result_judgment ?? '-';
+                            }
+                            $rjLower = strtolower(trim($rjRaw));
+                        @endphp
+                        @if($testType == 'salt_spray')
+                            @if(str_contains($rjLower, 'ok') || str_contains($rjLower, 'no rust'))
+                                <span class="badge badge-ok">OK</span><br><span style="font-size:6px; color:#555;">No Rust</span>
+                            @elseif(str_contains($rjLower, 'white'))
+                                <span class="badge badge-ng">NG</span><br><span style="font-size:6px; color:#e74a3b; font-weight:bold;">White Rust</span>
+                            @elseif(str_contains($rjLower, 'red'))
+                                <span class="badge badge-ng">NG</span><br><span style="font-size:6px; color:#e74a3b; font-weight:bold;">Red Rust</span>
+                            @else
+                                <span class="badge badge-ng">NG</span>
+                            @endif
                         @else
-                            {{ $report->result_judgment ?? '-' }}
+                            @if($rjLower === 'ok')
+                                <span class="badge badge-ok">OK</span>
+                            @elseif($rjLower === 'ng')
+                                <span class="badge badge-ng">NG</span>
+                            @else
+                                {{ $rjRaw }}
+                            @endif
                         @endif
                     </td>
                     <td>{{ optional($report->analyst)->name ?? '-' }}</td>

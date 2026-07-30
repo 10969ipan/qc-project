@@ -135,9 +135,11 @@
 
         function matchOption(opt, q) {
             var name = (opt.dataset.name || opt.text || '').toLowerCase();
-            var partNo = (opt.dataset.partNumber || '').toLowerCase();
+            var partNo = (opt.dataset.partNumber || opt.dataset.part_number || '').toLowerCase();
             var sapCode = (opt.dataset.sapCode || opt.dataset.sap_code || '').toLowerCase();
-            return name.indexOf(q) !== -1 || partNo.indexOf(q) !== -1 || sapCode.indexOf(q) !== -1;
+            var customer = (opt.dataset.customer || '').toLowerCase();
+            var detail = (opt.dataset.detail || '').toLowerCase();
+            return name.indexOf(q) !== -1 || partNo.indexOf(q) !== -1 || sapCode.indexOf(q) !== -1 || customer.indexOf(q) !== -1 || detail.indexOf(q) !== -1;
         }
 
         var activeIdx = -1;
@@ -167,25 +169,24 @@
 
             shown.forEach(function (opt, idx) {
                 var name = opt.dataset.name || opt.text || '';
-                var partNo = opt.dataset.partNumber || '';
+                var partNo = opt.dataset.partNumber || opt.dataset.part_number || '';
                 var sapCode = opt.dataset.sapCode || opt.dataset.sap_code || '';
                 var customer = opt.dataset.customer || '';
+                var detail = opt.dataset.detail || '';
 
                 var item = document.createElement('div');
                 item.className = 'ips-item';
                 item.dataset.idx = idx;
 
                 var sub = [];
+                if (customer) sub.push(customer);
                 if (partNo) sub.push(partNo);
                 if (sapCode) sub.push('SAP: ' + sapCode);
-                if (customer) sub.push(customer);
-
-                var detail = opt.dataset.detail || '';
 
                 item.innerHTML =
                     '<div class="ips-name">' + highlight(name, q) + '</div>' +
                     (sub.length ? '<div class="ips-sub">' + highlight(sub.join(' · '), q) + '</div>' : '') +
-                    (detail ? '<div class="ips-sub ips-detail">' + detail + '</div>' : '');
+                    (detail ? '<div class="ips-sub ips-detail">' + highlight(detail, q) + '</div>' : '');
 
                 item.addEventListener('mousedown', function (e) {
                     e.preventDefault();

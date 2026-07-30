@@ -194,6 +194,7 @@
                         <th rowspan="2">Part No.</th>
                         <th rowspan="2">Customer</th>
                         <th rowspan="2">Standard Customer<br>OEM / ELECTRONIC</th>
+                        <th rowspan="2">Kategori</th>
                         <th colspan="4" class="text-center">Thickness (<span style="text-transform: none !important;">m&micro;</span>)</th>
                         <th colspan="3" class="text-center">Corrodkote</th>
                         <th colspan="3" class="text-center">Cass Test</th>
@@ -227,6 +228,7 @@
                             <td>{{ $std->part_number ?: '-' }}</td>
                             <td>{{ $std->customer_name }}</td>
                             <td>{{ $std->customer_standard }}</td>
+                            <td>{{ $std->category ?: '-' }}</td>
                             
                             <!-- Thickness -->
                             <td>{{ $std->thickness_cr ?: '-' }}</td>
@@ -336,6 +338,10 @@
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC <span class="text-danger">*</span></label>
                             <input type="text" name="customer_standard" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label class="small font-weight-bold text-gray-700">Kategori</label>
+                            <input type="text" name="category" id="tambah_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: R2/R4">
                         </div>
                     </div>
                     
@@ -479,6 +485,10 @@
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Standard Customer OEM / ELECTRONIC <span class="text-danger">*</span></label>
                             <input type="text" name="customer_standard" id="edit_customer_standard" class="form-control form-control-sm border-0 shadow-sm" required>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label class="small font-weight-bold text-gray-700">Kategori</label>
+                            <input type="text" name="category" id="edit_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: OEM / ELECTRONIC">
                         </div>
                     </div>
                     
@@ -967,6 +977,7 @@
             $('#edit_customer_name').val(item.customer_name);
             
             $('#edit_customer_standard').val(item.customer_standard);
+            $('#edit_category').val(item.category || '');
             
             $('#edit_thickness_cr').val(item.thickness_cr);
             $('#edit_thickness_ni').val(item.thickness_ni);

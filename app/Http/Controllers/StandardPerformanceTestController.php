@@ -52,6 +52,7 @@ class StandardPerformanceTestController extends Controller
             'part_number' => 'required|string|max:255',
             'customer_name' => 'required|string|max:255',
             'customer_standard' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'thickness_cu' => 'required|string|max:255',
             'thickness_ni' => 'required|string|max:255',
             'thickness_cr' => 'required|string|max:255',
@@ -92,6 +93,7 @@ class StandardPerformanceTestController extends Controller
             'part_number' => 'required|string|max:255',
             'customer_name' => 'required|string|max:255',
             'customer_standard' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
             'thickness_cu' => 'required|string|max:255',
             'thickness_ni' => 'required|string|max:255',
             'thickness_cr' => 'required|string|max:255',
@@ -347,6 +349,7 @@ class StandardPerformanceTestController extends Controller
 
         $evidenceBeforePath = null;
         $evidenceAfterPath = null;
+        $evidenceAfterTrialPath = null;
 
         if ($request->hasFile('evidence_before')) {
             $fileBefore = $request->file('evidence_before');
@@ -360,6 +363,13 @@ class StandardPerformanceTestController extends Controller
             $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
             $fileAfter->move(public_path('uploads/durability_plating'), $filenameAfter);
             $evidenceAfterPath = 'uploads/durability_plating/' . $filenameAfter;
+        }
+
+        if ($request->hasFile('evidence_after_trial')) {
+            $fileAfterTrial = $request->file('evidence_after_trial');
+            $filenameAfterTrial = time() . '_after_data2_' . $fileAfterTrial->getClientOriginalName();
+            $fileAfterTrial->move(public_path('uploads/durability_plating'), $filenameAfterTrial);
+            $evidenceAfterTrialPath = 'uploads/durability_plating/' . $filenameAfterTrial;
         }
 
         // If inputting directly from Menu Data 2 (Trial)
@@ -391,8 +401,8 @@ class StandardPerformanceTestController extends Controller
                 'is_trial' => true,
                 'evidence_before' => $evidenceBeforePath,
                 'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
-                'evidence_after' => $evidenceAfterPath,
-                'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+                'evidence_after' => $evidenceAfterTrialPath ?: $evidenceAfterPath,
+                'evidence_after_uploaded_at' => ($evidenceAfterTrialPath ?: $evidenceAfterPath) ? now() : null,
             ]);
 
             $std = StandardPerformanceTest::find($request->standard_performance_test_id);
@@ -439,6 +449,8 @@ class StandardPerformanceTestController extends Controller
             'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
             'evidence_after' => $evidenceAfterPath,
             'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+            'evidence_after_trial' => $evidenceAfterTrialPath,
+            'evidence_after_trial_uploaded_at' => $evidenceAfterTrialPath ? now() : null,
         ]);
 
         $std = StandardPerformanceTest::find($request->standard_performance_test_id);
@@ -482,8 +494,8 @@ class StandardPerformanceTestController extends Controller
             'data1_id' => $report1->id,
             'evidence_before' => $evidenceBeforePath,
             'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
-            'evidence_after' => $evidenceAfterPath,
-            'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
+            'evidence_after' => $evidenceAfterTrialPath ?: $evidenceAfterPath,
+            'evidence_after_uploaded_at' => ($evidenceAfterTrialPath ?: $evidenceAfterPath) ? now() : null,
         ]);
 
         ActivityLogger::log('created', $report2, "Menambahkan Laporan Durability Plating [DATA 2]: {$partName} (Lot: {$report2->lot_no})");
@@ -549,6 +561,12 @@ class StandardPerformanceTestController extends Controller
                     $q->where('customer_name', $customerName);
                 });
             }
+            if ($request->filled('category')) {
+                $category = $request->category;
+                $query->whereHas('standard', function($q) use ($category) {
+                    $q->where('category', $category);
+                });
+            }
             if ($request->filled('start_date')) {
                 $query->whereDate('tanggal_cek', '>=', $request->start_date);
             }
@@ -556,8 +574,61 @@ class StandardPerformanceTestController extends Controller
                 $query->whereDate('tanggal_cek', '<=', $request->end_date);
             }
             if ($request->filled('result_judgment')) {
-                $query->where('result_judgment', $request->result_judgment);
+                $query->where(function($q) use ($request, $testType) {
+                    $val = $request->result_judgment;
+                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', 'LIKE', "%$val%");
+                    elseif ($testType === 'cass') $q->where('result_judgment_cass', 'LIKE', "%$val%");
+                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', 'LIKE', "%$val%");
+                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', 'LIKE', "%$val%");
+                    else $q->where('result_judgment', 'LIKE', "%$val%");
+                });
             }
+        }
+
+        // Calculate averages across all matching reports before pagination for THICKNESS report
+        $averages = null;
+        if ($testType === 'thickness') {
+            $allMatching = (clone $query)->get();
+
+            if (!$isTrial && count($allMatching) > 0) {
+                $allIds = $allMatching->pluck('id')->filter()->unique();
+                $allTrials = DurabilityThicknessReport::where('is_trial', true)
+                    ->whereIn('data1_id', $allIds)
+                    ->get()
+                    ->keyBy('data1_id');
+
+                foreach ($allMatching as $m) {
+                    $tr = $allTrials->get($m->id);
+                    if ($tr) {
+                        $m->actual_cr_trial = $tr->actual_cr;
+                        $m->actual_ni_trial = $tr->actual_ni;
+                        $m->actual_cu_trial = $tr->actual_cu;
+                    }
+                }
+            }
+
+            $cr1 = []; $ni1 = []; $cu1 = [];
+            $cr2 = []; $ni2 = []; $cu2 = [];
+
+            foreach ($allMatching as $item) {
+                if (is_numeric($item->actual_cr)) $cr1[] = (float)$item->actual_cr;
+                if (is_numeric($item->actual_ni)) $ni1[] = (float)$item->actual_ni;
+                if (is_numeric($item->actual_cu)) $cu1[] = (float)$item->actual_cu;
+
+                if (isset($item->actual_cr_trial) && is_numeric($item->actual_cr_trial)) $cr2[] = (float)$item->actual_cr_trial;
+                if (isset($item->actual_ni_trial) && is_numeric($item->actual_ni_trial)) $ni2[] = (float)$item->actual_ni_trial;
+                if (isset($item->actual_cu_trial) && is_numeric($item->actual_cu_trial)) $cu2[] = (float)$item->actual_cu_trial;
+            }
+
+            $averages = [
+                'count' => count($allMatching),
+                'cr1' => count($cr1) ? number_format(array_sum($cr1) / count($cr1), 2) : '-',
+                'ni1' => count($ni1) ? number_format(array_sum($ni1) / count($ni1), 2) : '-',
+                'cu1' => count($cu1) ? number_format(array_sum($cu1) / count($cu1), 2) : '-',
+                'cr2' => count($cr2) ? number_format(array_sum($cr2) / count($cr2), 2) : '-',
+                'ni2' => count($ni2) ? number_format(array_sum($ni2) / count($ni2), 2) : '-',
+                'cu2' => count($cu2) ? number_format(array_sum($cu2) / count($cu2), 2) : '-',
+            ];
         }
         
         if ($request->has('print')) {
@@ -620,6 +691,8 @@ class StandardPerformanceTestController extends Controller
                     $report->description_cass_trial = $trial->description_cass;
                     $report->description_salt_spray_trial = $trial->description_salt_spray;
                     $report->description_porecount_trial = $trial->description_porecount;
+                    $report->evidence_after_trial = $trial->evidence_after ?: $report->evidence_after_trial;
+                    $report->evidence_after_trial_uploaded_at = $trial->evidence_after_uploaded_at ?: $report->evidence_after_trial_uploaded_at;
                 }
             }
         }
@@ -636,7 +709,14 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('customer_name')
             ->pluck('customer_name');
 
-        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'testType', 'isTrial'));
+        $categories = \App\Models\StandardPerformanceTest::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'categories', 'averages', 'testType', 'isTrial'));
     }
 
     public function updateThickness(Request $request, $id)
@@ -804,10 +884,19 @@ class StandardPerformanceTestController extends Controller
                 @unlink(public_path($report->evidence_after));
             }
             $report->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
-            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
-                ->where('is_trial', true)
-                ->where('lot_no', $report->lot_no)
-                ->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+        }
+
+        if ($request->input('delete_evidence_after_trial') === '1') {
+            if ($report->evidence_after_trial && file_exists(public_path($report->evidence_after_trial))) {
+                @unlink(public_path($report->evidence_after_trial));
+            }
+            $report->update(['evidence_after_trial' => null, 'evidence_after_trial_uploaded_at' => null]);
+            if (isset($trialReport) && $trialReport) {
+                if ($trialReport->evidence_after && file_exists(public_path($trialReport->evidence_after))) {
+                    @unlink(public_path($trialReport->evidence_after));
+                }
+                $trialReport->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+            }
         }
 
         if ($request->hasFile('evidence_before')) {
@@ -843,13 +932,28 @@ class StandardPerformanceTestController extends Controller
                 'evidence_after' => $newAfterPath,
                 'evidence_after_uploaded_at' => now()
             ]);
-            DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
-                ->where('is_trial', true)
-                ->where('lot_no', $report->lot_no)
-                ->update([
-                    'evidence_after' => $newAfterPath,
+        }
+
+        if ($request->hasFile('evidence_after_trial')) {
+            if ($report->evidence_after_trial && file_exists(public_path($report->evidence_after_trial))) {
+                @unlink(public_path($report->evidence_after_trial));
+            }
+            $fileAfterTrial = $request->file('evidence_after_trial');
+            $filenameAfterTrial = time() . '_after_data2_' . $fileAfterTrial->getClientOriginalName();
+            $fileAfterTrial->move(public_path('uploads/durability_plating'), $filenameAfterTrial);
+            $newAfterTrialPath = 'uploads/durability_plating/' . $filenameAfterTrial;
+            
+            $report->update([
+                'evidence_after_trial' => $newAfterTrialPath,
+                'evidence_after_trial_uploaded_at' => now()
+            ]);
+
+            if (isset($trialReport) && $trialReport) {
+                $trialReport->update([
+                    'evidence_after' => $newAfterTrialPath,
                     'evidence_after_uploaded_at' => now()
                 ]);
+            }
         }
         
         $std = $report->standardPerformanceTest;

@@ -275,7 +275,7 @@
                     <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none" onchange="this.form.submit()">
                         <option value="">Semua Part / Customer...</option>
                         @foreach($items as $item)
-                            <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
+                            <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
                                 {{ $item->part_name }} - {{ $item->customer_name }}
                             </option>
                         @endforeach
@@ -291,6 +291,19 @@
                     @foreach($customers as $customer)
                         <option value="{{ $customer }}" {{ request('customer_name') == $customer ? 'selected' : '' }}>
                             {{ $customer }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Field: Kategori -->
+            <div class="d-flex align-items-center ml-2">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Kategori:</label>
+                <select name="category" class="form-control form-control-sm border-0 shadow-sm" style="width: 140px; font-size: 0.75rem;" onchange="this.form.submit()">
+                    <option value="">Semua Kategori</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                            {{ $cat }}
                         </option>
                     @endforeach
                 </select>
@@ -317,6 +330,18 @@
                     <option value="NG" {{ request('result_judgment') === 'NG' ? 'selected' : '' }}>NG</option>
                 </select>
             </div>
+
+            <!-- Field: Rata-Rata Thickness (Plain Text Centered in Middle Space) -->
+            @if($testType == 'thickness' && isset($averages))
+            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+                <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
+                @if(!$isTrial)
+                    <span style="color: #7d7d7dff;">Cr {{ $averages['cr1'] }} | Ni {{ $averages['ni1'] }} | Cu {{ $averages['cu1'] }}</span>
+                @else
+                    <span style="color: #7d7d7dff;">Cr {{ $averages['cr2'] }} | Ni {{ $averages['ni2'] }} | Cu {{ $averages['cu2'] }}</span>
+                @endif
+            </div>
+            @endif
 
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
                 <style>
@@ -370,6 +395,8 @@
             </div>
         </form>
 
+
+
         <!-- Loading Spinner -->
         <div id="tableLoader" class="text-center py-5">
             <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
@@ -399,6 +426,7 @@
                         <th rowspan="2" class="align-middle text-center">Part No</th>
                         <th rowspan="2" class="align-middle">Customer</th>
                         <th rowspan="2" class="align-middle">Standard<br>Customer</th>
+                        <th rowspan="2" class="align-middle text-center">Kategori</th>
                         
                         @if($testType == 'thickness')
                             <th colspan="3" class="text-center th-standar">STANDARD</th>
@@ -494,6 +522,7 @@
                             <td class="text-center font-mono">{{ $std->part_number ?? '-' }}</td>
                             <td class="text-center">{{ $std->customer_name ?? '-' }}</td>
                             <td class="text-center">{{ $std->customer_standard ?? '-' }}</td>
+                            <td class="text-center">{{ $std->category ?? '-' }}</td>
                             
                                                         <!-- STANDAR -->
                             @if($testType == 'thickness')
@@ -558,29 +587,61 @@
                             @endif
                             <td class="text-center">
                                 @php
-                                    $rj = match($testType) {
+                                    $rjRaw = match($testType) {
                                         'corrodkote' => $report->result_judgment_corrodkote ?? '-',
                                         'cass' => $report->result_judgment_cass ?? '-',
                                         'salt_spray' => $report->result_judgment_salt_spray ?? '-',
                                         'porecount' => $report->result_judgment_porecount ?? '-',
                                         default => $report->result_judgment ?? '-'
                                     };
-                                    $rjClass = match(strtolower(trim($rj))) {
-                                        'ok' => 'text-success font-weight-bold',
-                                        'ng' => 'text-danger font-weight-bold',
-                                        default => 'text-muted'
-                                    };
                                 @endphp
-                                <span class="{{ $rjClass }}">{{ $rj }}</span>
+                                @if($testType == 'salt_spray')
+                                    @php
+                                        $rjLower = strtolower(trim($rjRaw));
+                                        $isNg = str_contains($rjLower, 'ng') || str_contains($rjLower, 'white') || str_contains($rjLower, 'red');
+                                        $isOk = str_contains($rjLower, 'ok') || str_contains($rjLower, 'no rust');
+                                        
+                                        $subLabel = '';
+                                        if (str_contains($rjLower, 'white')) {
+                                            $subLabel = 'White Rust';
+                                        } elseif (str_contains($rjLower, 'red')) {
+                                            $subLabel = 'Red Rust';
+                                        } elseif ($isOk) {
+                                            $subLabel = 'No Rust';
+                                        }
+                                    @endphp
+                                    @if($isOk)
+                                        <span class="text-success font-weight-bold">OK</span>
+                                        <br><small class="text-muted" style="font-size: 0.68rem;">No Rust</small>
+                                    @elseif($isNg)
+                                        <span class="text-danger font-weight-bold">NG</span>
+                                        @if($subLabel)
+                                            <br><small class="text-danger font-weight-bold" style="font-size: 0.68rem;">{{ $subLabel }}</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted">{{ $rjRaw }}</span>
+                                    @endif
+                                @else
+                                    @php
+                                        $rjClass = match(strtolower(trim($rjRaw))) {
+                                            'ok' => 'text-success font-weight-bold',
+                                            'ng' => 'text-danger font-weight-bold',
+                                            default => 'text-muted'
+                                        };
+                                    @endphp
+                                    <span class="{{ $rjClass }}">{{ $rjRaw }}</span>
+                                @endif
                             </td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                 <td class="text-center">
-                                    @if($report->evidence_before || $report->evidence_after)
+                                    @if($report->evidence_before || $report->evidence_after || $report->evidence_after_trial)
                                         <a href="javascript:void(0)" class="text-primary btn-view-evidence" style="font-size: 0.8rem; text-decoration: underline;"
                                                 data-before="{{ $report->evidence_before ? asset($report->evidence_before) : '' }}" 
                                                 data-after="{{ $report->evidence_after ? asset($report->evidence_after) : '' }}"
+                                                data-after-trial="{{ $report->evidence_after_trial ? asset($report->evidence_after_trial) : '' }}"
                                                 data-before-time="{{ $report->evidence_before_uploaded_at ? \Carbon\Carbon::parse($report->evidence_before_uploaded_at)->format('d-m-Y H:i') : '' }}"
-                                                data-after-time="{{ $report->evidence_after_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_uploaded_at)->format('d-m-Y H:i') : '' }}">
+                                                data-after-time="{{ $report->evidence_after_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_uploaded_at)->format('d-m-Y H:i') : '' }}"
+                                                data-after-trial-time="{{ $report->evidence_after_trial_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_trial_uploaded_at)->format('d-m-Y H:i') : '' }}">
                                             <i class="fas fa-images"></i> View
                                         </a>
                                     @else
@@ -852,7 +913,12 @@
                                         <select name="{{ $testType == 'corrodkote' ? 'result_judgment_corrodkote' : ($testType == 'cass' ? 'result_judgment_cass' : ($testType == 'salt_spray' ? 'result_judgment_salt_spray' : ($testType == 'porecount' ? 'result_judgment_porecount' : 'result_judgment'))) }}" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            @if($testType == 'salt_spray')
+                                                <option value="NG - White Rust">NG - White Rust</option>
+                                                <option value="NG - Red Rust">NG - Red Rust</option>
+                                            @else
+                                                <option value="NG">NG</option>
+                                            @endif
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -938,7 +1004,12 @@
                                         <select name="{{ $testType == 'corrodkote' ? 'result_judgment_corrodkote_trial' : ($testType == 'cass' ? 'result_judgment_cass_trial' : ($testType == 'salt_spray' ? 'result_judgment_salt_spray_trial' : ($testType == 'porecount' ? 'result_judgment_porecount_trial' : 'result_judgment_trial'))) }}" id="edit_result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            @if($testType == 'salt_spray')
+                                                <option value="NG - White Rust">NG - White Rust</option>
+                                                <option value="NG - Red Rust">NG - Red Rust</option>
+                                            @else
+                                                <option value="NG">NG</option>
+                                            @endif
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -1018,7 +1089,12 @@
                                 <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                     <option value="-">-</option>
                                     <option value="OK">OK</option>
-                                    <option value="NG">NG</option>
+                                    @if($testType == 'salt_spray')
+                                        <option value="NG - White Rust">NG - White Rust</option>
+                                        <option value="NG - Red Rust">NG - Red Rust</option>
+                                    @else
+                                        <option value="NG">NG</option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="form-group mb-0">
@@ -1032,22 +1108,23 @@
                     @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                     <input type="hidden" name="delete_evidence_before" id="delete_evidence_before" value="0">
                     <input type="hidden" name="delete_evidence_after"  id="delete_evidence_after"  value="0">
+                    <input type="hidden" name="delete_evidence_after_trial" id="delete_evidence_after_trial" value="0">
 
                     <div class="mb-3">
                         <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                            Evidence Foto
+                            Evidence Foto {{ !$isTrial ? '(3 Bagian)' : '' }}
                         </label>
                         <div class="row">
                             {{-- BEFORE --}}
-                            <div class="col-6">
+                            <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }}">
                                 <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
-                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
-                                        <span class="small font-weight-bold text-dark">
-                                            BEFORE TEST
+                                    <div class="card-header bg-white py-2 px-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            1. BEFORE TEST
                                         </span>
                                         <button type="button" id="btn_delete_evidence_before"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
-                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;"
                                             title="Hapus foto Before">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -1055,30 +1132,30 @@
                                     <div id="edit_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
                                         <img id="edit_evidence_before_preview" src="" alt="Before"
                                             class="d-block w-100"
-                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                            style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                     </div>
                                     <div id="edit_evidence_before_empty"
-                                        style="display:none; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        style="display:none; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
-                                        <small class="text-info d-block mb-1" id="edit_evidence_before_time" style="font-size:0.62rem;"></small>
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <small class="text-info d-block mb-1" id="edit_evidence_before_time" style="font-size:0.6rem;"></small>
                                         <input type="file" name="evidence_before" id="input_evidence_before"
-                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                            class="form-control-file" style="font-size:0.68rem;" accept="image/*">
                                     </div>
                                 </div>
                             </div>
-                            {{-- AFTER --}}
-                            <div class="col-6">
+                            {{-- AFTER (DATA 1) --}}
+                            <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }}">
                                 <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
-                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
-                                        <span class="small font-weight-bold text-dark">
-                                            AFTER TEST
+                                    <div class="card-header bg-white py-2 px-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            2. AFTER TEST {{ !$isTrial ? '(DATA 1)' : '' }}
                                         </span>
                                         <button type="button" id="btn_delete_evidence_after"
                                             class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
-                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
+                                            style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;"
                                             title="Hapus foto After">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -1086,20 +1163,53 @@
                                     <div id="edit_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
                                         <img id="edit_evidence_after_preview" src="" alt="After"
                                             class="d-block w-100"
-                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                            style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                     </div>
                                     <div id="edit_evidence_after_empty"
-                                        style="display:none; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        style="display:none; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
-                                        <small class="text-info d-block mb-1" id="edit_evidence_after_time" style="font-size:0.62rem;"></small>
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <small class="text-info d-block mb-1" id="edit_evidence_after_time" style="font-size:0.6rem;"></small>
                                         <input type="file" name="evidence_after" id="input_evidence_after"
-                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                            class="form-control-file" style="font-size:0.68rem;" accept="image/*">
                                     </div>
                                 </div>
                             </div>
+                            @if(!$isTrial)
+                            {{-- AFTER DATA 2 --}}
+                            <div class="col-md-4">
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            3. AFTER TEST (DATA 2)
+                                        </span>
+                                        <button type="button" id="btn_delete_evidence_after_trial"
+                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
+                                            style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;"
+                                            title="Hapus foto After Data 2">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div id="edit_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="edit_evidence_after_trial_preview" src="" alt="After Data 2"
+                                            class="d-block w-100"
+                                            style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="edit_evidence_after_trial_empty"
+                                        style="display:none; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <small class="text-info d-block mb-1" id="edit_evidence_after_trial_time" style="font-size:0.6rem;"></small>
+                                        <input type="file" name="evidence_after_trial" id="input_evidence_after_trial"
+                                            class="form-control-file" style="font-size:0.68rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                     @endif
@@ -1150,17 +1260,6 @@
                                 <div class="col-md-4 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Std. Customer / Time STD</label>
                                     <input type="text" id="corrodkote_std" class="form-control form-control-sm border-0 bg-light" readonly>
-                                </div>
-                            </div>
-
-                            <div class="row bg-light rounded p-2 mx-0 mb-2 border">
-                                <div class="col-md-6 border-right">
-                                    <span class="small font-weight-bold text-primary"><i class="fas fa-layer-group mr-1"></i> Ref Thickness Data 1:</span>
-                                    <span class="small font-weight-bold text-dark ml-2" id="corrodkote_thickness_ref_1">-</span>
-                                </div>
-                                <div class="col-md-6">
-                                    <span class="small font-weight-bold text-info"><i class="fas fa-layer-group mr-1"></i> Ref Thickness Data 2:</span>
-                                    <span class="small font-weight-bold text-dark ml-2" id="corrodkote_thickness_ref_2">-</span>
                                 </div>
                             </div>
 
@@ -1316,7 +1415,7 @@
                     @endif
                     <div class="row">
                         <!-- Evidence Before -->
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
@@ -1328,9 +1427,9 @@
                                     <button type="button" id="btn_delete_corrodkote_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="corrodkote_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="corrodkote_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="corrodkote_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="corrodkote_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="corrodkote_evidence_before_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
@@ -1340,27 +1439,54 @@
                             </div>
                         </div>
 
-                        <!-- Evidence After -->
-                        <div class="col-md-6 form-group mb-3">
+                        @if(!$isTrial)
+                        <!-- Evidence After (DATA 1) -->
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After (DATA 1)
                             </label>
                             <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
                                     <span class="small font-weight-bold text-dark">
-                                        AFTER TEST
+                                        AFTER TEST (DATA 1)
                                     </span>
                                     <button type="button" id="btn_delete_corrodkote_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="corrodkote_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="corrodkote_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="corrodkote_evidence_after_preview" src="" alt="After Data 1" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="corrodkote_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="corrodkote_evidence_after_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
                                 <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_corrodkote_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Evidence After (DATA 2) -->
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After {{ !$isTrial ? '(DATA 2)' : '' }}
+                            </label>
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST {{ !$isTrial ? '(DATA 2)' : '' }}
+                                    </span>
+                                    <button type="button" id="btn_delete_corrodkote_evidence_after_trial" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After Data 2"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="corrodkote_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="corrodkote_evidence_after_trial_preview" src="" alt="After Data 2" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="corrodkote_evidence_after_trial_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
+                                    <input type="file" name="evidence_after_trial" id="input_corrodkote_evidence_after_trial" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -1554,7 +1680,7 @@
                     @endif
                     <div class="row">
                         <!-- Evidence Before -->
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
@@ -1566,9 +1692,9 @@
                                     <button type="button" id="btn_delete_cass_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="cass_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="cass_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="cass_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="cass_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="cass_evidence_before_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
@@ -1578,27 +1704,54 @@
                             </div>
                         </div>
 
-                        <!-- Evidence After -->
-                        <div class="col-md-6 form-group mb-3">
+                        @if(!$isTrial)
+                        <!-- Evidence After (DATA 1) -->
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After (DATA 1)
                             </label>
                             <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
                                     <span class="small font-weight-bold text-dark">
-                                        AFTER TEST
+                                        AFTER TEST (DATA 1)
                                     </span>
                                     <button type="button" id="btn_delete_cass_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="cass_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="cass_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="cass_evidence_after_preview" src="" alt="After Data 1" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="cass_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="cass_evidence_after_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
                                 <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_cass_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Evidence After (DATA 2) -->
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After {{ !$isTrial ? '(DATA 2)' : '' }}
+                            </label>
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST {{ !$isTrial ? '(DATA 2)' : '' }}
+                                    </span>
+                                    <button type="button" id="btn_delete_cass_evidence_after_trial" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After Data 2"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="cass_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="cass_evidence_after_trial_preview" src="" alt="After Data 2" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="cass_evidence_after_trial_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
+                                    <input type="file" name="evidence_after_trial" id="input_cass_evidence_after_trial" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -1717,7 +1870,8 @@
                                         <select name="result_judgment_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            <option value="NG - White Rust">NG - White Rust</option>
+                                            <option value="NG - Red Rust">NG - Red Rust</option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -1749,7 +1903,8 @@
                                         <select name="result_judgment_salt_spray_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            <option value="NG - White Rust">NG - White Rust</option>
+                                            <option value="NG - Red Rust">NG - Red Rust</option>
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -1780,7 +1935,8 @@
                                 <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" required>
                                     <option value="">Pilih...</option>
                                     <option value="OK">OK</option>
-                                    <option value="NG">NG</option>
+                                    <option value="NG - White Rust">NG - White Rust</option>
+                                    <option value="NG - Red Rust">NG - Red Rust</option>
                                 </select>
                             </div>
                             <div class="form-group mb-0">
@@ -1792,7 +1948,7 @@
                     @endif
                     <div class="row">
                         <!-- Evidence Before -->
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
@@ -1804,9 +1960,9 @@
                                     <button type="button" id="btn_delete_salt_spray_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="salt_spray_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="salt_spray_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="salt_spray_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="salt_spray_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="salt_spray_evidence_before_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
@@ -1816,27 +1972,54 @@
                             </div>
                         </div>
 
-                        <!-- Evidence After -->
-                        <div class="col-md-6 form-group mb-3">
+                        @if(!$isTrial)
+                        <!-- Evidence After (DATA 1) -->
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After (DATA 1)
                             </label>
                             <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
                                     <span class="small font-weight-bold text-dark">
-                                        AFTER TEST
+                                        AFTER TEST (DATA 1)
                                     </span>
                                     <button type="button" id="btn_delete_salt_spray_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="salt_spray_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="salt_spray_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="salt_spray_evidence_after_preview" src="" alt="After Data 1" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="salt_spray_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="salt_spray_evidence_after_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
                                 <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_salt_spray_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Evidence After (DATA 2) -->
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After {{ !$isTrial ? '(DATA 2)' : '' }}
+                            </label>
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST {{ !$isTrial ? '(DATA 2)' : '' }}
+                                    </span>
+                                    <button type="button" id="btn_delete_salt_spray_evidence_after_trial" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After Data 2"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="salt_spray_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="salt_spray_evidence_after_trial_preview" src="" alt="After Data 2" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="salt_spray_evidence_after_trial_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
+                                    <input type="file" name="evidence_after_trial" id="input_salt_spray_evidence_after_trial" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -2002,7 +2185,7 @@
                     @endif
                     <div class="row">
                         <!-- Evidence Before -->
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
                                 <i class="fas fa-image mr-1 text-info"></i> Evidence Before
                             </label>
@@ -2014,9 +2197,9 @@
                                     <button type="button" id="btn_delete_porecount_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="porecount_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="porecount_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="porecount_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="porecount_evidence_before_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="porecount_evidence_before_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
@@ -2026,27 +2209,54 @@
                             </div>
                         </div>
 
-                        <!-- Evidence After -->
-                        <div class="col-md-6 form-group mb-3">
+                        @if(!$isTrial)
+                        <!-- Evidence After (DATA 1) -->
+                        <div class="col-md-4 form-group mb-3">
                             <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                                <i class="fas fa-image mr-1 text-info"></i> Evidence After
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After (DATA 1)
                             </label>
                             <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
                                     <span class="small font-weight-bold text-dark">
-                                        AFTER TEST
+                                        AFTER TEST (DATA 1)
                                     </span>
                                     <button type="button" id="btn_delete_porecount_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After"><i class="fas fa-times"></i></button>
                                 </div>
                                 <div id="porecount_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
-                                    <img id="porecount_evidence_after_preview" src="" alt="After" class="d-block w-100" style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    <img id="porecount_evidence_after_preview" src="" alt="After Data 1" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                 </div>
-                                <div id="porecount_evidence_after_empty" style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="porecount_evidence_after_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                     <i class="fas fa-image fa-2x mb-2"></i>
                                     <small style="font-size:0.72rem;">Belum ada foto</small>
                                 </div>
                                 <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
                                     <input type="file" name="evidence_after" id="input_porecount_evidence_after" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Evidence After (DATA 2) -->
+                        <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700 mb-2 d-block">
+                                <i class="fas fa-image mr-1 text-info"></i> Evidence After {{ !$isTrial ? '(DATA 2)' : '' }}
+                            </label>
+                            <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                    <span class="small font-weight-bold text-dark">
+                                        AFTER TEST {{ !$isTrial ? '(DATA 2)' : '' }}
+                                    </span>
+                                    <button type="button" id="btn_delete_porecount_evidence_after_trial" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;" title="Hapus foto After Data 2"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="porecount_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                    <img id="porecount_evidence_after_trial_preview" src="" alt="After Data 2" class="d-block w-100" style="height:160px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                </div>
+                                <div id="porecount_evidence_after_trial_empty" style="display:flex; height:160px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <i class="fas fa-image fa-2x mb-2"></i>
+                                    <small style="font-size:0.72rem;">Belum ada foto</small>
+                                </div>
+                                <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
+                                    <input type="file" name="evidence_after_trial" id="input_porecount_evidence_after_trial" class="form-control-file" style="font-size:0.72rem;" accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -2065,11 +2275,11 @@
 
 <!-- Modal View Evidence -->
 <div class="modal fade" id="modalViewEvidence" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
             <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
                 <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
-                    <i class="fas fa-images mr-2 text-info"></i> Evidence Photo
+                    <i class="fas fa-images mr-2 text-info"></i> Evidence Photo {{ !$isTrial ? '(Before-After)' : '' }}
                 </h5>
                 <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -2077,28 +2287,39 @@
             </div>
             <div class="modal-body p-4" style="background-color: #f8fafc; border-radius: 0 0 12px 12px;">
                 <div class="row text-center">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <h6 class="font-weight-bold text-gray-700 mb-2">Before Test</h6>
+                    <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} mb-3 mb-md-0">
+                        <h6 class="font-weight-bold text-gray-700 mb-2">1. Before Test</h6>
                         <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
                             <style>
                                 .img-zoom { transition: transform 0.3s ease; cursor: zoom-in; }
                                 .img-zoom:hover { transform: scale(1.8); z-index: 1055; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; }
                             </style>
-                            <img id="evidenceBeforeImg" src="" alt="Evidence Before" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 270px; display: none;">
+                            <img id="evidenceBeforeImg" src="" alt="Evidence Before" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 220px; display: none;">
                             <span id="evidenceBeforeEmpty" class="text-muted">Tidak ada foto</span>
                             <small id="evidenceBeforeTimeText" class="text-dark font-weight-bold" style="font-size: 0.7rem; display: none;"></small>
                             <a href="#" download id="btnDownloadBefore" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download Before"><i class="fas fa-download"></i></a>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <h6 class="font-weight-bold text-gray-700 mb-2">After Test</h6>
+                    <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} mb-3 mb-md-0">
+                        <h6 class="font-weight-bold text-gray-700 mb-2">2. After Test {{ !$isTrial ? '(DATA 1)' : '' }}</h6>
                         <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
-                            <img id="evidenceAfterImg" src="" alt="Evidence After" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 270px; display: none;">
+                            <img id="evidenceAfterImg" src="" alt="Evidence After" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 220px; display: none;">
                             <span id="evidenceAfterEmpty" class="text-muted">Tidak ada foto</span>
                             <small id="evidenceAfterTimeText" class="text-dark font-weight-bold" style="font-size: 0.7rem; display: none;"></small>
                             <a href="#" download id="btnDownloadAfter" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download After"><i class="fas fa-download"></i></a>
                         </div>
                     </div>
+                    @if(!$isTrial)
+                    <div class="col-md-4">
+                        <h6 class="font-weight-bold text-gray-700 mb-2">3. After Test (DATA 2)</h6>
+                        <div class="border rounded bg-white p-2 d-flex flex-column align-items-center justify-content-center position-relative" style="min-height: 250px;">
+                            <img id="evidenceAfterTrialImg" src="" alt="Evidence After Data 2" class="img-fluid rounded shadow-sm img-zoom mb-2" style="max-height: 220px; display: none;">
+                            <span id="evidenceAfterTrialEmpty" class="text-muted">Tidak ada foto</span>
+                            <small id="evidenceAfterTrialTimeText" class="text-dark font-weight-bold" style="font-size: 0.7rem; display: none;"></small>
+                            <a href="#" download id="btnDownloadAfterTrial" class="btn btn-sm btn-success position-absolute" style="bottom: 10px; right: 10px; display: none;" title="Download After Data 2"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -2133,8 +2354,10 @@
         $('.btn-view-evidence').on('click', function() {
             var beforeUrl = $(this).data('before');
             var afterUrl = $(this).data('after');
+            var afterTrialUrl = $(this).data('after-trial');
             var beforeTime = $(this).data('before-time');
             var afterTime = $(this).data('after-time');
+            var afterTrialTime = $(this).data('after-trial-time');
 
             if (beforeUrl) {
                 $('#evidenceBeforeImg').attr('src', beforeUrl).show();
@@ -2152,20 +2375,58 @@
                 $('#evidenceBeforeTimeText').hide();
             }
 
-            if (afterUrl) {
-                $('#evidenceAfterImg').attr('src', afterUrl).show();
-                $('#btnDownloadAfter').attr('href', afterUrl).show();
-                $('#evidenceAfterEmpty').hide();
-                if (afterTime) {
-                    $('#evidenceAfterTimeText').text('Diunggah: ' + afterTime).show();
+            var isTrialPage = {{ $isTrial ? 'true' : 'false' }};
+            
+            if (isTrialPage) {
+                var targetAfterUrl = afterTrialUrl || afterUrl;
+                var targetAfterTime = afterTrialTime || afterTime;
+                if (targetAfterUrl) {
+                    $('#evidenceAfterImg').attr('src', targetAfterUrl).show();
+                    $('#btnDownloadAfter').attr('href', targetAfterUrl).show();
+                    $('#evidenceAfterEmpty').hide();
+                    if (targetAfterTime) {
+                        $('#evidenceAfterTimeText').text('Diunggah: ' + targetAfterTime).show();
+                    } else {
+                        $('#evidenceAfterTimeText').hide();
+                    }
                 } else {
+                    $('#evidenceAfterImg').hide();
+                    $('#btnDownloadAfter').hide();
+                    $('#evidenceAfterEmpty').show();
                     $('#evidenceAfterTimeText').hide();
                 }
             } else {
-                $('#evidenceAfterImg').hide();
-                $('#btnDownloadAfter').hide();
-                $('#evidenceAfterEmpty').show();
-                $('#evidenceAfterTimeText').hide();
+                if (afterUrl) {
+                    $('#evidenceAfterImg').attr('src', afterUrl).show();
+                    $('#btnDownloadAfter').attr('href', afterUrl).show();
+                    $('#evidenceAfterEmpty').hide();
+                    if (afterTime) {
+                        $('#evidenceAfterTimeText').text('Diunggah: ' + afterTime).show();
+                    } else {
+                        $('#evidenceAfterTimeText').hide();
+                    }
+                } else {
+                    $('#evidenceAfterImg').hide();
+                    $('#btnDownloadAfter').hide();
+                    $('#evidenceAfterEmpty').show();
+                    $('#evidenceAfterTimeText').hide();
+                }
+
+                if (afterTrialUrl) {
+                    $('#evidenceAfterTrialImg').attr('src', afterTrialUrl).show();
+                    $('#btnDownloadAfterTrial').attr('href', afterTrialUrl).show();
+                    $('#evidenceAfterTrialEmpty').hide();
+                    if (afterTrialTime) {
+                        $('#evidenceAfterTrialTimeText').text('Diunggah: ' + afterTrialTime).show();
+                    } else {
+                        $('#evidenceAfterTrialTimeText').hide();
+                    }
+                } else {
+                    $('#evidenceAfterTrialImg').hide();
+                    $('#btnDownloadAfterTrial').hide();
+                    $('#evidenceAfterTrialEmpty').show();
+                    $('#evidenceAfterTrialTimeText').hide();
+                }
             }
 
             $('#modalViewEvidence').modal('show');
@@ -2279,7 +2540,15 @@
                                 <input type="hidden" name="standard_performance_test_id" id="hidden_standard_performance_test_id">
                                 <datalist id="masterPartList">
                                     @foreach($masterItems as $item)
-                                        <option data-id="{{ $item->id }}" value="{{ $item->part_name }} - {{ $item->customer_name }}"></option>
+                                        <option data-id="{{ $item->id }}"
+                                                data-salt-spray="{{ $item->salt_spray_time }}"
+                                                data-cass="{{ $item->cass_time }}"
+                                                data-corrodkote="{{ $item->corrodkote_time }}"
+                                                data-porecount="{{ $item->porecount_std_min }}"
+                                                data-cr="{{ $item->thickness_cr }}"
+                                                data-ni="{{ $item->thickness_ni }}"
+                                                data-cu="{{ $item->thickness_cu }}"
+                                                value="{{ $item->part_name }} - {{ $item->customer_name }}"></option>
                                     @endforeach
                                 </datalist>
                             </div>
@@ -2377,7 +2646,12 @@
                                         <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            @if($testType == 'salt_spray')
+                                                <option value="NG - White Rust">NG - White Rust</option>
+                                                <option value="NG - Red Rust">NG - Red Rust</option>
+                                            @else
+                                                <option value="NG">NG</option>
+                                            @endif
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -2439,7 +2713,12 @@
                                         <select name="result_judgment_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
                                             <option value="OK">OK</option>
-                                            <option value="NG">NG</option>
+                                            @if($testType == 'salt_spray')
+                                                <option value="NG - White Rust">NG - White Rust</option>
+                                                <option value="NG - Red Rust">NG - Red Rust</option>
+                                            @else
+                                                <option value="NG">NG</option>
+                                            @endif
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
@@ -2451,69 +2730,76 @@
                         </div>
                     </div>
 
-                    <!-- Evidence Upload (Card Style like Edit Modal) -->
+                    <!-- Evidence Upload (3 Slots: Before, After Data 1, After Data 2) -->
                     <div class="mb-3">
                         <label class="small font-weight-bold text-gray-700 mb-2 d-block">
-                            Evidence Foto
+                            <i class="fas fa-camera mr-1 text-primary"></i> Evidence Foto (Before / After Test)
                         </label>
                         <div class="row">
                             {{-- BEFORE --}}
-                            <div class="col-6">
+                            <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} mb-2">
                                 <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                     <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
-                                        <span class="small font-weight-bold text-dark">
-                                            BEFORE TEST
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            1. BEFORE TEST
                                         </span>
-                                        <button type="button" id="btn_delete_new_evidence_before"
-                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
-                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
-                                            title="Hapus foto Before">
-                                            <i class="fas fa-times"></i>
-                                        </button>
+                                        <button type="button" id="btn_delete_new_evidence_before" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;" title="Hapus foto Before"><i class="fas fa-times"></i></button>
                                     </div>
                                     <div id="new_evidence_before_preview_wrap" style="display:none; background:#f0f4f8;">
-                                        <img id="new_evidence_before_preview" src="" alt="Before"
-                                            class="d-block w-100"
-                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                        <img id="new_evidence_before_preview" src="" alt="Before" class="d-block w-100" style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                     </div>
-                                    <div id="new_evidence_before_empty"
-                                        style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <div id="new_evidence_before_empty" style="display:flex; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
-                                        <input type="file" name="evidence_before" id="input_new_evidence_before"
-                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <input type="file" name="evidence_before" id="input_new_evidence_before" class="form-control-file" style="font-size:0.68rem;" accept="image/*">
                                     </div>
                                 </div>
                             </div>
-                            {{-- AFTER --}}
-                            <div class="col-6">
+
+                            @if(!$isTrial)
+                            {{-- AFTER (DATA 1) --}}
+                            <div class="col-md-4 mb-2">
                                 <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
                                     <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
-                                        <span class="small font-weight-bold text-dark">
-                                            AFTER TEST
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            2. AFTER TEST (DATA 1)
                                         </span>
-                                        <button type="button" id="btn_delete_new_evidence_after"
-                                            class="btn btn-danger btn-sm d-none align-items-center justify-content-center"
-                                            style="width:22px;height:22px;padding:0;border-radius:50%;font-size:11px;"
-                                            title="Hapus foto After">
-                                            <i class="fas fa-times"></i>
-                                        </button>
+                                        <button type="button" id="btn_delete_new_evidence_after" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;" title="Hapus foto After Data 1"><i class="fas fa-times"></i></button>
                                     </div>
                                     <div id="new_evidence_after_preview_wrap" style="display:none; background:#f0f4f8;">
-                                        <img id="new_evidence_after_preview" src="" alt="After"
-                                            class="d-block w-100"
-                                            style="height:180px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                        <img id="new_evidence_after_preview" src="" alt="After Data 1" class="d-block w-100" style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
                                     </div>
-                                    <div id="new_evidence_after_empty"
-                                        style="display:flex; height:180px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                    <div id="new_evidence_after_empty" style="display:flex; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
                                         <i class="fas fa-image fa-2x mb-2"></i>
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
-                                    <div class="card-footer py-2 px-3 bg-white" style="border-top:1px solid #e2e8f0;">
-                                        <input type="file" name="evidence_after" id="input_new_evidence_after"
-                                            class="form-control-file" style="font-size:0.72rem;" accept="image/*">
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <input type="file" name="evidence_after" id="input_new_evidence_after" class="form-control-file" style="font-size:0.68rem;" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- AFTER (DATA 2) --}}
+                            <div class="{{ !$isTrial ? 'col-md-4' : 'col-md-6' }} mb-2">
+                                <div class="card border shadow-sm" style="border-radius:10px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #e2e8f0;">
+                                        <span class="small font-weight-bold text-dark" style="font-size: 0.72rem;">
+                                            3. AFTER TEST {{ !$isTrial ? '(DATA 2)' : '' }}
+                                        </span>
+                                        <button type="button" id="btn_delete_new_evidence_after_trial" class="btn btn-danger btn-sm d-none align-items-center justify-content-center" style="width:20px;height:20px;padding:0;border-radius:50%;font-size:10px;" title="Hapus foto After Data 2"><i class="fas fa-times"></i></button>
+                                    </div>
+                                    <div id="new_evidence_after_trial_preview_wrap" style="display:none; background:#f0f4f8;">
+                                        <img id="new_evidence_after_trial_preview" src="" alt="After Data 2" class="d-block w-100" style="height:150px; object-fit:contain; background:#f0f4f8; cursor:zoom-in;">
+                                    </div>
+                                    <div id="new_evidence_after_trial_empty" style="display:flex; height:150px; background:#f0f4f8; color:#adb5bd; flex-direction:column; align-items:center; justify-content:center;">
+                                        <i class="fas fa-image fa-2x mb-2"></i>
+                                        <small style="font-size:0.72rem;">Belum ada foto</small>
+                                    </div>
+                                    <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
+                                        <input type="file" name="evidence_after_trial" id="input_new_evidence_after_trial" class="form-control-file" style="font-size:0.68rem;" accept="image/*">
                                     </div>
                                 </div>
                             </div>

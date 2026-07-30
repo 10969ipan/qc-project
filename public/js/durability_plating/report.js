@@ -117,11 +117,13 @@ $(document).ready(function() {
             window.calculateEditThicknessJudgment();
         }
 
-        let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let originalAfterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let originalBeforeUrl     = item.evidence_before     ? config.baseUrl + item.evidence_before     : null;
+        let originalAfterUrl      = item.evidence_after      ? config.baseUrl + item.evidence_after      : null;
+        let originalAfterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
 
-        let beforeTimeFormatted = formatDbDate(item.evidence_before_uploaded_at);
-        let afterTimeFormatted  = formatDbDate(item.evidence_after_uploaded_at);
+        let beforeTimeFormatted     = formatDbDate(item.evidence_before_uploaded_at);
+        let afterTimeFormatted      = formatDbDate(item.evidence_after_uploaded_at);
+        let afterTrialTimeFormatted = formatDbDate(item.evidence_after_trial_uploaded_at);
 
         showEvidenceCard('edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
             'edit_evidence_before_empty', 'btn_delete_evidence_before', 'edit_evidence_before_time',
@@ -129,16 +131,22 @@ $(document).ready(function() {
         showEvidenceCard('edit_evidence_after_preview', 'edit_evidence_after_preview_wrap',
             'edit_evidence_after_empty', 'btn_delete_evidence_after', 'edit_evidence_after_time',
             originalAfterUrl, afterTimeFormatted);
+        showEvidenceCard('edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap',
+            'edit_evidence_after_trial_empty', 'btn_delete_evidence_after_trial', 'edit_evidence_after_trial_time',
+            originalAfterTrialUrl, afterTrialTimeFormatted);
 
         // Store originals on buttons for X restore logic
         $('#btn_delete_evidence_before').data({ originalUrl: originalBeforeUrl, hasNewFile: false });
         $('#btn_delete_evidence_after').data({ originalUrl: originalAfterUrl,  hasNewFile: false });
+        $('#btn_delete_evidence_after_trial').data({ originalUrl: originalAfterTrialUrl, hasNewFile: false });
 
         // Reset file inputs and delete flags
         $('#input_evidence_before').val('');
         $('#input_evidence_after').val('');
+        $('#input_evidence_after_trial').val('');
         $('#delete_evidence_before').val('0');
         $('#delete_evidence_after').val('0');
+        $('#delete_evidence_after_trial').val('0');
 
         $('#modalEditThickness').modal('show');
     });
@@ -175,6 +183,8 @@ $(document).ready(function() {
         'edit_evidence_before_empty', 'edit_evidence_before_time', 'input_evidence_before', 'delete_evidence_before');
     handleDeleteBtn('btn_delete_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',
         'edit_evidence_after_empty',  'edit_evidence_after_time',  'input_evidence_after',  'delete_evidence_after');
+    handleDeleteBtn('btn_delete_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap',
+        'edit_evidence_after_trial_empty', 'edit_evidence_after_trial_time', 'input_evidence_after_trial', 'delete_evidence_after_trial');
 
     // Live preview when new file chosen — also show X and mark hasNewFile
     function bindLivePreview(inputId, previewId, wrapId, emptyId, deleteBtnId) {
@@ -195,9 +205,11 @@ $(document).ready(function() {
     }
     bindLivePreview('input_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap', 'edit_evidence_before_empty', 'btn_delete_evidence_before');
     bindLivePreview('input_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',  'edit_evidence_after_empty',  'btn_delete_evidence_after');
+    bindLivePreview('input_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap', 'edit_evidence_after_trial_empty', 'btn_delete_evidence_after_trial');
 
     bindLivePreview('input_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'btn_delete_new_evidence_before');
     bindLivePreview('input_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'btn_delete_new_evidence_after');
+    bindLivePreview('input_new_evidence_after_trial', 'new_evidence_after_trial_preview', 'new_evidence_after_trial_preview_wrap', 'new_evidence_after_trial_empty', 'btn_delete_new_evidence_after_trial');
 
     // Simple X handler for New Data Modal
     function handleNewDataDeleteBtn(btnId, previewId, wrapId, emptyId, inputId) {
@@ -210,14 +222,17 @@ $(document).ready(function() {
     }
     handleNewDataDeleteBtn('btn_delete_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'input_new_evidence_before');
     handleNewDataDeleteBtn('btn_delete_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'input_new_evidence_after');
+    handleNewDataDeleteBtn('btn_delete_new_evidence_after_trial', 'new_evidence_after_trial_preview', 'new_evidence_after_trial_preview_wrap', 'new_evidence_after_trial_empty', 'input_new_evidence_after_trial');
 
     const inputModals = ['corrodkote', 'cass', 'salt_spray', 'porecount'];
     inputModals.forEach(t => {
         bindLivePreview(`input_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `btn_delete_${t}_evidence_before`);
         bindLivePreview(`input_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `btn_delete_${t}_evidence_after`);
+        bindLivePreview(`input_${t}_evidence_after_trial`, `${t}_evidence_after_trial_preview`, `${t}_evidence_after_trial_preview_wrap`, `${t}_evidence_after_trial_empty`, `btn_delete_${t}_evidence_after_trial`);
         
         handleNewDataDeleteBtn(`btn_delete_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `input_${t}_evidence_before`);
         handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `input_${t}_evidence_after`);
+        handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after_trial`, `${t}_evidence_after_trial_preview`, `${t}_evidence_after_trial_preview_wrap`, `${t}_evidence_after_trial_empty`, `input_${t}_evidence_after_trial`);
     });
 
     function formatDbDate(dbDateStr) {
@@ -338,10 +353,12 @@ $(document).ready(function() {
         form.find('[name="result_judgment_corrodkote_trial"]').val(item.result_judgment_corrodkote_trial || '-');
         form.find('[name="description_corrodkote_trial"]').val(item.description_corrodkote_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('corrodkote_evidence_before_preview', 'corrodkote_evidence_before_preview_wrap', 'corrodkote_evidence_before_empty', 'btn_delete_corrodkote_evidence_before', null, beforeUrl, null);
         showEvidenceCard('corrodkote_evidence_after_preview', 'corrodkote_evidence_after_preview_wrap', 'corrodkote_evidence_after_empty', 'btn_delete_corrodkote_evidence_after', null, afterUrl, null);
+        showEvidenceCard('corrodkote_evidence_after_trial_preview', 'corrodkote_evidence_after_trial_preview_wrap', 'corrodkote_evidence_after_trial_empty', 'btn_delete_corrodkote_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
         $('#modalInputCorrodkote').modal('show');
@@ -389,10 +406,12 @@ $(document).ready(function() {
         form.find('[name="result_judgment_cass_trial"]').val(item.result_judgment_cass_trial || '-');
         form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('cass_evidence_before_preview', 'cass_evidence_before_preview_wrap', 'cass_evidence_before_empty', 'btn_delete_cass_evidence_before', null, beforeUrl, null);
         showEvidenceCard('cass_evidence_after_preview', 'cass_evidence_after_preview_wrap', 'cass_evidence_after_empty', 'btn_delete_cass_evidence_after', null, afterUrl, null);
+        showEvidenceCard('cass_evidence_after_trial_preview', 'cass_evidence_after_trial_preview_wrap', 'cass_evidence_after_trial_empty', 'btn_delete_cass_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
         $('#modalInputCass').modal('show');
@@ -440,10 +459,12 @@ $(document).ready(function() {
         form.find('[name="result_judgment_salt_spray_trial"]').val(item.result_judgment_salt_spray_trial || '-');
         form.find('[name="description_salt_spray_trial"]').val(item.description_salt_spray_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('salt_spray_evidence_before_preview', 'salt_spray_evidence_before_preview_wrap', 'salt_spray_evidence_before_empty', 'btn_delete_salt_spray_evidence_before', null, beforeUrl, null);
         showEvidenceCard('salt_spray_evidence_after_preview', 'salt_spray_evidence_after_preview_wrap', 'salt_spray_evidence_after_empty', 'btn_delete_salt_spray_evidence_after', null, afterUrl, null);
+        showEvidenceCard('salt_spray_evidence_after_trial_preview', 'salt_spray_evidence_after_trial_preview_wrap', 'salt_spray_evidence_after_trial_empty', 'btn_delete_salt_spray_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
         $('#modalInputSaltSpray').modal('show');
@@ -483,10 +504,12 @@ $(document).ready(function() {
         form.find('[name="result_judgment_porecount_trial"]').val(item.result_judgment_porecount_trial || '-');
         form.find('[name="description_porecount_trial"]').val(item.description_porecount_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl  = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('porecount_evidence_before_preview', 'porecount_evidence_before_preview_wrap', 'porecount_evidence_before_empty', 'btn_delete_porecount_evidence_before', null, beforeUrl, null);
         showEvidenceCard('porecount_evidence_after_preview', 'porecount_evidence_after_preview_wrap', 'porecount_evidence_after_empty', 'btn_delete_porecount_evidence_after', null, afterUrl, null);
+        showEvidenceCard('porecount_evidence_after_trial_preview', 'porecount_evidence_after_trial_preview_wrap', 'porecount_evidence_after_trial_empty', 'btn_delete_porecount_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
         $('#modalInputPorecount').modal('show');
@@ -750,12 +773,23 @@ $(document).ready(function() {
         let actSalt1 = parseFloat($form.find('input[name="actual_salt_spray_waktu"]').val());
         let stdSalt1 = parseFloat($form.find('input[name="standar_jam_salt_spray"]').val());
         if (!isNaN(actSalt1) && !isNaN(stdSalt1)) {
-            $form.find('select[name="result_judgment_salt_spray"]').val(actSalt1 >= stdSalt1 ? 'OK' : 'NG');
+            let $select1 = $form.find('select[name="result_judgment_salt_spray"]');
+            if (!$select1.length) $select1 = $form.find('select[name="result_judgment"]');
+            if (actSalt1 >= stdSalt1) {
+                $select1.val('OK');
+            } else if (!$select1.val() || $select1.val() === 'OK' || $select1.val() === '-') {
+                $select1.val('NG - White Rust');
+            }
         }
         let actSalt2 = parseFloat($form.find('input[name="actual_salt_spray_waktu_trial"]').val());
         let stdSalt2 = parseFloat($form.find('input[name="standar_jam_salt_spray_trial"]').val()) || stdSalt1;
         if (!isNaN(actSalt2) && !isNaN(stdSalt2)) {
-            $form.find('select[name="result_judgment_salt_spray_trial"]').val(actSalt2 >= stdSalt2 ? 'OK' : 'NG');
+            let $select2 = $form.find('select[name="result_judgment_salt_spray_trial"]');
+            if (actSalt2 >= stdSalt2) {
+                $select2.val('OK');
+            } else if (!$select2.val() || $select2.val() === 'OK' || $select2.val() === '-') {
+                $select2.val('NG - White Rust');
+            }
         }
 
         // 4. Porecount
@@ -768,12 +802,88 @@ $(document).ready(function() {
         if (!isNaN(actPore2) && !isNaN(stdPoreMin)) {
             $form.find('select[name="result_judgment_porecount_trial"]').val(actPore2 >= stdPoreMin ? 'OK' : 'NG');
         }
+
+        syncSaltSprayRustDropdowns($form);
     }
 
-    $(document).on('keyup change input', '#modalInputCorrodkote input, #modalInputCass input, #modalInputSaltSpray input, #modalInputPorecount input', function() {
+    function syncSaltSprayRustDropdowns($container) {
+        if (!$container || !$container.length) return;
+        $container.find('select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]').each(function() {
+            let $select = $(this);
+            let val = $select.val() || '';
+            let $group = $select.closest('.form-group').next('.salt-spray-rust-group');
+            if (!$group.length) {
+                $group = $select.closest('.card-body, .form-group').find('.salt-spray-rust-group');
+            }
+
+            if (val.indexOf('NG') !== -1) {
+                $group.show();
+                let $rustSelect = $group.find('.salt-spray-rust-type');
+                if (val === 'NG - Red Rust') {
+                    $rustSelect.val('Red Rust');
+                } else {
+                    $rustSelect.val('White Rust');
+                    if (val === 'NG') {
+                        $select.val('NG - White Rust');
+                    }
+                }
+            } else {
+                $group.hide();
+            }
+        });
+    }
+
+    $(document).on('change', '.salt-spray-rust-type', function() {
+        let rust = $(this).val() || 'White Rust';
+        let $group = $(this).closest('.salt-spray-rust-group');
+        let $mainSelect = $group.prev('.form-group').find('select');
+        if ($mainSelect.length) {
+            let targetVal = 'NG - ' + rust;
+            $mainSelect.val(targetVal);
+        }
+    });
+
+    $(document).on('change', 'select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]', function() {
+        let $container = $(this).closest('.modal-content, form');
+        if ($container.length) {
+            syncSaltSprayRustDropdowns($container);
+        }
+    });
+
+    $(document).on('keyup change input', '#modalInputCorrodkote input, #modalInputCass input, #modalInputSaltSpray input, #modalInputPorecount input, #formAddData input', function() {
         var $form = $(this).closest('.modal-content');
         if (!$form.length) { $form = $(this).closest('form'); }
         calculateTestAutoJudgment($form);
+    });
+
+    $(document).on('input change blur', '#add_part_search', function() {
+        let val = $(this).val();
+        let $hidden = $('#hidden_standard_performance_test_id');
+        let matchedOption = $('#masterPartList option').filter(function() {
+            return $(this).val() === val;
+        });
+
+        if (matchedOption.length) {
+            let stdId = matchedOption.attr('data-id') || matchedOption.data('id');
+            $hidden.val(stdId);
+
+            let saltTime = matchedOption.attr('data-salt-spray') || matchedOption.data('salt-spray');
+            let cassTime = matchedOption.attr('data-cass') || matchedOption.data('cass');
+            let corrTime = matchedOption.attr('data-corrodkote') || matchedOption.data('corrodkote');
+            let poreMin  = matchedOption.attr('data-porecount') || matchedOption.data('porecount');
+
+            let $modal = $(this).closest('.modal-content, form');
+            $modal.find('input[name="standar_jam_salt_spray"], input[name="standar_jam_salt_spray_trial"]').val(saltTime || '');
+            $modal.find('input[name="standar_jam_cass"], input[name="standar_jam_cass_trial"]').val(cassTime || '');
+            $modal.find('input[name="standar_jam_corrodkote"], input[name="standar_jam_corrodkote_trial"]').val(corrTime || '');
+            $modal.find('input[name="standard_porecount_min"]').val(poreMin || '');
+
+            if (typeof calculateTestAutoJudgment === 'function') {
+                calculateTestAutoJudgment($modal);
+            }
+        } else {
+            $hidden.val('');
+        }
     });
 
     $(document).on('change input', 'input[name="tgl_masuk"]', function() {

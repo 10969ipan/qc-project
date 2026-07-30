@@ -189,7 +189,7 @@ class DoubleTapeIndex {
                 {
                     highlightScanRegion: true,
                     highlightCodeOutline: true,
-                    maxScansPerSecond: 25,
+                    maxScansPerSecond: 12,
                     preferredCamera: "environment",
                 },
             );
@@ -421,7 +421,7 @@ class DoubleTapeCreate {
                 {
                     highlightScanRegion: true,
                     highlightCodeOutline: true,
-                    maxScansPerSecond: 25,
+                    maxScansPerSecond: 12,
                     preferredCamera: "environment",
                 },
             );
@@ -982,53 +982,55 @@ class DoubleTapeCreate {
             this.refStandardFileIndex = 0;
             this.refStandardPageNum = 1;
 
-            if (standardPdf) {
-                this.renderPdfToCanvas(
-                    standardPdf,
-                    "standardPdfCanvas",
-                    "standardPdfPlaceholder",
-                    "standardPdfLoading",
-                );
-                $("#fullStandardBtn")
-                    .attr("data-id", itemId)
-                    .attr("data-count", files ? files.length : 1)
-                    .show();
-                $("#downloadStandardBtn").attr("href", standardPdf).show();
-            } else {
-                $("#standardPdfCanvas").addClass("d-none").hide();
-                $("#standardPdfPlaceholder")
-                    .removeClass("d-none")
-                    .addClass("d-flex")
-                    .find("p")
-                    .text("Standard PDF tidak tersedia");
-                $("#fullStandardBtn").hide();
-                $("#downloadStandardBtn").hide();
-            }
+            setTimeout(() => {
+                if (standardPdf) {
+                    this.renderPdfToCanvas(
+                        standardPdf,
+                        "standardPdfCanvas",
+                        "standardPdfPlaceholder",
+                        "standardPdfLoading",
+                    );
+                    $("#fullStandardBtn")
+                        .attr("data-id", itemId)
+                        .attr("data-count", files ? files.length : 1)
+                        .show();
+                    $("#downloadStandardBtn").attr("href", standardPdf).show();
+                } else {
+                    $("#standardPdfCanvas").addClass("d-none").hide();
+                    $("#standardPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex")
+                        .find("p")
+                        .text("Standard PDF tidak tersedia");
+                    $("#fullStandardBtn").hide();
+                    $("#downloadStandardBtn").hide();
+                }
 
-            if (similarPdf) {
-                this.renderPdfToCanvas(
-                    similarPdf,
-                    "similarPdfCanvas",
-                    "similarPdfPlaceholder",
-                    "similarPdfLoading",
-                );
-                $("#fullSimilarBtn")
-                    .attr("data-id", itemId)
-                    .data("similar", true)
-                    .show();
-                $("#downloadSimilarBtn").attr("href", similarPdf).show();
-                $("#similarStatusText").text("");
-            } else {
-                $("#similarPdfCanvas").addClass("d-none").hide();
-                $("#similarPdfPlaceholder")
-                    .removeClass("d-none")
-                    .addClass("d-flex");
-                $("#similarStatusText").text(
-                    "Referral Similar Part tidak tersedia untuk item ini",
-                );
-                $("#fullSimilarBtn").hide();
-                $("#downloadSimilarBtn").hide();
-            }
+                if (similarPdf) {
+                    this.renderPdfToCanvas(
+                        similarPdf,
+                        "similarPdfCanvas",
+                        "similarPdfPlaceholder",
+                        "similarPdfLoading",
+                    );
+                    $("#fullSimilarBtn")
+                        .attr("data-id", itemId)
+                        .data("similar", true)
+                        .show();
+                    $("#downloadSimilarBtn").attr("href", similarPdf).show();
+                    $("#similarStatusText").text("");
+                } else {
+                    $("#similarPdfCanvas").addClass("d-none").hide();
+                    $("#similarPdfPlaceholder")
+                        .removeClass("d-none")
+                        .addClass("d-flex");
+                    $("#similarStatusText").text(
+                        "Referral Similar Part tidak tersedia untuk item ini",
+                    );
+                    $("#fullSimilarBtn").hide();
+                    $("#downloadSimilarBtn").hide();
+                }
+            }, 10);
 
             // Populasi defect
             const defectSelect = $("#defectSelect");
