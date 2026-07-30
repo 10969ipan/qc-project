@@ -274,7 +274,7 @@
                 <div style="width: 200px;" class="custom-filter-wrapper">
                     <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none" onchange="this.form.submit()">
                         <option value="">Semua Part / Customer...</option>
-                        @foreach($items as $item)
+                        @foreach($masterItems as $item)
                             <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
                                 {{ $item->part_name }} - {{ $item->customer_name }}
                             </option>
@@ -678,9 +678,8 @@
                                 <td class="text-center">
                                     @php
                                         $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
-                                        $hasThicknessData = (isset($report->actual_cu) && $report->actual_cu !== '' && $report->actual_cu !== '-') ||
-                                                            (isset($report->actual_ni) && $report->actual_ni !== '' && $report->actual_ni !== '-') ||
-                                                            (isset($report->actual_cr) && $report->actual_cr !== '' && $report->actual_cr !== '-');
+                                        $validVal = fn($v) => !is_null($v) && !in_array(trim((string)$v), ['', '-', '0', '0.0', '0,0'], true);
+                                        $hasThicknessData = $validVal($report->actual_cu) || $validVal($report->actual_ni) || $validVal($report->actual_cr);
                                     @endphp
                                     @if($hasThicknessData)
                                         <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">

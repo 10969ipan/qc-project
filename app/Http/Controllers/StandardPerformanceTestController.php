@@ -533,9 +533,9 @@ class StandardPerformanceTestController extends Controller
             $query->where(function ($q) use ($testType) {
                 if ($testType === 'thickness') {
                     $q->where(function($sub) {
-                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
-                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
-                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
+                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')->where('actual_cu', '!=', '0')
+                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')->where('actual_ni', '!=', '0')
+                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-')->where('actual_cr', '!=', '0');
                     });
                 } elseif ($testType === 'corrodkote') {
                     $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
