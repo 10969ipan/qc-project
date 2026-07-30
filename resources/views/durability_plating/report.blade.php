@@ -678,10 +678,17 @@
                                 <td class="text-center">
                                     @php
                                         $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
+                                        $hasThicknessData = (isset($report->actual_cu) && $report->actual_cu !== '' && $report->actual_cu !== '-') ||
+                                                            (isset($report->actual_ni) && $report->actual_ni !== '' && $report->actual_ni !== '-') ||
+                                                            (isset($report->actual_cr) && $report->actual_cr !== '' && $report->actual_cr !== '-');
                                     @endphp
-                                    <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
-                                        <i class="fas fa-external-link-alt"></i> Data
-                                    </a>
+                                    @if($hasThicknessData)
+                                        <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                            <i class="fas fa-external-link-alt"></i> Data
+                                        </a>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">tidak ada data</span>
+                                    @endif
                                 </td>
                             @endif
 

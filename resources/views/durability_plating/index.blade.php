@@ -341,7 +341,7 @@
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Kategori</label>
-                            <input type="text" name="category" id="tambah_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: R2/R4">
+                            <input type="text" name="category" id="tambah_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: OEM / ELECTRONIC">
                         </div>
                     </div>
                     
@@ -488,7 +488,7 @@
                         </div>
                         <div class="col-md-3 form-group">
                             <label class="small font-weight-bold text-gray-700">Kategori</label>
-                            <input type="text" name="category" id="edit_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: OEM / ELECTRONIC">
+                            <input type="text" name="category" id="edit_category" class="form-control form-control-sm border-0 shadow-sm" placeholder="Contoh: R2/R4">
                         </div>
                     </div>
                     

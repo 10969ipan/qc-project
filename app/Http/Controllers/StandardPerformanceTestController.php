@@ -552,7 +552,9 @@ class StandardPerformanceTestController extends Controller
                 $search = $request->search;
                 $query->whereHas('standard', function($q) use ($search) {
                     $q->where('part_name', 'like', "%$search%")
-                      ->orWhere('customer_name', 'like', "%$search%");
+                      ->orWhere('part_number', 'like', "%$search%")
+                      ->orWhere('customer_name', 'like', "%$search%")
+                      ->orWhere('customer_standard', 'like', "%$search%");
                 });
             }
             if ($request->filled('customer_name')) {
@@ -771,11 +773,9 @@ class StandardPerformanceTestController extends Controller
 
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                // Protect Thickness-only fields from being altered by non-thickness test inputs
+                // Protect Thickness-only measurement values from being altered by non-thickness test inputs
                 if ($testType !== 'thickness' && in_array($field, [
                     'actual_cu', 'actual_ni', 'actual_cr',
-                    'description', 'result_judgment',
-                    'production_date', 'shift', 'lot_no',
                 ])) {
                     continue;
                 }
@@ -826,6 +826,7 @@ class StandardPerformanceTestController extends Controller
                 'tanggal_cek' => $report->tanggal_cek,
                 'production_date' => $report->production_date,
                 'shift' => $report->shift,
+                'lot_no' => $report->lot_no,
                 'tgl_masuk' => $report->tgl_masuk,
                 'jam_masuk' => $report->jam_masuk,
                 'tgl_keluar' => $report->tgl_keluar,
