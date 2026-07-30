@@ -16,11 +16,16 @@ class InProcessChecksheetApiController extends Controller
      */
     public function checkStatus($unique_code_id)
     {
-        // Jika parameter yang dikirim adalah string QR lengkap, ambil unique_code_id (indeks ke-3)
+        $sap_code = null;
+        // Jika parameter yang dikirim adalah string QR lengkap, ambil unique_code_id dan sap_code jika ada
         if (strpos($unique_code_id, '|') !== false) {
             $parts = explode('|', $unique_code_id);
-            if (count($parts) >= 4) {
+            $count = count($parts);
+            if ($count >= 4) {
                 $unique_code_id = trim($parts[3]);
+            }
+            if ($count >= 5) {
+                $sap_code = trim($parts[$count - 1]);
             }
         }
 
@@ -42,9 +47,14 @@ class InProcessChecksheetApiController extends Controller
             if (class_exists($modelClass)) {
                 $tableName = (new $modelClass)->getTable();
                 if (\Illuminate\Support\Facades\Schema::hasColumn($tableName, 'unique_code_id')) {
-                    $checksheet = $modelClass::withoutGlobalScopes()
-                        ->where('unique_code_id', $unique_code_id)
-                        ->with(['item'])
+                    $query = $modelClass::withoutGlobalScopes()
+                        ->where('unique_code_id', $unique_code_id);
+
+                    if ($sap_code && \Illuminate\Support\Facades\Schema::hasColumn($tableName, 'sap_code')) {
+                        $query->where('sap_code', $sap_code);
+                    }
+
+                    $checksheet = $query->with(['item'])
                         ->latest()
                         ->first();
                         

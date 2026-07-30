@@ -35,7 +35,12 @@ class StoreIncomingSubPartRequest extends FormRequest
             'unique_code_id' => [
                 'nullable',
                 'string',
-                \Illuminate\Validation\Rule::unique('incoming_sub_parts', 'unique_code_id'),
+                \Illuminate\Validation\Rule::unique('incoming_sub_parts', 'unique_code_id')->where(function ($query) {
+                    if ($this->filled('sap_code')) {
+                        $query->where('sap_code', $this->sap_code);
+                    }
+                    return $query;
+                }),
             ],
             'sap_code' => 'nullable|string',
             'scan_method' => 'nullable|string|in:manual,hardware,camera',

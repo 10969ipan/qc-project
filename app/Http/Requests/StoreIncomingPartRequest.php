@@ -55,6 +55,9 @@ class StoreIncomingPartRequest extends FormRequest
                 'nullable',
                 'string',
                 \Illuminate\Validation\Rule::unique('incoming_parts', 'unique_code_id')->where(function ($query) {
+                    if ($this->filled('sap_code')) {
+                        $query->where('sap_code', $this->sap_code);
+                    }
                     return $query->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
                 }),
             ],

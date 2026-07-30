@@ -603,10 +603,11 @@ class ItemController extends Controller
             // Pengecekan composite: seluruh segmen raw barcode harus unik
             // KHUSUS untuk In-Process: hanya mengecek qty dan lot_id-unique_code-cav (yaitu quantity dan unique_code_id)
             if (!empty($uniqueCodeId)) {
-                $record = DB::table($table)
-                    ->where('unique_code_id', $uniqueCodeId)
-                    ->latest()
-                    ->first();
+                $query = DB::table($table)->where('unique_code_id', $uniqueCodeId);
+                if (!empty($sapCode)) {
+                    $query->where('sap_code', $sapCode);
+                }
+                $record = $query->latest()->first();
             } else {
                 $record = DB::table($table)
                     ->where('part_code',     $partCode)
@@ -625,7 +626,7 @@ class ItemController extends Controller
                         'success' => true,
                         'unique'  => false,
                         'message' => "QR ini sudah pernah diinput pada {$date} di modul {$moduleName}. "
-                            . "(Qty: {$quantity} | ID: {$uniqueCodeId})"
+                            . "(Qty: {$quantity} | ID: {$uniqueCodeId} | SAP: {$sapCode})"
                     ]);
                 }
 

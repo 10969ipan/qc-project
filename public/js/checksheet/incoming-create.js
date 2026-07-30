@@ -1417,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 1. Validasi duplikat pada localStorage queue
         const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
         const isDuplicateInQueue = queue.some(item => {
-            return (item.unique_code_id || "").trim() === unique_code_id;
+            return (item.unique_code_id || "").trim() === unique_code_id && (item.sap_code || "").trim() === sap_code;
         });
 
         if (isDuplicateInQueue) {

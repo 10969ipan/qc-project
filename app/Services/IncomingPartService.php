@@ -167,7 +167,11 @@ class IncomingPartService extends BaseService
             $qrCode = !empty($data['qrcode']) ? trim($data['qrcode']) : null;
 
             if ($uniqueCode) {
-                $duplicate = IncomingPart::where('unique_code_id', $uniqueCode)->first();
+                $query = IncomingPart::where('unique_code_id', $uniqueCode);
+                if (!empty($data['sap_code'])) {
+                    $query->where('sap_code', trim($data['sap_code']));
+                }
+                $duplicate = $query->first();
                 if ($duplicate) {
                     $tglScan = $duplicate->created_at ? $duplicate->created_at->format('d/m/Y H:i') : $duplicate->date;
                     throw new \Exception("Gagal Menyimpan! QR Code / Unique Code ID ({$uniqueCode}) ini sudah pernah dipindai dan disimpan sebelumnya pada {$tglScan}.");

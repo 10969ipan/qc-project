@@ -289,6 +289,92 @@ class QCAutomatedValidationTest extends TestCase
     }
 
     /** @test */
+    public function it_allows_same_unique_code_id_with_different_sap_code()
+    {
+        $plant = \App\Models\Plant::first() ?: \App\Models\Plant::create(['name' => 'Karawang', 'code' => 'KRW']);
+        $admin = \App\Models\User::where('role', 'admin')->first() ?: \App\Models\User::create([
+            'name' => 'Admin Test',
+            'email' => 'admin_test2@qc.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'is_active' => true,
+            'plant_id' => $plant->id
+        ]);
+        $this->actingAs($admin);
+
+        $item = \App\Models\Item::first() ?: \App\Models\Item::create([
+            'plant_id' => $plant->id,
+            'part_number' => 'PN121225',
+            'part_name' => 'Test Part',
+            'sap_code' => '6-03-0020-03',
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('in_process_checksheets')->insert([
+            'item_id' => $item->id,
+            'plant' => $plant->code,
+            'date' => now()->toDateString(),
+            'shift' => '1',
+            'code_machine' => 'M1',
+            'total_qty' => 10,
+            'sampling_qty' => 1,
+            'total_ok' => 10,
+            'total_ng' => 0,
+            'judgment' => 'OK',
+            'part_code' => 'DATA01',
+            'supplier_id' => '1200044',
+            'quantity' => 880,
+            'unique_code_id' => 'PN121225SHDM1A-001-202',
+            'sap_code' => '6-03-0020-03',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Scanning QR with SAME unique_code_id but DIFFERENT sap_code should be UNIQUE (true)
+        $qrData2 = "DATA02|1200044|880|PN121225SHDM1A-001-202|6-03-0020-04";
+        $response1 = $this->get(route('items.check-qr-unique', ['qrcode' => $qrData2]));
+        $response1->assertStatus(200);
+        $response1->assertJson(['success' => true, 'unique' => true]);
+
+        // Scanning QR with SAME unique_code_id AND SAME sap_code should be DUPLICATE (unique: false)
+        $qrData1 = "DATA01|1200044|880|PN121225SHDM1A-001-202|6-03-0020-03";
+        $response2 = $this->get(route('items.check-qr-unique', ['qrcode' => $qrData1]));
+        $response2->assertStatus(200);
+        $response2->assertJson(['success' => true, 'unique' => false]);
+
+        // Additional Test with User's Exact Raw Barcode Examples:
+        // QR 1: B74-F414B-10-00-80|76B5|40|22062026HRSN1-002-002|7-03-0131-40
+        // QR 2: B74-F414B-10-00-80|76B5|100|22062026HRSN1-002-002|7-03-0131-100
+        $userQr1 = "B74-F414B-10-00-80|76B5|40|22062026HRSN1-002-002|7-03-0131-40";
+        $userQr2 = "B74-F414B-10-00-80|76B5|100|22062026HRSN1-002-002|7-03-0131-100";
+
+        // Insert QR 1 into DB
+        \Illuminate\Support\Facades\DB::table('in_process_checksheets')->insert([
+            'item_id' => $item->id,
+            'plant' => $plant->code,
+            'date' => now()->toDateString(),
+            'shift' => '1',
+            'code_machine' => 'M1',
+            'total_qty' => 40,
+            'sampling_qty' => 1,
+            'total_ok' => 40,
+            'total_ng' => 0,
+            'judgment' => 'OK',
+            'part_code' => 'B74-F414B-10-00-80',
+            'supplier_id' => '76B5',
+            'quantity' => 40,
+            'unique_code_id' => '22062026HRSN1-002-002',
+            'sap_code' => '7-03-0131-40',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // QR 2 has same unique_code_id (22062026HRSN1-002-002) but different sap_code (7-03-0131-100) -> MUST be UNIQUE
+        $userCheckResponse = $this->get(route('items.check-qr-unique', ['qrcode' => $userQr2]));
+        $userCheckResponse->assertStatus(200);
+        $userCheckResponse->assertJson(['success' => true, 'unique' => true]);
+    }
+
+    /** @test */
     public function it_resets_jig_code_when_no_po_changes()
     {
         $plant = Plant::first() ?: Plant::create(['name' => 'Karawang', 'code' => 'KRW']);

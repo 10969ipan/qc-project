@@ -33,9 +33,13 @@ class UpdatePlatingChecksheetRequest extends FormRequest
                 'nullable',
                 'string',
                 \Illuminate\Validation\Rule::unique('plating_checksheets', 'unique_code_id')
-                    ->where('part_code', $this->part_code)
-                    ->where('quantity', $this->quantity)
-                    ->ignore($this->route('id') ?? $this->route('checksheet')),
+                    ->ignore($this->route('id') ?? $this->route('checksheet'))
+                    ->where(function ($query) {
+                        if ($this->filled('sap_code')) {
+                            $query->where('sap_code', $this->sap_code);
+                        }
+                        return $query->whereNotNull('unique_code_id');
+                    }),
             ],
             'sap_code' => 'nullable|string',
             'date' => 'required|date',

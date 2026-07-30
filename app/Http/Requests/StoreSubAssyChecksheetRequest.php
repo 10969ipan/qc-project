@@ -58,10 +58,12 @@ class StoreSubAssyChecksheetRequest extends FormRequest
             'unique_code_id' => [
                 'nullable',
                 'string',
-                \Illuminate\Validation\Rule::unique('sub_assy_checksheets', 'unique_code_id')
-                    ->where('part_code', $this->part_code)
-                    ->where('quantity', $this->quantity)
-                    ->whereNotNull('unique_code_id')
+                \Illuminate\Validation\Rule::unique('sub_assy_checksheets', 'unique_code_id')->where(function ($query) {
+                    if ($this->filled('sap_code')) {
+                        $query->where('sap_code', $this->sap_code);
+                    }
+                    return $query->whereNotNull('unique_code_id');
+                }),
             ],
             'sap_code' => 'nullable|string',
             'plant' => 'required',
