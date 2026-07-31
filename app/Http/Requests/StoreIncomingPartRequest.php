@@ -11,6 +11,15 @@ class StoreIncomingPartRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'tanggal_datang' => $this->tanggal_datang ?: ($this->date ?: now()->toDateString()),
+            'shift_datang' => $this->shift_datang ?: ($this->shift ?: '1'),
+            'qty_datang' => $this->qty_datang ?? ($this->quantity ?? 0),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

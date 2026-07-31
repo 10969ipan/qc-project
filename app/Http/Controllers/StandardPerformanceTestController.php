@@ -533,9 +533,9 @@ class StandardPerformanceTestController extends Controller
             $query->where(function ($q) use ($testType) {
                 if ($testType === 'thickness') {
                     $q->where(function($sub) {
-                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')->where('actual_cu', '!=', '0')
-                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')->where('actual_ni', '!=', '0')
-                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-')->where('actual_cr', '!=', '0');
+                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
+                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
+                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
                     });
                 } elseif ($testType === 'corrodkote') {
                     $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
@@ -702,9 +702,9 @@ class StandardPerformanceTestController extends Controller
         $testReportIds = \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)
             ->where(function ($q) use ($testType) {
                 if ($testType === 'thickness') {
-                    $q->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')->where('actual_cu', '!=', '0')
-                        ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')->where('actual_ni', '!=', '0')
-                        ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-')->where('actual_cr', '!=', '0');
+                    $q->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
+                        ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
+                        ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
                 } elseif ($testType === 'corrodkote') {
                     $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
                 } elseif ($testType === 'cass') {
@@ -1142,5 +1142,165 @@ class StandardPerformanceTestController extends Controller
             'success' => true,
             'message' => "Berhasil menyalin {$count} data laporan."
         ]);
+    }
+
+    protected function getApprovalMapping($type)
+    {
+        $mappings = [
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
+            'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'SPV Plating'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager Quality'],
+            'asst_manager_plating' => ['field' => 'asst_manager_plating', 'time' => 'asst_manager_plating_approved_at', 'label' => 'Asst Manager Plating'],
+        ];
+        return $mappings[$type] ?? null;
+    }
+
+    public function approve(Request $request, $id, $type)
+    {
+        try {
+            $mapping = $this->getApprovalMapping($type);
+            if (!$mapping) {
+                return redirect()->back()->with('error', 'Level approval tidak valid.');
+            }
+
+            $user = auth()->user();
+            $allowedRoles = [$type, 'admin'];
+            if ($type === 'supervisor') $allowedRoles[] = 'supervisor_qc';
+            if ($type === 'asst_manager') $allowedRoles[] = 'asst_manager_qc';
+
+            if (!in_array($user->role, $allowedRoles)) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk approval ini.');
+            }
+
+            $report = DurabilityThicknessReport::findOrFail($id);
+            $field = $mapping['field'];
+            $timeField = $mapping['time'];
+            $label = $mapping['label'];
+
+            $userName = $user->name ?? $user->username ?? 'User';
+            $now = now();
+
+            $report->$field = $userName;
+            $report->$timeField = $now;
+            $report->save();
+
+            // Sync to paired report (Data 1 / Data 2 Trial)
+            if ($report->data1_id) {
+                DurabilityThicknessReport::where('id', $report->data1_id)->update([
+                    $field => $userName,
+                    $timeField => $now,
+                ]);
+            } else {
+                DurabilityThicknessReport::where('data1_id', $report->id)->update([
+                    $field => $userName,
+                    $timeField => $now,
+                ]);
+            }
+
+            ActivityLogger::log('approved', $report, "Melakukan approval ({$label}) pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
+
+            return redirect()->back()->with('success', "Laporan berhasil di-approve oleh {$label}.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function reject(Request $request, $id, $type)
+    {
+        try {
+            $mapping = $this->getApprovalMapping($type);
+            if (!$mapping) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Level approval tidak valid.'], 422);
+                }
+                return redirect()->back()->with('error', 'Level approval tidak valid.');
+            }
+
+            $request->validate([
+                'rejection_remarks' => 'required|string|max:1000',
+            ]);
+
+            $user = auth()->user();
+            $report = DurabilityThicknessReport::findOrFail($id);
+            $field = $mapping['field'];
+            $timeField = $mapping['time'];
+            $label = $mapping['label'];
+
+            $userName = $user->name ?? $user->username ?? 'User';
+            $remarks = '[' . now()->format('d/m/Y H:i') . ' ' . $userName . ']: ' . $request->rejection_remarks;
+            $now = now();
+
+            $report->$field = 'REJECTED';
+            $report->$timeField = $now;
+            $report->rejection_remarks = $remarks;
+            $report->save();
+
+            // Sync to paired report
+            if ($report->data1_id) {
+                DurabilityThicknessReport::where('id', $report->data1_id)->update([
+                    $field => 'REJECTED',
+                    $timeField => $now,
+                    'rejection_remarks' => $remarks,
+                ]);
+            } else {
+                DurabilityThicknessReport::where('data1_id', $report->id)->update([
+                    $field => 'REJECTED',
+                    $timeField => $now,
+                    'rejection_remarks' => $remarks,
+                ]);
+            }
+
+            ActivityLogger::log('rejected', $report, "Melakukan penolakan ({$label}) pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Laporan berhasil ditolak.']);
+            }
+
+            return redirect()->back()->with('success', 'Laporan berhasil ditolak.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function bulkApprove(Request $request)
+    {
+        try {
+            $type = $request->approval_type ?? auth()->user()->role;
+            $mapping = $this->getApprovalMapping($type);
+            if (!$mapping) {
+                return response()->json(['success' => false, 'message' => 'Level approval tidak valid.'], 422);
+            }
+
+            $field = $mapping['field'];
+            $timeField = $mapping['time'];
+            $user = auth()->user();
+            $userName = $user->name ?? $user->username ?? 'User';
+
+            $query = DurabilityThicknessReport::query();
+
+            if ($request->filled('start_date')) {
+                $query->whereDate('tanggal_cek', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('tanggal_cek', '<=', $request->end_date);
+            }
+
+            $updatedCount = $query->where(function($q) use ($field) {
+                $q->whereNull($field)->orWhere($field, 'REJECTED');
+            })->update([
+                $field => $userName,
+                $timeField => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil meng-approve {$updatedCount} data laporan.",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

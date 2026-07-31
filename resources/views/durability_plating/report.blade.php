@@ -466,6 +466,14 @@
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                             <th rowspan="2" class="align-middle text-center">Thickness</th>
                         @endif
+                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">SPV Quality</th>
+                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">SPV Plating</th>
+                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Asst Manager Quality</th>
+                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Asst Manager Plating</th>
+                        <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">Keterangan / Rejection</th>
+                        @if(!in_array(auth()->user()->role, ['inspector']))
+                            <th rowspan="2" class="text-center align-middle" style="min-width: 200px;">Aksi Approval</th>
+                        @endif
                         <th rowspan="2" class="text-center align-middle">Actions</th>
                     </tr>
                     <tr>
@@ -675,21 +683,188 @@
                                 @endif
                             </td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
-                                <td class="text-center">
-                                    @php
-                                        $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
-                                        $validVal = fn($v) => !is_null($v) && !in_array(trim((string)$v), ['', '-', '0', '0.0', '0,0'], true);
-                                        $hasThicknessData = $validVal($report->actual_cu) || $validVal($report->actual_ni) || $validVal($report->actual_cr);
-                                    @endphp
-                                    @if($hasThicknessData)
-                                        <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
-                                            <i class="fas fa-external-link-alt"></i> Data
-                                        </a>
-                                    @else
-                                        <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">tidak ada data</span>
-                                    @endif
-                                </td>
-                            @endif
+                                 <td class="text-center">
+                                     @php
+                                         $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
+                                         $validVal = fn($v) => !is_null($v) && trim((string)$v) !== '' && trim((string)$v) !== '-';
+                                         $hasThicknessData = $validVal($report->actual_cu) || $validVal($report->actual_ni) || $validVal($report->actual_cr);
+                                     @endphp
+                                     @if($hasThicknessData)
+                                         <a href="{{ route($targetRoute, ['report_id' => $report->id]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                             <i class="fas fa-external-link-alt"></i> Data
+                                         </a>
+                                     @else
+                                         <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">tidak ada data</span>
+                                     @endif
+                                 </td>
+                             @endif
+
+                             {{-- Level 1: SPV Quality --}}
+                             <td class="align-middle text-center">
+                                 @if($report->supervisor_qc)
+                                     @if($report->supervisor_qc === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
+                                     @else
+                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->supervisor_qc }}</small>
+                                     @endif
+                                 @else
+                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
+                                         <i class="fas fa-clock mr-1"></i> PENDING
+                                     </span>
+                                 @endif
+                                 @if($report->supervisor_approved_at)
+                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
+                                 @endif
+                             </td>
+
+                             {{-- Level 2: SPV Plating --}}
+                             <td class="align-middle text-center">
+                                 @if($report->supervisor_plating)
+                                     @if($report->supervisor_plating === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
+                                     @else
+                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->supervisor_plating }}</small>
+                                     @endif
+                                 @else
+                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
+                                         <i class="fas fa-clock mr-1"></i> PENDING
+                                     </span>
+                                 @endif
+                                 @if($report->supervisor_plating_approved_at)
+                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                 @endif
+                             </td>
+
+                             {{-- Level 3: Asst Manager Quality --}}
+                             <td class="align-middle text-center">
+                                 @if($report->asst_manager_qc)
+                                     @if($report->asst_manager_qc === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
+                                     @else
+                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->asst_manager_qc }}</small>
+                                     @endif
+                                 @else
+                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
+                                         <i class="fas fa-clock mr-1"></i> PENDING
+                                     </span>
+                                 @endif
+                                 @if($report->asst_manager_approved_at)
+                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
+                                 @endif
+                             </td>
+
+                             {{-- Level 4: Asst Manager Plating --}}
+                             <td class="align-middle text-center">
+                                 @if($report->asst_manager_plating)
+                                     @if($report->asst_manager_plating === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
+                                     @else
+                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->asst_manager_plating }}</small>
+                                     @endif
+                                 @else
+                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
+                                         <i class="fas fa-clock mr-1"></i> PENDING
+                                     </span>
+                                 @endif
+                                 @if($report->asst_manager_plating_approved_at)
+                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->asst_manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                 @endif
+                             </td>
+
+                             {{-- Rejection Remarks --}}
+                             <td class="align-middle text-left" style="min-width: 200px; word-wrap: break-word;">
+                                 @if($report->rejection_remarks)
+                                     <div class="text-danger font-weight-bold" style="font-size: 0.75rem;">
+                                         <i class="fas fa-exclamation-triangle"></i> REJECTED
+                                     </div>
+                                     <small class="text-muted" style="font-size: 0.68rem;">{{ $report->rejection_remarks }}</small>
+                                 @else
+                                     <span class="text-muted" style="font-size: 0.75rem;">-</span>
+                                 @endif
+                             </td>
+
+                             {{-- Aksi Approval Buttons --}}
+                             @if(!in_array(auth()->user()->role, ['inspector']))
+                                 <td class="align-middle text-center text-nowrap no-export" style="min-width: 200px;">
+                                     @if($loop->first)
+                                         @include('partials.bulk_approve_button')
+                                     @endif
+                                     @php
+                                         $isAdmin = auth()->user()->role === 'admin';
+                                         $currentRole = auth()->user()->role;
+
+                                         $approvalLevels = [
+                                             'supervisor' => ['field' => 'supervisor_qc', 'label' => 'SPV Q'],
+                                             'supervisor_plating' => ['field' => 'supervisor_plating', 'label' => 'SPV P'],
+                                             'asst_manager' => ['field' => 'asst_manager_qc', 'label' => 'Asst MGR Q'],
+                                             'asst_manager_plating' => ['field' => 'asst_manager_plating', 'label' => 'Asst MGR P'],
+                                         ];
+                                         $approvalKeys = array_keys($approvalLevels);
+                                     @endphp
+
+                                     @foreach($approvalLevels as $approvalRole => $config)
+                                         @php
+                                             $f = $config['field'];
+                                             $lbl = $config['label'];
+
+                                             $idx = array_search($approvalRole, $approvalKeys);
+                                             $prevApproved = true;
+                                             if ($idx > 0) {
+                                                 for ($i = $idx - 1; $i >= 0; $i--) {
+                                                     $prevF = $approvalLevels[$approvalKeys[$i]]['field'];
+                                                     if (empty($report->$prevF) || $report->$prevF === 'REJECTED') {
+                                                         $prevApproved = false;
+                                                         break;
+                                                     }
+                                                 }
+                                             }
+
+                                             $userCanApproveThisRole = ($currentRole === $approvalRole) 
+                                                 || ($approvalRole === 'supervisor' && $currentRole === 'supervisor_qc')
+                                                 || ($approvalRole === 'asst_manager' && $currentRole === 'asst_manager_qc');
+
+                                             $canApprove = ($isAdmin || $userCanApproveThisRole)
+                                                           && (empty($report->$f) || $report->$f === 'REJECTED')
+                                                           && $prevApproved;
+                                         @endphp
+                                         @if($canApprove)
+                                             <form action="{{ route('standard-performance-tests.approve', ['id' => $report->id, 'type' => $approvalRole]) }}" method="POST" class="d-inline">
+                                                 @csrf
+                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $lbl }})" style="font-size: 0.65rem; padding: 2px 6px;">
+                                                     <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' ' . $lbl : '' }}
+                                                 </button>
+                                             </form>
+                                             <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#rejectModal{{ $report->id }}{{ $approvalRole }}" style="font-size: 0.65rem; padding: 2px 6px;">
+                                                 <i class="fas fa-times"></i> Reject
+                                             </button>
+                                         @endif
+                                     @endforeach
+                                 </td>
+                             @endif
 
                             <td class="align-middle text-center" style="width: 50px;">
                                 <div class="dropdown no-arrow">
@@ -2823,6 +2998,59 @@
     </div>
 </div>
 @endif
+
+<!-- Rejection Modals -->
+@foreach($reports as $report)
+    @foreach(['supervisor', 'supervisor_plating', 'asst_manager', 'asst_manager_plating'] as $rejectType)
+        @php
+            $canReject = false;
+            $userRole = auth()->user()->role;
+            if ($rejectType == 'supervisor' && (($userRole === 'supervisor' || $userRole === 'supervisor_qc' || $userRole === 'admin') && (!$report->supervisor_qc || $report->supervisor_qc === 'REJECTED'))) {
+                $canReject = true;
+            } elseif ($rejectType == 'supervisor_plating' && (($userRole === 'supervisor_plating' || $userRole === 'admin') && (!$report->supervisor_plating || $report->supervisor_plating === 'REJECTED'))) {
+                $canReject = true;
+            } elseif ($rejectType == 'asst_manager' && (($userRole === 'asst_manager' || $userRole === 'asst_manager_qc' || $userRole === 'admin') && (!$report->asst_manager_qc || $report->asst_manager_qc === 'REJECTED'))) {
+                $canReject = true;
+            } elseif ($rejectType == 'asst_manager_plating' && (($userRole === 'asst_manager_plating' || $userRole === 'admin') && (!$report->asst_manager_plating || $report->asst_manager_plating === 'REJECTED'))) {
+                $canReject = true;
+            }
+        @endphp
+        @if($canReject)
+            <div class="modal fade" id="rejectModal{{ $report->id }}{{ $rejectType }}" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel{{ $report->id }}{{ $rejectType }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-danger text-white py-2 px-3" style="border-radius: 12px 12px 0 0;">
+                            <h5 class="modal-title font-weight-bold" style="font-size: 0.95rem;">
+                                <i class="fas fa-exclamation-circle mr-1"></i> Alasan Penolakan Laporan
+                            </h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="{{ route('standard-performance-tests.reject', ['id' => $report->id, 'type' => $rejectType]) }}" method="POST" class="reject-form">
+                            @csrf
+                            <div class="modal-body p-3">
+                                <div class="form-group mb-2">
+                                    <label for="rejection_remarks_{{ $report->id }}_{{ $rejectType }}" class="small font-weight-bold text-gray-700">Keterangan / Alasan Reject:</label>
+                                    <textarea name="rejection_remarks" id="rejection_remarks_{{ $report->id }}_{{ $rejectType }}" class="form-control form-control-sm border-0 shadow-sm" rows="3" required placeholder="Masukkan alasan penolakan..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer py-2 px-3 bg-light" style="border-radius: 0 0 12px 12px;">
+                                <button type="button" class="btn btn-light btn-sm border" data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-danger btn-sm shadow-sm">
+                                    <i class="fas fa-paper-plane mr-1"></i> Kirim Penolakan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
+@endforeach
+
+@php $bulkApproveRoute = route('standard-performance-tests.bulk_approve'); @endphp
+@include('partials.bulk_approve_script')
 
 @endsection
 

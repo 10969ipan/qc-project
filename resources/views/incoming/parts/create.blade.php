@@ -208,10 +208,9 @@
 
                                 <!-- 2. Tgl & Shift Kedatangan Supplier (Combined Column) -->
                                 <td>
-                                    <input type="date" class="form-control mb-2" name="tanggal_datang" id="tanggalDatangInput" required>
+                                    <input type="date" class="form-control mb-2" name="tanggal_datang" id="tanggalDatangInput" value="{{ $defaultDate }}" required>
                                     <select class="form-control" name="shift_datang" id="shiftDatangSelect" required>
-                                        <option value="">-- Shift --</option>
-                                        <option value="1">Shift 1</option>
+                                        <option value="1" selected>Shift 1</option>
                                         <option value="2">Shift 2</option>
                                         <option value="3">Shift 3</option>
                                     </select>
