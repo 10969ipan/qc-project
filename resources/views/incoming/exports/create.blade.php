@@ -214,6 +214,60 @@
         </div>
     </div>
 
+    <!-- Card Daftar Scan Sementara (Queue List - Selaras UI Incoming Part) -->
+    <div class="card shadow mb-4 d-none" id="tempQueueCard">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 font-weight-bold text-gray-800">
+                Daftar Antrian Scan Incoming Export
+            </h6>
+            <span class="badge badge-secondary px-3 py-2 font-weight-bold" id="queueBadge" style="font-size: 0.8rem; background-color: #eaecf4; color: #5a5c69;">0 Data</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center mb-0" id="tempQueueTable" width="100%" cellspacing="0">
+                    <thead class="bg-light text-center small font-weight-bold">
+                        <tr>
+                            <th style="width: 40px;">No</th>
+                            <th>Item Part</th>
+                            <th>QR Raw</th>
+                            <th style="width: 140px;">Tanggal &amp; Shift Check</th>
+                            <th style="width: 100px;">Total Check</th>
+                            <th style="width: 90px;">Judgment</th>
+                            <th style="width: 85px;">Inisial QC</th>
+                            <th style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempQueueBody">
+                        <!-- Dinamik via JS -->
+                    </tbody>
+                    <tfoot class="bg-light font-weight-bold" style="font-size: 0.85rem;">
+                        <tr>
+                            <td colspan="4" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
+                            <td id="totalQtyCheckDisplay" class="text-center font-weight-bold text-primary" style="font-size: 0.95rem;">0</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap">
+                <div id="saveProgressContainer" class="w-100 w-md-50 mb-3 mb-md-0 d-none">
+                    <div class="progress" style="height: 18px; border-radius: 9px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="saveProgressBar" role="progressbar" style="width: 0%; font-size: 0.75rem; font-weight: 700;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                    <small class="text-muted mt-1 d-block font-weight-bold" id="saveProgressText">Menyimpan data...</small>
+                </div>
+                <div class="text-right ml-auto">
+                    <button type="button" class="btn btn-danger btn-sm mr-2 shadow-sm" id="btnClearQueue">
+                        <i class="fas fa-trash-alt mr-1"></i> Kosongkan List
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm" id="btnSaveQueue">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Simpan Semua Data List (<span id="queueCountDisplay">0</span> Data)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bagian Tampilan PDF Berdampingan (selaras dengan in_process/create) -->
     <div class="card shadow mb-4" id="pdfDisplaySection">
         <div class="card-header py-3 bg-light">

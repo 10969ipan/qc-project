@@ -72,6 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 1000);
             
             timerRunning = true;
+
+            // Auto focus pada kolom scan barcode / QR tembak agar pengguna bisa langsung scan setelah klik Start
+            setTimeout(function() {
+                if ($('#sapCodeInput').length > 0) {
+                    $('#sapCodeInput').focus().select();
+                }
+            }, 100);
         }
     });
 
@@ -1510,6 +1517,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     });
                 }, 100);
+            }
+        });
+
+        // Tangkap scan alat tembak secara otomatis jika kursor terlepas dari sapCodeInput
+        let barcodeBuffer = '';
+        let lastKeyTime = 0;
+
+        $(document).on('keydown', function (e) {
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.id === 'sapCodeInput')) return;
+
+            const currentTime = new Date().getTime();
+            if (currentTime - lastKeyTime > 100) {
+                barcodeBuffer = '';
+            }
+            lastKeyTime = currentTime;
+
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.includes('|')) {
+                    e.preventDefault();
+                    if ($('#sapCodeInput').length > 0) {
+                        $('#sapCodeInput').val(barcodeBuffer).focus();
+                        $('#scanMethodInput').val('hardware');
+                        parseAndFillQR(barcodeBuffer, function(success) {
+                            if (success) unlockInputs();
+                        });
+                    }
+                    barcodeBuffer = '';
+                }
+            } else if (e.key && e.key.length === 1) {
+                barcodeBuffer += e.key;
             }
         });
     }

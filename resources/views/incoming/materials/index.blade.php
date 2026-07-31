@@ -725,13 +725,14 @@
             });
 
             // Delete Confirm
-            $('.btn-delete').click(function(e) {
+            $(document).on('click', '.btn-delete', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 var form = $(this).closest('form');
                 
                 Swal.fire({
-                    title: 'Hapus Data?',
-                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    title: 'Apakah Anda yakin?',
+                    text: "Data checksheet Incoming Material akan dihapus!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e74a3b',
@@ -740,7 +741,9 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        form.submit();
+                        if (form.length && form[0]) {
+                            form[0].submit();
+                        }
                     }
                 });
             });
