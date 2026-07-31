@@ -35,8 +35,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:check-calibration-schedules')->dailyAt('07:00');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
-            return redirect()->route('login')
-                ->with('error', 'Sesi Anda telah berakhir. Silakan login kembali.');
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($e instanceof \Illuminate\Session\TokenMismatchException || ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() === 419)) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'Sesi Anda telah berakhir. Silakan login kembali.',
+                        'redirect' => route('login')
+                    ], 419);
+                }
+                return redirect()->route('login')
+                    ->with('error', 'Sesi Anda telah berakhir. Silakan login kembali.');
+            }
         });
     })->create();

@@ -86,9 +86,7 @@ class DashboardService extends BaseService
         $plantId = auth()->user()->plant_id;
         $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant') . "_{$year}_{$month}";
 
-        // TEMPORARILY BYPASSING CACHE FOR DEBUGGING
-        // return Cache::remember($cacheKey, now()->addMinutes(1), function () use ($authRole, $month, $year) {
-        return (function () use ($authRole, $month, $year) {
+        return Cache::remember($cacheKey, now()->addSeconds(30), function () use ($authRole, $month, $year) {
             $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
             $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
@@ -175,7 +173,7 @@ class DashboardService extends BaseService
                 $productionMonitoring,
                 $activeMonitoringOther
             );
-        })();
+        });
     }
 
     /**
