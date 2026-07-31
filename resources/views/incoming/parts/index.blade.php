@@ -159,9 +159,9 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             @if(request('view_mode') === 'verifikasi')
-                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-2"></i>Data Hasil Verifikasi Incoming Part</h6>
+                <h6 class="m-0 font-weight-bold text-gray-800">Data Hasil Verifikasi Incoming Part</h6>
             @else
-                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Part</h6>
+                <h6 class="m-0 font-weight-bold text-gray-800">Data Masuk Incoming Part</h6>
             @endif
         </div>
         <div class="card-body">
@@ -280,7 +280,7 @@
                         <a href="{{ route('incoming.parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
                             class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
                             style="background-color: #6f42c1; color: white;">
-                            <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
+                            Hasil Verifikasi
                         </a>
                     @else
                         <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
@@ -327,27 +327,35 @@
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
-                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
-                            <th rowspan="2" class="align-middle">Qty Datang Awal</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
+                                <th rowspan="2" class="align-middle">Qty Datang Awal</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Total Check</th>
-                            <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Qty Sampling</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="4" class="align-middle">Approval Status</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Remarks</th>
                             <th rowspan="2" class="align-middle">Action</th>
                         </tr>
                         <tr>
                             <th style="width: 60px;">Pcs</th>
                             <th style="min-width: 140px;">Jenis NG</th>
-                            <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
-                            <th style="font-size: 10px;">Asst. Manager QC</th>
-                            <th style="font-size: 10px;">Manager QC</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px;">Supervisor QC</th>
+                                <th style="font-size: 10px;">Asst. Manager QC</th>
+                                <th style="font-size: 10px;">Manager QC</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -370,7 +378,7 @@
                                                 data-qty="{{ $cs->quantity }}"
                                                 data-unique="{{ $cs->unique_code_id }}"
                                                 data-sap="{{ $cs->sap_code ?? '-' }}">
-                                                <i class="fas fa-qrcode mr-1"></i> Traceability
+                                                <i class="fas fa-qrcode mr-1"></i> QR-CODE
                                             </button>
                                         @else
                                             <span class="text-muted">-</span>
@@ -398,39 +406,43 @@
                                 {{-- Kolom Customer / Supplier --}}
                                 <td class="align-middle text-nowrap text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
 
-                                {{-- Tgl & Shift Datang --}}
-                                <td class="align-middle text-nowrap">
-                                    @if($cs->tanggal_datang)
-                                        {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
-                                        @php
-                                            $shiftDatangShow = $cs->arrival ? $cs->arrival->shift_datang : null;
-                                        @endphp
-                                        @if($shiftDatangShow)
-                                            <br><small class="text-muted">Shift {{ $shiftDatangShow }}</small>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    {{-- Tgl & Shift Datang --}}
+                                    <td class="align-middle text-nowrap">
+                                        @if($cs->tanggal_datang)
+                                            {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
+                                            @php
+                                                $shiftDatangShow = $cs->arrival ? $cs->arrival->shift_datang : null;
+                                            @endphp
+                                            @if($shiftDatangShow)
+                                                <br><small class="text-muted">Shift {{ $shiftDatangShow }}</small>
+                                            @endif
+                                        @else
+                                            -
                                         @endif
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+                                    </td>
 
-                                {{-- Qty Kedatangan Awal --}}
-                                <td class="align-middle text-nowrap">
-                                    {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
-                                </td>
+                                    {{-- Qty Kedatangan Awal --}}
+                                    <td class="align-middle text-nowrap">
+                                        {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
+                                    </td>
+                                @endif
 
                                 {{-- Total Check --}}
                                 <td class="align-middle text-nowrap">{{ number_format($cs->total_check) }} pcs</td>
 
-                                {{-- Qty Balance Sisa --}}
-                                <td class="align-middle text-nowrap">
-                                    @php
-                                        $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
-                                        $statusDisplay = $cs->arrival ? $cs->arrival->status : ($sisaDisplay <= 0 ? 'COMPLETED' : 'OPEN');
-                                    @endphp
-                                    <span>{{ number_format($sisaDisplay) }} pcs</span>
-                                    <br>
-                                    <small class="text-muted">({{ $statusDisplay }})</small>
-                                </td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    {{-- Qty Balance Sisa --}}
+                                    <td class="align-middle text-nowrap">
+                                        @php
+                                            $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                            $statusDisplay = $cs->arrival ? $cs->arrival->status : ($sisaDisplay <= 0 ? 'COMPLETED' : 'OPEN');
+                                        @endphp
+                                        <span>{{ number_format($sisaDisplay) }} pcs</span>
+                                        <br>
+                                        <small class="text-muted">({{ $statusDisplay }})</small>
+                                    </td>
+                                @endif
 
                                 {{-- Qty Sampling --}}
                                 <td class="align-middle text-nowrap text-primary">{{ number_format($cs->sampling_qty ?? $cs->total_check) }} pcs</td>
@@ -467,19 +479,21 @@
                                 </td>
                                 <td class="align-middle text-nowrap text-uppercase">{{ $cs->operator_initials }}</td>
                                 
-                                {{-- Approval Columns --}}
-                                @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
-                                    <td class="align-middle text-nowrap">
-                                        @if($cs->$lvl == 'REJECTED')
-                                            <span class="badge badge-danger">REJ</span>
-                                        @elseif($cs->$lvl)
-                                            <span class="badge badge-success">APP</span>
-                                            <br><small class="text-muted" style="font-size: 0.55rem;">{{ $cs->$lvl }}</small>
-                                        @else
-                                            <span class="badge badge-warning">PEN</span>
-                                        @endif
-                                    </td>
-                                @endforeach
+                                @if(request('view_mode') !== 'verifikasi')
+                                    {{-- Approval Columns --}}
+                                    @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
+                                        <td class="align-middle text-nowrap">
+                                            @if($cs->$lvl == 'REJECTED')
+                                                <span class="badge badge-danger">REJ</span>
+                                            @elseif($cs->$lvl)
+                                                <span class="badge badge-success">APP</span>
+                                                <br><small class="text-muted" style="font-size: 0.55rem;">{{ $cs->$lvl }}</small>
+                                            @else
+                                                <span class="badge badge-warning">PEN</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
 
                                 <td class="align-middle text-left small" style="min-width: 150px; white-space: normal;">{{ $cs->remarks ?? '-' }}</td>
 

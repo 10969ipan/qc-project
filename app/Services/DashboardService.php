@@ -264,9 +264,19 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        // Hanya hitung data regular (bukan verification) untuk modul yang memiliki kolom entry_method
-        if (Schema::hasColumn($table, 'entry_method')) {
-            $query->where('entry_method', 'regular');
+        // Hanya hitung data regular (bukan verification) untuk seluruh modul
+        if ($table === 'incoming_parts' || $table === 'incoming_sub_parts') {
+            $query->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                });
+            });
+        } elseif (Schema::hasColumn($table, 'entry_method')) {
+            $query->whereIn('entry_method', ['regular', 'manual']);
         }
 
         // Filter data H-1 saja (Hari ini tidak termasuk) per user request
