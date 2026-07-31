@@ -697,6 +697,37 @@ class StandardPerformanceTestController extends Controller
                     $report->evidence_after_trial_uploaded_at = $trial->evidence_after_uploaded_at ?: $report->evidence_after_trial_uploaded_at;
                 }
             }
+        } else {
+            $data1Ids = $reports->pluck('data1_id')->filter()->unique();
+            $data1Reports = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+
+            $stdIds = $reports->pluck('standard_performance_test_id')->filter()->unique();
+            $lotNos = $reports->pluck('lot_no')->filter()->unique();
+            $legacyData1 = DurabilityThicknessReport::where('is_trial', false)
+                ->whereIn('standard_performance_test_id', $stdIds)
+                ->whereIn('lot_no', $lotNos)
+                ->get()
+                ->keyBy(function ($item) {
+                    return $item->standard_performance_test_id . '_' . $item->lot_no;
+                });
+
+            foreach ($reports as $report) {
+                $data1 = $data1Reports->get($report->data1_id)
+                    ?? $legacyData1->get($report->standard_performance_test_id . '_' . $report->lot_no);
+                if ($data1) {
+                    $isVal = fn($v) => !is_null($v) && trim((string)$v) !== '' && trim((string)$v) !== '-';
+                    if (!$isVal($report->actual_cu) && $isVal($data1->actual_cu)) {
+                        $report->actual_cu = $data1->actual_cu;
+                    }
+                    if (!$isVal($report->actual_ni) && $isVal($data1->actual_ni)) {
+                        $report->actual_ni = $data1->actual_ni;
+                    }
+                    if (!$isVal($report->actual_cr) && $isVal($data1->actual_cr)) {
+                        $report->actual_cr = $data1->actual_cr;
+                    }
+                    $report->data1_ref_id = $data1->id;
+                }
+            }
         }
         
         $testReportIds = \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)
