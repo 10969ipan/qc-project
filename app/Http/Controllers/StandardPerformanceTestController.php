@@ -699,7 +699,27 @@ class StandardPerformanceTestController extends Controller
             }
         }
         
-        $items = \App\Models\StandardPerformanceTest::whereIn('id', \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)->select('standard_performance_test_id'))
+        $testReportIds = \App\Models\DurabilityThicknessReport::where('is_trial', $isTrial)
+            ->where(function ($q) use ($testType) {
+                if ($testType === 'thickness') {
+                    $q->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')->where('actual_cu', '!=', '0')
+                        ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')->where('actual_ni', '!=', '0')
+                        ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-')->where('actual_cr', '!=', '0');
+                } elseif ($testType === 'corrodkote') {
+                    $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
+                } elseif ($testType === 'cass') {
+                    $q->whereNotNull('standar_jam_cass')->where('standar_jam_cass', '!=', '')->where('standar_jam_cass', '!=', '-');
+                } elseif ($testType === 'salt_spray') {
+                    $q->whereNotNull('standar_jam_salt_spray')->where('standar_jam_salt_spray', '!=', '')->where('standar_jam_salt_spray', '!=', '-');
+                } elseif ($testType === 'porecount') {
+                    $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
+                }
+            })
+            ->pluck('standard_performance_test_id')
+            ->filter()
+            ->unique();
+
+        $items = \App\Models\StandardPerformanceTest::whereIn('id', $testReportIds)
             ->orderBy('part_name', 'asc')
             ->get();
 

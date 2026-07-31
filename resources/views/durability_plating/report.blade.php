@@ -274,7 +274,7 @@
                 <div style="width: 200px;" class="custom-filter-wrapper">
                     <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none" onchange="this.form.submit()">
                         <option value="">Semua Part / Customer...</option>
-                        @foreach($masterItems as $item)
+                        @foreach($items as $item)
                             <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
                                 {{ $item->part_name }} - {{ $item->customer_name }}
                             </option>
