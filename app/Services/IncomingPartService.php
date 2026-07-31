@@ -305,35 +305,84 @@ class IncomingPartService extends BaseService
 
             $defects = $this->processDefects($data);
 
-            $newSnapshotSisa = isset($data['qty_balance_sisa']) && $data['qty_balance_sisa'] !== ''
-                ? (int)$data['qty_balance_sisa']
-                : max(0, (int)($checksheet->qty_balance_sisa ?? 0) - $diffCheck);
+            $shiftDatang = $data['shift_datang'] ?? null;
+            $qtyDatang = isset($data['qty_datang']) ? (int)$data['qty_datang'] : ($data['lot_qty'] ?? null);
+
+            if (isset($data['qty_balance_sisa']) && $data['qty_balance_sisa'] !== '') {
+                $newSnapshotSisa = (int)$data['qty_balance_sisa'];
+            } elseif ($qtyDatang !== null) {
+                $newSnapshotSisa = max(0, $qtyDatang - $newTotalCheck);
+            } else {
+                $newSnapshotSisa = max(0, (int)($checksheet->qty_balance_sisa ?? 0) - $diffCheck);
+            }
 
             $checksheet->update([
-                'item_id' => $data['item_id'],
-                'date' => $data['date'],
-                'shift' => $data['shift'],
-                'lot_qty' => $data['lot_qty'] ?? $checksheet->lot_qty,
-                'total_check' => $newTotalCheck,
-                'sampling_qty' => $data['sampling_qty'] ?? $checksheet->sampling_qty,
+                'item_id'          => $data['item_id'],
+                'date'             => $data['date'],
+                'shift'            => $data['shift'],
+                'lot_qty'          => $qtyDatang ?? $checksheet->lot_qty,
+                'total_check'      => $newTotalCheck,
+                'sampling_qty'     => isset($data['sampling_qty']) ? (int)$data['sampling_qty'] : $checksheet->sampling_qty,
                 'qty_balance_sisa' => $newSnapshotSisa,
-                'tanggal_datang' => $data['tanggal_datang'] ?? $checksheet->tanggal_datang,
-                'judgment' => $data['judgment'],
-                'total_ng' => $data['total_ng'] ?? 0,
-                'operator_initials' => $data['operator_initials'] ?? null,
-                'remarks' => $data['remarks'] ?? null,
-                'defects' => json_encode($defects),
+                'tanggal_datang'   => $data['tanggal_datang'] ?? $checksheet->tanggal_datang,
+                'judgment'         => $data['judgment'],
+                'total_ng'         => $data['total_ng'] ?? 0,
+                'operator_initials'=> $data['operator_initials'] ?? null,
+                'remarks'          => $data['remarks'] ?? null,
+                'defects'          => json_encode($defects),
+                'cycle_time'       => isset($data['cycle_time']) ? (int)$data['cycle_time'] : $checksheet->cycle_time,
             ]);
 
-            // Sync Arrival Qty Balance if arrival_id is present and check qty changed
-            if ($checksheet->arrival_id && $diffCheck !== 0) {
+            $tglDatang = !empty($data['tanggal_datang']) ? date('Y-m-d', strtotime($data['tanggal_datang'])) : $checksheet->tanggal_datang;
+
+            // Sync or Create Arrival Record for legacy/new data
+            $arrival = null;
+            if ($checksheet->arrival_id) {
                 $arrival = IncomingPartArrival::find($checksheet->arrival_id);
-                if ($arrival) {
-                    $newQtySisa = $arrival->qty_sisa - $diffCheck;
-                    $arrival->qty_sisa = max(0, min($arrival->qty_datang, $newQtySisa));
-                    $arrival->status = ($arrival->qty_sisa === 0) ? 'COMPLETED' : 'OPEN';
-                    $arrival->save();
+            }
+
+            if (!$arrival && !empty($tglDatang)) {
+                $existingArrival = IncomingPartArrival::where('plant_id', $checksheet->plant_id)
+                    ->where('item_id', $data['item_id'])
+                    ->where('tanggal_datang', $tglDatang)
+                    ->where('shift_datang', $shiftDatang ?: '1')
+                    ->where('status', 'OPEN')
+                    ->first();
+
+                if ($existingArrival) {
+                    $arrival = $existingArrival;
+                } else {
+                    $initQty = $qtyDatang ?? ($checksheet->lot_qty > 0 ? $checksheet->lot_qty : $newTotalCheck + $newSnapshotSisa);
+                    $arrival = IncomingPartArrival::create([
+                        'plant_id'       => $checksheet->plant_id,
+                        'item_id'        => $data['item_id'],
+                        'tanggal_datang' => $tglDatang,
+                        'shift_datang'   => $shiftDatang ?: '1',
+                        'qty_datang'     => $initQty,
+                        'qty_sisa'       => max(0, $newSnapshotSisa),
+                        'status'         => ($newSnapshotSisa <= 0) ? 'COMPLETED' : 'OPEN',
+                    ]);
                 }
+
+                if ($arrival) {
+                    $checksheet->arrival_id = $arrival->id;
+                    $checksheet->save();
+                }
+            }
+
+            if ($arrival) {
+                if (!empty($tglDatang)) {
+                    $arrival->tanggal_datang = $tglDatang;
+                }
+                if (!empty($shiftDatang)) {
+                    $arrival->shift_datang = $shiftDatang;
+                }
+                if ($qtyDatang !== null && $qtyDatang > 0) {
+                    $arrival->qty_datang = $qtyDatang;
+                }
+                $arrival->qty_sisa = max(0, min($arrival->qty_datang, $newSnapshotSisa));
+                $arrival->status = ($arrival->qty_sisa <= 0) ? 'COMPLETED' : 'OPEN';
+                $arrival->save();
             }
 
             DB::commit();

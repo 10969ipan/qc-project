@@ -322,6 +322,9 @@
                                 <th rowspan="2" class="align-middle">QR-Code</th>
                             @endif
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Check</th>
+                            <th rowspan="2" class="align-middle">Jam (Before)</th>
+                            <th rowspan="2" class="align-middle">Jam (After)</th>
+                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
                             <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
@@ -378,6 +381,15 @@
                                     {{ date('d/m/Y', strtotime($cs->date)) }}
                                     <br><small class="text-muted">Shift {{ $cs->shift }}</small>
                                 </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') : '-' }}
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }}
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $cs->cycle_time ? $cs->cycle_time . ' s' : '-' }}
+                                </td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $cs->item->name ?? '-' }}</span><br>
                                     <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $cs->item->part_number ?? '-' }}</small>
@@ -390,8 +402,11 @@
                                 <td class="align-middle text-nowrap">
                                     @if($cs->tanggal_datang)
                                         {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
-                                        @if($cs->arrival && $cs->arrival->shift_datang)
-                                            <br><small class="text-muted">Shift {{ $cs->arrival->shift_datang }}</small>
+                                        @php
+                                            $shiftDatangShow = $cs->arrival ? $cs->arrival->shift_datang : null;
+                                        @endphp
+                                        @if($shiftDatangShow)
+                                            <br><small class="text-muted">Shift {{ $shiftDatangShow }}</small>
                                         @endif
                                     @else
                                         -
@@ -410,12 +425,11 @@
                                 <td class="align-middle text-nowrap">
                                     @php
                                         $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                        $statusDisplay = $cs->arrival ? $cs->arrival->status : ($sisaDisplay <= 0 ? 'COMPLETED' : 'OPEN');
                                     @endphp
                                     <span>{{ number_format($sisaDisplay) }} pcs</span>
-                                    @if($cs->arrival)
-                                        <br>
-                                        <small class="text-muted">({{ $cs->arrival->status }})</small>
-                                    @endif
+                                    <br>
+                                    <small class="text-muted">({{ $statusDisplay }})</small>
                                 </td>
 
                                 {{-- Qty Sampling --}}
@@ -487,7 +501,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="23" class="text-center text-muted py-4">
+                                <td colspan="26" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
                                     Data checksheet tidak ditemukan.
                                 </td>

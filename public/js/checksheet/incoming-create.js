@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#maxCheckHint').text('');
             $('#totalCheckInput').removeAttr('max');
             if (!arrivalId) {
-                $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Opsional/Lot Baru</small>');
+                $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Wajib / Lot Baru</small>');
             }
         }
     }
@@ -701,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#qtySamplingInput').val('');
         $('#maxCheckHint').text('');
         $('#totalCheckInput').removeAttr('max');
-        $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Opsional/Lot Baru</small>');
+        $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Wajib / Lot Baru</small>');
     }
 
     // Jika user menginput/mengubah manual Qty Balance untuk lot baru
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#maxCheckHint').text('');
             $('#totalCheckInput').removeAttr('max');
             if (!arrivalId) {
-                $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Opsional/Lot Baru</small>');
+                $('#arrivalStatusHint').html('<small class="text-muted d-block text-center mt-1">Wajib / Lot Baru</small>');
             }
         }
     }

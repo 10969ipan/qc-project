@@ -75,15 +75,38 @@ $(document).ready(function () {
         }
     });
 
-    // Hitung otomatis AQL (Sampling Size) dari Total Check pada modal edit
-    $(document).on('input change', 'input[name="total_check"]', function() {
-        const totalCheck = parseFloat($(this).val()) || 0;
-        if (totalCheck > 0) {
-            const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalCheck);
-            $('input[name="sampling_qty"]').val(sampleSize);
-        } else {
-            $('input[name="sampling_qty"]').val(0);
+    // Hitung otomatis Qty Balance Sisa dari Qty Kedatangan Awal dikurang Total Check
+    function updateEditQtyBalance() {
+        const form = $('#editChecksheetForm');
+        if (!form.length) return;
+
+        const qtyDatangInput = form.find('input[name="qty_datang"]');
+        const totalCheckInput = form.find('input[name="total_check"]');
+        const qtyBalanceInput = form.find('input[name="qty_balance_sisa"]');
+
+        if (qtyDatangInput.length && totalCheckInput.length && qtyBalanceInput.length) {
+            const qtyDatang = parseFloat(qtyDatangInput.val()) || 0;
+            const totalCheck = parseFloat(totalCheckInput.val()) || 0;
+
+            if (qtyDatang > 0 || totalCheck > 0) {
+                const remaining = Math.max(0, qtyDatang - totalCheck);
+                qtyBalanceInput.val(remaining);
+            }
         }
+    }
+
+    // Hitung otomatis AQL (Sampling Size) dan Qty Balance Sisa dari Total Check pada modal edit
+    $(document).on('input change', 'input[name="total_check"], input[name="qty_datang"]', function() {
+        if ($(this).attr('name') === 'total_check') {
+            const totalCheck = parseFloat($(this).val()) || 0;
+            if (totalCheck > 0) {
+                const sampleSize = AQL_TABLE_EDIT.getSampleSize(totalCheck);
+                $('input[name="sampling_qty"]').val(sampleSize);
+            } else {
+                $('input[name="sampling_qty"]').val(0);
+            }
+        }
+        updateEditQtyBalance();
     });
 
     // Hitung otomatis AQL (Sampling Size) hanya dari input Komper/Karung (untuk Material)

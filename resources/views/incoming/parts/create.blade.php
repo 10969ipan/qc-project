@@ -208,20 +208,20 @@
 
                                 <!-- 2. Tgl & Shift Kedatangan Supplier (Combined Column) -->
                                 <td>
-                                    <input type="date" class="form-control mb-2" name="tanggal_datang" id="tanggalDatangInput">
-                                    <select class="form-control" name="shift_datang" id="shiftDatangSelect">
+                                    <input type="date" class="form-control mb-2" name="tanggal_datang" id="tanggalDatangInput" required>
+                                    <select class="form-control" name="shift_datang" id="shiftDatangSelect" required>
                                         <option value="">-- Shift --</option>
                                         <option value="1">Shift 1</option>
                                         <option value="2">Shift 2</option>
                                         <option value="3">Shift 3</option>
                                     </select>
-                                    <small class="text-muted d-block text-center mt-1" id="arrivalStatusHint">Opsional/Auto</small>
+                                    <small class="text-muted d-block text-center mt-1" id="arrivalStatusHint">Auto / Wajib</small>
                                 </td>
 
                                 <!-- 3. Qty Balance -->
                                 <td>
                                     <input type="number" class="form-control text-center" 
-                                        name="qty_datang" id="qtyBalanceInput" placeholder="0" min="0">
+                                        name="qty_datang" id="qtyBalanceInput" placeholder="0" min="0" required>
                                     <small class="text-muted d-block text-center mt-1" id="balanceHint">Sisa balance</small>
                                 </td>
 
