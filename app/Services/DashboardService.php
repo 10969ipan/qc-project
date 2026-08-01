@@ -397,7 +397,7 @@ class DashboardService extends BaseService
 
     private function fetchLatestRecord(string $modelClass, $plantId, $date, $shift)
     {
-        $query = $modelClass::with('item')->orderBy('created_at', 'desc');
+        $query = $modelClass::with('item:id,name,part_number')->orderBy('created_at', 'desc');
         if ($plantId) {
             $query->where('plant_id', $plantId);
         }
@@ -415,7 +415,7 @@ class DashboardService extends BaseService
 
     private function fetchActivePlating($date, $shift, $plantId)
     {
-        $query = PlatingChecksheet::with('item')
+        $query = PlatingChecksheet::with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -432,7 +432,7 @@ class DashboardService extends BaseService
 
     private function fetchActivePainting($date, $shift, $plantId)
     {
-        $query = \App\Models\PaintingChecksheet::with('item')
+        $query = \App\Models\PaintingChecksheet::with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -449,7 +449,7 @@ class DashboardService extends BaseService
 
     private function fetchActiveCrossCutPlating($date, $shift, $plantId)
     {
-        $query = \App\Models\CrossCutChecksheet::with('item')
+        $query = \App\Models\CrossCutChecksheet::with('item:id,name,part_number')
             ->whereDate('qc_datetime', $date)
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
@@ -466,7 +466,7 @@ class DashboardService extends BaseService
 
     private function fetchActiveCrossCutPainting($date, $shift, $plantId)
     {
-        $query = \App\Models\CrossCutPaintingChecksheet::with('item')
+        $query = \App\Models\CrossCutPaintingChecksheet::with('item:id,name,part_number')
             ->whereDate('qc_datetime', $date)
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
@@ -483,9 +483,8 @@ class DashboardService extends BaseService
 
     private function fetchActiveLines($date, $shift, $plantId)
     {
-        // Change logic to fetch LATEST record for each line within last 48 hours
-        // This ensures the TV always has "Active" data similar to what's at the top of the index page
-        $query = SubAssyChecksheet::with('item')
+        // Fetch LATEST record for each line with lightweight item columns
+        $query = SubAssyChecksheet::with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -502,8 +501,8 @@ class DashboardService extends BaseService
 
     private function fetchActiveMachines($date, $shift, $plantId)
     {
-        // Change logic to fetch LATEST record for each machine within last 48 hours
-        $inProcessQuery = InProcessChecksheet::with('item')
+        // Fetch LATEST record for each machine with lightweight item columns
+        $inProcessQuery = InProcessChecksheet::with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('code_machine')
@@ -513,7 +512,7 @@ class DashboardService extends BaseService
             $inProcessQuery->where('plant_id', $plantId);
         }
 
-        $fpaQuery = FirstPieceApproval::with('item')
+        $fpaQuery = FirstPieceApproval::with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('code_machine')
@@ -532,7 +531,8 @@ class DashboardService extends BaseService
 
     private function fetchManualStatuses($shiftStartTime, $plantId)
     {
-        $query = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
+        $query = MachineStatus::select('id', 'plant_id', 'type', 'number', 'status', 'description', 'updated_by', 'updated_at')
+            ->whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
 
         if ($plantId) {
             $query->where('plant_id', $plantId);
