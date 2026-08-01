@@ -531,8 +531,7 @@ class DashboardService extends BaseService
 
     private function fetchManualStatuses($shiftStartTime, $plantId)
     {
-        $query = MachineStatus::select('id', 'plant_id', 'type', 'number', 'status', 'description', 'updated_by', 'updated_at')
-            ->whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
+        $query = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
 
         if ($plantId) {
             $query->where('plant_id', $plantId);
