@@ -64,7 +64,7 @@ class IncomingExportController extends Controller
     {
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Sub Assy', 'PLATING', 'Plating', 'CROSS CUT PLATING', 'Cross Cut Plating'])->orderBy('name')->get();
+        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'])->orderBy('name')->get();
 
         return view('incoming.exports.index', compact('checksheets', 'items'));
     }
@@ -72,7 +72,7 @@ class IncomingExportController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $query = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Sub Assy', 'PLATING', 'Plating', 'CROSS CUT PLATING', 'Cross Cut Plating'])->orderBy('name');
+        $query = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'])->orderBy('name');
 
         if ($request->has('plant')) {
             $query->where('plant_id', Plant::resolveId($request->query('plant')));
@@ -122,7 +122,7 @@ class IncomingExportController extends Controller
     public function edit($id)
     {
         $checksheet = IncomingExport::findOrFail($id);
-        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Sub Assy', 'PLATING', 'Plating', 'CROSS CUT PLATING', 'Cross Cut Plating'])->orderBy('name')->get();
+        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY'])->orderBy('name')->get();
 
         if (request()->ajax()) {
             return view('incoming.exports.partials.edit_form', compact('checksheet', 'items'));

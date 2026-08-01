@@ -92,6 +92,10 @@
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
                 <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
+                {{-- Field wajib yang tidak punya input visibel --}}
+                <input type="hidden" name="tanggal_delivery" id="tanggalDeliveryInput" value="{{ $defaultDate }}">
+                <input type="hidden" name="lot_qty" id="lotQtyInput" value="0">
+                <input type="hidden" name="shift" id="shiftInput" value="{{ $defaultShift }}">
 
                 <div class="table-responsive">
                     <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
@@ -230,7 +234,7 @@
                             <th style="width: 40px;">No</th>
                             <th>Item Part</th>
                             <th>QR Raw</th>
-                            <th style="width: 140px;">Tanggal &amp; Shift Check</th>
+                            <th style="width: 140px;">Tanggal Check</th>
                             <th style="width: 100px;">Total Check</th>
                             <th style="width: 90px;">Judgment</th>
                             <th style="width: 85px;">Inisial QC</th>

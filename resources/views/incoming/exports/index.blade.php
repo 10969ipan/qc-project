@@ -280,9 +280,15 @@
                                     @endif
                                     <div class="btn-group">
                                         @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <a href="{{ route('incoming.exports.edit', $cs->id) }}" class="btn btn-outline-primary btn-sm shadow-sm rounded mr-1" style="padding: 2px 6px; font-size: 0.65rem;" title="Edit">
+                                            <button type="button"
+                                                class="btn btn-outline-primary btn-sm shadow-sm rounded mr-1 btn-edit-export"
+                                                style="padding: 2px 6px; font-size: 0.65rem;"
+                                                title="Edit"
+                                                data-id="{{ $cs->id }}"
+                                                data-url="{{ route('incoming.exports.edit', $cs->id) }}"
+                                                data-update-url="{{ route('incoming.exports.update', $cs->id) }}">
                                                 <i class="fas fa-edit"></i>
-                                            </a>
+                                            </button>
                                             <form action="{{ route('incoming.exports.destroy', $cs->id) }}" method="POST" class="d-inline form-delete">
                                                 @csrf @method('DELETE')
                                                 <button type="button" class="btn btn-outline-danger btn-sm shadow-sm rounded btn-delete" style="padding: 2px 6px; font-size: 0.65rem;" title="Hapus">
@@ -353,6 +359,30 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Edit Incoming Export --}}
+    <div class="modal fade" id="editExportModal" tabindex="-1" role="dialog" aria-labelledby="editExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.1); border:0;">
+                <div class="modal-header" style="background:#fff; padding: 0.75rem 1.5rem; border-radius:12px 12px 0 0; border-bottom:1px solid #e2e8f0;">
+                    <h5 class="modal-title font-weight-bold" id="editExportModalLabel">
+                        <i class="fas fa-edit mr-2 text-primary"></i> Edit Data Incoming Export
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="background:#f8fafc; padding:1.5rem; max-height:65vh; overflow-y:auto;">
+                    <div id="editExportFormContainer">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>
+                            <p class="mt-2 text-muted">Memuat form edit...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -363,8 +393,8 @@
             initItemSearch('filterItem', { placeholder: 'Ketik Material / Part No...', maxResults: 50 });
         }
 
-        // Handle QR Detail Button Click
-        $('.btn-qr-detail').on('click', function() {
+        // QR Detail — event delegation agar kompatibel dengan pagination
+        $(document).on('click', '.btn-qr-detail', function() {
             $('#modal-qr-raw').text($(this).data('qr') || '-');
             $('#modal-qr-part').text($(this).data('part') || '-');
             $('#modal-qr-supplier').text($(this).data('supplier') || '-');
@@ -374,7 +404,57 @@
             $('#qrModal').modal('show');
         });
 
-        $('.btn-delete').on('click', function(e) {
+        // Edit Export — buka modal, load form via AJAX
+        $(document).on('click', '.btn-edit-export', function() {
+            const url = $(this).data('url');
+            const updateUrl = $(this).data('update-url');
+            $('#editExportFormContainer').html(
+                '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Memuat form edit...</p></div>'
+            );
+            $('#editExportModal').modal('show');
+            $.ajax({
+                url: url,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(html) {
+                    $('#editExportFormContainer').html(html);
+                    $('#editExportFormContainer form').attr('action', updateUrl);
+                    if (typeof $.fn.select2 !== 'undefined') {
+                        $('#editExportFormContainer .select2').select2({ dropdownParent: $('#editExportModal') });
+                    }
+                },
+                error: function() {
+                    $('#editExportFormContainer').html('<p class="text-danger text-center py-4">Gagal memuat form. Silakan coba lagi.</p>');
+                }
+            });
+        });
+
+        // Submit form edit via AJAX
+        $(document).on('submit', '#editChecksheetForm', function(e) {
+            e.preventDefault();
+            const form = $(this);
+            const url = form.attr('action');
+            const btn = form.find('[type=submit]');
+            const orig = btn.html();
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: form.serialize(),
+                success: function() {
+                    $('#editExportModal').modal('hide');
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data berhasil diperbarui.', timer: 1500, showConfirmButton: false })
+                        .then(() => location.reload());
+                },
+                error: function(xhr) {
+                    btn.prop('disabled', false).html(orig);
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal menyimpan perubahan.';
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                }
+            });
+        });
+
+        // Hapus data
+        $(document).on('click', '.btn-delete', function(e) {
             e.preventDefault();
             let form = $(this).closest('form');
             Swal.fire({

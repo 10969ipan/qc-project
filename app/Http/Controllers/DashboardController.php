@@ -29,9 +29,11 @@ class DashboardController extends Controller
 
         $data = $this->dashboardService->getDashboardData($month, $year);
 
-        // Customer Claim Data
+        // Customer Claim Data (Ter-cache 24 jam)
         $claimYear = $request->get('year', 'combined');
-        $claimData = $this->dashboardService->getCustomerClaimData($claimYear);
+        $claimData = \Illuminate\Support\Facades\Cache::remember("dashboard_customer_claim_{$claimYear}", 86400, function () use ($claimYear) {
+            return $this->dashboardService->getCustomerClaimData($claimYear);
+        });
         $data['claimData'] = $claimData;
         $data['selectedMonth'] = (int) $month;
         $data['selectedYear'] = $year;

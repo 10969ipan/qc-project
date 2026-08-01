@@ -22,6 +22,23 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardService extends BaseService
 {
+    protected static array $tableColumnsCache = [];
+
+    private function getTableColumns(string $table): array
+    {
+        if (!isset(self::$tableColumnsCache[$table])) {
+            self::$tableColumnsCache[$table] = Cache::remember("table_cols_{$table}", 86400, function () use ($table) {
+                return Schema::getColumnListing($table);
+            });
+        }
+        return self::$tableColumnsCache[$table];
+    }
+
+    private function hasColumnCached(string $table, string $column): bool
+    {
+        return in_array($column, $this->getTableColumns($table), true);
+    }
+
     /**
      * Get lightweight live data for TV real-time polling.
      * Only returns production monitoring data (station cards) — no heavy stats.
@@ -85,8 +102,8 @@ class DashboardService extends BaseService
         $authRole = auth()->user()->role;
         $plantId = auth()->user()->plant_id;
         $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant') . "_{$year}_{$month}";
-
-        return Cache::remember($cacheKey, now()->addSeconds(30), function () use ($authRole, $month, $year) {
+        // 1. Ringkasan Statistik Approval (Ter-cache 1 jam)
+        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year) {
             $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
             $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
@@ -96,9 +113,6 @@ class DashboardService extends BaseService
             $dailyStatsKarawang = null;
 
             $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
-
-            $productionJakarta = [];
-            $productionKarawang = [];
 
             $dailyStatsSubAssy = null;
             $dailyStatsInProcess = null;
@@ -113,67 +127,77 @@ class DashboardService extends BaseService
                 $targetPlant = request('plant') ?: 'karawang';
                 $dailyStatsSubAssy = $this->calculateApprovalStats($targetPlant, true, 'sub_assy');
                 $dailyStatsInProcess = $this->calculateApprovalStats($targetPlant, true, 'in_process');
-
-                $productionJakarta = $this->getProductionMonitoring('jakarta');
-                $productionKarawang = $this->getProductionMonitoring('karawang');
             } else {
                 $dailyStatsSubAssy = $this->calculateApprovalStats(null, true, 'sub_assy');
                 $dailyStatsInProcess = $this->calculateApprovalStats(null, true, 'in_process');
             }
-            $productionMonitoring = $this->getProductionMonitoring(); // Default
-
-            // Fetch Plating & Painting Monitoring (Use the targeted plant, defaulting to Karawang)
-            $targetPlantForMonitoring = request('plant') ?? auth()->user()->plant_id;
-            if (!$targetPlantForMonitoring || $targetPlantForMonitoring == 'total' || $targetPlantForMonitoring == \App\Models\Plant::resolveId('total')) {
-                $targetPlantForMonitoring = 'karawang'; // Fallback
-            }
-            $activeMonitoringOther = $this->getOtherProductionMonitoring($targetPlantForMonitoring);
 
             $activeReport = MonthlyReport::where('is_active', true)->first();
-
-            // NG Rate Data for Charts
             $ngRateData = $this->getNgRateData();
-
-            $currentPlant = auth()->user()->plant?->name ?? 'unknown';
-
-            // Operator Map (Initials -> Name)
-            // Maps both by stored initials AND by full name for consistent display
-            $users = \App\Models\User::all();
-            $operatorMap = [];
-            foreach ($users as $u) {
-                // Map by stored initials (e.g. "SH" => "Sopian Handani")
-                $init = $u->initials;
-                if ($init) {
-                    $operatorMap[$init] = $u->name;
-                    // Also map case-insensitive variants
-                    $operatorMap[strtoupper($init)] = $u->name;
-                    $operatorMap[strtolower($init)] = $u->name;
-                    $operatorMap[ucfirst(strtolower($init))] = $u->name; // ponytail: fallback for un-uppercased edit form inputs like "Mi"
-                }
-                // Map by full name so if operator_initials already contains full name it still resolves
-                if ($u->name) {
-                    $operatorMap[$u->name] = $u->name;
-                    // Also map abbreviated first+last name combos (e.g. "Sopian H" => "Sopian Handani")
-                    $nameParts = explode(' ', $u->name);
-                    if (count($nameParts) > 1) {
-                        $shortName = $nameParts[0] . ' ' . strtoupper(substr(end($nameParts), 0, 1));
-                        $operatorMap[$shortName] = $u->name;
-                    }
-                }
-            }
-
-            // Flag for dual view mode
-            $isDualView = in_array($authRole, $dualViewRoles);
-
-            // Claim Frequency Data (from list claim records)
             $claimFrequency = $this->getClaimFrequencyData();
 
+            return compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess', 'activeReport', 'ngRateData', 'claimFrequency');
+        });
+
+        // 2. Kartu Monitoring Stasiun/Meja (Ter-cache 10 menit)
+        $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
+        $isDualView = in_array($authRole, $dualViewRoles);
+
+        $targetPlantForMonitoring = request('plant') ?? auth()->user()->plant_id;
+        if (!$targetPlantForMonitoring || $targetPlantForMonitoring == 'total' || $targetPlantForMonitoring == \App\Models\Plant::resolveId('total')) {
+            $targetPlantForMonitoring = 'karawang';
+        }
+
+        $monitoringKey = "dashboard_monitoring_{$authRole}_{$plantId}_" . $targetPlantForMonitoring;
+        $monitoringData = Cache::remember($monitoringKey, now()->addMinutes(10), function () use ($isDualView, $targetPlantForMonitoring) {
+            $productionJakarta = [];
+            $productionKarawang = [];
+
+            if ($isDualView) {
+                $productionJakarta = $this->getProductionMonitoring('jakarta');
+                $productionKarawang = $this->getProductionMonitoring('karawang');
+            }
+
+            $productionMonitoring = $this->getProductionMonitoring();
+            $activeMonitoringOther = $this->getOtherProductionMonitoring($targetPlantForMonitoring);
+
             return array_merge(
-                compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess', 'activeReport', 'productionJakarta', 'productionKarawang', 'ngRateData', 'currentPlant', 'operatorMap', 'isDualView', 'claimFrequency'),
+                compact('productionJakarta', 'productionKarawang'),
                 $productionMonitoring,
                 $activeMonitoringOther
             );
         });
+
+        $currentPlant = auth()->user()->plant?->name ?? 'unknown';
+
+        $operatorMap = Cache::remember('dashboard_operator_map', now()->addHours(1), function () {
+            $users = \App\Models\User::all();
+            $map = [];
+            foreach ($users as $u) {
+                $init = $u->initials;
+                if ($init) {
+                    $map[$init] = $u->name;
+                    $map[strtoupper($init)] = $u->name;
+                    $map[strtolower($init)] = $u->name;
+                    $map[ucfirst(strtolower($init))] = $u->name;
+                }
+                if ($u->name) {
+                    $map[$u->name] = $u->name;
+                    $nameParts = explode(' ', $u->name);
+                    if (count($nameParts) > 1) {
+                        $shortName = $nameParts[0] . ' ' . strtoupper(substr(end($nameParts), 0, 1));
+                        $map[$shortName] = $u->name;
+                    }
+                }
+            }
+            return $map;
+        });
+
+        return array_merge(
+            $cachedStats,
+            $monitoringData,
+            compact('currentPlant', 'operatorMap', 'isDualView')
+        );
     }
 
     /**
@@ -241,7 +265,7 @@ class DashboardService extends BaseService
         $potentialColumns = ['kashift_qc', 'karu_qc', 'supervisor_qc'];
         $columns = [];
         foreach ($potentialColumns as $col) {
-            if (Schema::hasColumn($table, $col)) {
+            if ($this->hasColumnCached($table, $col)) {
                 $columns[] = $col;
             }
         }
@@ -250,9 +274,9 @@ class DashboardService extends BaseService
 
         // Default column names are 'date' or 'check_date' depending on model implementation
         $dateColumn = 'date';
-        if (Schema::hasColumn($table, 'check_date')) {
+        if ($this->hasColumnCached($table, 'check_date')) {
             $dateColumn = 'check_date';
-        } elseif (Schema::hasColumn($table, 'production_datetime')) {
+        } elseif ($this->hasColumnCached($table, 'production_datetime')) {
             $dateColumn = 'production_datetime';
         }
 
@@ -275,7 +299,7 @@ class DashboardService extends BaseService
                     $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
                 });
             });
-        } elseif (Schema::hasColumn($table, 'entry_method')) {
+        } elseif ($this->hasColumnCached($table, 'entry_method')) {
             $query->whereIn('entry_method', ['regular', 'manual']);
         }
 
@@ -807,23 +831,25 @@ class DashboardService extends BaseService
      */
     public function getNgRateData(): array
     {
-        $days = 30;
-        $endDate = now()->endOfDay();
-        $startDate = now()->subDays($days - 1)->startOfDay();
+        return Cache::remember('dashboard_ng_rate_data_30d', now()->addDays(1), function () {
+            $days = 30;
+            $endDate = now()->endOfDay();
+            $startDate = now()->subDays($days - 1)->startOfDay();
 
-        $dates = [];
-        for ($i = 0; $i < $days; $i++) {
-            $dates[] = now()->subDays($days - 1 - $i)->format('Y-m-d');
-        }
+            $dates = [];
+            for ($i = 0; $i < $days; $i++) {
+                $dates[] = now()->subDays($days - 1 - $i)->format('Y-m-d');
+            }
 
-        $jakartaPlantId = Plant::resolveId('jakarta');
-        $karawangPlantId = Plant::resolveId('karawang');
+            $jakartaPlantId = Plant::resolveId('jakarta');
+            $karawangPlantId = Plant::resolveId('karawang');
 
-        return [
-            'labels' => $dates,
-            'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'painting']),
-            'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape', 'plating', 'painting']),
-        ];
+            return [
+                'labels' => $dates,
+                'jakarta' => $this->getPlantNgRate($jakartaPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'painting']),
+                'karawang' => $this->getPlantNgRate($karawangPlantId, $startDate, $endDate, $dates, ['sub_assy', 'in_process', 'fpa', 'cross_cut_plating', 'cross_cut_painting', 'double_tape', 'plating', 'painting']),
+            ];
+        });
     }
 
     private function getPlantNgRate($plantId, $start, $end, $dates, $types): array

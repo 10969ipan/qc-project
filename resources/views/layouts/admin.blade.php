@@ -21,13 +21,13 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css') }}"
         rel="stylesheet">
 
-    <script src="{{ asset('js/vendor/chart.umd.min.js') }}"></script>
-    <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/chart.umd.min.js') }}" defer></script>
+    <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}" defer></script>
 
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}" defer></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}" defer></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}" defer></script>
+    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}" defer></script>
 
     <style>
         html, body {

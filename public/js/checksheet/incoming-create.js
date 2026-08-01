@@ -565,49 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
         checkFirstTimeAndConfirm(doSubmit);
     });
 
-    // --- Barcode / QR Scanner Handler ---
-    $('#sapCodeInput').on('keydown input', function(e) {
-        if (e.type === 'keydown' && e.which !== 13) return;
-        let val = $(this).val().trim();
-        if (!val) return;
-        let matchedOption = null;
-
-        $('#itemSelect option').each(function() {
-            let sap = String($(this).data('sap-code') || '').trim();
-            let partNo = normalizePartNumber($(this).data('part-number') || '');
-            let name = String($(this).data('name') || '').trim().toLowerCase();
-            let searchVal = val.toLowerCase();
-            let normVal = normalizePartNumber(val);
-
-            if ((sap && sap === val) || (partNo && partNo === normVal) || (name && name.includes(searchVal))) {
-                matchedOption = $(this);
-                return false;
-            }
-        });
-
-        if (matchedOption) {
-            $('#itemSelect').val(matchedOption.val()).trigger('change');
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Item Ditemukan',
-                    text: matchedOption.text(),
-                    timer: 1200,
-                    showConfirmButton: false
-                });
-            }
-        } else if (e.type === 'keydown' && e.which === 13) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak Ditemukan',
-                    text: 'Item Part dengan kode "' + val + '" tidak ditemukan.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            }
-        }
-    });
+    // #sapCodeInput scan handling dilakukan oleh initHardwareScanner() di bawah
 
     // --- Silent Auto FIFO Lot Selection & Dynamic Balance Calculation ---
     function fetchOutstandingArrivals(itemId) {
@@ -1464,6 +1422,11 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#uniqueCodeInput').val(unique_code_id);
         $('#sapCodeInputHidden').val(sap_code);
         $('#sapCodeInput').val(sap_code);
+        
+        // Ensure hidden fields are updated if needed
+        $('#tanggalDeliveryInput').val($('#tanggalDeliveryInput').val());
+        $('#lotQtyInput').val(quantity);
+        $('#shiftInput').val($('#shiftInput').val());
 
         let matchedItemValue = null;
         $('#itemSelect option').each(function () {
@@ -1494,57 +1457,154 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: "Item Part Tidak Ditemukan",
                 text: `Tidak ada Item Part dengan Kode SAP: ${sap_code} atau Part No: ${part_code}`
             });
+            $('#sapCodeInput').val('').focus();
+            if (callback) callback(false);
+        }
+    }
+
+    // ─── PROSES SCAN SINGLE CODE / SAP / PART NO TANPA PIPE (|) ───
+    function processSingleCodeScan(codeStr, callback) {
+        const val = (codeStr || "").trim();
+        if (!val) {
+            if (callback) callback(false);
+            return;
+        }
+
+        let matchedItemValue = null;
+        let matchedSapCode = null;
+        let matchedPartNumber = null;
+
+        $('#itemSelect option').each(function () {
+            const optionSap = $(this).data('sap_code');
+            const optionPn = normalizePartNumber($(this).data('part-number'));
+            const optionName = normalizePartNumber($(this).data('name'));
+            const normVal = normalizePartNumber(val);
+
+            if (optionSap && String(optionSap).trim().toUpperCase() === val.toUpperCase()) {
+                matchedItemValue = $(this).val();
+                matchedSapCode = optionSap;
+                matchedPartNumber = $(this).data('part-number');
+                return false;
+            }
+            if (optionPn && optionPn === normVal) {
+                matchedItemValue = $(this).val();
+                matchedSapCode = optionSap;
+                matchedPartNumber = $(this).data('part-number');
+                return false;
+            }
+            if (optionName && (optionName === normVal || optionName.includes(normVal))) {
+                matchedItemValue = $(this).val();
+                matchedSapCode = optionSap;
+                matchedPartNumber = $(this).data('part-number');
+                return false;
+            }
+        });
+
+        if (matchedItemValue) {
+            // Isi field-field wajib sebelum autoAddScanToQueue dipanggil
+            $('#qrcodeInput').val(val);
+            $('#partCodeInput').val(matchedPartNumber || val);
+            $('#sapCodeInputHidden').val(matchedSapCode || val);
+            $('#quantityInput').val(1);   // default 1 unit jika scan tanpa QR lengkap
+            $('#totalCheckInput').val(1); // default 1 unit
+            $('#scanMethodInput').val('hardware');
+            $('#itemSelect').val(matchedItemValue).trigger('change');
+
+            setTimeout(function() {
+                autoAddScanToQueue();
+                if (callback) callback(true);
+            }, 150);
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Item Part Tidak Ditemukan",
+                text: `Tidak ada Item Part dengan Kode/Part No: ${val}`
+            });
+            $('#sapCodeInput').val('').focus();
             if (callback) callback(false);
         }
     }
 
     // ─── HARDWARE BARCODE SCANNER LISTENER ───
+    // Sama dengan pattern isProcessingScan pada kamera — blokir input 500ms setelah scan berhasil
+    let isProcessingHardwareScan = false;
+
+    function processHardwareScanValue(rawVal) {
+        if (isProcessingHardwareScan) return;
+        const val = (rawVal || '').trim();
+        if (!val) return;
+
+        isProcessingHardwareScan = true;
+        // Segera kosongkan input agar tidak ada sisa karakter
+        $('#sapCodeInput').val('');
+
+        $('#scanMethodInput').val('hardware');
+        const handler = function(success) {
+            if (success) {
+                unlockInputs();
+                // Toast mirip kamera
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 1200, timerProgressBar: true
+                });
+                Toast.fire({ icon: 'success', title: 'Item Berhasil Ditambahkan ke List!' });
+            } else {
+                $('#sapCodeInput').val('').focus();
+            }
+            // Cooldown 500ms — cukup untuk menyerap sisa karakter ekor scanner gun
+            setTimeout(function () {
+                $('#sapCodeInput').val('').focus();
+                isProcessingHardwareScan = false;
+            }, 500);
+        };
+
+        if (val.includes('|')) {
+            parseAndFillQR(val, handler);
+        } else {
+            processSingleCodeScan(val, handler);
+        }
+    }
+
     function initHardwareScanner() {
         let scanTimeout = null;
 
-        $('#sapCodeInput').on('input keydown', function (e) {
-            if (e.type === 'keydown' && e.key !== 'Enter') return;
+        $('#sapCodeInput').on('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            clearTimeout(scanTimeout);
             const val = $(this).val().trim();
+            processHardwareScanValue(val);
+        });
 
-            if (val.includes('|')) {
-                e.preventDefault();
-                clearTimeout(scanTimeout);
-                scanTimeout = setTimeout(() => {
-                    $('#scanMethodInput').val('hardware');
-                    parseAndFillQR(val, function(success) {
-                        if (success) {
-                            unlockInputs();
-                        }
-                    });
-                }, 100);
-            }
+        // Deteksi pipe (|) di input — scanner gun kemungkinan sudah selesai mengirim
+        $('#sapCodeInput').on('input', function () {
+            const val = $(this).val().trim();
+            if (!val.includes('|')) return;
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                processHardwareScanValue($(this).val().trim());
+            }, 80);
         });
 
         // Tangkap scan alat tembak secara otomatis jika kursor terlepas dari sapCodeInput
         let barcodeBuffer = '';
         let lastKeyTime = 0;
 
-        $(document).on('keydown', function (e) {
+        $(document).on('keydown.hardwareScanner', function (e) {
+            if (isProcessingHardwareScan) { e.preventDefault(); return; }
             const activeEl = document.activeElement;
             if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.id === 'sapCodeInput')) return;
 
-            const currentTime = new Date().getTime();
-            if (currentTime - lastKeyTime > 100) {
-                barcodeBuffer = '';
-            }
-            lastKeyTime = currentTime;
+            const now = new Date().getTime();
+            if (now - lastKeyTime > 100) barcodeBuffer = '';
+            lastKeyTime = now;
 
             if (e.key === 'Enter') {
-                if (barcodeBuffer.includes('|')) {
+                const buf = barcodeBuffer.trim();
+                if (buf.length > 0) {
                     e.preventDefault();
-                    if ($('#sapCodeInput').length > 0) {
-                        $('#sapCodeInput').val(barcodeBuffer).focus();
-                        $('#scanMethodInput').val('hardware');
-                        parseAndFillQR(barcodeBuffer, function(success) {
-                            if (success) unlockInputs();
-                        });
-                    }
                     barcodeBuffer = '';
+                    processHardwareScanValue(buf);
                 }
             } else if (e.key && e.key.length === 1) {
                 barcodeBuffer += e.key;
@@ -1589,6 +1649,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if ($(this).val()) defect_quantities.push($(this).val());
         });
 
+        const today = new Date().toISOString().slice(0, 10);
         const queueItem = {
             plant_id: $('input[name="plant_id"]').val(),
             arrival_id: $('#arrivalIdInput').val(),
@@ -1600,11 +1661,14 @@ document.addEventListener('DOMContentLoaded', function () {
             sap_code: $('#sapCodeInputHidden').val(),
             scan_method: $('#scanMethodInput').val() || "hardware",
             item_id: itemId,
-            tanggal_datang: $('#tanggalDatangInput').val() || $('input[name="date"]').val() || new Date().toISOString().slice(0, 10),
+            tanggal_datang: $('#tanggalDatangInput').val() || $('input[name="date"]').val() || today,
             shift_datang: $('#shiftDatangSelect').val() || $('select[name="shift"]').val() || "1",
             qty_datang: $('#qtyBalanceInput').val() || $('#quantityInput').val() || 0,
-            date: $('input[name="date"]').val(),
-            shift: $('select[name="shift"]').val(),
+            date: $('input[name="date"]').val() || today,
+            shift: $('select[name="shift"]').val() || $('#shiftInput').val() || "1",
+            // Field wajib IncomingExport
+            tanggal_delivery: $('input[name="date"]').val() || today,
+            lot_qty: parseInt(totalCheck) || 1,
             total_check: totalCheck,
             judgment: $('#judgmentSelect').val() || "OK",
             operator_initials: $('input[name="operator_initials"]').val(),
@@ -1750,7 +1814,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="text-center">${index + 1}</td>
                     <td class="text-left font-weight-bold" style="max-width: 220px;">${item.itemNameDisplay || '-'}</td>
                     <td class="text-left font-weight-bold" style="word-break: break-all; max-width: 200px; font-family: monospace; font-size: 0.7rem;">${item.qrcode || '-'}</td>
-                    <td class="text-center">${item.date || '-'} <small class="text-muted">(Shift ${item.shift || '-'})</small></td>
+                    <td class="text-center">${item.date ? item.date.split('-').reverse().join('-') : '-'}</td>
                     <td class="font-weight-bold text-center text-primary">${qtyCheck.toLocaleString('id-ID')}</td>
                     <td class="text-center"><span class="${judgmentClass}">${item.judgment || '-'}</span></td>
                     <td class="text-center">${initialsUpper}</td>
@@ -1971,6 +2035,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#defectSelect').val('');
         $('.defect-qty').val('');
         $('#judgmentSelect').val('OK').trigger('change');
+        // ponytail: sisa karakter scanner gun ditangani oleh isProcessingHardwareScan cooldown, bukan setTimeout cascade
     }
 
     function resetAllForNewInput() {
