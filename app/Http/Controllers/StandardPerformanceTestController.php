@@ -520,6 +520,7 @@ class StandardPerformanceTestController extends Controller
         $query = DurabilityThicknessReport::with([
                 'standard', 'analis',
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
+                'updatedBy',
             ])
             ->orderBy('created_at', 'desc');
 
@@ -834,20 +835,22 @@ class StandardPerformanceTestController extends Controller
             }
         }
 
-        if (!empty($updateData)) {
-            $report->update($updateData);
-        }
+        // Set updated_by and per-test-type PIC (update PIC to current user who modified/updated data)
+        $updateData['updated_by'] = auth()->id();
 
-        // Set per-test-type PIC (analis_id stays as the original Thickness user)
         $analisColumn = match($testType) {
             'corrodkote'  => 'analis_corrodkote_id',
             'cass'        => 'analis_cass_id',
             'salt_spray'  => 'analis_salt_spray_id',
             'porecount'   => 'analis_porecount_id',
-            default       => null,
+            default       => 'analis_id',
         };
         if ($analisColumn) {
-            $report->update([$analisColumn => auth()->id()]);
+            $updateData[$analisColumn] = auth()->id();
+        }
+
+        if (!empty($updateData)) {
+            $report->update($updateData);
         }
 
         // Update or create Data 2 record when updating Data 1
@@ -873,7 +876,7 @@ class StandardPerformanceTestController extends Controller
                 $trialReport->data1_id = $report->id;
             }
 
-            $trialReport->fill([
+            $trialData = [
                 'tanggal_cek' => $report->tanggal_cek,
                 'production_date' => $report->production_date,
                 'shift' => $report->shift,
@@ -882,8 +885,12 @@ class StandardPerformanceTestController extends Controller
                 'jam_masuk' => $report->jam_masuk,
                 'tgl_keluar' => $report->tgl_keluar,
                 'jam_keluar' => $report->jam_keluar,
-                'analis_id' => auth()->id(),
-            ]);
+                'updated_by' => auth()->id(),
+            ];
+            if ($analisColumn) {
+                $trialData[$analisColumn] = auth()->id();
+            }
+            $trialReport->fill($trialData);
 
             if ($testType === 'thickness') {
                 if ($request->has('actual_cr_trial')) $trialReport->actual_cr = $request->actual_cr_trial;
@@ -1310,7 +1317,11 @@ class StandardPerformanceTestController extends Controller
             $user = auth()->user();
             $userName = $user->name ?? $user->username ?? 'User';
 
+            $isTrial = $request->boolean('is_trial', false);
+            $testType = $request->input('test_type', 'thickness');
+
             $query = DurabilityThicknessReport::query();
+            $query->where('is_trial', $isTrial);
 
             if ($request->filled('start_date')) {
                 $query->whereDate('tanggal_cek', '>=', $request->start_date);
@@ -1318,13 +1329,64 @@ class StandardPerformanceTestController extends Controller
             if ($request->filled('end_date')) {
                 $query->whereDate('tanggal_cek', '<=', $request->end_date);
             }
+            if ($request->filled('result_judgment')) {
+                $val = $request->result_judgment;
+                $query->where(function($q) use ($val, $testType) {
+                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', 'LIKE', "%$val%");
+                    elseif ($testType === 'cass') $q->where('result_judgment_cass', 'LIKE', "%$val%");
+                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', 'LIKE', "%$val%");
+                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', 'LIKE', "%$val%");
+                    else $q->where('result_judgment', 'LIKE', "%$val%");
+                });
+            }
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->whereHas('standard', function($q) use ($search) {
+                    $q->where('part_name', 'like', "%$search%")
+                      ->orWhere('part_number', 'like', "%$search%")
+                      ->orWhere('customer_name', 'like', "%$search%")
+                      ->orWhere('customer_standard', 'like', "%$search%");
+                });
+            }
+            if ($request->filled('customer_name')) {
+                $customerName = $request->customer_name;
+                $query->whereHas('standard', function($q) use ($customerName) {
+                    $q->where('customer_name', $customerName);
+                });
+            }
+            if ($request->filled('category')) {
+                $category = $request->category;
+                $query->whereHas('standard', function($q) use ($category) {
+                    $q->where('category', $category);
+                });
+            }
 
-            $updatedCount = $query->where(function($q) use ($field) {
+            $reportsToApprove = $query->where(function($q) use ($field) {
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
-            })->update([
-                $field => $userName,
-                $timeField => now(),
-            ]);
+            })->get();
+
+            $now = now();
+            $updatedCount = 0;
+            foreach ($reportsToApprove as $rep) {
+                $rep->update([
+                    $field => $userName,
+                    $timeField => $now,
+                ]);
+
+                // Sync paired report (Data 1 / Data 2 Trial)
+                if ($rep->data1_id) {
+                    DurabilityThicknessReport::where('id', $rep->data1_id)->update([
+                        $field => $userName,
+                        $timeField => $now,
+                    ]);
+                } else {
+                    DurabilityThicknessReport::where('data1_id', $rep->id)->update([
+                        $field => $userName,
+                        $timeField => $now,
+                    ]);
+                }
+                $updatedCount++;
+            }
 
             return response()->json([
                 'success' => true,

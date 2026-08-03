@@ -66,4 +66,9 @@ class DurabilityThicknessReport extends Model
     {
         return $this->belongsTo(User::class, 'analis_porecount_id');
     }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
 }

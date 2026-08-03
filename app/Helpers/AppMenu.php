@@ -31,8 +31,9 @@ class AppMenu
 
         // If not found, try to find the base module index route
         if ($menus->isEmpty()) {
-            // Strip suffixes like .bulk_approve, .store, .update, etc., and append .index
-            $baseRoute = preg_replace('/\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject|export_pdf)$/', '.index', $route);
+            // Strip suffixes like .report.*, .bulk_approve, .store, .update, etc., and normalize -trial
+            $cleanRoute = str_replace('-trial', '', $route);
+            $baseRoute = preg_replace('/(\.report(\.[a-z_]+)?|\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject|export_pdf))$/', '.index', $cleanRoute);
             if ($baseRoute !== $route) {
                 $menus = AppMenuModel::where('route', $baseRoute)->get();
             }

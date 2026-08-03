@@ -1,12 +1,19 @@
 {{-- Bulk Approve JavaScript - Include in @push('scripts') --}}
 {{-- Requires: $bulkApproveRoute variable to be set before including --}}
-@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && request('start_date'))
+@php
+    $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('category');
+@endphp
+@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasFilter)
     <script>
         $(document).ready(function () {
             $('#btnBulkApprove').on('click', function () {
                 var startDate = '{{ request("start_date") }}';
                 var endDate = '{{ request("end_date", request("start_date")) }}';
                 var plant = '{{ request("plant", "") }}';
+                var resultJudgment = '{{ request("result_judgment", "") }}';
+                var search = '{{ request("search", "") }}';
+                var customerName = '{{ request("customer_name", "") }}';
+                var category = '{{ request("category", "") }}';
                 var userRole = '{{ auth()->user()->role }}';
 
                 var approvalType = userRole;
@@ -33,7 +40,7 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, result.value);
+                            doBulkApprove(startDate, endDate, plant, result.value, resultJudgment, search, customerName, category);
                         }
                     });
                 } else {
@@ -42,8 +49,10 @@
                         html: '<div class="text-left">' +
                             '<p>Anda akan meng-approve <strong>semua</strong> data checksheet yang memenuhi filter berikut:</p>' +
                             '<ul>' +
-                            '<li><strong>Dari Tanggal:</strong> ' + startDate + '</li>' +
-                            '<li><strong>Sampai Tanggal:</strong> ' + endDate + '</li>' +
+                            (startDate ? '<li><strong>Dari Tanggal:</strong> ' + startDate + '</li>' : '') +
+                            (endDate ? '<li><strong>Sampai Tanggal:</strong> ' + endDate + '</li>' : '') +
+                            (resultJudgment ? '<li><strong>Result:</strong> ' + resultJudgment + '</li>' : '') +
+                            (search ? '<li><strong>Search:</strong> ' + search + '</li>' : '') +
                             (plant ? '<li><strong>Plant:</strong> ' + plant + '</li>' : '') +
                             '</ul>' +
                             '<p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Aksi ini tidak dapat dibatalkan!</p>' +
@@ -57,13 +66,13 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, approvalType);
+                            doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category);
                         }
                     });
                 }
             });
 
-            function doBulkApprove(startDate, endDate, plant, approvalType) {
+            function doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category) {
                 // Show animated progress bar
                 let progress = 0;
                 Swal.fire({
@@ -104,7 +113,13 @@
                         start_date: startDate,
                         end_date: endDate,
                         plant: plant,
-                        approval_type: approvalType
+                        approval_type: approvalType,
+                        result_judgment: resultJudgment || '',
+                        search: search || '',
+                        customer_name: customerName || '',
+                        category: category || '',
+                        test_type: '{{ $testType ?? "thickness" }}',
+                        is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                     },
                     success: function (response) {
                         clearInterval(progressInterval);

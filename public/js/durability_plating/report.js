@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     if (typeof initItemSearch === 'function') {
         initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...' });
     }
@@ -6,14 +6,14 @@ $(document).ready(function() {
     const config = window.__DURABILITY_PLATING_REPORT__ || {};
     var editStdCr = 0, editStdNi = 0, editStdCu = 0;
 
-    $('.btn-edit-thickness').click(function() {
+    $('.btn-edit-thickness').click(function () {
         let item = $(this).data('item');
         let partName = $(this).data('part');
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
-        
+
         $('#formEditThickness').attr('action', url);
-        
+
         $('#edit_thickness_part_name').val(partName);
         $('#edit_tanggal_cek').val(item.tanggal_cek);
         $('#edit_production_date').val(item.production_date);
@@ -23,17 +23,17 @@ $(document).ready(function() {
         $('#edit_actual_cr').val(item.actual_cr);
         $('#edit_actual_ni').val(item.actual_ni);
         $('#edit_actual_cu').val(item.actual_cu);
-        
+
         $('#edit_actual_corrodkote_waktu').val(item.actual_corrodkote_waktu);
         $('#edit_standar_jam_corrodkote').val(item.standar_jam_corrodkote);
         $('#edit_aktual_corrosion').val(item.aktual_corrosion);
-        
+
         $('#edit_actual_cass_waktu').val(item.actual_cass_waktu);
         $('#edit_standar_jam_cass').val(item.standar_jam_cass);
-        
+
         $('#edit_actual_salt_spray_waktu').val(item.actual_salt_spray_waktu);
         $('#edit_standar_jam_salt_spray').val(item.standar_jam_salt_spray);
-        
+
         $('#edit_actual_porecount').val(item.actual_porecount);
 
         let rj = item.result_judgment;
@@ -92,8 +92,8 @@ $(document).ready(function() {
         if (item.jam_keluar) {
             $('#edit_jam_keluar').val(item.jam_keluar.substring(0, 5));
         }
-        
-        
+
+
         let stdCr = $(this).attr('data-stdcr') !== undefined && $(this).attr('data-stdcr') !== '' ? $(this).attr('data-stdcr') : ($(this).data('stdcr') || '-');
         let stdNi = $(this).attr('data-stdni') !== undefined && $(this).attr('data-stdni') !== '' ? $(this).attr('data-stdni') : ($(this).data('stdni') || '-');
         let stdCu = $(this).attr('data-stdcu') !== undefined && $(this).attr('data-stdcu') !== '' ? $(this).attr('data-stdcu') : ($(this).data('stdcu') || '-');
@@ -117,12 +117,12 @@ $(document).ready(function() {
             window.calculateEditThicknessJudgment();
         }
 
-        let originalBeforeUrl     = item.evidence_before     ? config.baseUrl + item.evidence_before     : null;
-        let originalAfterUrl      = item.evidence_after      ? config.baseUrl + item.evidence_after      : null;
+        let originalBeforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let originalAfterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
         let originalAfterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
 
-        let beforeTimeFormatted     = formatDbDate(item.evidence_before_uploaded_at);
-        let afterTimeFormatted      = formatDbDate(item.evidence_after_uploaded_at);
+        let beforeTimeFormatted = formatDbDate(item.evidence_before_uploaded_at);
+        let afterTimeFormatted = formatDbDate(item.evidence_after_uploaded_at);
         let afterTrialTimeFormatted = formatDbDate(item.evidence_after_trial_uploaded_at);
 
         showEvidenceCard('edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
@@ -137,7 +137,7 @@ $(document).ready(function() {
 
         // Store originals on buttons for X restore logic
         $('#btn_delete_evidence_before').data({ originalUrl: originalBeforeUrl, hasNewFile: false });
-        $('#btn_delete_evidence_after').data({ originalUrl: originalAfterUrl,  hasNewFile: false });
+        $('#btn_delete_evidence_after').data({ originalUrl: originalAfterUrl, hasNewFile: false });
         $('#btn_delete_evidence_after_trial').data({ originalUrl: originalAfterTrialUrl, hasNewFile: false });
 
         // Reset file inputs and delete flags
@@ -148,12 +148,13 @@ $(document).ready(function() {
         $('#delete_evidence_after').val('0');
         $('#delete_evidence_after_trial').val('0');
 
+        updateLastUpdatedLog('thickness_last_updated_info', item, 'thickness');
         $('#modalEditThickness').modal('show');
     });
 
     // Smart X button: if new file staged → cancel & restore original; else → delete DB photo
     function handleDeleteBtn(btnId, previewId, wrapId, emptyId, timeId, inputId, deleteFlagId) {
-        $('#' + btnId).on('click', function() {
+        $('#' + btnId).on('click', function () {
             var d = $(this).data();
             if (d.hasNewFile) {
                 // Cancel new selection → restore original
@@ -181,18 +182,18 @@ $(document).ready(function() {
     }
     handleDeleteBtn('btn_delete_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
         'edit_evidence_before_empty', 'edit_evidence_before_time', 'input_evidence_before', 'delete_evidence_before');
-    handleDeleteBtn('btn_delete_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',
-        'edit_evidence_after_empty',  'edit_evidence_after_time',  'input_evidence_after',  'delete_evidence_after');
+    handleDeleteBtn('btn_delete_evidence_after', 'edit_evidence_after_preview', 'edit_evidence_after_preview_wrap',
+        'edit_evidence_after_empty', 'edit_evidence_after_time', 'input_evidence_after', 'delete_evidence_after');
     handleDeleteBtn('btn_delete_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap',
         'edit_evidence_after_trial_empty', 'edit_evidence_after_trial_time', 'input_evidence_after_trial', 'delete_evidence_after_trial');
 
     // Live preview when new file chosen — also show X and mark hasNewFile
     function bindLivePreview(inputId, previewId, wrapId, emptyId, deleteBtnId) {
-        $('#' + inputId).off('change.preview').on('change.preview', function() {
+        $('#' + inputId).off('change.preview').on('change.preview', function () {
             var file = this.files[0];
             if (file) {
                 var reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     $('#' + previewId).attr('src', e.target.result);
                     $('#' + wrapId).show();
                     $('#' + emptyId).hide();
@@ -204,16 +205,16 @@ $(document).ready(function() {
         });
     }
     bindLivePreview('input_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap', 'edit_evidence_before_empty', 'btn_delete_evidence_before');
-    bindLivePreview('input_evidence_after',  'edit_evidence_after_preview',  'edit_evidence_after_preview_wrap',  'edit_evidence_after_empty',  'btn_delete_evidence_after');
+    bindLivePreview('input_evidence_after', 'edit_evidence_after_preview', 'edit_evidence_after_preview_wrap', 'edit_evidence_after_empty', 'btn_delete_evidence_after');
     bindLivePreview('input_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap', 'edit_evidence_after_trial_empty', 'btn_delete_evidence_after_trial');
 
     bindLivePreview('input_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'btn_delete_new_evidence_before');
-    bindLivePreview('input_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'btn_delete_new_evidence_after');
+    bindLivePreview('input_new_evidence_after', 'new_evidence_after_preview', 'new_evidence_after_preview_wrap', 'new_evidence_after_empty', 'btn_delete_new_evidence_after');
     bindLivePreview('input_new_evidence_after_trial', 'new_evidence_after_trial_preview', 'new_evidence_after_trial_preview_wrap', 'new_evidence_after_trial_empty', 'btn_delete_new_evidence_after_trial');
 
     // Simple X handler for New Data Modal
     function handleNewDataDeleteBtn(btnId, previewId, wrapId, emptyId, inputId) {
-        $('#' + btnId).on('click', function() {
+        $('#' + btnId).on('click', function () {
             $('#' + inputId).val('');
             $('#' + wrapId).hide();
             $('#' + emptyId).css('display', 'flex');
@@ -221,17 +222,17 @@ $(document).ready(function() {
         });
     }
     handleNewDataDeleteBtn('btn_delete_new_evidence_before', 'new_evidence_before_preview', 'new_evidence_before_preview_wrap', 'new_evidence_before_empty', 'input_new_evidence_before');
-    handleNewDataDeleteBtn('btn_delete_new_evidence_after',  'new_evidence_after_preview',  'new_evidence_after_preview_wrap',  'new_evidence_after_empty',  'input_new_evidence_after');
+    handleNewDataDeleteBtn('btn_delete_new_evidence_after', 'new_evidence_after_preview', 'new_evidence_after_preview_wrap', 'new_evidence_after_empty', 'input_new_evidence_after');
     handleNewDataDeleteBtn('btn_delete_new_evidence_after_trial', 'new_evidence_after_trial_preview', 'new_evidence_after_trial_preview_wrap', 'new_evidence_after_trial_empty', 'input_new_evidence_after_trial');
 
     const inputModals = ['corrodkote', 'cass', 'salt_spray', 'porecount'];
     inputModals.forEach(t => {
         bindLivePreview(`input_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `btn_delete_${t}_evidence_before`);
-        bindLivePreview(`input_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `btn_delete_${t}_evidence_after`);
+        bindLivePreview(`input_${t}_evidence_after`, `${t}_evidence_after_preview`, `${t}_evidence_after_preview_wrap`, `${t}_evidence_after_empty`, `btn_delete_${t}_evidence_after`);
         bindLivePreview(`input_${t}_evidence_after_trial`, `${t}_evidence_after_trial_preview`, `${t}_evidence_after_trial_preview_wrap`, `${t}_evidence_after_trial_empty`, `btn_delete_${t}_evidence_after_trial`);
-        
+
         handleNewDataDeleteBtn(`btn_delete_${t}_evidence_before`, `${t}_evidence_before_preview`, `${t}_evidence_before_preview_wrap`, `${t}_evidence_before_empty`, `input_${t}_evidence_before`);
-        handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after`,  `${t}_evidence_after_preview`,  `${t}_evidence_after_preview_wrap`,  `${t}_evidence_after_empty`,  `input_${t}_evidence_after`);
+        handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after`, `${t}_evidence_after_preview`, `${t}_evidence_after_preview_wrap`, `${t}_evidence_after_empty`, `input_${t}_evidence_after`);
         handleNewDataDeleteBtn(`btn_delete_${t}_evidence_after_trial`, `${t}_evidence_after_trial_preview`, `${t}_evidence_after_trial_preview_wrap`, `${t}_evidence_after_trial_empty`, `input_${t}_evidence_after_trial`);
     });
 
@@ -247,13 +248,43 @@ $(document).ready(function() {
         return d + '-' + m + '-' + y + ' ' + h + ':' + min;
     }
 
+    function updateLastUpdatedLog(elementId, item, testType) {
+        if (!elementId || !item) return;
+        let userName = null;
+        if (item.updated_by && item.updated_by.name) {
+            userName = item.updated_by.name;
+        } else {
+            if (testType === 'corrodkote' && item.analis_corrodkote && item.analis_corrodkote.name) {
+                userName = item.analis_corrodkote.name;
+            } else if (testType === 'cass' && item.analis_cass && item.analis_cass.name) {
+                userName = item.analis_cass.name;
+            } else if (testType === 'salt_spray' && item.analis_salt_spray && item.analis_salt_spray.name) {
+                userName = item.analis_salt_spray.name;
+            } else if (testType === 'porecount' && item.analis_porecount && item.analis_porecount.name) {
+                userName = item.analis_porecount.name;
+            } else if (item.analis && item.analis.name) {
+                userName = item.analis.name;
+            }
+        }
+
+        let timeFormatted = formatDbDate(item.updated_at || item.created_at);
+
+        if (userName && timeFormatted) {
+            $('#' + elementId).html(`<i class="fas fa-history mr-1 text-muted"></i> Terakhir diupdate oleh <strong>${userName}</strong> (${timeFormatted})`);
+        } else if (userName) {
+            $('#' + elementId).html(`<i class="fas fa-history mr-1 text-muted"></i> Terakhir diupdate oleh <strong>${userName}</strong>`);
+        } else {
+            $('#' + elementId).html('');
+        }
+    }
+
     function showEvidenceCard(previewId, wrapId, emptyId, deleteBtnId, timeId, url, time) {
         if (url) {
             $('#' + previewId).attr('src', url);
             $('#' + wrapId).show();
             $('#' + emptyId).hide();
             $('#' + deleteBtnId).removeClass('d-none').css('display', 'flex');
-            if(timeId) {
+            if (timeId) {
                 $('#' + timeId).text(time ? 'Diunggah: ' + time : '').removeClass('d-none');
             }
         } else {
@@ -261,19 +292,19 @@ $(document).ready(function() {
             $('#' + wrapId).hide();
             $('#' + emptyId).css('display', 'flex');
             $('#' + deleteBtnId).addClass('d-none').css('display', '');
-            if(timeId) {
+            if (timeId) {
                 $('#' + timeId).text('').addClass('d-none');
             }
         }
     }
 
     // Auto judgment logic for Edit Thickness Modal
-    window.calculateEditThicknessJudgment = function() {
+    window.calculateEditThicknessJudgment = function () {
         // Data 1
         var actCr = parseFloat($('#edit_actual_cr').val());
         var actNi = parseFloat($('#edit_actual_ni').val());
         var actCu = parseFloat($('#edit_actual_cu').val());
-        
+
         if (!isNaN(actCr) && !isNaN(actNi) && !isNaN(actCu)) {
             if (actCr >= editStdCr && actNi >= editStdNi && actCu >= editStdCu) {
                 $('#edit_result_judgment').val('OK');
@@ -296,24 +327,24 @@ $(document).ready(function() {
         }
     };
 
-    $(document).on('keyup change input', '.edit-actual-thickness-input, #edit_actual_cr, #edit_actual_ni, #edit_actual_cu, #edit_actual_cr_trial, #edit_actual_ni_trial, #edit_actual_cu_trial', function() {
+    $(document).on('keyup change input', '.edit-actual-thickness-input, #edit_actual_cr, #edit_actual_ni, #edit_actual_cu, #edit_actual_cr_trial, #edit_actual_ni_trial, #edit_actual_cu_trial', function () {
         window.calculateEditThicknessJudgment();
     });
 
-    $('.btn-input-corrodkote').click(function() {
+    $('.btn-input-corrodkote').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputCorrodkote');
-        
+
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
         form.attr('action', url);
-        
+
         $('#corrodkote_report_id').val(item.id);
         $('#corrodkote_part_name').val($(this).data('part'));
         $('#corrodkote_customer').val($(this).data('customer'));
         $('#corrodkote_std').val($(this).data('std'));
         $('#corrodkote_standard_time').val($(this).data('time'));
-        
+
         let cu1 = item.actual_cu || '-';
         let ni1 = item.actual_ni || '-';
         let cr1 = item.actual_cr || '-';
@@ -353,18 +384,19 @@ $(document).ready(function() {
         form.find('[name="result_judgment_corrodkote_trial"]').val(item.result_judgment_corrodkote_trial || '-');
         form.find('[name="description_corrodkote_trial"]').val(item.description_corrodkote_trial || '');
 
-        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
         let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('corrodkote_evidence_before_preview', 'corrodkote_evidence_before_preview_wrap', 'corrodkote_evidence_before_empty', 'btn_delete_corrodkote_evidence_before', null, beforeUrl, null);
         showEvidenceCard('corrodkote_evidence_after_preview', 'corrodkote_evidence_after_preview_wrap', 'corrodkote_evidence_after_empty', 'btn_delete_corrodkote_evidence_after', null, afterUrl, null);
         showEvidenceCard('corrodkote_evidence_after_trial_preview', 'corrodkote_evidence_after_trial_preview_wrap', 'corrodkote_evidence_after_trial_empty', 'btn_delete_corrodkote_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
+        updateLastUpdatedLog('corrodkote_last_updated_info', item, 'corrodkote');
         $('#modalInputCorrodkote').modal('show');
     });
 
-    $('.btn-input-cass').click(function() {
+    $('.btn-input-cass').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputCass');
 
@@ -379,7 +411,7 @@ $(document).ready(function() {
         $('#cass_standard_time').val($(this).data('time'));
         $('#cass_produksi').val(item.production_date);
         $('#cass_shift').val(item.shift);
-        
+
         if (item.lot_no) {
             $('#cass_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
         } else {
@@ -406,18 +438,19 @@ $(document).ready(function() {
         form.find('[name="result_judgment_cass_trial"]').val(item.result_judgment_cass_trial || '-');
         form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
-        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
         let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('cass_evidence_before_preview', 'cass_evidence_before_preview_wrap', 'cass_evidence_before_empty', 'btn_delete_cass_evidence_before', null, beforeUrl, null);
         showEvidenceCard('cass_evidence_after_preview', 'cass_evidence_after_preview_wrap', 'cass_evidence_after_empty', 'btn_delete_cass_evidence_after', null, afterUrl, null);
         showEvidenceCard('cass_evidence_after_trial_preview', 'cass_evidence_after_trial_preview_wrap', 'cass_evidence_after_trial_empty', 'btn_delete_cass_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
+        updateLastUpdatedLog('cass_last_updated_info', item, 'cass');
         $('#modalInputCass').modal('show');
     });
 
-    $('.btn-input-salt-spray').click(function() {
+    $('.btn-input-salt-spray').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputSaltSpray');
 
@@ -432,7 +465,7 @@ $(document).ready(function() {
         $('#salt_standard_time').val($(this).data('time'));
         $('#salt_produksi').val(item.production_date);
         $('#salt_shift').val(item.shift);
-        
+
         if (item.lot_no) {
             $('#salt_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
         } else {
@@ -459,18 +492,19 @@ $(document).ready(function() {
         form.find('[name="result_judgment_salt_spray_trial"]').val(item.result_judgment_salt_spray_trial || '-');
         form.find('[name="description_salt_spray_trial"]').val(item.description_salt_spray_trial || '');
 
-        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
         let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('salt_spray_evidence_before_preview', 'salt_spray_evidence_before_preview_wrap', 'salt_spray_evidence_before_empty', 'btn_delete_salt_spray_evidence_before', null, beforeUrl, null);
         showEvidenceCard('salt_spray_evidence_after_preview', 'salt_spray_evidence_after_preview_wrap', 'salt_spray_evidence_after_empty', 'btn_delete_salt_spray_evidence_after', null, afterUrl, null);
         showEvidenceCard('salt_spray_evidence_after_trial_preview', 'salt_spray_evidence_after_trial_preview_wrap', 'salt_spray_evidence_after_trial_empty', 'btn_delete_salt_spray_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
+        updateLastUpdatedLog('salt_spray_last_updated_info', item, 'salt_spray');
         $('#modalInputSaltSpray').modal('show');
     });
 
-    $('.btn-input-porecount').click(function() {
+    $('.btn-input-porecount').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputPorecount');
 
@@ -485,7 +519,7 @@ $(document).ready(function() {
         $('#porecount_standard_min').val($(this).data('stdmin'));
         $('#porecount_produksi').val(item.production_date);
         $('#porecount_shift').val(item.shift);
-        
+
         if (item.lot_no) {
             $('#porecount_lot').val(item.lot_no).prop('readonly', true).addClass('bg-light');
         } else {
@@ -504,14 +538,15 @@ $(document).ready(function() {
         form.find('[name="result_judgment_porecount_trial"]').val(item.result_judgment_porecount_trial || '-');
         form.find('[name="description_porecount_trial"]').val(item.description_porecount_trial || '');
 
-        let beforeUrl     = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl      = item.evidence_after  ? config.baseUrl + item.evidence_after  : null;
+        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
+        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
         let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
         showEvidenceCard('porecount_evidence_before_preview', 'porecount_evidence_before_preview_wrap', 'porecount_evidence_before_empty', 'btn_delete_porecount_evidence_before', null, beforeUrl, null);
         showEvidenceCard('porecount_evidence_after_preview', 'porecount_evidence_after_preview_wrap', 'porecount_evidence_after_empty', 'btn_delete_porecount_evidence_after', null, afterUrl, null);
         showEvidenceCard('porecount_evidence_after_trial_preview', 'porecount_evidence_after_trial_preview_wrap', 'porecount_evidence_after_trial_empty', 'btn_delete_porecount_evidence_after_trial', null, afterTrialUrl, null);
 
         calculateTestAutoJudgment(form);
+        updateLastUpdatedLog('porecount_last_updated_info', item, 'porecount');
         $('#modalInputPorecount').modal('show');
     });
 
@@ -525,12 +560,12 @@ $(document).ready(function() {
     function updateCount() {
         const checkedCount = $('.row-checkbox:checked').length;
         const totalCheckboxes = $('.row-checkbox').length;
-        
+
         countDisplay.text(checkedCount);
         if (bulkSelectedCount.length > 0) {
             bulkSelectedCount.text(checkedCount);
         }
-        
+
         if (totalCheckboxes > 0) {
             checkAllBtn.prop('checked', checkedCount === totalCheckboxes);
         }
@@ -541,7 +576,7 @@ $(document).ready(function() {
             bulkMenu.fadeOut(200);
         }
 
-        $('.row-checkbox').each(function() {
+        $('.row-checkbox').each(function () {
             const row = $(this).closest('tr');
             if ($(this).is(':checked')) {
                 row.addClass('table-primary');
@@ -552,21 +587,21 @@ $(document).ready(function() {
     }
 
     if (checkAllBtn.length > 0) {
-        checkAllBtn.on('change', function() {
+        checkAllBtn.on('change', function () {
             const isChecked = $(this).prop('checked');
             $('.row-checkbox').prop('checked', isChecked);
             updateCount();
         });
     }
 
-    $('#dataTable tbody').on('change', '.row-checkbox', function(e) {
+    $('#dataTable tbody').on('change', '.row-checkbox', function (e) {
         e.stopPropagation();
         updateCount();
     });
 
     if (btnBulkDelete.length > 0) {
-        btnBulkDelete.on('click', function() {
-            const selectedIds = $('.row-checkbox:checked').map(function() {
+        btnBulkDelete.on('click', function () {
+            const selectedIds = $('.row-checkbox:checked').map(function () {
                 return $(this).val();
             }).get();
 
@@ -600,7 +635,7 @@ $(document).ready(function() {
                             ids: selectedIds,
                             type: config.testType
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 Swal.fire({
                                     icon: 'success',
@@ -613,7 +648,7 @@ $(document).ready(function() {
                                 });
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             Swal.fire(
                                 'Gagal!',
                                 'Terjadi kesalahan saat menghapus data.',
@@ -628,8 +663,8 @@ $(document).ready(function() {
 
     const btnBulkCopy = $('#btnBulkCopy');
     if (btnBulkCopy.length > 0) {
-        btnBulkCopy.on('click', function() {
-            const selectedIds = $('.row-checkbox:checked').map(function() {
+        btnBulkCopy.on('click', function () {
+            const selectedIds = $('.row-checkbox:checked').map(function () {
                 return $(this).val();
             }).get();
 
@@ -662,7 +697,7 @@ $(document).ready(function() {
                             _token: config.csrfToken,
                             ids: selectedIds
                         },
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 Swal.fire({
                                     icon: 'success',
@@ -675,7 +710,7 @@ $(document).ready(function() {
                                 });
                             }
                         },
-                        error: function() {
+                        error: function () {
                             Swal.fire('Gagal!', 'Terjadi kesalahan saat menyalin data.', 'error');
                         }
                     });
@@ -686,7 +721,7 @@ $(document).ready(function() {
 
     const btnBulkCancel = $('#btnBulkCancel');
     if (btnBulkCancel.length > 0) {
-        btnBulkCancel.on('click', function() {
+        btnBulkCancel.on('click', function () {
             $('.row-checkbox, #checkAllRows').prop('checked', false);
             updateCount();
         });
@@ -705,39 +740,39 @@ $(document).ready(function() {
             $rows.eq(2).find('th').css('top', (row1H + row2H) + 'px');
         }
     }
-    
+
     // Hide loader and show container, then calculate sticky headers
     $('#tableLoader').hide();
-    $('#tableContainer').fadeIn('fast', function() {
+    $('#tableContainer').fadeIn('fast', function () {
         fixStickyHeaderTops();
     });
-    
+
     $(window).on('resize', fixStickyHeaderTops);
 
     // Auto-calculate Tgl/Jam Keluar based on Tgl/Jam Masuk + Standar Jam
     function autoCalculateChamberTime($form) {
-        var $tglMasuk  = $form.find('input[name="tgl_masuk"]');
-        var $jamMasuk  = $form.find('input[name="jam_masuk"]');
+        var $tglMasuk = $form.find('input[name="tgl_masuk"]');
+        var $jamMasuk = $form.find('input[name="jam_masuk"]');
         var $tglKeluar = $form.find('input[name="tgl_keluar"]');
         var $jamKeluar = $form.find('input[name="jam_keluar"]');
         var $standarJam = $form.find('.auto-calc-jam');
 
         if (!$tglMasuk.length || !$jamMasuk.length || !$tglKeluar.length || !$jamKeluar.length || !$standarJam.length) return;
 
-        var tglMasukVal  = $tglMasuk.val();
-        var jamMasukVal  = $jamMasuk.val();
+        var tglMasukVal = $tglMasuk.val();
+        var jamMasukVal = $jamMasuk.val();
         var standarJamVal = parseFloat($standarJam.val());
 
         if (tglMasukVal && jamMasukVal && !isNaN(standarJamVal) && standarJamVal > 0) {
             var masukDate = new Date(tglMasukVal + 'T' + jamMasukVal + ':00');
             masukDate.setTime(masukDate.getTime() + standarJamVal * 3600000);
             function pad(n) { return ('0' + n).slice(-2); }
-            $tglKeluar.val(masukDate.getFullYear() + '-' + pad(masukDate.getMonth()+1) + '-' + pad(masukDate.getDate()));
+            $tglKeluar.val(masukDate.getFullYear() + '-' + pad(masukDate.getMonth() + 1) + '-' + pad(masukDate.getDate()));
             $jamKeluar.val(pad(masukDate.getHours()) + ':' + pad(masukDate.getMinutes()));
         }
     }
 
-    $(document).on('keyup change', '.auto-calc-jam, .auto-calc-trigger', function() {
+    $(document).on('keyup change', '.auto-calc-jam, .auto-calc-trigger', function () {
         var $form = $(this).closest('.modal-content');
         if (!$form.length) { $form = $(this).closest('form'); }
         autoCalculateChamberTime($form);
@@ -808,7 +843,7 @@ $(document).ready(function() {
 
     function syncSaltSprayRustDropdowns($container) {
         if (!$container || !$container.length) return;
-        $container.find('select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]').each(function() {
+        $container.find('select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]').each(function () {
             let $select = $(this);
             let val = $select.val() || '';
             let $group = $select.closest('.form-group').next('.salt-spray-rust-group');
@@ -833,7 +868,7 @@ $(document).ready(function() {
         });
     }
 
-    $(document).on('change', '.salt-spray-rust-type', function() {
+    $(document).on('change', '.salt-spray-rust-type', function () {
         let rust = $(this).val() || 'White Rust';
         let $group = $(this).closest('.salt-spray-rust-group');
         let $mainSelect = $group.prev('.form-group').find('select');
@@ -843,23 +878,23 @@ $(document).ready(function() {
         }
     });
 
-    $(document).on('change', 'select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]', function() {
+    $(document).on('change', 'select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]', function () {
         let $container = $(this).closest('.modal-content, form');
         if ($container.length) {
             syncSaltSprayRustDropdowns($container);
         }
     });
 
-    $(document).on('keyup change input', '#modalInputCorrodkote input, #modalInputCass input, #modalInputSaltSpray input, #modalInputPorecount input, #formAddData input', function() {
+    $(document).on('keyup change input', '#modalInputCorrodkote input, #modalInputCass input, #modalInputSaltSpray input, #modalInputPorecount input, #formAddData input', function () {
         var $form = $(this).closest('.modal-content');
         if (!$form.length) { $form = $(this).closest('form'); }
         calculateTestAutoJudgment($form);
     });
 
-    $(document).on('input change blur', '#add_part_search', function() {
+    $(document).on('input change blur', '#add_part_search', function () {
         let val = $(this).val();
         let $hidden = $('#hidden_standard_performance_test_id');
-        let matchedOption = $('#masterPartList option').filter(function() {
+        let matchedOption = $('#masterPartList option').filter(function () {
             return $(this).val() === val;
         });
 
@@ -870,7 +905,7 @@ $(document).ready(function() {
             let saltTime = matchedOption.attr('data-salt-spray') || matchedOption.data('salt-spray');
             let cassTime = matchedOption.attr('data-cass') || matchedOption.data('cass');
             let corrTime = matchedOption.attr('data-corrodkote') || matchedOption.data('corrodkote');
-            let poreMin  = matchedOption.attr('data-porecount') || matchedOption.data('porecount');
+            let poreMin = matchedOption.attr('data-porecount') || matchedOption.data('porecount');
 
             let $modal = $(this).closest('.modal-content, form');
             $modal.find('input[name="standar_jam_salt_spray"], input[name="standar_jam_salt_spray_trial"]').val(saltTime || '');
@@ -886,7 +921,7 @@ $(document).ready(function() {
         }
     });
 
-    $(document).on('change input', 'input[name="tgl_masuk"]', function() {
+    $(document).on('change input', 'input[name="tgl_masuk"]', function () {
         var $form = $(this).closest('form');
         $form.find('input[name="tanggal_test"]').val($(this).val());
     });
@@ -940,7 +975,7 @@ $(document).ready(function() {
 
     $(document).on('hide.bs.dropdown', '.table-responsive .dropdown, #tableContainer .dropdown', function () {
         var $dropdown = $(this);
-        var $menu = $('body').children('.dropdown-menu').filter(function() {
+        var $menu = $('body').children('.dropdown-menu').filter(function () {
             return $(this).data('parent') && $(this).data('parent').is($dropdown);
         });
 

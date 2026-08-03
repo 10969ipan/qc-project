@@ -466,10 +466,7 @@
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                             <th rowspan="2" class="align-middle text-center">Thickness</th>
                         @endif
-                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">SPV Quality</th>
-                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">SPV Plating</th>
-                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Asst Manager Quality</th>
-                        <th rowspan="2" class="align-middle text-center" style="min-width: 130px;">Asst Manager Plating</th>
+                        <th colspan="4" class="align-middle text-center" style="color: #4e73df; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.5px;">APPROVAL STATUS</th>
                         <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">Keterangan / Rejection</th>
                         @if(!in_array(auth()->user()->role, ['inspector']))
                             <th rowspan="2" class="text-center align-middle" style="min-width: 200px;">Aksi Approval</th>
@@ -511,6 +508,10 @@
                             <th class="text-center th-standar" style="width: 100px;"><span style="text-transform: none !important; font-weight: bold !important;">Min Pores</span></th>
                             <th class="text-center th-aktual" style="width: 100px;"><span style="text-transform: none !important; font-weight: bold !important;">Actual Pores</span></th>
                         @endif
+                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">KASHIFT QC</th>
+                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">SUPERVISOR QC</th>
+                        <th class="text-center align-middle" style="min-width: 130px; font-size: 0.6rem; font-weight: 700; color: #475569;">ASST. MANAGER QC</th>
+                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">MANAGER QC</th>
                     </tr>
                 </thead>
                                                 <tbody>
@@ -1396,11 +1397,14 @@
                     </div>
                     @endif
                 </div>
-                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
-                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-info btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Update
-                    </button>
+                <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    <div id="thickness_last_updated_info" class="small text-muted font-italic" style="font-size: 0.72rem;"></div>
+                    <div>
+                        <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-info btn-sm px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Update
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1674,11 +1678,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
-                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan
-                    </button>
+                <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    <div id="corrodkote_last_updated_info" class="small text-muted font-italic" style="font-size: 0.72rem;"></div>
+                    <div>
+                        <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1939,11 +1946,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
-                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan
-                    </button>
+                <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    <div id="cass_last_updated_info" class="small text-muted font-italic" style="font-size: 0.72rem;"></div>
+                    <div>
+                        <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -2207,11 +2217,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
-                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan
-                    </button>
+                <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    <div id="salt_spray_last_updated_info" class="small text-muted font-italic" style="font-size: 0.72rem;"></div>
+                    <div>
+                        <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -2444,11 +2457,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
-                    <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan
-                    </button>
+                <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                    <div id="porecount_last_updated_info" class="small text-muted font-italic" style="font-size: 0.72rem;"></div>
+                    <div>
+                        <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
+                            <i class="fas fa-save mr-1"></i> Simpan
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
