@@ -64,7 +64,8 @@ class IncomingExportController extends Controller
     {
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'])->orderBy('name')->get();
+        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'];
+        $items = Item::byCategory($categories)->orderBy('name')->get();
 
         return view('incoming.exports.index', compact('checksheets', 'items'));
     }
@@ -72,13 +73,14 @@ class IncomingExportController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $query = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'])->orderBy('name');
+        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'];
+        $query = Item::byCategory($categories)->orderBy('name');
 
-        if ($request->has('plant')) {
-            $query->where('plant_id', Plant::resolveId($request->query('plant')));
-        } else {
-            $query->where('plant_id', $user->plant_id);
-        }
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $currentPlantId = $request->has('plant') ? Plant::resolveId($request->query('plant')) : $user->plant_id;
+
+        $plantIds = array_unique(array_filter([$currentPlantId, $jakartaPlantId]));
+        $query->whereIn('plant_id', $plantIds);
 
         $items = $query->get();
         $now = now();

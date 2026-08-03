@@ -868,60 +868,75 @@
                                     @endif
 
                                     {{-- 3 Dots Dropdown Menu --}}
-                                    <div class="dropdown no-arrow d-inline-block">
-                                        <button class="btn btn-sm btn-light border dropdown-toggle shadow-sm" data-display="static" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
-                                            <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $report->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
-                                            <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Laporan</div>
-                                            
-                                            <button type="button" class="dropdown-item btn-edit-thickness" 
-                                                data-id="{{ $report->id }}" 
-                                                data-item="{{ json_encode($report) }}" 
-                                                data-part="{{ $std->part_name }}"
-                                                data-stdcu="{{ $std->thickness_cu }}"
-                                                data-stdni="{{ $std->thickness_ni }}"
-                                                data-stdcr="{{ $std->thickness_cr }}">
-                                                <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
+                                    @php
+                                        $routeName = Route::currentRouteName();
+                                        $canEditReport = \App\Helpers\AppMenu::checkPermission($routeName, 'edit');
+                                        $canEditApproval = \App\Helpers\AppMenu::checkPermission($routeName, 'edit_approval');
+                                        $canCreateReport = \App\Helpers\AppMenu::checkPermission($routeName, 'create');
+                                        $canDeleteReport = \App\Helpers\AppMenu::checkPermission($routeName, 'delete');
+                                        $hasDropdownActions = $canEditReport || $canEditApproval || $canCreateReport || $canDeleteReport;
+                                    @endphp
+
+                                    @if($hasDropdownActions)
+                                        <div class="dropdown no-arrow d-inline-block">
+                                            <button class="btn btn-sm btn-light border dropdown-toggle shadow-sm" data-display="static" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
+                                                <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
                                             </button>
+                                            <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $report->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
+                                                <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Laporan</div>
+                                                
+                                                @if($canEditReport)
+                                                    <button type="button" class="dropdown-item btn-edit-thickness" 
+                                                        data-id="{{ $report->id }}" 
+                                                        data-item="{{ json_encode($report) }}" 
+                                                        data-part="{{ $std->part_name }}"
+                                                        data-stdcu="{{ $std->thickness_cu }}"
+                                                        data-stdni="{{ $std->thickness_ni }}"
+                                                        data-stdcr="{{ $std->thickness_cr }}">
+                                                        <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
+                                                    </button>
+                                                @endif
 
-                                            @if(in_array(auth()->user()->role, ['admin', 'supervisor_qc', 'supervisor', 'asst_manager_qc', 'asst_manager']))
-                                                <button type="button" class="dropdown-item btn-edit-approval"
-                                                    data-id="{{ $report->id }}"
-                                                    data-supervisor-qc="{{ $report->supervisor_qc }}"
-                                                    data-supervisor-plating="{{ $report->supervisor_plating }}"
-                                                    data-asst-manager-qc="{{ $report->asst_manager_qc }}"
-                                                    data-asst-manager-plating="{{ $report->asst_manager_plating }}"
-                                                    data-part="{{ $std->part_name ?? '-' }}"
-                                                    data-lot="{{ $report->lot_no }}">
-                                                    <i class="fas fa-user-check text-warning fa-fw mr-2"></i> Edit Status Approval
-                                                </button>
-                                            @endif
+                                                @if($canEditApproval)
+                                                    <button type="button" class="dropdown-item btn-edit-approval"
+                                                        data-id="{{ $report->id }}"
+                                                        data-supervisor-qc="{{ $report->supervisor_qc }}"
+                                                        data-supervisor-plating="{{ $report->supervisor_plating }}"
+                                                        data-asst-manager-qc="{{ $report->asst_manager_qc }}"
+                                                        data-asst-manager-plating="{{ $report->asst_manager_plating }}"
+                                                        data-part="{{ $std->part_name ?? '-' }}"
+                                                        data-lot="{{ $report->lot_no }}">
+                                                        <i class="fas fa-user-check text-warning fa-fw mr-2"></i> Edit Status Approval
+                                                    </button>
+                                                @endif
 
-                                            @if($testType == 'thickness')
-                                                <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
-                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
-                                                </button>
-                                                <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
-                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
-                                                </button>
-                                                <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
-                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
-                                                </button>
-                                                <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
-                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
-                                                </button>
-                                            @endif
-                                            
-                                            <div class="dropdown-divider"></div>
-                                            <form action="{{ route('standard-performance-tests.thickness.destroy', ['id' => $report->id, 'type' => $testType]) }}" method="POST" class="d-inline delete-form w-100">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
-                                                    <i class="fas fa-trash fa-fw mr-2"></i> Hapus
-                                                </button>
-                                            </form>
+                                                @if(($canCreateReport || $canEditReport) && $testType == 'thickness')
+                                                    <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
+                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
+                                                    </button>
+                                                    <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
+                                                    </button>
+                                                    <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
+                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
+                                                    </button>
+                                                    <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
+                                                    </button>
+                                                @endif
+                                                
+                                                @if($canDeleteReport)
+                                                    <div class="dropdown-divider"></div>
+                                                    <form action="{{ route('standard-performance-tests.thickness.destroy', ['id' => $report->id, 'type' => $testType]) }}" method="POST" class="d-inline delete-form w-100">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                            <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
