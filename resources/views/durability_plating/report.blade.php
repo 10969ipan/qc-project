@@ -392,6 +392,7 @@
                     <i class="fas fa-plus fa-sm"></i> Tambah Data
                 </button>
                 @endif
+                @include('partials.bulk_approve_button')
             </div>
         </form>
 

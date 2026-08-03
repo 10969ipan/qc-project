@@ -6,7 +6,8 @@
 @if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasFilter)
     <script>
         $(document).ready(function () {
-            $('#btnBulkApprove').on('click', function () {
+            $(document).off('click', '#btnBulkApprove').on('click', '#btnBulkApprove', function (e) {
+                e.preventDefault();
                 var startDate = '{{ request("start_date") }}';
                 var endDate = '{{ request("end_date", request("start_date")) }}';
                 var plant = '{{ request("plant", "") }}';
