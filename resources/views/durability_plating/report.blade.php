@@ -392,7 +392,6 @@
                     <i class="fas fa-plus fa-sm"></i> Tambah Data
                 </button>
                 @endif
-                @include('partials.bulk_approve_button')
             </div>
         </form>
 
@@ -469,9 +468,6 @@
                         @endif
                         <th colspan="4" class="align-middle text-center" style="color: #4e73df; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.5px;">APPROVAL STATUS</th>
                         <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">Keterangan / Rejection</th>
-                        @if(!in_array(auth()->user()->role, ['inspector']))
-                            <th rowspan="2" class="text-center align-middle" style="min-width: 200px;">Aksi Approval</th>
-                        @endif
                         <th rowspan="2" class="text-center align-middle">Actions</th>
                     </tr>
                     <tr>
@@ -509,10 +505,10 @@
                             <th class="text-center th-standar" style="width: 100px;"><span style="text-transform: none !important; font-weight: bold !important;">Min Pores</span></th>
                             <th class="text-center th-aktual" style="width: 100px;"><span style="text-transform: none !important; font-weight: bold !important;">Actual Pores</span></th>
                         @endif
-                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">KASHIFT QC</th>
                         <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">SUPERVISOR QC</th>
+                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">SUPERVISOR PLATING</th>
                         <th class="text-center align-middle" style="min-width: 130px; font-size: 0.6rem; font-weight: 700; color: #475569;">ASST. MANAGER QC</th>
-                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">MANAGER QC</th>
+                        <th class="text-center align-middle" style="min-width: 120px; font-size: 0.6rem; font-weight: 700; color: #475569;">ASST. MANAGER PLATING</th>
                     </tr>
                 </thead>
                                                 <tbody>
@@ -810,102 +806,121 @@
                                  @endif
                              </td>
 
-                             {{-- Aksi Approval Buttons --}}
-                             @if(!in_array(auth()->user()->role, ['inspector']))
-                                 <td class="align-middle text-center text-nowrap no-export" style="min-width: 200px;">
-                                     @php
-                                         $isAdmin = auth()->user()->role === 'admin';
-                                         $currentRole = auth()->user()->role;
+                            <td class="align-middle text-center text-nowrap no-export" style="min-width: 180px;">
+                                <div class="d-flex align-items-center justify-content-center flex-nowrap" style="gap: 4px;">
+                                    {{-- Bulk Approve Button (Only on 1st row) --}}
+                                    @if($loop->first)
+                                        @include('partials.bulk_approve_button')
+                                    @endif
 
-                                         $approvalLevels = [
-                                             'supervisor' => ['field' => 'supervisor_qc', 'label' => 'SPV Q'],
-                                             'supervisor_plating' => ['field' => 'supervisor_plating', 'label' => 'SPV P'],
-                                             'asst_manager' => ['field' => 'asst_manager_qc', 'label' => 'Asst MGR Q'],
-                                             'asst_manager_plating' => ['field' => 'asst_manager_plating', 'label' => 'Asst MGR P'],
-                                         ];
-                                         $approvalKeys = array_keys($approvalLevels);
-                                     @endphp
+                                    {{-- Row Approval Buttons --}}
+                                    @if(!in_array(auth()->user()->role, ['inspector']))
+                                        @php
+                                            $isAdmin = auth()->user()->role === 'admin';
+                                            $currentRole = auth()->user()->role;
 
-                                     @foreach($approvalLevels as $approvalRole => $config)
-                                         @php
-                                             $f = $config['field'];
-                                             $lbl = $config['label'];
+                                            $approvalLevels = [
+                                                'supervisor' => ['field' => 'supervisor_qc', 'label' => 'SPV Q'],
+                                                'supervisor_plating' => ['field' => 'supervisor_plating', 'label' => 'SPV P'],
+                                                'asst_manager' => ['field' => 'asst_manager_qc', 'label' => 'Asst MGR Q'],
+                                                'asst_manager_plating' => ['field' => 'asst_manager_plating', 'label' => 'Asst MGR P'],
+                                            ];
+                                            $approvalKeys = array_keys($approvalLevels);
+                                        @endphp
 
-                                             $idx = array_search($approvalRole, $approvalKeys);
-                                             $prevApproved = true;
-                                             if ($idx > 0) {
-                                                 for ($i = $idx - 1; $i >= 0; $i--) {
-                                                     $prevF = $approvalLevels[$approvalKeys[$i]]['field'];
-                                                     if (empty($report->$prevF) || $report->$prevF === 'REJECTED') {
-                                                         $prevApproved = false;
-                                                         break;
-                                                     }
-                                                 }
-                                             }
+                                        @foreach($approvalLevels as $approvalRole => $config)
+                                            @php
+                                                $f = $config['field'];
+                                                $lbl = $config['label'];
 
-                                             $userCanApproveThisRole = ($currentRole === $approvalRole) 
-                                                 || ($approvalRole === 'supervisor' && $currentRole === 'supervisor_qc')
-                                                 || ($approvalRole === 'asst_manager' && $currentRole === 'asst_manager_qc');
+                                                $idx = array_search($approvalRole, $approvalKeys);
+                                                $prevApproved = true;
+                                                if ($idx > 0) {
+                                                    for ($i = $idx - 1; $i >= 0; $i--) {
+                                                        $prevF = $approvalLevels[$approvalKeys[$i]]['field'];
+                                                        if (empty($report->$prevF) || $report->$prevF === 'REJECTED') {
+                                                            $prevApproved = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
 
-                                             $canApprove = ($isAdmin || $userCanApproveThisRole)
-                                                           && (empty($report->$f) || $report->$f === 'REJECTED')
-                                                           && $prevApproved;
-                                         @endphp
-                                         @if($canApprove)
-                                             <form action="{{ route('standard-performance-tests.approve', ['id' => $report->id, 'type' => $approvalRole]) }}" method="POST" class="d-inline">
-                                                 @csrf
-                                                 <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $lbl }})" style="font-size: 0.65rem; padding: 2px 6px;">
-                                                     <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' ' . $lbl : '' }}
-                                                 </button>
-                                             </form>
-                                             <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#rejectModal{{ $report->id }}{{ $approvalRole }}" style="font-size: 0.65rem; padding: 2px 6px;">
-                                                 <i class="fas fa-times"></i> Reject
-                                             </button>
-                                         @endif
-                                     @endforeach
-                                 </td>
-                             @endif
+                                                $userCanApproveThisRole = ($currentRole === $approvalRole) 
+                                                    || ($approvalRole === 'supervisor' && $currentRole === 'supervisor_qc')
+                                                    || ($approvalRole === 'asst_manager' && $currentRole === 'asst_manager_qc');
 
-                            <td class="align-middle text-center" style="width: 50px;">
-                                <div class="dropdown no-arrow">
-                                    <button class="btn btn-sm btn-light border dropdown-toggle" data-display="static" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
-                                        <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $report->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
-                                        <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Laporan</div>
-                                        
-                                        <button type="button" class="dropdown-item btn-edit-thickness" 
-                                            data-id="{{ $report->id }}" 
-                                            data-item="{{ json_encode($report) }}" 
-                                            data-part="{{ $std->part_name }}"
-                                            data-stdcu="{{ $std->thickness_cu }}"
-                                            data-stdni="{{ $std->thickness_ni }}"
-                                            data-stdcr="{{ $std->thickness_cr }}">
-                                            <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
+                                                $canApprove = ($isAdmin || $userCanApproveThisRole)
+                                                              && (empty($report->$f) || $report->$f === 'REJECTED')
+                                                              && $prevApproved;
+                                            @endphp
+                                            @if($canApprove)
+                                                <form action="{{ route('standard-performance-tests.approve', ['id' => $report->id, 'type' => $approvalRole]) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-sm shadow-sm" style="font-size: 0.72rem; padding: 3px 8px;" title="Approve ({{ $lbl }})">
+                                                        <i class="fas fa-check mr-1"></i> Approve{{ $isAdmin ? ' ' . $lbl : '' }}
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm shadow-sm" data-toggle="modal" data-target="#rejectModal{{ $report->id }}{{ $approvalRole }}" style="font-size: 0.72rem; padding: 3px 8px;" title="Reject">
+                                                    <i class="fas fa-times mr-1"></i> Reject
+                                                </button>
+                                            @endif
+                                        @endforeach
+                                    @endif
+
+                                    {{-- 3 Dots Dropdown Menu --}}
+                                    <div class="dropdown no-arrow d-inline-block">
+                                        <button class="btn btn-sm btn-light border dropdown-toggle shadow-sm" data-display="static" type="button" id="dropdownMenuButton-{{ $report->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:50%;">
+                                            <i class="fas fa-ellipsis-v text-muted" style="font-size:12px;"></i>
                                         </button>
+                                        <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuButton-{{ $report->id }}" style="min-width:180px; font-size:0.85rem; border-radius:8px;">
+                                            <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Aksi Laporan</div>
+                                            
+                                            <button type="button" class="dropdown-item btn-edit-thickness" 
+                                                data-id="{{ $report->id }}" 
+                                                data-item="{{ json_encode($report) }}" 
+                                                data-part="{{ $std->part_name }}"
+                                                data-stdcu="{{ $std->thickness_cu }}"
+                                                data-stdni="{{ $std->thickness_ni }}"
+                                                data-stdcr="{{ $std->thickness_cr }}">
+                                                <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
+                                            </button>
 
-                                        @if($testType == 'thickness')
-                                            <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
-                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
-                                            </button>
-                                            <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
-                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
-                                            </button>
-                                            <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
-                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
-                                            </button>
-                                            <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
-                                                <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
-                                            </button>
-                                        @endif
-                                        
-                                        <div class="dropdown-divider"></div>
-                                        <form action="{{ route('standard-performance-tests.thickness.destroy', ['id' => $report->id, 'type' => $testType]) }}" method="POST" class="d-inline delete-form w-100">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
-                                                <i class="fas fa-trash fa-fw mr-2"></i> Hapus
-                                            </button>
-                                        </form>
+                                            @if(in_array(auth()->user()->role, ['admin', 'supervisor_qc', 'supervisor', 'asst_manager_qc', 'asst_manager']))
+                                                <button type="button" class="dropdown-item btn-edit-approval"
+                                                    data-id="{{ $report->id }}"
+                                                    data-supervisor-qc="{{ $report->supervisor_qc }}"
+                                                    data-supervisor-plating="{{ $report->supervisor_plating }}"
+                                                    data-asst-manager-qc="{{ $report->asst_manager_qc }}"
+                                                    data-asst-manager-plating="{{ $report->asst_manager_plating }}"
+                                                    data-part="{{ $std->part_name ?? '-' }}"
+                                                    data-lot="{{ $report->lot_no }}">
+                                                    <i class="fas fa-user-check text-warning fa-fw mr-2"></i> Edit Status Approval
+                                                </button>
+                                            @endif
+
+                                            @if($testType == 'thickness')
+                                                <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
+                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
+                                                </button>
+                                                <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
+                                                </button>
+                                                <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
+                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
+                                                </button>
+                                                <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                    <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
+                                                </button>
+                                            @endif
+                                            
+                                            <div class="dropdown-divider"></div>
+                                            <form action="{{ route('standard-performance-tests.thickness.destroy', ['id' => $report->id, 'type' => $testType]) }}" method="POST" class="d-inline delete-form w-100">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                    <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -2537,6 +2552,7 @@
 <script>
     window.__DURABILITY_PLATING_REPORT__ = {
         updateUrl: "{{ route('standard-performance-tests.thickness.update', ':id') }}",
+        updateApprovalUrl: "{{ route('standard-performance-tests.update_approval', ':id') }}",
         bulkDestroyUrl: "{{ route('standard-performance-tests.thickness.bulk_destroy') }}",
         bulkCopyUrl: "{{ route('standard-performance-tests.thickness.bulk_copy') }}",
         csrfToken: "{{ csrf_token() }}",
@@ -3063,6 +3079,87 @@
         @endif
     @endforeach
 @endforeach
+
+<!-- Modal Edit Status Approval -->
+<div class="modal fade" id="modalEditApproval" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px;">
+        <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                    <i class="fas fa-user-check mr-2 text-warning"></i> Edit Status Approval
+                </h5>
+                <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="" method="POST" id="formEditApproval">
+                @csrf
+                @method('PUT')
+                <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
+                    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                        <i class="fas fa-info-circle mr-1"></i> METADATA LAPORAN
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="small font-weight-bold text-gray-700">Nama Part</label>
+                            <input type="text" id="edit_approval_part_name" class="form-control form-control-sm border-0 bg-light" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small font-weight-bold text-gray-700">No Lot</label>
+                            <input type="text" id="edit_approval_lot_no" class="form-control form-control-sm border-0 bg-light" readonly>
+                        </div>
+                    </div>
+
+                    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                        <i class="fas fa-tasks mr-1"></i> STATUS APPROVAL
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Status Supervisor QC</label>
+                        <select name="supervisor_qc" id="edit_status_supervisor_qc" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Status Supervisor Plating</label>
+                        <select name="supervisor_plating" id="edit_status_supervisor_plating" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Status Asst. Manager QC</label>
+                        <select name="asst_manager_qc" id="edit_status_asst_manager_qc" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Status Asst. Manager Plating</label>
+                        <select name="asst_manager_plating" id="edit_status_asst_manager_plating" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                    <button type="button" class="btn btn-light btn-sm border" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm">
+                        <i class="fas fa-save mr-1"></i> Simpan Status Approval
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @endsection
 

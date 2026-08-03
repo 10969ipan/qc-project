@@ -331,6 +331,29 @@ $(document).ready(function () {
         window.calculateEditThicknessJudgment();
     });
 
+    $(document).on('click', '.btn-edit-approval', function () {
+        let id = $(this).data('id');
+        let spvQc = $(this).data('supervisor-qc') || '';
+        let spvPlating = $(this).data('supervisor-plating') || '';
+        let asstQc = $(this).data('asst-manager-qc') || '';
+        let asstPlating = $(this).data('asst-manager-plating') || '';
+        let partName = $(this).data('part') || '-';
+        let lotNo = $(this).data('lot') || '-';
+
+        $('#edit_approval_part_name').val(partName);
+        $('#edit_approval_lot_no').val(lotNo);
+
+        $('#edit_status_supervisor_qc').val(spvQc === 'REJECTED' ? 'REJECTED' : (spvQc ? 'Approved' : ''));
+        $('#edit_status_supervisor_plating').val(spvPlating === 'REJECTED' ? 'REJECTED' : (spvPlating ? 'Approved' : ''));
+        $('#edit_status_asst_manager_qc').val(asstQc === 'REJECTED' ? 'REJECTED' : (asstQc ? 'Approved' : ''));
+        $('#edit_status_asst_manager_plating').val(asstPlating === 'REJECTED' ? 'REJECTED' : (asstPlating ? 'Approved' : ''));
+
+        let url = (config.updateApprovalUrl || '/qc/standard-performance-tests/:id/update-approval').replace(':id', id);
+        $('#formEditApproval').attr('action', url);
+
+        $('#modalEditApproval').modal('show');
+    });
+
     $('.btn-input-corrodkote').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputCorrodkote');

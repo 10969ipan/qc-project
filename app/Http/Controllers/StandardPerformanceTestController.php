@@ -1396,4 +1396,65 @@ class StandardPerformanceTestController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function updateApproval(Request $request, $id)
+    {
+        try {
+            $report = DurabilityThicknessReport::findOrFail($id);
+            $user = auth()->user();
+            $userName = $user->name ?? $user->username ?? 'User';
+            $now = now();
+
+            $fields = [
+                'supervisor_qc' => 'supervisor_approved_at',
+                'supervisor_plating' => 'supervisor_plating_approved_at',
+                'asst_manager_qc' => 'asst_manager_approved_at',
+                'asst_manager_plating' => 'asst_manager_plating_approved_at',
+            ];
+
+            $updateData = [];
+            foreach ($fields as $field => $timeField) {
+                if ($request->has($field)) {
+                    $val = $request->input($field);
+                    if ($val === 'Approved') {
+                        $updateData[$field] = $userName;
+                        $updateData[$timeField] = $report->$timeField ?? $now;
+                    } elseif ($val === 'REJECTED' || $val === 'Rejected') {
+                        $updateData[$field] = 'REJECTED';
+                        $updateData[$timeField] = $report->$timeField ?? $now;
+                    } else { // Pending / empty
+                        $updateData[$field] = null;
+                        $updateData[$timeField] = null;
+                    }
+                }
+            }
+
+            if (!empty($updateData)) {
+                $report->update($updateData);
+
+                // Sync to paired report (Data 1 / Data 2 Trial)
+                if ($report->data1_id) {
+                    DurabilityThicknessReport::where('id', $report->data1_id)->update($updateData);
+                } else {
+                    DurabilityThicknessReport::where('data1_id', $report->id)->update($updateData);
+                }
+
+                ActivityLogger::log('updated', $report, "Memperbarui status approval pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status approval berhasil diperbarui.',
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Status approval berhasil diperbarui.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

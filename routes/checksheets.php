@@ -274,6 +274,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('standard-performance-tests/{id}/approve/{type}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'approve'])->name('standard-performance-tests.approve');
         Route::post('standard-performance-tests/{id}/reject/{type}', [\App\Http\Controllers\StandardPerformanceTestController::class, 'reject'])->name('standard-performance-tests.reject');
         Route::post('standard-performance-tests/bulk-approve', [\App\Http\Controllers\StandardPerformanceTestController::class, 'bulkApprove'])->name('standard-performance-tests.bulk_approve');
+        Route::put('standard-performance-tests/{id}/update-approval', [\App\Http\Controllers\StandardPerformanceTestController::class, 'updateApproval'])->name('standard-performance-tests.update_approval');
         Route::resource('standard-performance-tests', \App\Http\Controllers\StandardPerformanceTestController::class);
 
         // Durability Plating Trial Routes (Data 2)
