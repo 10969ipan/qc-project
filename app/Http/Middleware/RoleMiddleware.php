@@ -17,7 +17,7 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!Auth::check()) {
-            return redirect('/login');
+            return redirect()->route('login');
         }
 
         // Check if user's role is in the allowed roles list

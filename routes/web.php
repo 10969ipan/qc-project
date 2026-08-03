@@ -12,6 +12,7 @@ use App\Http\Controllers\MachineStatusController;
 
 // Rute Default Landing Page - Explicitly matched
 Route::match(['GET', 'POST', 'HEAD'], '/', [AuthController::class, 'index'])->name('home');
+Route::match(['GET', 'POST', 'HEAD'], '/qc', [AuthController::class, 'index']);
 
 // Modular Routes (Public)
 require __DIR__ . '/auth.php';
@@ -56,11 +57,14 @@ Route::middleware(['auth'])->group(function () {
 
 // Catch-all route for debugging
 Route::fallback(function () {
-    return response()->json([
-        'message' => 'Route not found or method not allowed',
-        'uri' => request()->getRequestUri(),
-        'method' => request()->getMethod(),
-    ], 404);
+    if (request()->expectsJson() || request()->ajax()) {
+        return response()->json([
+            'message' => 'Route not found or method not allowed',
+            'uri' => request()->getRequestUri(),
+            'method' => request()->getMethod(),
+        ], 404);
+    }
+    return redirect()->route('login');
 });
 
 
