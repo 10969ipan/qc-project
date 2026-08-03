@@ -813,9 +813,6 @@
                              {{-- Aksi Approval Buttons --}}
                              @if(!in_array(auth()->user()->role, ['inspector']))
                                  <td class="align-middle text-center text-nowrap no-export" style="min-width: 200px;">
-                                     @if($loop->first)
-                                         @include('partials.bulk_approve_button')
-                                     @endif
                                      @php
                                          $isAdmin = auth()->user()->role === 'admin';
                                          $currentRole = auth()->user()->role;
@@ -3067,10 +3064,12 @@
     @endforeach
 @endforeach
 
-@php $bulkApproveRoute = route('standard-performance-tests.bulk_approve'); @endphp
-@include('partials.bulk_approve_script')
-
 @endsection
+
+@push('scripts')
+    @php $bulkApproveRoute = route('standard-performance-tests.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
+@endpush
 
 
 
