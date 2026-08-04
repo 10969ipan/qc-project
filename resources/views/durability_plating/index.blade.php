@@ -599,7 +599,7 @@
                 @csrf
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc;">
                     <div class="alert alert-info border-0 shadow-sm small py-2 mb-3">
-                        <i class="fas fa-info-circle mr-1"></i> Pastikan format kolom sesuai dengan template Excel yang disediakan. Data dengan nama Part yang sudah ada akan otomatis diperbarui.
+                        Pastikan format kolom sesuai dengan template Excel yang disediakan. Data dengan Nama Part, Part No dll yang sudah ada akan otomatis diperbarui.
                         <div class="mt-2 text-center">
                             <a href="{{ route('standard-performance-tests.template') }}" class="btn btn-info btn-sm rounded-pill px-3 shadow-sm">
                                 <i class="fas fa-download mr-1"></i> Download Template Excel

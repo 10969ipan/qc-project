@@ -98,8 +98,10 @@ $(document).ready(function() {
             $('#formEdit').attr('action', url);
             
             $('#edit_part_name').val(item.part_name);
+            $('#edit_part_number').val(item.part_number);
             $('#edit_customer_name').val(item.customer_name);
             $('#edit_customer_standard').val(item.customer_standard);
+            $('#edit_category').val(item.category);
             
             $('#edit_thickness_cu').val(item.thickness_cu);
             $('#edit_thickness_ni').val(item.thickness_ni);

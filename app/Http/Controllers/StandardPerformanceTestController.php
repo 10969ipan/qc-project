@@ -136,7 +136,7 @@ class StandardPerformanceTestController extends Controller
         $sheet->setTitle('Template Std Performance');
         
         $headers = [
-            'No.', 'Nama Part', 'Part No.', 'Customer', 'Standard Customer', 'Cr', 'Ni', 'Cu', 'Frek. Thickness',
+            'No.', 'Nama Part', 'Part No.', 'Customer', 'Standard Customer', 'Kategori', 'Cr', 'Ni', 'Cu', 'Frek. Thickness',
             'Corrodkote Waktu', 'Corrodkote Std Max', 'Corrodkote Frek',
             'Cass Waktu', 'Cass Std Min', 'Cass Frek',
             'Salt Spray Waktu', 'Salt Spray Std', 'Salt Spray Frek',
@@ -169,6 +169,7 @@ class StandardPerformanceTestController extends Controller
                     $item->part_number,
                     $item->customer_name,
                     $item->customer_standard,
+                    $item->category,
                     $item->thickness_cr,
                     $item->thickness_ni,
                     $item->thickness_cu,
@@ -190,7 +191,7 @@ class StandardPerformanceTestController extends Controller
             // Default sample rows jika tidak ada data
             $rowsData = [
                 [
-                    1, 'Sample Part A', 'P-1234', 'HONDA', 'HES', '20', '15', '10', '1x/Shift',
+                    1, 'Sample Part A', 'P-1234', 'HONDA', 'HES', 'R2/R4', '20', '15', '10', '1x/Shift',
                     '24', 'Max 5%', '1x/Shift',
                     '48', 'Min RN 8', '1x/Shift',
                     '72', 'Max 2%', '1x/Shift',
@@ -265,21 +266,22 @@ class StandardPerformanceTestController extends Controller
                     'part_number' => $partNo,
                     'customer_name' => $row[3] ?? null,
                     'customer_standard' => $row[4] ?? null,
-                    'thickness_cr' => $row[5] ?? null,
-                    'thickness_ni' => $row[6] ?? null,
-                    'thickness_cu' => $row[7] ?? null,
-                    'thickness_freq' => $row[8] ?? null,
-                    'corrodkote_time' => $row[9] ?? null,
-                    'corrodkote_std_max_corrosion' => $row[10] ?? null,
-                    'corrodkote_freq' => $row[11] ?? null,
-                    'cass_time' => $row[12] ?? null,
-                    'cass_std_min_rn' => $row[13] ?? null,
-                    'cass_freq' => $row[14] ?? null,
-                    'salt_spray_time' => $row[15] ?? null,
-                    'salt_spray_std_rusting' => $row[16] ?? null,
-                    'salt_spray_freq' => $row[17] ?? null,
-                    'porecount_std_min' => $row[18] ?? null,
-                    'porecount_freq' => $row[19] ?? null,
+                    'category' => $row[5] ?? null,
+                    'thickness_cr' => $row[6] ?? null,
+                    'thickness_ni' => $row[7] ?? null,
+                    'thickness_cu' => $row[8] ?? null,
+                    'thickness_freq' => $row[9] ?? null,
+                    'corrodkote_time' => $row[10] ?? null,
+                    'corrodkote_std_max_corrosion' => $row[11] ?? null,
+                    'corrodkote_freq' => $row[12] ?? null,
+                    'cass_time' => $row[13] ?? null,
+                    'cass_std_min_rn' => $row[14] ?? null,
+                    'cass_freq' => $row[15] ?? null,
+                    'salt_spray_time' => $row[16] ?? null,
+                    'salt_spray_std_rusting' => $row[17] ?? null,
+                    'salt_spray_freq' => $row[18] ?? null,
+                    'porecount_std_min' => $row[19] ?? null,
+                    'porecount_freq' => $row[20] ?? null,
                 ];
 
                 if ($standard) {
