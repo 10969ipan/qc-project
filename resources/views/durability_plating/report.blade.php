@@ -272,7 +272,7 @@
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
                 <div style="width: 200px;" class="custom-filter-wrapper">
-                    <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none" onchange="this.form.submit()">
+                    <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                         <option value="">Semua Part / Customer...</option>
                         @foreach($items as $item)
                             <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
@@ -286,27 +286,31 @@
             <!-- Field: Customer -->
             <div class="d-flex align-items-center ml-2">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Customer:</label>
-                <select name="customer_name" class="form-control form-control-sm border-0 shadow-sm" style="width: 150px; font-size: 0.75rem;" onchange="this.form.submit()">
-                    <option value="">Semua Customer</option>
-                    @foreach($customers as $customer)
-                        <option value="{{ $customer }}" {{ request('customer_name') == $customer ? 'selected' : '' }}>
-                            {{ $customer }}
-                        </option>
-                    @endforeach
-                </select>
+                <div style="width: 150px;" class="custom-filter-wrapper">
+                    <select name="customer_name" id="filterCustomerName" class="form-control form-control-sm border-0 shadow-sm">
+                        <option value="">Semua Customer</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer }}" {{ request('customer_name') == $customer ? 'selected' : '' }}>
+                                {{ $customer }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <!-- Field: Kategori -->
             <div class="d-flex align-items-center ml-2">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Kategori:</label>
-                <select name="category" class="form-control form-control-sm border-0 shadow-sm" style="width: 140px; font-size: 0.75rem;" onchange="this.form.submit()">
-                    <option value="">Semua Kategori</option>
-                    @foreach($categories as $cat)
-                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
-                            {{ $cat }}
-                        </option>
-                    @endforeach
-                </select>
+                <div style="width: 140px;" class="custom-filter-wrapper">
+                    <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm">
+                        <option value="">Semua Kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                                {{ $cat }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <!-- Field: Tanggal -->
@@ -324,11 +328,13 @@
             <!-- Field: Result -->
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Result:</label>
-                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" style="width: 100px; font-size: 0.75rem;" onchange="this.form.submit()">
-                    <option value="">Semua</option>
-                    <option value="OK" {{ request('result_judgment') === 'OK' ? 'selected' : '' }}>OK</option>
-                    <option value="NG" {{ request('result_judgment') === 'NG' ? 'selected' : '' }}>NG</option>
-                </select>
+                <div style="width: 100px;" class="custom-filter-wrapper">
+                    <select name="result_judgment" id="filterResultJudgment" class="form-control form-control-sm border-0 shadow-sm">
+                        <option value="">Semua</option>
+                        <option value="OK" {{ strtoupper(request('result_judgment')) == 'OK' ? 'selected' : '' }}>OK</option>
+                        <option value="NG" {{ strtoupper(request('result_judgment')) == 'NG' ? 'selected' : '' }}>NG</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Field: Rata-Rata Thickness (Plain Text Centered in Middle Space) -->

@@ -579,13 +579,39 @@ class StandardPerformanceTestController extends Controller
                 $query->whereDate('tanggal_cek', '<=', $request->end_date);
             }
             if ($request->filled('result_judgment')) {
-                $query->where(function($q) use ($request, $testType) {
-                    $val = $request->result_judgment;
-                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', $val)->orWhere('result_judgment_corrodkote', 'LIKE', "$val %")->orWhere('result_judgment_corrodkote', 'LIKE', "$val-%");
-                    elseif ($testType === 'cass') $q->where('result_judgment_cass', $val)->orWhere('result_judgment_cass', 'LIKE', "$val %")->orWhere('result_judgment_cass', 'LIKE', "$val-%");
-                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', $val)->orWhere('result_judgment_salt_spray', 'LIKE', "$val %")->orWhere('result_judgment_salt_spray', 'LIKE', "$val-%");
-                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', $val)->orWhere('result_judgment_porecount', 'LIKE', "$val %")->orWhere('result_judgment_porecount', 'LIKE', "$val-%");
-                    else $q->where('result_judgment', $val)->orWhere('result_judgment', 'LIKE', "$val %")->orWhere('result_judgment', 'LIKE', "$val-%");
+                $val = strtoupper(trim($request->result_judgment));
+                $query->where(function($q) use ($val, $testType) {
+                    if ($val === 'NG') {
+                        $q->where('result_judgment', 'LIKE', '%NG%');
+                        if ($testType === 'thickness') {
+                            $q->orWhereHas('standard', function($sq) {
+                                $sq->whereRaw('(durability_thickness_reports.actual_cr IS NOT NULL AND durability_thickness_reports.actual_cr != "" AND durability_thickness_reports.actual_cr != "-" AND CAST(durability_thickness_reports.actual_cr AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cr AS DECIMAL(10,4)))')
+                                  ->orWhereRaw('(durability_thickness_reports.actual_ni IS NOT NULL AND durability_thickness_reports.actual_ni != "" AND durability_thickness_reports.actual_ni != "-" AND CAST(durability_thickness_reports.actual_ni AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_ni AS DECIMAL(10,4)))')
+                                  ->orWhereRaw('(durability_thickness_reports.actual_cu IS NOT NULL AND durability_thickness_reports.actual_cu != "" AND durability_thickness_reports.actual_cu != "-" AND CAST(durability_thickness_reports.actual_cu AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cu AS DECIMAL(10,4)))');
+                            });
+                        } elseif ($testType === 'corrodkote') {
+                            $q->orWhere('result_judgment_corrodkote', 'LIKE', '%NG%');
+                        } elseif ($testType === 'cass') {
+                            $q->orWhere('result_judgment_cass', 'LIKE', '%NG%');
+                        } elseif ($testType === 'salt_spray') {
+                            $q->orWhere('result_judgment_salt_spray', 'LIKE', '%NG%');
+                        } elseif ($testType === 'porecount') {
+                            $q->orWhere('result_judgment_porecount', 'LIKE', '%NG%');
+                        }
+                    } elseif ($val === 'OK') {
+                        $q->where('result_judgment', 'LIKE', '%OK%');
+                        if ($testType === 'corrodkote') {
+                            $q->orWhere('result_judgment_corrodkote', 'LIKE', '%OK%');
+                        } elseif ($testType === 'cass') {
+                            $q->orWhere('result_judgment_cass', 'LIKE', '%OK%');
+                        } elseif ($testType === 'salt_spray') {
+                            $q->orWhere('result_judgment_salt_spray', 'LIKE', '%OK%');
+                        } elseif ($testType === 'porecount') {
+                            $q->orWhere('result_judgment_porecount', 'LIKE', '%OK%');
+                        }
+                    } else {
+                        $q->where('result_judgment', 'LIKE', "%$val%");
+                    }
                 });
             }
         }
@@ -1332,13 +1358,39 @@ class StandardPerformanceTestController extends Controller
                 $query->whereDate('tanggal_cek', '<=', $request->end_date);
             }
             if ($request->filled('result_judgment')) {
-                $val = $request->result_judgment;
+                $val = strtoupper(trim($request->result_judgment));
                 $query->where(function($q) use ($val, $testType) {
-                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', $val)->orWhere('result_judgment_corrodkote', 'LIKE', "$val %")->orWhere('result_judgment_corrodkote', 'LIKE', "$val-%");
-                    elseif ($testType === 'cass') $q->where('result_judgment_cass', $val)->orWhere('result_judgment_cass', 'LIKE', "$val %")->orWhere('result_judgment_cass', 'LIKE', "$val-%");
-                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', $val)->orWhere('result_judgment_salt_spray', 'LIKE', "$val %")->orWhere('result_judgment_salt_spray', 'LIKE', "$val-%");
-                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', $val)->orWhere('result_judgment_porecount', 'LIKE', "$val %")->orWhere('result_judgment_porecount', 'LIKE', "$val-%");
-                    else $q->where('result_judgment', $val)->orWhere('result_judgment', 'LIKE', "$val %")->orWhere('result_judgment', 'LIKE', "$val-%");
+                    if ($val === 'NG') {
+                        $q->where('result_judgment', 'LIKE', '%NG%');
+                        if ($testType === 'thickness') {
+                            $q->orWhereHas('standard', function($sq) {
+                                $sq->whereRaw('(durability_thickness_reports.actual_cr IS NOT NULL AND durability_thickness_reports.actual_cr != "" AND durability_thickness_reports.actual_cr != "-" AND CAST(durability_thickness_reports.actual_cr AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cr AS DECIMAL(10,4)))')
+                                  ->orWhereRaw('(durability_thickness_reports.actual_ni IS NOT NULL AND durability_thickness_reports.actual_ni != "" AND durability_thickness_reports.actual_ni != "-" AND CAST(durability_thickness_reports.actual_ni AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_ni AS DECIMAL(10,4)))')
+                                  ->orWhereRaw('(durability_thickness_reports.actual_cu IS NOT NULL AND durability_thickness_reports.actual_cu != "" AND durability_thickness_reports.actual_cu != "-" AND CAST(durability_thickness_reports.actual_cu AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cu AS DECIMAL(10,4)))');
+                            });
+                        } elseif ($testType === 'corrodkote') {
+                            $q->orWhere('result_judgment_corrodkote', 'LIKE', '%NG%');
+                        } elseif ($testType === 'cass') {
+                            $q->orWhere('result_judgment_cass', 'LIKE', '%NG%');
+                        } elseif ($testType === 'salt_spray') {
+                            $q->orWhere('result_judgment_salt_spray', 'LIKE', '%NG%');
+                        } elseif ($testType === 'porecount') {
+                            $q->orWhere('result_judgment_porecount', 'LIKE', '%NG%');
+                        }
+                    } elseif ($val === 'OK') {
+                        $q->where('result_judgment', 'LIKE', '%OK%');
+                        if ($testType === 'corrodkote') {
+                            $q->orWhere('result_judgment_corrodkote', 'LIKE', '%OK%');
+                        } elseif ($testType === 'cass') {
+                            $q->orWhere('result_judgment_cass', 'LIKE', '%OK%');
+                        } elseif ($testType === 'salt_spray') {
+                            $q->orWhere('result_judgment_salt_spray', 'LIKE', '%OK%');
+                        } elseif ($testType === 'porecount') {
+                            $q->orWhere('result_judgment_porecount', 'LIKE', '%OK%');
+                        }
+                    } else {
+                        $q->where('result_judgment', 'LIKE', "%$val%");
+                    }
                 });
             }
             if ($request->filled('search')) {

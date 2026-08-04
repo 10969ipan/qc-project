@@ -866,7 +866,7 @@ $(document).ready(function () {
 
     function syncSaltSprayRustDropdowns($container) {
         if (!$container || !$container.length) return;
-        $container.find('select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]').each(function () {
+        $container.find('select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]').not('#filterResultJudgment, .custom-filter-wrapper select').each(function () {
             let $select = $(this);
             let val = $select.val() || '';
             let $group = $select.closest('.form-group').next('.salt-spray-rust-group');
@@ -902,7 +902,8 @@ $(document).ready(function () {
     });
 
     $(document).on('change', 'select[name="result_judgment_salt_spray"], select[name="result_judgment_salt_spray_trial"], select[name="result_judgment"]', function () {
-        let $container = $(this).closest('.modal-content, form');
+        if ($(this).is('#filterResultJudgment') || $(this).closest('.custom-filter-wrapper').length) return;
+        let $container = $(this).closest('.modal-content');
         if ($container.length) {
             syncSaltSprayRustDropdowns($container);
         }
