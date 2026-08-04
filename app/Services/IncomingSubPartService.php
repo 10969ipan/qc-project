@@ -53,20 +53,32 @@ class IncomingSubPartService extends BaseService
             });
         }
 
-        if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
-            $query->where(function ($q) {
-                $q->whereNotNull('qrcode')
-                  ->orWhereNotNull('unique_code_id')
-                  ->orWhereIn('scan_method', ['hardware', 'camera']);
-            });
-        } elseif (!empty($filters['entry_method'])) {
-            if (in_array($filters['entry_method'], ['qr', 'verification'])) {
+        $table = $query->getModel()->getTable();
+        if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'qrcode')) {
+            if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
                 $query->where(function ($q) {
                     $q->whereNotNull('qrcode')
                       ->orWhereNotNull('unique_code_id')
                       ->orWhereIn('scan_method', ['hardware', 'camera']);
                 });
-            } elseif (in_array($filters['entry_method'], ['manual', 'regular'])) {
+            } elseif (!empty($filters['entry_method'])) {
+                if (in_array($filters['entry_method'], ['qr', 'verification'])) {
+                    $query->where(function ($q) {
+                        $q->whereNotNull('qrcode')
+                          ->orWhereNotNull('unique_code_id')
+                          ->orWhereIn('scan_method', ['hardware', 'camera']);
+                    });
+                } elseif (in_array($filters['entry_method'], ['manual', 'regular'])) {
+                    $query->where(function ($q) {
+                        $q->whereNull('qrcode')
+                          ->whereNull('unique_code_id')
+                          ->where(function ($sub) {
+                              $sub->whereNull('scan_method')
+                                  ->orWhere('scan_method', 'manual');
+                          });
+                    });
+                }
+            } else {
                 $query->where(function ($q) {
                     $q->whereNull('qrcode')
                       ->whereNull('unique_code_id')
@@ -76,15 +88,6 @@ class IncomingSubPartService extends BaseService
                       });
                 });
             }
-        } else {
-            $query->where(function ($q) {
-                $q->whereNull('qrcode')
-                  ->whereNull('unique_code_id')
-                  ->where(function ($sub) {
-                      $sub->whereNull('scan_method')
-                          ->orWhere('scan_method', 'manual');
-                  });
-            });
         }
 
         if (!empty($filters['id'])) {

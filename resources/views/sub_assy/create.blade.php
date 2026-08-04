@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Input Data Checksheet')
 
@@ -75,7 +75,7 @@
         $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
         $tableOptions = range(1, 15);
         if ($plant === 'jakarta') {
-            $tableOptions = [1, 2, 4, 5, 6, 7, 8, 9, 10, 11];
+            $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
         }
     @endphp
 

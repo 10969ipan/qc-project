@@ -228,18 +228,20 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
-                    @if(request('view_mode') !== 'verifikasi')
-                        <a href="{{ route('incoming.sub_parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'qr', 'plant' => request('plant')])) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
-                            style="background-color: #6f42c1; color: white;">
-                            <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
-                        </a>
-                    @else
-                        <a href="{{ route('incoming.sub_parts.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
-                            style="background-color: #6c757d; color: white;">
-                            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
-                        </a>
+                    @if(\Illuminate\Support\Facades\Schema::hasColumn('incoming_sub_parts', 'qrcode'))
+                        @if(request('view_mode') !== 'verifikasi')
+                            <a href="{{ route('incoming.sub_parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'qr', 'plant' => request('plant')])) }}"
+                                class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
+                                style="background-color: #6f42c1; color: white;">
+                                <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
+                            </a>
+                        @else
+                            <a href="{{ route('incoming.sub_parts.index', ['plant' => request('plant')]) }}"
+                                class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
+                                style="background-color: #6c757d; color: white;">
+                                <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
+                            </a>
+                        @endif
                     @endif
                     @if($canExport)
                     <a href="{{ route('incoming.sub_parts.export_pdf', request()->query()) }}"

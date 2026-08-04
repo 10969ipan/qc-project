@@ -289,15 +289,21 @@ class DashboardService extends BaseService
         }
 
         // Hanya hitung data regular (bukan verification) untuk seluruh modul
-        if ($table === 'incoming_parts' || $table === 'incoming_sub_parts') {
-            $query->where(function ($q) {
+        if ($this->hasColumnCached($table, 'qrcode')) {
+            $query->where(function ($q) use ($table) {
                 $q->where(function ($sub) {
                     $sub->whereNull('qrcode')->orWhere('qrcode', '');
-                })->where(function ($sub) {
-                    $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
-                })->where(function ($sub) {
-                    $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
                 });
+                if ($this->hasColumnCached($table, 'unique_code_id')) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                    });
+                }
+                if ($this->hasColumnCached($table, 'scan_method')) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                    });
+                }
             });
         } elseif ($this->hasColumnCached($table, 'entry_method')) {
             $query->whereIn('entry_method', ['regular', 'manual']);
