@@ -168,11 +168,11 @@ class SubAssyChecksheetService extends BaseService
             ]);
 
             // Clear manual line status override
-            \App\Models\MachineStatus::updateOrCreate(
+            \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $checksheet->plant_id,
                     'type' => 'line',
-                    'number' => $checksheet->line,
+                    'number' => (int) $checksheet->line,
                 ],
                 [
                     'status' => 'normal',
@@ -297,11 +297,11 @@ class SubAssyChecksheetService extends BaseService
             $checksheet->update($updateData);
 
             // Clear manual line status override
-            \App\Models\MachineStatus::updateOrCreate(
+            \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $checksheet->plant_id,
                     'type' => 'line',
-                    'number' => $checksheet->line,
+                    'number' => (int) $checksheet->line,
                 ],
                 [
                     'status' => 'normal',

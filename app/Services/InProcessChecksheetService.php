@@ -460,11 +460,11 @@ class InProcessChecksheetService extends BaseService
             ]);
 
             // Clear manual machine status override
-            \App\Models\MachineStatus::updateOrCreate(
+            \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $checksheet->plant_id,
                     'type' => 'machine',
-                    'number' => $checksheet->code_machine,
+                    'number' => (int) $checksheet->code_machine,
                 ],
                 [
                     'status' => 'normal',
@@ -599,11 +599,11 @@ class InProcessChecksheetService extends BaseService
             $checksheet->update($updateData);
 
             // Clear manual machine status override
-            \App\Models\MachineStatus::updateOrCreate(
+            \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
                 [
                     'plant_id' => $checksheet->plant_id,
                     'type' => 'machine',
-                    'number' => $checksheet->code_machine,
+                    'number' => (int) $checksheet->code_machine,
                 ],
                 [
                     'status' => 'normal',

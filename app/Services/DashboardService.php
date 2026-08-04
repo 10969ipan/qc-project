@@ -374,10 +374,18 @@ class DashboardService extends BaseService
         $lineStatuses = $manualStatuses->where('type', 'line')->keyBy('number');
         $machineStatuses = $manualStatuses->where('type', 'machine')->keyBy('number');
 
-        $runningLinesCount = $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->keys())->count();
-        $runningMachinesCount = $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble'])->keys())->count();
+        $runningLinesCount = max(0, $activeLines->count() - $activeLines->keys()->intersect($lineStatuses->whereIn('status', ['stopped', 'trouble', 'maintenance', 'standby'])->keys())->count());
+        $runningMachinesCount = max(0, $activeMachines->count() - $activeMachines->keys()->intersect($machineStatuses->whereIn('status', ['stopped', 'trouble', 'maintenance', 'standby'])->keys())->count());
 
         return compact('activeLines', 'activeMachines', 'lineStatuses', 'machineStatuses', 'runningLinesCount', 'runningMachinesCount');
+    }
+
+    /**
+     * Clear all cached dashboard statistics and monitoring data on-demand.
+     */
+    public static function clearDashboardCache(): void
+    {
+        Cache::flush();
     }
 
     /**
@@ -403,7 +411,7 @@ class DashboardService extends BaseService
 
     private function fetchLatestRecord(string $modelClass, $plantId, $date, $shift)
     {
-        $query = $modelClass::with('item:id,name,part_number')->orderBy('created_at', 'desc');
+        $query = $modelClass::withoutGlobalScope('plant')->with('item:id,name,part_number')->orderBy('created_at', 'desc');
         if ($plantId) {
             $query->where('plant_id', $plantId);
         }
@@ -421,7 +429,8 @@ class DashboardService extends BaseService
 
     private function fetchActivePlating($date, $shift, $plantId)
     {
-        $query = PlatingChecksheet::with('item:id,name,part_number')
+        $query = PlatingChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -438,7 +447,8 @@ class DashboardService extends BaseService
 
     private function fetchActivePainting($date, $shift, $plantId)
     {
-        $query = \App\Models\PaintingChecksheet::with('item:id,name,part_number')
+        $query = \App\Models\PaintingChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -455,7 +465,8 @@ class DashboardService extends BaseService
 
     private function fetchActiveCrossCutPlating($date, $shift, $plantId)
     {
-        $query = \App\Models\CrossCutChecksheet::with('item:id,name,part_number')
+        $query = \App\Models\CrossCutChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->whereDate('qc_datetime', $date)
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
@@ -472,7 +483,8 @@ class DashboardService extends BaseService
 
     private function fetchActiveCrossCutPainting($date, $shift, $plantId)
     {
-        $query = \App\Models\CrossCutPaintingChecksheet::with('item:id,name,part_number')
+        $query = \App\Models\CrossCutPaintingChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->whereDate('qc_datetime', $date)
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
@@ -490,7 +502,8 @@ class DashboardService extends BaseService
     private function fetchActiveLines($date, $shift, $plantId)
     {
         // Fetch LATEST record for each line with lightweight item columns
-        $query = SubAssyChecksheet::with('item:id,name,part_number')
+        $query = SubAssyChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('line')
@@ -508,20 +521,24 @@ class DashboardService extends BaseService
     private function fetchActiveMachines($date, $shift, $plantId)
     {
         // Fetch LATEST record for each machine with lightweight item columns
-        $inProcessQuery = InProcessChecksheet::with('item:id,name,part_number')
+        $inProcessQuery = InProcessChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('code_machine')
+            ->where('code_machine', '!=', '')
             ->orderBy('created_at', 'desc');
 
         if ($plantId) {
             $inProcessQuery->where('plant_id', $plantId);
         }
 
-        $fpaQuery = FirstPieceApproval::with('item:id,name,part_number')
+        $fpaQuery = FirstPieceApproval::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
             ->where('date', $date)
             ->where('shift', $shift)
             ->whereNotNull('code_machine')
+            ->where('code_machine', '!=', '')
             ->orderBy('created_at', 'desc');
 
         if ($plantId) {
@@ -537,7 +554,12 @@ class DashboardService extends BaseService
 
     private function fetchManualStatuses($shiftStartTime, $plantId)
     {
-        $query = MachineStatus::whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
+        $query = MachineStatus::withoutGlobalScope('plant')
+            ->whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
+
+        if ($shiftStartTime) {
+            $query->where('updated_at', '>=', $shiftStartTime);
+        }
 
         if ($plantId) {
             $query->where('plant_id', $plantId);

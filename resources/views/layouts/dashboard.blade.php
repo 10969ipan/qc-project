@@ -905,18 +905,18 @@
                                 @php
                                     $data = $productionJakarta['activeMachines']->get($i);
                                     $manualStatus = $productionJakarta['machineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
+
+                                    $isManualActive = $manualStatus && in_array($manualStatus->status, ['maintenance', 'stopped', 'trouble', 'standby']) 
+                                        && (!$data || ($manualStatus->updated_at && $data->created_at && $manualStatus->updated_at->gt($data->created_at)));
+
+                                    $isActive = $data && !$isManualActive;
                                     $isNg = $isActive && $data->judgment === 'NG';
                                     $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
+
+                                    if ($isManualActive) {
+                                        if ($manualStatus->status === 'maintenance') $statusClass = 'status-maintenance';
+                                        elseif ($manualStatus->status === 'stopped') $statusClass = 'status-stopped';
+                                        elseif ($manualStatus->status === 'trouble') $statusClass = 'status-trouble';
                                     } elseif ($isActive) {
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
@@ -1071,18 +1071,18 @@
                                 @php
                                     $data = $productionKarawang['activeMachines']->get($i);
                                     $manualStatus = $productionKarawang['machineStatuses']->get($i);
-                                    $isActive = $data ? true : false;
+
+                                    $isManualActive = $manualStatus && in_array($manualStatus->status, ['maintenance', 'stopped', 'trouble', 'standby']) 
+                                        && (!$data || ($manualStatus->updated_at && $data->created_at && $manualStatus->updated_at->gt($data->created_at)));
+
+                                    $isActive = $data && !$isManualActive;
                                     $isNg = $isActive && $data->judgment === 'NG';
                                     $statusClass = 'status-idle';
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
+
+                                    if ($isManualActive) {
+                                        if ($manualStatus->status === 'maintenance') $statusClass = 'status-maintenance';
+                                        elseif ($manualStatus->status === 'stopped') $statusClass = 'status-stopped';
+                                        elseif ($manualStatus->status === 'trouble') $statusClass = 'status-trouble';
                                     } elseif ($isActive) {
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }
@@ -1426,21 +1426,17 @@
                                     $machineInfo = ($plant === 'jakarta') ? ($jakartaMachines[$i] ?? null) : ($karawangMachines[$i] ?? null);
                                     $tonnage = $machineInfo['tonnage'] ?? '-';
 
-                                    
-                                    $isActive = $data ? true : false;
+                                    $isManualActive = $manualStatus && in_array($manualStatus->status, ['maintenance', 'stopped', 'trouble', 'standby']) 
+                                        && (!$data || ($manualStatus->updated_at && $data->created_at && $manualStatus->updated_at->gt($data->created_at)));
+
+                                    $isActive = $data && !$isManualActive;
                                     $isNg = $isActive && $data->judgment === 'NG';
                                     $statusClass = 'status-idle';
 
-                                    
-                                    if ($manualStatus && $manualStatus->status === 'maintenance') {
-                                        $statusClass = 'status-maintenance';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'stopped') {
-                                        $statusClass = 'status-stopped';
-                                        $isActive = false;
-                                    } elseif ($manualStatus && $manualStatus->status === 'trouble') {
-                                        $statusClass = 'status-trouble';
-                                        $isActive = false;
+                                    if ($isManualActive) {
+                                        if ($manualStatus->status === 'maintenance') $statusClass = 'status-maintenance';
+                                        elseif ($manualStatus->status === 'stopped') $statusClass = 'status-stopped';
+                                        elseif ($manualStatus->status === 'trouble') $statusClass = 'status-trouble';
                                     } elseif ($isActive) {
                                         $statusClass = $isNg ? 'status-active-danger' : 'status-active-success';
                                     }

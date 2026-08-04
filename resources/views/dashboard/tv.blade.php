@@ -368,10 +368,12 @@
                                 @php
                                     $data = $activeMachines->get($i);
                                     $manualStatus = $machineStatuses->get($i);
-                                    $isTrouble = ($manualStatus && $manualStatus->status === 'trouble');
-                                    $isMaintenance = ($manualStatus && $manualStatus->status === 'maintenance');
-                                    $isStopped = ($manualStatus && $manualStatus->status === 'stopped');
-                                    $isActive = ($data && !$isTrouble && !$isMaintenance && !$isStopped);
+                                    $isManualActive = $manualStatus && in_array($manualStatus->status, ['trouble', 'maintenance', 'stopped', 'standby'])
+                                        && (!$data || ($manualStatus->updated_at && $data->created_at && $manualStatus->updated_at->gt($data->created_at)));
+                                    $isTrouble = ($isManualActive && $manualStatus->status === 'trouble');
+                                    $isMaintenance = ($isManualActive && $manualStatus->status === 'maintenance');
+                                    $isStopped = ($isManualActive && $manualStatus->status === 'stopped');
+                                    $isActive = ($data && !$isManualActive);
                                     $qcName = ($isActive && isset($operatorMap[$data->operator_initials])) ? $operatorMap[$data->operator_initials] : ($data->operator_initials ?? '-');
                                 @endphp
                                 <div class="station-card flex flex-col p-3 bg-white border-2 border-slate-100 rounded-2xl shadow-sm h-full min-h-0 overflow-hidden" data-station-type="mesin" data-station-id="{{ $i }}">
@@ -912,7 +914,9 @@
                 // Helper to render Content HTML
                 const getContentHtml = (type, id, item, manualStatus) => {
                     const status = manualStatus ? manualStatus.status : null;
-                    const isActive = (item && status !== 'trouble' && status !== 'maintenance' && status !== 'stopped');
+                    const isManualActive = manualStatus && ['trouble', 'maintenance', 'stopped', 'standby'].includes(manualStatus.status)
+                        && (!item || (manualStatus.updated_at && item.created_at && manualStatus.updated_at > item.created_at));
+                    const isActive = (item && !isManualActive);
                     
                     if (isActive) {
                         const qcName = operatorMap[item.operator_initials?.toUpperCase()] || item.operator_initials || '-';
