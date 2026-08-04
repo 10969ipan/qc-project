@@ -124,8 +124,9 @@ class IncomingPartController extends Controller
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
+        $recentArrivals = [];
 
-        return view('incoming.parts.create', compact('items', 'defaultDate', 'defaultShift'));
+        return view('incoming.parts.create', compact('items', 'defaultDate', 'defaultShift', 'recentArrivals'));
     }
 
     public function store(StoreIncomingPartRequest $request)

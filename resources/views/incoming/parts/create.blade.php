@@ -127,395 +127,317 @@
         </div>
     @endif
 
-    <div class="row">
-        <!-- Kolom Kiri: Input Data -->
-        <div class="col-xl-6 col-lg-6 col-md-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Input Data Incoming Part</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('incoming.parts.store') }}" method="POST" id="checksheetForm" novalidate>
-                        @csrf
-                        <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">
-                        <input type="hidden" name="arrival_id" id="arrivalIdInput" value="">
-                        <input type="hidden" id="initialBalanceInput" value="0">
-                        <input type="hidden" name="qrcode" id="qrcodeInput">
-                        <input type="hidden" name="part_code" id="partCodeInput">
-                        <input type="hidden" name="supplier_id" id="supplierIdInput">
-                        <input type="hidden" name="quantity" id="quantityInput">
-                        <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
-                        <input type="hidden" name="sap_code" id="sapCodeInputHidden">
-                        <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Input Data Incoming Part</h6>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('incoming.parts.store') }}" method="POST" id="checksheetForm" novalidate>
+                @csrf
+                <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                <input type="hidden" name="arrival_id" id="arrivalIdInput" value="">
+                <input type="hidden" id="initialBalanceInput" value="0">
+                <input type="hidden" name="qrcode" id="qrcodeInput">
+                <input type="hidden" name="part_code" id="partCodeInput">
+                <input type="hidden" name="supplier_id" id="supplierIdInput">
+                <input type="hidden" name="quantity" id="quantityInput">
+                <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
+                <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
 
-                        <!-- SECTION 1: INFORMASI ITEM PART & KEDATANGAN SUPPLIER -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.85rem;">
-                            INFORMASI ITEM PART &amp; KEDATANGAN SUPPLIER
-                        </div>
+                <!-- Main Checksheet Table (Combined Tgl & Shift Kedatangan) -->
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
+                        <thead class="bg-light text-center small font-weight-bold">
+                            <tr>
+                                <th style="min-width: 220px;">Item Part</th>
+                                <th style="width: 160px;">Tgl &amp; Shift Kedatangan Supplier</th>
+                                <th style="width: 120px;">Qty Balance</th>
+                                <th style="width: 160px;">Tanggal &amp; Shift Check</th>
+                                <th style="width: 110px;">Total Check</th>
+                                <th style="width: 110px;">Qty Sampling</th>
+                                <th style="min-width: 230px;">Detail NG</th>
+                                <th style="width: 110px;">Judgment</th>
+                                <th style="width: 90px;">QC Initials</th>
+                                <th style="min-width: 150px;">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <!-- 1. Item Part -->
+                                <td>
+                                    <div class="form-group mb-2">
+                                        <label class="font-weight-bold small mb-1">
+                                            Scan Verifikasi Quality
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control" id="sapCodeInput"
+                                                placeholder="Tap kolom ini, lalu scan QR" autocomplete="off" spellcheck="false">
+                                            <div class="input-group-append">
+                                                <button type="button" class="btn btn-primary" id="btnScanQR" title="Buka QR Scanner">
+                                                    <i class="fas fa-qrcode"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Scan untuk pilih item otomatis</small>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <select class="form-control select2" name="item_id" id="itemSelect" required style="min-width: 200px;">
+                                            <option value="" disabled selected style="font-weight:bold; color:#6c757d;">-- Pilih Item Part --</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}"
+                                                    data-part-number="{{ $item->part_number ?? '' }}"
+                                                    data-sap_code="{{ $item->sap_code ?? '' }}"
+                                                    data-name="{{ $item->name }}"
+                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
+                                                    data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
+                                                    data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
+                                                    data-description="{{ $item->description ?? '' }}"
+                                                    data-customer="{{ $item->customer ?? '' }}"
+                                                    data-weight-standard="{{ $item->weight_standard ?? '' }}"
+                                                    data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                    {{ $item->sap_code ? '- SAP: '.$item->sap_code : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </td>
 
-                        <div class="form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
-                            <div class="d-flex align-items-center">
-                                <select class="form-control select2 flex-grow-1" name="item_id" id="itemSelect" required style="width: 100%;">
-                                    <option value="">-- Pilih Item --</option>
-                                    @foreach($items as $item)
-                                        <option value="{{ $item->id }}"
-                                            data-part-number="{{ $item->part_number ?? '' }}"
-                                            data-defects="{{ json_encode($item->defects) }}"
-                                            data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
-                                            data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
-                                            data-similar-files="{{ json_encode($item->similar_file_paths ?? ($item->similar_file_path ? [$item->similar_file_path] : [])) }}"
-                                            data-weight-standard="{{ $item->weight_standard ?? '' }}"
-                                            data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
-                                            {{ $item->name }} {{ $item->part_number ? "({$item->part_number})" : '' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-sm btn-primary ml-2 flex-shrink-0" id="btnScanQrModal" title="Scan QR Barcode">
-                                    <i class="fas fa-qrcode"></i>
-                                </button>
-                            </div>
-                        </div>
+                                <!-- 2. Tgl & Shift Kedatangan Supplier (Combined Column) -->
+                                <td>
+                                    <input type="date" class="form-control mb-2" name="tanggal_datang" id="tanggalDatangInput" value="{{ $defaultDate }}" required>
+                                    <select class="form-control" name="shift_datang" id="shiftDatangSelect" required>
+                                        <option value="1" selected>Shift 1</option>
+                                        <option value="2">Shift 2</option>
+                                        <option value="3">Shift 3</option>
+                                    </select>
+                                    <small class="text-muted d-block text-center mt-1" id="arrivalStatusHint">Auto / Wajib</small>
+                                </td>
 
-                        <div class="form-row mb-4">
-                            <div class="col-md-8 mb-2 mb-md-0">
-                                <label class="small font-weight-bold text-gray-700">Tgl &amp; Shift Kedatangan Supplier</label>
-                                <select class="form-control form-control-sm select2 mb-1" id="arrivalSelect" style="width: 100%;">
-                                    <option value="">-- Pilih Datang Supplier --</option>
-                                    @foreach($recentArrivals as $arr)
-                                        <option value="{{ $arr['id'] }}"
-                                                data-arrival-date="{{ $arr['date'] }}"
-                                                data-arrival-shift="{{ $arr['shift'] }}"
-                                                data-supplier-name="{{ $arr['supplier_name'] }}"
-                                                data-po-number="{{ $arr['po_number'] }}"
-                                                data-surat-jalan="{{ $arr['surat_jalan'] }}"
-                                                data-items="{{ json_encode($arr['items']) }}">
-                                            [{{ $arr['supplier_name'] }}] {{ \Carbon\Carbon::parse($arr['date'])->format('d/m/Y') }} Shift {{ $arr['shift'] }} (PO: {{ $arr['po_number'] }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <!-- 3. Qty Balance -->
+                                <td>
+                                    <input type="number" class="form-control text-center" 
+                                        name="qty_datang" id="qtyBalanceInput" placeholder="0" min="0" required>
+                                    <small class="text-muted d-block text-center mt-1" id="balanceHint">Sisa balance</small>
+                                </td>
 
-                                <!-- Display Detail Supplier -->
-                                <div id="arrivalDetailBox" class="p-1 rounded bg-light border" style="display:none; font-size: 0.7rem;">
-                                    <div><strong>Supp:</strong> <span id="arrSupplierName">-</span></div>
-                                    <div><strong>PO:</strong> <span id="arrPoNumber">-</span></div>
-                                    <div><strong>SJ:</strong> <span id="arrSuratJalan">-</span></div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 text-center">
-                                <label class="small font-weight-bold text-gray-700 d-block">Qty Balance</label>
-                                <span id="qtyBalanceBadge" class="badge badge-info px-3 py-2 font-weight-bold" style="font-size: 0.9rem;">0</span>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 2: TANGGAL CHECK & KUANTITAS SAMPLING -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.85rem;">
-                            TANGGAL CHECK &amp; KUANTITAS SAMPLING
-                        </div>
-
-                        <div class="bg-light p-3 rounded border mb-4 shadow-sm">
-                            <div class="form-row mb-3">
-                                <div class="col-md-6 mb-2 mb-md-0">
-                                    <label class="small font-weight-bold text-gray-700 mb-1">Tanggal Check <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control form-control-sm border-0 shadow-sm" name="date" value="{{ $defaultDate }}" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="small font-weight-bold text-gray-700 mb-1">Shift Check <span class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm font-weight-bold border-0 shadow-sm" name="shift" required>
+                                <!-- 4. Tanggal & Shift Check -->
+                                <td>
+                                    <input type="date" class="form-control mb-2" name="date" value="{{ $defaultDate }}" required>
+                                    <select class="form-control" name="shift" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
-                                </div>
-                            </div>
+                                </td>
 
-                            <div class="form-row">
-                                <div class="col-md-6 mb-2 mb-md-0">
-                                    <label class="small font-weight-bold text-gray-700 mb-1">Total Check <span class="text-danger">*</span></label>
-                                    <input type="number" step="any" class="form-control form-control-sm border-0 shadow-sm text-center font-weight-bold" name="total_check" id="totalCheckInput" placeholder="0" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="small font-weight-bold text-gray-700 mb-1">Qty Sampling <span class="text-danger">*</span></label>
-                                    <input type="number" step="any" class="form-control form-control-sm border-0 shadow-sm text-center font-weight-bold" name="qty_sampling" id="qtySamplingInput" placeholder="0" required>
-                                </div>
-                            </div>
-                        </div>
+                                <!-- 5. Total Check -->
+                                <td>
+                                    <input type="number" class="form-control text-center" 
+                                        name="total_check" id="totalCheckInput" placeholder="0" min="1" required style="min-width: 90px;">
+                                    <small class="text-muted d-block text-center mt-1" id="maxCheckHint"></small>
+                                </td>
 
-                        <!-- SECTION 3: SAMPLING BERAT & DIMENSI -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.85rem;">
-                            SAMPLING BERAT &amp; DIMENSI
-                        </div>
+                                <!-- 6. Qty Sampling (AQL Auto) -->
+                                <td>
+                                    <input type="number" class="form-control text-center" 
+                                        name="sampling_qty" id="qtySamplingInput" placeholder="0" min="0" style="min-width: 90px;">
+                                    <small class="text-muted d-block text-center mt-1">Auto AQL</small>
+                                </td>
 
-                        <div class="row align-items-stretch mb-4">
-                            <div class="col-md-6 mb-2 mb-md-0">
-                                <div class="card bg-light border-0 shadow-sm h-100">
-                                    <div class="card-body p-2">
-                                        <h6 class="font-weight-bold text-dark mb-2 border-bottom pb-1" style="font-size: 0.8rem;">
-                                            <i class="fas fa-balance-scale text-primary mr-1"></i> SAMPLING BERAT (GRAM)
-                                        </h6>
-                                        <div class="row no-gutters text-center small font-weight-bold mb-1">
-                                            <div class="col-4">STD</div>
-                                            <div class="col-4">MIN</div>
-                                            <div class="col-4">MAX</div>
-                                        </div>
-                                        <div class="row no-gutters text-center mb-2">
-                                            <div class="col-4 px-1"><input type="text" class="form-control form-control-sm text-center bg-white border-0 shadow-sm" id="stdBeratDisplay" value="-" readonly></div>
-                                            <div class="col-4 px-1"><input type="text" class="form-control form-control-sm text-center bg-white border-0 shadow-sm" id="minBeratDisplay" value="-" readonly></div>
-                                            <div class="col-4 px-1"><input type="text" class="form-control form-control-sm text-center bg-white border-0 shadow-sm" id="maxBeratDisplay" value="-" readonly></div>
-                                        </div>
-                                        <div class="row no-gutters text-center">
-                                            <div class="col-4 px-1"><input type="number" step="any" class="form-control form-control-sm text-center border-0 shadow-sm" name="weight_pcs_1" id="berat1" placeholder="Pcs 1"></div>
-                                            <div class="col-4 px-1"><input type="number" step="any" class="form-control form-control-sm text-center border-0 shadow-sm" name="weight_pcs_2" id="berat2" placeholder="Pcs 2"></div>
-                                            <div class="col-4 px-1"><input type="number" step="any" class="form-control form-control-sm text-center border-0 shadow-sm" name="weight_pcs_3" id="berat3" placeholder="Pcs 3"></div>
+                                <!-- 7. Detail NG -->
+                                <td>
+                                    <label class="font-weight-bold text-dark d-block mb-1 small">Defect List (NG):</label>
+                                    <div id="defectContainer">
+                                        <div class="row no-gutters mb-2 defect-row align-items-center">
+                                            <div class="col-7 pr-1">
+                                                <select class="form-control defect-select font-weight-bold" name="defect_types[]" id="defectSelect">
+                                                    <option value="">-- Pilih Defect --</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-3 pr-1">
+                                                <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
+                                            </div>
+                                            <div class="col-2 text-center action-col">
+                                                <button type="button" id="addDefectBtn" class="btn btn-primary btn-sm shadow-sm" style="display: none;" title="Tambah Jenis">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light border-0 shadow-sm h-100">
-                                    <div class="card-body p-2">
-                                        <h6 class="font-weight-bold text-dark mb-2 border-bottom pb-1" style="font-size: 0.8rem;">
-                                            <i class="fas fa-ruler-combined text-info mr-1"></i> SAMPLING DIMENSI (POINT / UKURAN)
-                                        </h6>
-                                        <div class="table-responsive" style="max-height: 120px; overflow-y: auto;">
-                                            <table class="table table-bordered table-sm mb-0 bg-white" id="dimensionTable">
-                                                <thead class="bg-light text-dark small text-center sticky-top">
-                                                    <tr>
-                                                        <th style="width: 40%;">Point Standard</th>
-                                                        <th style="width: 50%;">Hasil Ukur (Pcs 1 / Sampling)</th>
-                                                        <th style="width: 10%;">Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="dimensionBody">
-                                                    <tr class="point-row">
-                                                        <td class="p-1">
-                                                            <input type="text" class="dimension-input form-control form-control-sm border-0 bg-transparent text-center font-weight-bold" name="dimension_standards_list[]" placeholder="Point A..." readonly>
-                                                        </td>
-                                                        <td class="p-1">
-                                                            <input type="text" class="dimension-input form-control form-control-sm border-0 text-center font-weight-bold" name="dimensions[]" placeholder="Hasil...">
-                                                        </td>
-                                                        <td class="text-center align-middle p-1">
-                                                            <button type="button" class="btn btn-xs btn-danger delete-point-row" title="Hapus Point"><i class="fas fa-trash-alt"></i></button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                </td>
 
-                        <!-- SECTION 4: HASIL INSPEKSI & JUDGMENT -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.85rem;">
-                            HASIL INSPEKSI &amp; JUDGMENT
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label class="small font-weight-bold text-gray-700 d-block mb-1">Defect List (NG):</label>
-                            <div id="defectContainer">
-                                <div class="row no-gutters mb-2 defect-row align-items-center">
-                                    <div class="col-7 pr-1">
-                                        <select class="form-control form-control-sm defect-select font-weight-bold border-0 shadow-sm" name="defect_types[]" id="defectSelect">
-                                            <option value="">-- Pilih Defect --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-3 pr-1">
-                                        <input type="number" class="form-control form-control-sm defect-qty text-center font-weight-bold border-0 shadow-sm" name="defect_quantities[]" placeholder="Qty" min="1">
-                                    </div>
-                                    <div class="col-2 text-center action-col">
-                                        <button type="button" id="addDefectBtn" class="btn btn-primary btn-sm shadow-sm" style="display: none;" title="Tambah Jenis">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-light p-3 rounded border mb-3 shadow-sm">
-                            <div class="form-row align-items-center">
-                                <div class="col-md-6 mb-2 mb-md-0 text-center border-right">
-                                    <label class="small font-weight-bold text-gray-700 d-block mb-1">Judgment Result</label>
-                                    <div id="judgmentBadge" class="mb-1 p-2 font-weight-bold h5 rounded d-none shadow-sm" style="border: 2px solid transparent;">-</div>
-                                    <select class="form-control form-control-sm font-weight-bold d-none" name="judgment" id="judgmentSelect" required>
-                                        <option value="" disabled selected>-- Result --</option>
-                                        <option value="OK" class="text-success">OK</option>
-                                        <option value="NG" class="text-danger">NG</option>
+                                <!-- 7. Judgment -->
+                                <td>
+                                    <div id="judgmentBadge" class="mb-2 p-2 font-weight-bold h5 rounded d-none shadow-sm text-center" style="border: 2px solid transparent;">-</div>
+                                    <select class="form-control font-weight-bold d-none" name="judgment" id="judgmentSelect" required>
+                                        <option value="OK" selected>OK</option>
+                                        <option value="NG">NG</option>
                                     </select>
                                     <input type="hidden" name="total_ng" id="totalNgInput" value="0">
-                                    <div id="aql_info" class="small font-weight-bold text-center" style="display:none;">
+                                    <div id="aql_info" class="small mt-1 font-weight-bold text-center" style="display:none;">
                                         <span class="text-success">Acc: <span id="acc_val">-</span></span> |
                                         <span class="text-danger">Rej: <span id="rej_val">-</span></span>
                                     </div>
-                                </div>
-                                <div class="col-md-6 pl-md-3">
-                                    <label class="small font-weight-bold text-gray-700">QC Initials <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-sm text-center font-weight-bold border-0 shadow-sm" name="operator_initials" value="{{ auth()->user()->initials ?? '' }}" required>
-                                </div>
-                            </div>
-                        </div>
+                                </td>
 
-                        <div class="form-group mb-4">
-                            <label class="small font-weight-bold text-gray-700">Remarks / Catatan</label>
-                            <textarea class="form-control form-control-sm border-0 shadow-sm" name="remarks" rows="2" placeholder="Tuliskan catatan opsional di sini..."></textarea>
-                        </div>
+                                <!-- 8. QC Initials -->
+                                <td>
+                                    <input type="text" class="form-control text-center" name="operator_initials" value="{{ auth()->user()->initials ?? '' }}" required style="min-width: 60px;">
+                                </td>
 
-                        <!-- Progress Bar Loading Simpan -->
-                        <div id="saveProgressWrapper" class="mb-3" style="display:none;">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="small font-weight-bold text-primary" id="saveProgressStatus">Menyimpan data...</span>
-                                <span class="small font-weight-bold text-primary" id="saveProgressPercent">0%</span>
-                            </div>
-                            <div class="progress" style="height: 18px; border-radius: 9px;">
-                                <div id="saveProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%;"></div>
-                            </div>
-                        </div>
-
-                        <!-- Footer Control Bar -->
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-stopwatch text-gray-500 mr-2 fa-lg"></i>
-                                <h5 class="mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                                <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
-                                <button type="button" class="btn btn-success btn-sm ml-3 shadow-sm font-weight-bold px-3" id="startTimerBtn">
-                                    <i class="fas fa-play mr-1"></i> Start
-                                </button>
-                            </div>
-                            <div>
-                                <button type="button" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm" id="btnAddToQueue" disabled>
-                                    <i class="fas fa-plus-circle mr-1"></i> Tambah ke List Antrean
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                                <!-- 9. Remarks -->
+                                <td>
+                                    <textarea class="form-control" name="remarks" rows="2" placeholder="..."></textarea>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
+                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+
+                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button type="submit" class="btn btn-primary px-5" id="saveBtn" disabled>
+                            <i class="fas fa-save mr-1"></i> SIMPAN DATA
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Card Daftar Scan Sementara (Queue List) -->
+    <div class="card shadow mb-4 d-none" id="tempQueueCard">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+            <h6 class="m-0 font-weight-bold text-gray-800">
+                Daftar Antrian Scan Incoming Part
+            </h6>
+            <span class="badge badge-secondary px-3 py-2 font-weight-bold" id="queueBadge" style="font-size: 0.8rem; background-color: #eaecf4; color: #5a5c69;">0 Data</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center mb-0" id="tempQueueTable" width="100%" cellspacing="0">
+                    <thead class="bg-light text-center small font-weight-bold">
+                        <tr>
+                            <th style="width: 40px;">No</th>
+                            <th>Item Part</th>
+                            <th>QR Raw</th>
+                            <th style="width: 140px;">Tanggal &amp; Shift Check</th>
+                            <th style="width: 100px;">Total Check</th>
+                            <th style="width: 90px;">Judgment</th>
+                            <th style="width: 85px;">Inisial QC</th>
+                            <th style="width: 80px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempQueueBody">
+                        <!-- Dinamik via JS -->
+                    </tbody>
+                    <tfoot class="bg-light font-weight-bold" style="font-size: 0.85rem;">
+                        <tr>
+                            <td colspan="4" class="text-right font-weight-bold text-uppercase">Total Qty Check:</td>
+                            <td id="totalQtyCheckDisplay" class="text-center font-weight-bold text-primary" style="font-size: 0.95rem;">0</td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
-
-            <!-- Tabel Antrean Data (Queue List) -->
-            <div class="card shadow mb-4" id="queueCard">
-                <div class="card-header py-2 bg-gradient-primary text-white d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold">
-                        <i class="fas fa-list-ol mr-1"></i> Antrean List Data Check Sheet (<span id="queueCountBadge">0</span>)
-                    </h6>
-                    <span class="badge badge-light text-primary font-weight-bold" style="font-size: 0.75rem;">Siap Disimpan Ke Database</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover table-bordered mb-0 text-center" id="queueTable">
-                            <thead class="bg-light small font-weight-bold text-uppercase">
-                                <tr>
-                                    <th>No</th>
-                                    <th>Item Part</th>
-                                    <th>Tgl &amp; Shift Kedatangan</th>
-                                    <th>Supplier / PO</th>
-                                    <th>Tgl &amp; Shift Check</th>
-                                    <th>Total Check</th>
-                                    <th>Qty Sampling</th>
-                                    <th>Detail NG</th>
-                                    <th>Judgment</th>
-                                    <th>Berat / Dimensi</th>
-                                    <th>QC</th>
-                                    <th>Remarks</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="queueTableBody">
-                                <tr id="emptyQueueRow">
-                                    <td colspan="13" class="text-center text-muted py-4">
-                                        <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
-                                        Belum ada data di list antrean. Isikan form di atas lalu klik tombol <strong>"Tambah ke List Antrean"</strong>.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap">
+                <div id="saveProgressContainer" class="w-100 w-md-50 mb-3 mb-md-0 d-none">
+                    <div class="progress" style="height: 18px; border-radius: 9px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="saveProgressBar" role="progressbar" style="width: 0%; font-size: 0.75rem; font-weight: 700;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
+                    <small class="text-muted mt-1 d-block font-weight-bold" id="saveProgressText">Menyimpan data...</small>
                 </div>
-                <div class="card-footer py-2 bg-light d-flex justify-content-between align-items-center">
-                    <small class="text-muted font-italic">* Periksa kembali seluruh baris antrean sebelum menyimpan ke database.</small>
-                    <div class="text-right ml-auto">
-                        <button type="button" class="btn btn-danger btn-sm mr-2 shadow-sm" id="btnClearQueue">
-                            <i class="fas fa-trash-alt mr-1"></i> Kosongkan List
-                        </button>
-                        <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm" id="btnSaveQueue">
-                            <i class="fas fa-cloud-upload-alt mr-1"></i> Simpan Semua Data List (<span id="queueCountDisplay">0</span> Data)
-                        </button>
-                    </div>
+                <div class="text-right ml-auto">
+                    <button type="button" class="btn btn-danger btn-sm mr-2 shadow-sm" id="btnClearQueue">
+                        <i class="fas fa-trash-alt mr-1"></i> Kosongkan List
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm" id="btnSaveQueue">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Simpan Semua Data List (<span id="queueCountDisplay">0</span> Data)
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Kolom Kanan: STANDARD -->
-        <div class="col-xl-6 col-lg-6 col-md-12">
-            <div class="card shadow mb-4" id="pdfDisplaySection">
-                <div class="card-header py-3 bg-light">
-                    <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- PCCP / Standard -->
-                        <div class="col-md-12 border-bottom mb-4 pb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="font-weight-bold text-dark mb-0">PCCP DAN SIMILAR PART</h6>
-                                <div class="d-flex align-items-center">
-                                    <div class="btn-group mr-2">
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard" title="Zoom In"><i class="fas fa-search-plus"></i></button>
-                                    </div>
-                                    <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
-                                        <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
-                                        <span id="standardPageInfo" class="small mx-1">P 1/1</span>
-                                        <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
-                                    <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download Standard PDF" style="display:none;"><i class="fas fa-download"></i></a>
-                                </div>
+    <!-- Bagian Tampilan PDF Berdampingan -->
+    <div class="card shadow mb-4" id="pdfDisplaySection">
+        <div class="card-header py-3 bg-light">
+            <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Kolom Kiri: PCCP / Standard -->
+                <div class="col-md-6 border-right">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">PCCP DAN SIMILAR PART</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutStandard" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetStandard" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInStandard" title="Zoom In"><i class="fas fa-search-plus"></i></button>
                             </div>
-                            <div id="standardPdfContainer" class="rounded border" style="height: 650px; min-height: 550px; position: relative; background-color: #eee; overflow: auto;">
-                                <div id="standardPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
-                                    <i class="fas fa-file-pdf fa-3x mb-3"></i>
-                                    <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
-                                </div>
-                                <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
-                                <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
-                                    <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                                </div>
+                            <div class="d-flex align-items-center standard-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-dark mr-1" id="prevStandardPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                                <span id="standardPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-dark ml-1" id="nextStandardPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
                             </div>
                         </div>
-                        <!-- Similar Part / Dimensi -->
-                        <div class="col-md-12">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="font-weight-bold text-dark mb-0">DIMENSI</h6>
-                                <div class="d-flex align-items-center">
-                                    <div class="btn-group mr-2">
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar" title="Zoom In"><i class="fas fa-search-plus"></i></button>
-                                    </div>
-                                    <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
-                                        <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
-                                        <span id="similarPageInfo" class="small mx-1">P 1/1</span>
-                                        <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
-                                    <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;"><i class="fas fa-download"></i></a>
-                                </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary view-pdf-btn mr-1" id="fullStandardBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
+                            <a id="downloadStandardBtn" class="btn btn-sm btn-success" href="#" download title="Download Standard PDF" style="display:none;"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    <div id="standardPdfContainer" class="rounded border" style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="standardPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-pdf fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Standard PDF</p>
+                        </div>
+                        <canvas id="standardPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="standardPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- Kolom Kanan: Similar Part / Dimensi -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="font-weight-bold text-dark mb-0">DIMENSI</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="btn-group mr-2">
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomOutSimilar" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomResetSimilar" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary" id="zoomInSimilar" title="Zoom In"><i class="fas fa-search-plus"></i></button>
                             </div>
-                            <div id="similarPdfContainer" class="rounded border" style="height: 650px; min-height: 550px; position: relative; background-color: #eee; overflow: auto;">
-                                <div id="similarPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
-                                    <i class="fas fa-file-alt fa-3x mb-3"></i>
-                                    <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
-                                    <p class="small mt-2" id="similarStatusText"></p>
-                                </div>
-                                <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
-                                <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
-                                    <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
-                                </div>
+                            <div class="d-flex align-items-center similar-nav-controls" style="display:none;">
+                                <button type="button" class="btn btn-xs btn-secondary mr-1" id="prevSimilarPage" title="Previous Page"><i class="fas fa-chevron-left"></i></button>
+                                <span id="similarPageInfo" class="small mx-1">P 1/1</span>
+                                <button type="button" class="btn btn-xs btn-secondary ml-1" id="nextSimilarPage" title="Next Page"><i class="fas fa-chevron-right"></i></button>
                             </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-info view-pdf-btn mr-1" id="fullSimilarBtn" style="display:none;"><i class="fas fa-expand"></i> Full</button>
+                            <a id="downloadSimilarBtn" class="btn btn-sm btn-info" href="#" download title="Download Dimensi Part PDF" style="display:none;"><i class="fas fa-download"></i></a>
+                        </div>
+                    </div>
+                    <div id="similarPdfContainer" class="rounded border" style="height: 800px; position: relative; background-color: #eee; overflow: auto;">
+                        <div id="similarPdfPlaceholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4 text-center">
+                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                            <p class="mb-0">Pilih Item untuk menampilkan Dimensi Part</p>
+                            <p class="small mt-2" id="similarStatusText"></p>
+                        </div>
+                        <canvas id="similarPdfCanvas" class="d-none" style="margin: 0 auto;"></canvas>
+                        <div id="similarPdfLoading" class="h-100 d-none align-items-center justify-content-center">
+                            <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
                         </div>
                     </div>
                 </div>
