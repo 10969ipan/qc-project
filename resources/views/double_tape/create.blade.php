@@ -368,7 +368,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART</h6>
+                        <h6 class="font-weight-bold text-dark mb-0">SIMILAR PART / ONE POINT LESSON (OPL) / INTRUKSI KERJA (IK)</h6>
                         <div class="d-flex align-items-center">
                             <!-- Kontrol Zoom Similar -->
                             <div class="btn-group mr-2">
