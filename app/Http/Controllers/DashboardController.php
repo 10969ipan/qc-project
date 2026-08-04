@@ -27,17 +27,6 @@ class DashboardController extends Controller
         $month = $request->get('month', date('n'));
         $year = $request->get('year', date('Y'));
 
-        $data = $this->dashboardService->getDashboardData($month, $year);
-
-        // Customer Claim Data (Ter-cache 24 jam)
-        $claimYear = $request->get('year', 'combined');
-        $claimData = \Illuminate\Support\Facades\Cache::remember("dashboard_customer_claim_{$claimYear}", 86400, function () use ($claimYear) {
-            return $this->dashboardService->getCustomerClaimData($claimYear);
-        });
-        $data['claimData'] = $claimData;
-        $data['selectedMonth'] = (int) $month;
-        $data['selectedYear'] = $year;
-
         // Dashboard Layout Config
         $setting = \App\Models\GeneralSetting::where('category', 'dashboard_layout')
             ->where('key', $user->role)
@@ -50,6 +39,17 @@ class DashboardController extends Controller
                 $dashboardLayout = $decoded;
             }
         }
+
+        $data = $this->dashboardService->getDashboardData($month, $year, $dashboardLayout);
+
+        // Customer Claim Data (Ter-cache 24 jam)
+        $claimYear = $request->get('year', 'combined');
+        $claimData = \Illuminate\Support\Facades\Cache::remember("dashboard_customer_claim_{$claimYear}", 86400, function () use ($claimYear) {
+            return $this->dashboardService->getCustomerClaimData($claimYear);
+        });
+        $data['claimData'] = $claimData;
+        $data['selectedMonth'] = (int) $month;
+        $data['selectedYear'] = $year;
         $data['dashboardLayout'] = $dashboardLayout;
 
         return view('layouts.dashboard', $data);

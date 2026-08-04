@@ -94,7 +94,7 @@ class DashboardService extends BaseService
      * 
      * @return array
      */
-    public function getDashboardData($month = null, $year = null): array
+    public function getDashboardData($month = null, $year = null, array $dashboardLayout = []): array
     {
         $month = is_numeric($month) ? (int)$month : date('n');
         $year = is_numeric($year) ? (int)$year : date('Y');
@@ -103,7 +103,7 @@ class DashboardService extends BaseService
         $plantId = auth()->user()->plant_id;
         $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant') . "_{$year}_{$month}";
         // 1. Ringkasan Statistik Approval (Ter-cache 1 jam)
-        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year) {
+        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout) {
             $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
             $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
@@ -133,7 +133,12 @@ class DashboardService extends BaseService
             }
 
             $activeReport = MonthlyReport::where('is_active', true)->first();
-            $ngRateData = $this->getNgRateData();
+
+            $showNgChart = ($dashboardLayout['chartNgJakarta'] ?? true) 
+                        || ($dashboardLayout['chartNgKarawang'] ?? true) 
+                        || ($dashboardLayout['chartNgSingle'] ?? true);
+
+            $ngRateData = $showNgChart ? $this->getNgRateData() : ['labels' => [], 'jakarta' => [], 'karawang' => []];
             $claimFrequency = $this->getClaimFrequencyData();
 
             return compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess', 'activeReport', 'ngRateData', 'claimFrequency');
@@ -385,6 +390,7 @@ class DashboardService extends BaseService
      */
     public static function clearDashboardCache(): void
     {
+        Cache::forget('dashboard_ng_rate_data_30d');
         Cache::flush();
     }
 
@@ -884,71 +890,80 @@ class DashboardService extends BaseService
         $result = [];
         foreach ($types as $type) {
             $data = [];
-            $records = [];
+            $records = collect();
 
             if ($type === 'sub_assy') {
-                $records = SubAssyChecksheet::where('plant_id', $plantId)
+                $records = SubAssyChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'in_process') {
-                $records = InProcessChecksheet::where('plant_id', $plantId)
+                $records = InProcessChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'fpa') {
-                $records = FirstPieceApproval::where('plant_id', $plantId)
+                $records = FirstPieceApproval::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'cross_cut_plating') {
-                $records = CrossCutChecksheet::where('plant_id', $plantId)
+                $records = CrossCutChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('production_datetime', [$start, $end])
                     ->selectRaw('DATE(production_datetime) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
                     ->groupBy('group_date')
                     ->get()
                     ->keyBy('group_date');
             } elseif ($type === 'cross_cut_painting') {
-                $records = CrossCutPaintingChecksheet::where('plant_id', $plantId)
+                $records = CrossCutPaintingChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('production_datetime', [$start, $end])
                     ->selectRaw('DATE(production_datetime) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
                     ->groupBy('group_date')
                     ->get()
                     ->keyBy('group_date');
             } elseif ($type === 'sortir') {
-                $records = SortirChecksheet::where('plant_id', $plantId)
+                $records = SortirChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(sampling_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'double_tape') {
-                $records = DoubleTapeChecksheet::where('plant_id', $plantId)
+                $records = DoubleTapeChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'plating') {
-                $records = PlatingChecksheet::where('plant_id', $plantId)
+                $records = PlatingChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             } elseif ($type === 'painting') {
-                $records = \App\Models\PaintingChecksheet::where('plant_id', $plantId)
+                $records = \App\Models\PaintingChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
-                    ->selectRaw('date as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
-                    ->keyBy(fn($i) => \Carbon\Carbon::parse($i->group_date)->format('Y-m-d'));
+                    ->keyBy('group_date');
             }
 
             foreach ($dates as $date) {
