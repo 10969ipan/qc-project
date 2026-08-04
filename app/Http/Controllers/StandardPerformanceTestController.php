@@ -581,11 +581,11 @@ class StandardPerformanceTestController extends Controller
             if ($request->filled('result_judgment')) {
                 $query->where(function($q) use ($request, $testType) {
                     $val = $request->result_judgment;
-                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', 'LIKE', "%$val%");
-                    elseif ($testType === 'cass') $q->where('result_judgment_cass', 'LIKE', "%$val%");
-                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', 'LIKE', "%$val%");
-                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', 'LIKE', "%$val%");
-                    else $q->where('result_judgment', 'LIKE', "%$val%");
+                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', $val)->orWhere('result_judgment_corrodkote', 'LIKE', "$val %")->orWhere('result_judgment_corrodkote', 'LIKE', "$val-%");
+                    elseif ($testType === 'cass') $q->where('result_judgment_cass', $val)->orWhere('result_judgment_cass', 'LIKE', "$val %")->orWhere('result_judgment_cass', 'LIKE', "$val-%");
+                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', $val)->orWhere('result_judgment_salt_spray', 'LIKE', "$val %")->orWhere('result_judgment_salt_spray', 'LIKE', "$val-%");
+                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', $val)->orWhere('result_judgment_porecount', 'LIKE', "$val %")->orWhere('result_judgment_porecount', 'LIKE', "$val-%");
+                    else $q->where('result_judgment', $val)->orWhere('result_judgment', 'LIKE', "$val %")->orWhere('result_judgment', 'LIKE', "$val-%");
                 });
             }
         }
@@ -1334,11 +1334,11 @@ class StandardPerformanceTestController extends Controller
             if ($request->filled('result_judgment')) {
                 $val = $request->result_judgment;
                 $query->where(function($q) use ($val, $testType) {
-                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', 'LIKE', "%$val%");
-                    elseif ($testType === 'cass') $q->where('result_judgment_cass', 'LIKE', "%$val%");
-                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', 'LIKE', "%$val%");
-                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', 'LIKE', "%$val%");
-                    else $q->where('result_judgment', 'LIKE', "%$val%");
+                    if ($testType === 'corrodkote') $q->where('result_judgment_corrodkote', $val)->orWhere('result_judgment_corrodkote', 'LIKE', "$val %")->orWhere('result_judgment_corrodkote', 'LIKE', "$val-%");
+                    elseif ($testType === 'cass') $q->where('result_judgment_cass', $val)->orWhere('result_judgment_cass', 'LIKE', "$val %")->orWhere('result_judgment_cass', 'LIKE', "$val-%");
+                    elseif ($testType === 'salt_spray') $q->where('result_judgment_salt_spray', $val)->orWhere('result_judgment_salt_spray', 'LIKE', "$val %")->orWhere('result_judgment_salt_spray', 'LIKE', "$val-%");
+                    elseif ($testType === 'porecount') $q->where('result_judgment_porecount', $val)->orWhere('result_judgment_porecount', 'LIKE', "$val %")->orWhere('result_judgment_porecount', 'LIKE', "$val-%");
+                    else $q->where('result_judgment', $val)->orWhere('result_judgment', 'LIKE', "$val %")->orWhere('result_judgment', 'LIKE', "$val-%");
                 });
             }
             if ($request->filled('search')) {

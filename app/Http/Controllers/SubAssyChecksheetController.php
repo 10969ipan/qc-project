@@ -40,6 +40,7 @@ class SubAssyChecksheetController extends Controller
             'Jam Before',
             'Jam After',
             'Cycle Time',
+            'No. Meja',
             'Shift',
             'Barang',
             'Part No',
@@ -66,6 +67,7 @@ class SubAssyChecksheetController extends Controller
             $c->created_at->copy()->subSeconds($c->cycle_time ?? 0)->format('H:i:s'),
             $c->created_at->format('H:i:s'),
             $c->cycle_time ?? '-',
+            $c->line ?? '-',
             $c->shift,
             $c->item->name ?? '-',
             $c->item->part_number ?? '-',
@@ -111,6 +113,7 @@ class SubAssyChecksheetController extends Controller
             'qr_raw' => $request->qr_raw,
             'entry_method' => $request->entry_method,
             'shift' => $request->shift,
+            'line' => $request->line,
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
@@ -148,7 +151,17 @@ class SubAssyChecksheetController extends Controller
             ->pluck('operator_initials')
             ->sort();
 
-        return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials'));
+        $lines = collect();
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $lines = SubAssyChecksheet::where('plant_id', $plantId)
+                ->whereNotNull('line')
+                ->distinct()
+                ->pluck('line')
+                ->sort(SORT_NUMERIC)
+                ->values();
+        }
+
+        return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials', 'lines'));
     }
 
     // Tampilkan form (diupdate untuk mengirim data items)

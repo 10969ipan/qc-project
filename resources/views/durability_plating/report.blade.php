@@ -324,7 +324,7 @@
             <!-- Field: Result -->
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Result:</label>
-                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" style="width: 100px; font-size: 0.75rem;">
+                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm" style="width: 100px; font-size: 0.75rem;" onchange="this.form.submit()">
                     <option value="">Semua</option>
                     <option value="OK" {{ request('result_judgment') === 'OK' ? 'selected' : '' }}>OK</option>
                     <option value="NG" {{ request('result_judgment') === 'NG' ? 'selected' : '' }}>NG</option>

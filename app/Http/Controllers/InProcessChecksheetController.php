@@ -121,6 +121,7 @@ class InProcessChecksheetController extends Controller
             'shift' => $request->shift,
             'tujuan' => $request->tujuan,
             'view_mode' => $request->get('view_mode'),
+            'code_machine' => $request->code_machine,
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
@@ -161,7 +162,17 @@ class InProcessChecksheetController extends Controller
             ->pluck('operator_initials')
             ->sort();
 
-        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials'));
+        $machines = collect();
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $machines = InProcessChecksheet::where('plant_id', $plantId)
+                ->whereNotNull('code_machine')
+                ->distinct()
+                ->pluck('code_machine')
+                ->sort(SORT_NUMERIC)
+                ->values();
+        }
+
+        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines'));
     }
 
     // Show form (updated to pass items)

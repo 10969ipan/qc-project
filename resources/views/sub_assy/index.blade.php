@@ -259,6 +259,23 @@
                     </div>
                 </div>
 
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                <!-- Field: Line / Meja (Khusus Admin) -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Line:</label>
+                    <div style="width: 115px;" class="custom-filter-wrapper">
+                        <select name="line" id="filterLine" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua</option>
+                            @foreach($lines as $l)
+                                <option value="{{ $l }}" {{ request('line') == $l ? 'selected' : '' }}>
+                                    MEJA-{{ $l }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
 
 
                 <!-- Field: QR Raw -->
@@ -350,6 +367,7 @@
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            <th rowspan="2" class="align-middle">No. Meja</th>
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
@@ -414,6 +432,7 @@
                                 </td>
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                <td class="align-middle">{{ $checksheet->line ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>

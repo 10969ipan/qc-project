@@ -218,6 +218,10 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.tujuan', $filters['tujuan']);
         }
 
+        if (!empty($filters['code_machine'])) {
+            $query->where('in_process_checksheets.code_machine', $filters['code_machine']);
+        }
+
         return $query;
     }
 

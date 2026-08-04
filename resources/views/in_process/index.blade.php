@@ -317,6 +317,23 @@
                     </div>
                 </div>
 
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                <!-- Field: Mesin (Khusus Admin) -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-1 small font-weight-bold text-primary"><i class="fas fa-cogs mr-1"></i>Mesin:</label>
+                    <div style="width: 115px;" class="custom-filter-wrapper">
+                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm border-0 shadow-sm font-weight-bold">
+                            <option value="">Semua Mesin</option>
+                            @foreach($machines as $m)
+                                <option value="{{ $m }}" {{ request('code_machine') == $m ? 'selected' : '' }}>
+                                    MESIN-{{ $m }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
 
 
                 <!-- Field: QR Raw -->

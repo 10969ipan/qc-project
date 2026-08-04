@@ -119,6 +119,10 @@ class SubAssyChecksheetService extends BaseService
             $query->where('sub_assy_checksheets.shift', $filters['shift']);
         }
 
+        if (!empty($filters['line'])) {
+            $query->where('sub_assy_checksheets.line', $filters['line']);
+        }
+
         return $query;
     }
 
