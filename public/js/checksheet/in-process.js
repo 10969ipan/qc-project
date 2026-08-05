@@ -1051,15 +1051,13 @@ class InProcessCreate {
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
                 this.playSuccessFeedback();
-                // Toast sukses di pojok kanan atas (non-blocking)
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
+                Swal.fire({
+                    icon: "success",
+                    title: "QR Berhasil Discan",
+                    text: "Item otomatis terpilih.",
+                    timer: 1500,
                     showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
                 });
-                Toast.fire({ icon: 'success', title: 'QR Berhasil Discan!' });
 
                 if (this.config.useQueue) {
                     // Karawang: masukkan ke antrian, modal tetap terbuka
@@ -1211,6 +1209,14 @@ class InProcessCreate {
             $select[0].dispatchEvent(new Event("change", { bubbles: true }));
             if (quantity)
                 $('input[name="total_qty"]').val(quantity).trigger("input");
+
+            Swal.fire({
+                icon: "success",
+                title: "QR Berhasil Discan",
+                text: "Item otomatis terpilih.",
+                timer: 1500,
+                showConfirmButton: false,
+            });
 
             if (callback) callback(true);
         } else {

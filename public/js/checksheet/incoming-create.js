@@ -206,28 +206,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Hitung Otomatis Komper/Karung dari Qty (Kg)
+    $(document).on('input change', '#lotQtyInput, #quantityInput', function() {
+        const qtyKg = parseFloat($(this).val()) || 0;
+        if ($('#komperKarungInput').length > 0) {
+            const totalKarung = qtyKg > 0 ? Math.ceil(qtyKg / 25) : 0;
+            $('#komperKarungInput').val(totalKarung).trigger('input');
+        }
+    });
+
     // Hitung Otomatis Ukuran Sampel AQL di Qty Sampling berdasarkan Total Check
     $(document).on('input change', '#totalCheckInput', function() {
         const totalCheck = parseFloat($(this).val()) || 0;
         
         if (totalCheck > 0) {
-            let lotSize = totalCheck;
-            
-            // Jika modul ini memiliki komperKarungInput (Chemical/Material),
-            // maka lot size dihitung berdasarkan qty kg / 25
-            if ($('#komperKarungInput').length > 0) {
-                lotSize = Math.ceil(totalCheck / 25);
-                $('#komperKarungInput').val(lotSize);
-            }
-            
-            const sampleSize = AQL_TABLE.getSampleSize(lotSize);
+            const sampleSize = AQL_TABLE.getSampleSize(totalCheck);
             if (!$('#qtySamplingInput').is(':focus')) {
                 $('#qtySamplingInput').val(sampleSize);
             }
         } else {
-            if ($('#komperKarungInput').length > 0) {
-                $('#komperKarungInput').val(0);
-            }
             if (!$('#qtySamplingInput').is(':focus')) {
                 $('#qtySamplingInput').val(0);
             }
@@ -1443,7 +1440,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Ensure hidden fields are updated if needed
         $('#tanggalDeliveryInput').val($('#tanggalDeliveryInput').val());
-        $('#lotQtyInput').val(quantity);
+        $('#lotQtyInput').val(quantity).trigger('input');
         $('#shiftInput').val($('#shiftInput').val());
 
         let matchedItemValue = null;
