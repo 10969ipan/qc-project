@@ -104,6 +104,8 @@
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.materials.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_materials', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0211',
@@ -467,7 +469,7 @@
                                         {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($cs->remarks)) !!}
                                     @endif
                                 </td>
-                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 160px;">
                                     @if($loop->first)
                                         @include('partials.bulk_approve_button')
                                     @endif
@@ -517,27 +519,14 @@
                                         </button>
                                     @endif
 
-                                    <div class="btn-group">
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.incoming.materials.edit_approval', $cs->id) }}"
-                                                class="btn btn-info btn-xs mx-1 btn-status-modal" data-id="{{ $cs->id }}" title="Status Approval">
-                                                <i class="fas fa-user-check"></i>
-                                            </a>
-                                        @endif
-                                        @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <a href="{{ route('incoming.materials.edit', $cs->id) }}"
-                                                class="btn btn-warning btn-xs mx-1 btn-edit-modal" data-id="{{ $cs->id }}" title="Edit Checksheet">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('incoming.materials.destroy', $cs->id) }}" method="POST"
-                                                class="d-inline form-delete">
-                                                @csrf @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-xs mx-1 btn-delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
+                                    @include('partials.action_dropdown', [
+                                        'canEdit'      => $canEdit,
+                                        'canDelete'    => $canDelete,
+                                        'editUrl'      => route('incoming.materials.edit', array_merge(['id' => $cs->id], request()->all())),
+                                        'deleteRoute'  => route('incoming.materials.destroy', array_merge(request()->query(), ['id' => $cs->id])),
+                                        'deleteParams' => [],
+                                        'statusUrl'    => auth()->user()->role === 'admin' && Route::has('admin.incoming.materials.edit_approval') ? route('admin.incoming.materials.edit_approval', $cs->id) : null,
+                                    ])
                                 </td>
                             </tr>
                         @empty
@@ -693,11 +682,10 @@
         @endforeach
     @endforeach
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             // Edit Modal
-            $('.btn-edit-modal').click(function(e) {
+            $(document).on('click', '.btn-edit-modal', function(e) {
                 e.preventDefault();
                 var url = $(this).attr('href');
                 $('#editModal').modal('show');
@@ -711,7 +699,7 @@
             });
 
             // Status Approval Modal
-            $('.btn-status-modal').click(function(e) {
+            $(document).on('click', '.btn-status-modal', function(e) {
                 e.preventDefault();
                 var url = $(this).attr('href');
                 $('#statusModal').modal('show');
@@ -721,30 +709,6 @@
                     $('#statusModalBody').html(data);
                 }).fail(function() {
                     $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
-                });
-            });
-
-            // Delete Confirm
-            $(document).on('click', '.btn-delete', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var form = $(this).closest('form');
-                
-                Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Data checksheet Incoming Material akan dihapus!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e74a3b',
-                    cancelButtonColor: '#858796',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        if (form.length && form[0]) {
-                            form[0].submit();
-                        }
-                    }
                 });
             });
         });
