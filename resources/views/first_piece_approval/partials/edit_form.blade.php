@@ -69,7 +69,7 @@
                         <option value="">-- Pilih --</option>
                         @php
                             $plantCode = strtolower($checksheet->plant->code ?? 'karawang');
-                            $jakartaNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+                            $jakartaNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
                             $karawangNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
                             $numbers = ($plantCode === 'jakarta') ? $jakartaNumbers : $karawangNumbers;
                         @endphp

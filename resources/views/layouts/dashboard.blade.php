@@ -13,7 +13,6 @@
             4 => ['brand' => 'NISSEI', 'tonnage' => '160'],
             5 => ['brand' => 'NISSEI', 'tonnage' => '160'],
             6 => ['brand' => 'NISSEI', 'tonnage' => '60'],
-            7 => ['brand' => 'NISSEI', 'tonnage' => '120'],
             8 => ['brand' => 'NISSEI', 'tonnage' => '80'],
             9 => ['brand' => 'NISSEI', 'tonnage' => '120'],
             10 => ['brand' => 'YIZUMI', 'tonnage' => '160'],

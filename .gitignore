@@ -30,3 +30,5 @@ Thumbs.db
 
 *.md
 !README.md
+!AGENTS.md
+!docs/*.md

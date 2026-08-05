@@ -813,7 +813,6 @@ class InProcessCreate {
 
     restorePersistentFields() {
         const fields = [
-            { id: "code_machine", key: "last_machine_selection" },
             { id: "shiftSelect", key: "last_shift_selection", name: "shift" }
         ];
         fields.forEach(field => {
@@ -825,6 +824,12 @@ class InProcessCreate {
                 }
             }
         });
+
+        // Jika sedang ada antrean (queue), mesin mewarisi pilihan dari item pertama antrean
+        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        if (queue.length > 0 && queue[0].code_machine) {
+            $("#code_machine").val(queue[0].code_machine).trigger("change");
+        }
     }
 
     lockInputs() {
@@ -1697,7 +1702,6 @@ class InProcessCreate {
     initMachinePersistence() {
         const _this = this;
         const fields = [
-            { id: "code_machine", key: "last_machine_selection" },
             { id: "shiftSelect", key: "last_shift_selection", name: "shift" }
         ];
 
@@ -2106,16 +2110,6 @@ class InProcessCreate {
             const itemId = $("#itemSelect").val();
             let codeMachine = $("#code_machine").val();
 
-            // FALLBACK: Jika Mesin kosong (karena page reload), coba ambil dari localStorage
-            if (!codeMachine) {
-                const savedMachine = localStorage.getItem("last_machine_selection");
-                if (savedMachine) {
-                    console.log("[Persistence] Auto-filling machine from localStorage fallback...");
-                    $("#code_machine").val(savedMachine).trigger("change");
-                    codeMachine = savedMachine;
-                }
-            }
-
             const totalQty = $('input[name="total_qty"]').val();
             const samplingQty = $('input[name="sampling_qty"]').val();
             const operatorInitials = $('input[name="operator_initials"]').val();
@@ -2375,6 +2369,8 @@ class InProcessCreate {
 
     resetForm() {
         $("#checksheetForm")[0].reset();
+        localStorage.removeItem("last_machine_selection");
+        $("#code_machine").val("").trigger("change");
         clearInterval(this.timerInterval);
         this.timerRunning = false;
         this.totalSeconds = 0;
