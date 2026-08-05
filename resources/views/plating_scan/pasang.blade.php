@@ -341,6 +341,7 @@ $(document).ready(function() {
                 // Validate format (at least 5 parts separated by |)
                 const parts = decodedText.split('|');
                 if (parts.length < 5) {
+                    window.playAppAudio('format_error');
                     html5QrCode.stop().then(() => {
                         $('#qrScannerModal').modal('hide');
                         Swal.fire({

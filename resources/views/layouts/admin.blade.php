@@ -10,6 +10,33 @@
     <link rel="icon" href="{{ asset('ipp.png') }}" type="image/png">
     <script>
         window.appAudioSuccessUrl = "{{ asset('audio/QR CODE BERHASIL DI SCAN.mp3') }}";
+        window.appAudioFormatErrorUrl = "{{ asset('audio/FORMAT QR CODE SALAH, SCAN QR INTERNAL.mp3') }}";
+        window.appAudioDuplicateSavedUrl = "{{ asset('audio/QR CODE DUPLICATE, SUDAH DI SIMPAN SEBELUM NYA.mp3') }}";
+        window.appAudioDuplicateListUrl = "{{ asset('audio/QR CODE SUDAH ADA DI LIST.mp3') }}";
+        window.appAudioItemNotFoundUrl = "{{ asset('audio/ITEM PART INI TIDAK ADA DI CHECKSHEET INI.mp3') }}";
+
+        window.playAppAudio = function(type) {
+            try {
+                if (navigator.vibrate) navigator.vibrate(100);
+                let url = "";
+                if (type === 'success') url = window.appAudioSuccessUrl;
+                else if (type === 'format_error') url = window.appAudioFormatErrorUrl;
+                else if (type === 'duplicate_saved') url = window.appAudioDuplicateSavedUrl;
+                else if (type === 'duplicate_list') url = window.appAudioDuplicateListUrl;
+                else if (type === 'item_not_found') url = window.appAudioItemNotFoundUrl;
+                else url = type;
+
+                if (url) {
+                    const audio = new Audio(url);
+                    const promise = audio.play();
+                    if (promise !== undefined) {
+                        promise.catch(e => console.warn("Audio play warning:", e));
+                    }
+                }
+            } catch (e) {
+                console.warn("Audio play error:", e);
+            }
+        };
     </script>
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"

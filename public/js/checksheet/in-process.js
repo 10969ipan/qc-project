@@ -1082,6 +1082,7 @@ class InProcessCreate {
         const parts = qrString.split("|");
 
         if (parts.length !== 5) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "Format QR Salah",
@@ -1098,6 +1099,7 @@ class InProcessCreate {
         const sap_code = (parts[4] || "").trim();
 
         if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "FORMAT QR SALAH!",
@@ -1113,6 +1115,7 @@ class InProcessCreate {
             return (item.unique_code_id || "").trim() === unique_code_id && (item.sap_code || "").trim() === sap_code;
         });
         if (isDuplicateInQueue) {
+            window.playAppAudio('duplicate_list');
             Swal.fire(
                 "QR-Code Duplicate",
                 `QR Code dengan Qty: ${quantity} dan ID: ${unique_code_id} sudah ada di list!`,
@@ -1129,6 +1132,7 @@ class InProcessCreate {
             if (this.config.qrUniqueUrl && this.config.useQueue) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
+                        window.playAppAudio('duplicate_saved');
                         Swal.fire("QR-Code Duplicate", res.message, "error");
                         if (callback) callback(false);
                     } else {
@@ -1210,6 +1214,7 @@ class InProcessCreate {
 
             if (callback) callback(true);
         } else {
+            window.playAppAudio('item_not_found');
             Swal.fire(
                 "Info",
                 "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
@@ -1556,6 +1561,7 @@ class InProcessCreate {
             clearTimeout(this.scanLockTimeout);
 
             if (!raw.includes("|")) {
+                window.playAppAudio('format_error');
                 this.showToast("❌ Format QR salah (tidak ada |)", "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1564,6 +1570,7 @@ class InProcessCreate {
 
             const parts = raw.split("|");
             if (parts.length !== 5) {
+                window.playAppAudio('format_error');
                 this.showToast(`❌ Format QR salah (harus 5 bagian)`, "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1577,8 +1584,6 @@ class InProcessCreate {
 
             // Kunci input agar tidak bisa scan kedua sebelum data diproses
             $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
-
-            this.showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
 
             // Panggil parseAndFillQR dengan callback untuk auto-submit

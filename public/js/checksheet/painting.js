@@ -770,6 +770,7 @@ class PaintingCreate {
                         { qrcode: decodedText },
                         (res) => {
                             if (res.success && !res.unique) {
+                                window.playAppAudio('duplicate_saved');
                                 Swal.fire(
                                     "QR-Code Duplicate",
                                     res.message,
@@ -790,6 +791,7 @@ class PaintingCreate {
                     if (callback) callback(filled);
                 }
             } else {
+                window.playAppAudio('format_error');
                 Swal.fire(
                     "Format QR Salah",
                     "Data QR tidak sesuai standar (" + decodedText + ")",
@@ -927,6 +929,7 @@ class PaintingCreate {
                 });
                 return true;
             } else {
+                window.playAppAudio('item_not_found');
                 Swal.fire(
                     "Info",
                     "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
@@ -1855,6 +1858,7 @@ class PaintingCreate {
             clearTimeout(this.scanLockTimeout);
 
             if (!raw.includes("|")) {
+                window.playAppAudio('format_error');
                 this.showToast("❌ Format QR salah (tidak ada |)", "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1863,6 +1867,7 @@ class PaintingCreate {
 
             const parts = raw.split("|");
             if (parts.length < 5) {
+                window.playAppAudio('format_error');
                 this.showToast(`❌ Format QR salah`, "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1871,8 +1876,6 @@ class PaintingCreate {
 
             // Kunci input agar tidak bisa scan kedua sebelum data diproses
             $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
-
-            this.showToast("✅ Scan berhasil diproses!", "#4ade80");
 
             // Panggil parseAndFillQR
             this.parseAndFillQR(raw, (success) => {

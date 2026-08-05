@@ -783,6 +783,7 @@ class SubAssyCreate {
         const parts = qrString.split("|");
 
         if (parts.length < 5) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "Format QR Salah",
@@ -799,6 +800,7 @@ class SubAssyCreate {
         const sap_code = (parts[4] || "").trim();
 
         if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "Format QR Tidak Valid",
@@ -813,6 +815,7 @@ class SubAssyCreate {
             if (this.config.qrUniqueUrl) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
+                        window.playAppAudio('duplicate_saved');
                         Swal.fire("QR-Code Duplicate", res.message, "error");
                         if (callback) callback(false);
                     } else {
@@ -915,6 +918,7 @@ class SubAssyCreate {
                     doCallback();
                 }
             } else {
+                window.playAppAudio('item_not_found');
                 Swal.fire(
                     "Info",
                     "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
@@ -1687,6 +1691,7 @@ class SubAssyCreate {
             clearTimeout(this.scanLockTimeout);
 
             if (!raw.includes("|")) {
+                window.playAppAudio('format_error');
                 showToast("❌ Format QR salah (tidak ada |)", "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1695,6 +1700,7 @@ class SubAssyCreate {
 
             const parts = raw.split("|");
             if (parts.length !== 5) {
+                window.playAppAudio('format_error');
                 showToast(`❌ Format QR salah (harus 5 bagian, terdeteksi: ${parts.length})`, "#f87171");
                 this.isProcessingScan = false;
                 buffer = "";
@@ -1706,8 +1712,6 @@ class SubAssyCreate {
 
             // Kunci input agar tidak bisa scan kedua sebelum data diproses
             $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
-
-            showToast("✅ Scan berhasil diproses!", "#4ade80");
             $("#scanMethodInput").val("hardware");
 
             // Panggil parseAndFillQR dengan callback untuk auto-submit

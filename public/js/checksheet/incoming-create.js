@@ -1368,6 +1368,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const parts = qrString.split("|");
 
         if (parts.length !== 5) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "Format QR Salah",
@@ -1384,6 +1385,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const sap_code = (parts[4] || "").trim();
 
         if (!part_code || !supplier_id || quantity <= 0 || !unique_code_id || sap_code === "0" || !sap_code) {
+            window.playAppAudio('format_error');
             Swal.fire({
                 icon: "warning",
                 title: "FORMAT QR SALAH!",
@@ -1400,6 +1402,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (isDuplicateInQueue) {
+            window.playAppAudio('duplicate_list');
             Swal.fire(
                 "QR-Code Duplicate",
                 `QR Code dengan Qty: ${quantity} dan ID: ${unique_code_id} sudah ada di list antrean!`,
@@ -1415,6 +1418,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (qrUniqueUrl) {
             $.get(qrUniqueUrl, { qrcode: qrString }, function (res) {
                 if (res.success && !res.unique) {
+                    window.playAppAudio('duplicate_saved');
                     Swal.fire("QR-Code Duplicate", res.message, "error");
                     if (callback) callback(false);
                     return;
@@ -1466,8 +1470,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (callback) callback(true);
             }, 150);
         } else {
+            window.playAppAudio('item_not_found');
             Swal.fire({
-                icon: "error",
+                icon: "warning",
                 title: "Item Part Tidak Ditemukan",
                 text: `Tidak ada Item Part dengan Kode SAP: ${sap_code} atau Part No: ${part_code}`
             });

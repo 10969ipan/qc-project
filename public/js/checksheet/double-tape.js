@@ -598,6 +598,7 @@ class DoubleTapeCreate {
                         { qrcode: decodedText },
                         (res) => {
                             if (res.success && !res.unique) {
+                                window.playAppAudio('duplicate_saved');
                                 Swal.fire(
                                     "QR-Code Duplicate",
                                     res.message,
@@ -614,6 +615,7 @@ class DoubleTapeCreate {
                     this.processFillQR(decodedText, parts);
                 }
             } else {
+                window.playAppAudio('format_error');
                 Swal.fire(
                     "Format QR Salah",
                     "Data QR tidak sesuai standar (" + decodedText + ")",
@@ -692,6 +694,7 @@ class DoubleTapeCreate {
                     showConfirmButton: false,
                 });
             } else {
+                window.playAppAudio('item_not_found');
                 Swal.fire(
                     "Info",
                     "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
