@@ -1190,6 +1190,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function playSuccessFeedback() {
         try {
+            if (navigator.vibrate) navigator.vibrate(100);
+            const soundUrl = window.appAudioSuccessUrl || '/audio/QR%20CODE%20BERHASIL%20DI%20SCAN.mp3';
+            const audio = new Audio(soundUrl);
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => playBeepFallback());
+            }
+        } catch (e) {
+            playBeepFallback();
+        }
+    }
+
+    function playBeepFallback() {
+        try {
             unlockAudio();
             if (audioCtx) {
                 const oscillator = audioCtx.createOscillator();
@@ -1323,11 +1337,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isProcessingScan) return;
         isProcessingScan = true;
 
-        playSuccessFeedback();
         $("#scanMethodInput").val("camera");
 
         parseAndFillQR(decodedText, function (success) {
             if (success) {
+                playSuccessFeedback();
                 unlockInputs();
                 const Toast = Swal.mixin({
                     toast: true,

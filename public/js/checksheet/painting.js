@@ -422,6 +422,19 @@ class PaintingIndex {
     playSuccessFeedback() {
         try {
             if (navigator.vibrate) navigator.vibrate(100);
+            const soundUrl = window.appAudioSuccessUrl || '/audio/QR%20CODE%20BERHASIL%20DI%20SCAN.mp3';
+            const audio = new Audio(soundUrl);
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => this.playBeepFallback());
+            }
+        } catch (e) {
+            this.playBeepFallback();
+        }
+    }
+
+    playBeepFallback() {
+        try {
             this.unlockAudio();
             if (this.audioContext) {
                 const oscillator = this.audioContext.createOscillator();
@@ -677,11 +690,11 @@ class PaintingCreate {
     }
 
     handleQRScanned(decodedText) {
-        this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
+                this.playSuccessFeedback();
                 this.lockInputs(false);
                 setTimeout(() => {
                     $("#checksheetForm").submit();
@@ -704,6 +717,19 @@ class PaintingCreate {
     playSuccessFeedback() {
         try {
             if (navigator.vibrate) navigator.vibrate(100);
+            const soundUrl = window.appAudioSuccessUrl || '/audio/QR%20CODE%20BERHASIL%20DI%20SCAN.mp3';
+            const audio = new Audio(soundUrl);
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => this.playBeepFallback());
+            }
+        } catch (e) {
+            this.playBeepFallback();
+        }
+    }
+
+    playBeepFallback() {
+        try {
             this.unlockAudio();
             if (this.audioContext) {
                 const oscillator = this.audioContext.createOscillator();
@@ -1851,6 +1877,7 @@ class PaintingCreate {
             // Panggil parseAndFillQR
             this.parseAndFillQR(raw, (success) => {
                 if (success) {
+                    this.playSuccessFeedback();
                     this.lockInputs(false);
                     setTimeout(() => {
                         $("#checksheetForm").submit();

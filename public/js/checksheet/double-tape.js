@@ -294,6 +294,19 @@ class DoubleTapeIndex {
     playSuccessFeedback() {
         try {
             if (navigator.vibrate) navigator.vibrate(100);
+            const soundUrl = window.appAudioSuccessUrl || '/audio/QR%20CODE%20BERHASIL%20DI%20SCAN.mp3';
+            const audio = new Audio(soundUrl);
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => this.playBeepFallback());
+            }
+        } catch (e) {
+            this.playBeepFallback();
+        }
+    }
+
+    playBeepFallback() {
+        try {
             this.unlockAudio();
             if (this.audioContext) {
                 const oscillator = this.audioContext.createOscillator();
@@ -543,7 +556,6 @@ class DoubleTapeCreate {
     }
 
     handleQRScanned(decodedText) {
-        this.playSuccessFeedback();
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
         this.parseAndFillQR(decodedText);
@@ -563,31 +575,14 @@ class DoubleTapeCreate {
     playSuccessFeedback() {
         try {
             if (navigator.vibrate) navigator.vibrate(100);
-            this.unlockAudio();
-            if (this.audioContext) {
-                const oscillator = this.audioContext.createOscillator();
-                const gain = this.audioContext.createGain();
-                oscillator.type = "sine";
-                oscillator.frequency.setValueAtTime(
-                    880,
-                    this.audioContext.currentTime,
-                );
-                gain.gain.setValueAtTime(0, this.audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(
-                    0.2,
-                    this.audioContext.currentTime + 0.05,
-                );
-                gain.gain.exponentialRampToValueAtTime(
-                    0.01,
-                    this.audioContext.currentTime + 0.3,
-                );
-                oscillator.connect(gain);
-                gain.connect(this.audioContext.destination);
-                oscillator.start();
-                oscillator.stop(this.audioContext.currentTime + 0.3);
+            const soundUrl = window.appAudioSuccessUrl || '/audio/QR%20CODE%20BERHASIL%20DI%20SCAN.mp3';
+            const audio = new Audio(soundUrl);
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => this.playBeepFallback());
             }
         } catch (e) {
-            console.warn("Feedback error:", e);
+            this.playBeepFallback();
         }
     }
 
@@ -688,6 +683,7 @@ class DoubleTapeCreate {
                     new Event("change", { bubbles: true }),
                 );
 
+                this.playSuccessFeedback();
                 Swal.fire({
                     icon: "success",
                     title: "QR Berhasil Discan",

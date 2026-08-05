@@ -8,6 +8,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard')</title>
     <link rel="icon" href="{{ asset('ipp.png') }}" type="image/png">
+    <script>
+        window.appAudioSuccessUrl = "{{ asset('audio/QR CODE BERHASIL DI SCAN.mp3') }}";
+    </script>
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">

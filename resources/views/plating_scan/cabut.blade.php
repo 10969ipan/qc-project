@@ -425,6 +425,19 @@ $(document).ready(function() {
     let audioContext = null;
     function playBeep() {
         try {
+            if (navigator.vibrate) navigator.vibrate(100);
+            const audio = new Audio("{{ asset('audio/QR CODE BERHASIL DI SCAN.mp3') }}");
+            const promise = audio.play();
+            if (promise !== undefined) {
+                promise.catch(() => playOscillatorBeep());
+            }
+        } catch (e) {
+            playOscillatorBeep();
+        }
+    }
+
+    function playOscillatorBeep() {
+        try {
             if (!audioContext) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 if (AudioContextClass) audioContext = new AudioContextClass();
@@ -478,8 +491,6 @@ $(document).ready(function() {
             { facingMode: "environment" }, 
             config,
             (decodedText, decodedResult) => {
-                playBeep();
-                
                 // Validate format (at least 5 parts separated by |)
                 const parts = decodedText.split('|');
                 if (parts.length < 5) {
@@ -498,6 +509,8 @@ $(document).ready(function() {
                     });
                     return;
                 }
+
+                playBeep();
 
                 html5QrCode.stop().then(() => {
                     $('#qrScannerModal').modal('hide');

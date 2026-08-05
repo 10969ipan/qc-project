@@ -1341,7 +1341,7 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/checksheet/in-process.js') }}"></script>
+    <script src="{{ asset('js/checksheet/in-process.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
             window.initInProcessIndex({
