@@ -87,8 +87,13 @@ class IncomingPartController extends Controller
             $filters['entry_method'] = 'manual';
         }
 
+        $plantInput = $request->get('plant', auth()->user()->plant_id);
+        $plantCodeVal = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
+        $isJakarta = strtolower($plantCodeVal ?: '') === 'jakarta';
+        $categories = $isJakarta ? ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess'] : 'Incoming Part';
+
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory('Incoming Part')->orderBy('name')->get();
+        $items = Item::byCategory($categories)->orderBy('name')->get();
 
         $customers = Item::whereIn('id', function ($query) use ($plantId) {
             $query->select('item_id')->from('incoming_parts')->where('plant_id', $plantId);
@@ -112,7 +117,12 @@ class IncomingPartController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $query = Item::byCategory('Incoming Part')->orderBy('name');
+        $plantInput = $request->get('plant', $user->plant_id);
+        $plantCodeVal = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
+        $isJakarta = strtolower($plantCodeVal ?: '') === 'jakarta';
+        $categories = $isJakarta ? ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess'] : 'Incoming Part';
+
+        $query = Item::byCategory($categories)->orderBy('name');
 
         if ($request->has('plant')) {
             $query->where('plant_id', Plant::resolveId($request->query('plant')));
@@ -138,17 +148,20 @@ class IncomingPartController extends Controller
                 ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Part baru: {$checksheet->item->name}");
             }
             $message = 'Data Incoming Part berhasil disimpan.';
+            $plantInput = $request->get('plant') ?? $request->get('plant_id') ?? auth()->user()->plant_id;
+            $plantCode = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
+            $plantCode = strtolower($plantCode ?: 'karawang');
+            $indexUrl = route('incoming.parts.index', ['plant' => $plantCode]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => $message,
-                    'index_url' => route('incoming.parts.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
+                    'index_url' => $indexUrl
                 ]);
             }
 
-            return redirect()->route('incoming.parts.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
-                ->with('success', $message);
+            return redirect()->to($indexUrl)->with('success', $message);
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -162,8 +175,11 @@ class IncomingPartController extends Controller
 
     public function edit($id)
     {
-        $checksheet = IncomingPart::with(['item', 'arrival'])->findOrFail($id);
-        $items = Item::byCategory('Incoming Part')->orderBy('name')->get();
+        $checksheet = IncomingPart::with(['item', 'arrival', 'plant'])->findOrFail($id);
+        $plantCodeVal = optional($checksheet->plant)->code;
+        $isJakarta = strtolower($plantCodeVal ?: '') === 'jakarta';
+        $categories = $isJakarta ? ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess'] : 'Incoming Part';
+        $items = Item::byCategory($categories)->orderBy('name')->get();
 
         if (request()->ajax()) {
             return view('incoming.parts.partials.edit_form', compact('checksheet', 'items'));

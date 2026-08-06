@@ -532,7 +532,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             reverseButtons: false
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                window.location.href = response.index_url;
+                                const targetUrl = response.index_url || (window.INCOMING_PART_CONFIG && (window.INCOMING_PART_CONFIG.index_url || window.INCOMING_PART_CONFIG.indexUrl));
+                                if (targetUrl) {
+                                    window.location.href = targetUrl;
+                                } else {
+                                    window.location.reload();
+                                }
                             } else {
                                 resetAllForNewInput();
                             }
@@ -1909,6 +1914,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let successCount = 0;
         let failedIndex = -1;
         let errorMessage = "";
+        let lastIndexUrl = null;
 
         const formActionUrl = $("#checksheetForm").attr("action");
 
@@ -1954,6 +1960,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         success: function (response) {
                             if (response.success) {
                                 successCount++;
+                                if (response.index_url) {
+                                    lastIndexUrl = response.index_url;
+                                }
                                 resolve(response);
                             } else {
                                 reject(new Error(response.message || "Gagal menyimpan data."));
@@ -1993,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cancelButtonText: 'Tutup'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const targetUrl = window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.index_url ? window.INCOMING_PART_CONFIG.index_url : null;
+                    const targetUrl = lastIndexUrl || (window.INCOMING_PART_CONFIG && (window.INCOMING_PART_CONFIG.index_url || window.INCOMING_PART_CONFIG.indexUrl));
                     if (targetUrl) {
                         window.location.href = targetUrl;
                     } else {

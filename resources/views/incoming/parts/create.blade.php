@@ -503,6 +503,7 @@
             checkFirstTimeUrl: "{{ route('incoming.parts.check_first_time') }}",
             qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
             itemSearchUrl: "{{ route('items.search-by-part') }}",
+            index_url: "{{ route('incoming.parts.index', ['plant' => request('plant') ?? auth()->user()->plant_id]) }}",
             useQueue: true
         };
     </script>

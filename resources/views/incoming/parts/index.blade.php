@@ -106,12 +106,17 @@
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
 
-        // Resolve menu ID for permission checks
-        $currentMenu = \App\Models\AppMenu::where('route', 'incoming.parts.index')->first();
-        $menuId = $currentMenu ? $currentMenu->id : null;
-        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
-        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+        // Resolve menu IDs for permission checks (support for duplicate plant routes)
+        $menuIds = \App\Models\AppMenu::where('route', 'incoming.parts.index')->pluck('id');
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            foreach ($menuIds as $mId) {
+                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
     @endphp
 
     <!-- Header Dokumen IPP (Desain Selaras In-Process) -->

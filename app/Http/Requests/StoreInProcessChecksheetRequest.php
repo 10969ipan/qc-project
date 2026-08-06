@@ -32,10 +32,11 @@ class StoreInProcessChecksheetRequest extends FormRequest
                 'required',
                 'exists:items,id',
                 function ($attribute, $value, $fail) {
-                    $plantId = \App\Models\Plant::resolveId(request('plant')) ?? auth()->user()->plant_id;
+                    $plantRaw = request('plant_id') ?? request('plant') ?? $this->plant_id ?? $this->plant ?? auth()->user()->plant_id;
+                    $plantId = \App\Models\Plant::resolveId($plantRaw);
                     $item = \App\Models\Item::find($value);
 
-                    if ($item && $item->plant_id != $plantId) {
+                    if ($item && $item->plant_id && $plantId && $item->plant_id != $plantId) {
                         $fail('Item yang dipilih tidak terdaftar untuk plant ini.');
                     }
                 },

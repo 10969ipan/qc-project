@@ -58,6 +58,7 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Inprocess', 'route' => 'in_process.create', 'order' => 2],
                                     ['name' => 'FPA', 'route' => 'first_piece_approval.create', 'order' => 3],
                                     ['name' => 'Sortir', 'route' => 'sortir.create', 'order' => 4],
+                                    ['name' => 'Incoming Part', 'route' => 'incoming.parts.create', 'order' => 5],
                                 ]
                             ],
                             [
@@ -68,6 +69,7 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Inprocess', 'route' => 'in_process.index', 'order' => 2],
                                     ['name' => 'FPA', 'route' => 'first_piece_approval.index', 'order' => 3],
                                     ['name' => 'Sortir', 'route' => 'sortir.index', 'order' => 4],
+                                    ['name' => 'Incoming Part', 'route' => 'incoming.parts.index', 'order' => 5],
                                 ]
                             ],
                         ]
