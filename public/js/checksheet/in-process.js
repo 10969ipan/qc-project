@@ -502,6 +502,18 @@ class InProcessCreate {
     }
 
     addToQueue() {
+        const codeMachine = $('#code_machine').val();
+        if (!codeMachine) {
+            Swal.fire({
+                icon: "warning",
+                title: "Mesin Belum Dipilih",
+                text: "Silakan pilih No. Mesin terlebih dahulu sebelum menambahkan data ke list!",
+            });
+            $("#code_machine").addClass("is-invalid").focus();
+            setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+            return false;
+        }
+
         // Collect dimensions
         const dimensions = {};
         $('.dimension-input').each(function () {
@@ -640,10 +652,37 @@ class InProcessCreate {
     }
 
     saveQueueSequentially() {
-        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
+        let queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
         if (queue.length === 0) {
             Swal.fire("Daftar Kosong", "Tidak ada data untuk disimpan.", "info");
             return;
+        }
+
+        const currentMachine = $("#code_machine").val();
+        let queueUpdated = false;
+
+        // Check if any queue item is missing code_machine
+        for (let i = 0; i < queue.length; i++) {
+            if (!queue[i].code_machine) {
+                if (currentMachine) {
+                    queue[i].code_machine = currentMachine;
+                    queueUpdated = true;
+                } else {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Mesin Belum Dipilih",
+                        text: `Data ke-${i + 1} di dalam list belum memiliki No. Mesin. Silakan pilih No. Mesin terlebih dahulu!`
+                    });
+                    $("#code_machine").addClass("is-invalid").focus();
+                    setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                    return;
+                }
+            }
+        }
+
+        if (queueUpdated) {
+            localStorage.setItem('inprocess_scan_buffer', JSON.stringify(queue));
+            this.renderQueueTable();
         }
 
         Swal.fire({
@@ -829,6 +868,12 @@ class InProcessCreate {
         const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
         if (queue.length > 0 && queue[0].code_machine) {
             $("#code_machine").val(queue[0].code_machine).trigger("change");
+        } else {
+            const itemId = $("#itemSelect").val();
+            const itemMachineMap = JSON.parse(localStorage.getItem('inprocess_item_machine_map') || '{}');
+            if (itemId && itemMachineMap[itemId]) {
+                $("#code_machine").val(itemMachineMap[itemId]).trigger("change");
+            }
         }
     }
 
@@ -1055,6 +1100,19 @@ class InProcessCreate {
 
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
+                const codeMachine = $("#code_machine").val();
+                if (!codeMachine) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Mesin Belum Dipilih",
+                        text: "QR berhasil dibaca, tetapi No. Mesin belum dipilih. Silakan pilih No. Mesin terlebih dahulu!",
+                    });
+                    $("#code_machine").addClass("is-invalid").focus();
+                    setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                    this.isProcessingScan = false;
+                    return;
+                }
+
                 this.playSuccessFeedback();
                 Swal.fire({
                     icon: "success",
@@ -1130,13 +1188,11 @@ class InProcessCreate {
 
         try {
             // 2. Validasi QR Duplikat via AJAX ke Database
-            // FAST PATH: Jika direct save (Jakarta / useQueue=false), kita lewati GET check uniqueness 
-            // karena request POST akan memvalidasi keunikan database secara otomatis
-            if (this.config.qrUniqueUrl && this.config.useQueue) {
+            if (this.config.qrUniqueUrl) {
                 $.get(this.config.qrUniqueUrl, { qrcode: qrString }, (res) => {
                     if (res.success && !res.unique) {
                         window.playAppAudio('duplicate_saved');
-                        Swal.fire("QR-Code Duplicate", res.message, "error");
+                        Swal.fire("QR-Code Duplicate", "QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.", "error");
                         if (callback) callback(false);
                     } else {
                         this.processFillQR(qrString, parts, callback);
@@ -1215,14 +1271,6 @@ class InProcessCreate {
             if (quantity)
                 $('input[name="total_qty"]').val(quantity).trigger("input");
 
-            Swal.fire({
-                icon: "success",
-                title: "QR Berhasil Discan",
-                text: "Item otomatis terpilih.",
-                timer: 1500,
-                showConfirmButton: false,
-            });
-
             if (callback) callback(true);
         } else {
             window.playAppAudio('item_not_found');
@@ -1287,6 +1335,17 @@ class InProcessCreate {
             const selectedOption = $(this).find("option:selected");
             const itemId = $(this).val();
             if (!itemId) return;
+
+            const itemMachineMap = JSON.parse(localStorage.getItem('inprocess_item_machine_map') || '{}');
+            if (itemMachineMap[itemId]) {
+                $("#code_machine").val(itemMachineMap[itemId]).trigger("change");
+            } else {
+                const currentMachine = $("#code_machine").val();
+                if (currentMachine) {
+                    itemMachineMap[itemId] = currentMachine;
+                    localStorage.setItem('inprocess_item_machine_map', JSON.stringify(itemMachineMap));
+                }
+            }
 
             const imageUrl = selectedOption.data("image");
             const files = selectedOption.data("files");
@@ -1600,6 +1659,20 @@ class InProcessCreate {
             // Panggil parseAndFillQR dengan callback untuk auto-submit
             this.parseAndFillQR(raw, (success) => {
                 if (success) {
+                    const codeMachine = $("#code_machine").val();
+                    if (!codeMachine) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Mesin Belum Dipilih",
+                            text: "QR berhasil dibaca, tetapi No. Mesin belum dipilih. Silakan pilih No. Mesin terlebih dahulu!",
+                        });
+                        $("#code_machine").addClass("is-invalid").focus();
+                        setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                        $("#sapCodeInput").prop("disabled", false).css("background", "");
+                        this.isProcessingScan = false;
+                        return;
+                    }
+
                     this.playSuccessFeedback();
                     setTimeout(() => {
                         console.log("Auto-submitting form after successful hardware scan...");
@@ -1608,6 +1681,7 @@ class InProcessCreate {
                         this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
                     }, 100);
                 } else {
+                    $("#sapCodeInput").prop("disabled", false).css("background", "");
                     this.isProcessingScan = false;
                 }
             });
@@ -1723,6 +1797,20 @@ class InProcessCreate {
                     localStorage.setItem(field.key, val);
                 }
             });
+        });
+
+        // Save machine selection per item part
+        $("#code_machine").on("change input", function () {
+            const machineVal = $(this).val();
+            const itemId = $("#itemSelect").val();
+            if (machineVal) {
+                localStorage.setItem("inprocess_last_machine_selection", machineVal);
+                if (itemId) {
+                    const itemMachineMap = JSON.parse(localStorage.getItem("inprocess_item_machine_map") || "{}");
+                    itemMachineMap[itemId] = machineVal;
+                    localStorage.setItem("inprocess_item_machine_map", JSON.stringify(itemMachineMap));
+                }
+            }
         });
     }
 
@@ -2328,11 +2416,17 @@ class InProcessCreate {
                 success: function (response) {
                     if (response.success) {
                         if (isHardwareScan) {
-                            // FAST TRACK: Tampilkan toast non-blocking, langsung reset dan siap scan berikutnya
-                            _this.showToast("✅ Data Berhasil Disimpan", "#4ade80");
-                            _this.resetForm();
-                            _this.restorePersistentFields();
-                            _this.startTimer();
+                            Swal.fire({
+                                icon: "success",
+                                title: "Berhasil",
+                                text: "Data Berhasil Disimpan",
+                                timer: 1200,
+                                showConfirmButton: false,
+                            }).then(() => {
+                                _this.resetForm();
+                                _this.restorePersistentFields();
+                                _this.startTimer();
+                            });
                         } else {
                             Swal.fire({
                                 icon: "success",
@@ -2340,10 +2434,11 @@ class InProcessCreate {
                                 text: "Data Berhasil Disimpan",
                                 showCancelButton: true,
                                 confirmButtonText: "Lihat Data",
+                                cancelButtonText: "Tutup",
                             }).then((result) => {
-                                if (result.isConfirmed)
+                                if (result.isConfirmed) {
                                     window.location.href = response.index_url;
-                                else {
+                                } else {
                                     _this.resetForm();
                                     _this.restorePersistentFields();
                                 }
@@ -2356,11 +2451,20 @@ class InProcessCreate {
                         xhr.responseJSON && xhr.responseJSON.message
                             ? xhr.responseJSON.message
                             : "Gagal menyimpan data.";
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: errorMsg,
-                    });
+                    if (errorMsg.toLowerCase().includes("duplicate") || errorMsg.toLowerCase().includes("sudah pernah")) {
+                        window.playAppAudio('duplicate_saved');
+                        Swal.fire({
+                            icon: "error",
+                            title: "QR-Code Duplicate",
+                            text: "QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.",
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: errorMsg,
+                        });
+                    }
                     saveBtn.prop("disabled", false).html(originalHtml);
                 },
             });
@@ -2369,7 +2473,6 @@ class InProcessCreate {
 
     resetForm() {
         $("#checksheetForm")[0].reset();
-        localStorage.removeItem("last_machine_selection");
         $("#code_machine").val("").trigger("change");
         clearInterval(this.timerInterval);
         this.timerRunning = false;
