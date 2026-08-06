@@ -35,7 +35,7 @@ return new class extends Migration
             );
         }
 
-        $roles = ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'admin_qc', 'spv_qc'];
+        $roles = ['admin'];
         $menuIds = array_filter([$menuCreate->id ?? null, $menuIndex->id ?? null]);
 
         foreach ($roles as $role) {
