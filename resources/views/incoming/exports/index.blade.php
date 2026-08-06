@@ -146,12 +146,24 @@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 pt-4 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Export</h6>
+        <h6 class="m-0 font-weight-bold" style="color: {{ request('view_mode') === 'verifikasi' ? '#6f42c1' : '#4e73df' }};">
+            @if(request('view_mode') === 'verifikasi')
+                <i class="fas fa-clipboard-check mr-1"></i> Data Hasil Verifikasi Incoming Export
+            @else
+                Data Masuk Incoming Export (Input Manual)
+            @endif
+        </h6>
     </div>
     <div class="card-body">
         <form action="{{ route('incoming.exports.index') }}" method="GET" class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncoming">
             <input type="hidden" name="plant" value="{{ request('plant') }}">
-            
+            @if(request('view_mode'))
+                <input type="hidden" name="view_mode" value="{{ request('view_mode') }}">
+            @endif
+            @if(request('entry_method'))
+                <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
+            @endif
+
             <!-- Field: Part -->
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
@@ -176,6 +188,22 @@
                 </div>
             </div>
 
+            <!-- Field: QR Raw (Khusus Data Hasil Verifikasi) -->
+            @if(request('view_mode') === 'verifikasi')
+            <div class="d-flex align-items-center">
+                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
+                <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
+                    <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
+                        placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
+                            <i class="fas fa-qrcode" style="pointer-events: none;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
                 <style>
                     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
@@ -185,6 +213,19 @@
                 </style>
                 <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data"><i class="fas fa-search fa-sm"></i></button>
                 <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter"><i class="fas fa-undo fa-sm"></i></a>
+                @if(request('view_mode') !== 'verifikasi')
+                    <a href="{{ route('incoming.exports.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
+                        style="background-color: #6f42c1; color: white;">
+                        Hasil Verifikasi
+                    </a>
+                @else
+                    <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
+                        style="background-color: #6c757d; color: white;">
+                        <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
+                    </a>
+                @endif
                 <a href="{{ route('incoming.exports.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF"><i class="fas fa-file-pdf fa-sm"></i></a>
             </div>
         </form>
@@ -196,9 +237,11 @@
                             <th rowspan="2" class="align-middle">No</th>
                             <th rowspan="2" class="align-middle">QR-Code</th>
                             <th rowspan="2" class="align-middle">Tanggal</th>
-                            <th rowspan="2" class="align-middle">Jam (Before)</th>
-                            <th rowspan="2" class="align-middle">Jam (After)</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="align-middle">Jam (Before)</th>
+                                <th rowspan="2" class="align-middle">Jam (After)</th>
+                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @endif
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Tgl Delivery</th>
@@ -209,17 +252,21 @@
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inspector</th>
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="4" class="align-middle">Approval Status</th>
+                            @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             <th rowspan="2" class="no-export align-middle">Actions</th>
                         </tr>
                         <tr class="text-center">
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
                             <th style="min-width: 150px;">Jenis NG</th>
-                            <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
-                            <th style="font-size: 10px;">Asst. Manager QC</th>
-                            <th style="font-size: 10px;">Manager QC</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px;">Supervisor QC</th>
+                                <th style="font-size: 10px;">Asst. Manager QC</th>
+                                <th style="font-size: 10px;">Manager QC</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -238,9 +285,11 @@
                                     </button>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ date('d-m-Y', strtotime($cs->date)) }}</td>
-                                <td class="align-middle">{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
-                                <td class="align-middle">{{ $cs->created_at->format('H:i') }}</td>
-                                <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    <td class="align-middle">{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
+                                    <td class="align-middle">{{ $cs->created_at->format('H:i') }}</td>
+                                    <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
+                                @endif
                                 <td class="align-middle text-nowrap d-none">{{ $cs->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap text-left">{{ $cs->item->name }}<br><small class="text-muted">{{ $cs->item->part_number }}</small></td>
                                 <td class="align-middle">{{ date('d-m-Y', strtotime($cs->tanggal_delivery)) }}</td>
@@ -262,20 +311,22 @@
                                     <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">{{ $cs->judgment }}</span>
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
-                                @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
-                                    <td class="align-middle text-center">
-                                        @if($cs->$lvl === 'REJECTED')
-                                            <span class="badge badge-danger" title="Rejected"><i class="fas fa-times"></i></span>
-                                        @elseif($cs->$lvl)
-                                            <span class="badge badge-success" title="Approved"><i class="fas fa-check"></i></span>
-                                        @else
-                                            <span class="badge badge-warning" title="Pending"><i class="fas fa-clock"></i></span>
-                                        @endif
-                                    </td>
-                                @endforeach
+                                @if(request('view_mode') !== 'verifikasi')
+                                    @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
+                                        <td class="align-middle text-center">
+                                            @if($cs->$lvl === 'REJECTED')
+                                                <span class="badge badge-danger" title="Rejected"><i class="fas fa-times"></i></span>
+                                            @elseif($cs->$lvl)
+                                                <span class="badge badge-success" title="Approved"><i class="fas fa-check"></i></span>
+                                            @else
+                                                <span class="badge badge-warning" title="Pending"><i class="fas fa-clock"></i></span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
                                 <td class="align-middle small">{{ $cs->remarks }}</td>
                                 <td class="align-middle text-center">
-                                    @if($loop->first)
+                                    @if($loop->first && request('view_mode') !== 'verifikasi')
                                         @include('partials.bulk_approve_button')
                                     @endif
                                     <div class="btn-group">
@@ -301,7 +352,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="23" class="py-4 text-muted text-center">Data tidak ditemukan.</td>
+                                <td colspan="{{ request('view_mode') === 'verifikasi' ? 16 : 23 }}" class="py-4 text-muted text-center">Data tidak ditemukan.</td>
                             </tr>
                         @endforelse
                     </tbody>

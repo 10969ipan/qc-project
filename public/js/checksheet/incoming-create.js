@@ -1345,16 +1345,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (success) {
                 playSuccessFeedback();
                 unlockInputs();
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 1500,
-                    timerProgressBar: true
-                });
-                Toast.fire({
+                Swal.fire({
                     icon: 'success',
-                    title: 'QR Berhasil Ditambahkan ke List!'
+                    title: 'QR Berhasil Ditambahkan ke List!',
+                    position: 'center',
+                    showConfirmButton: false,
+                    timer: 1200,
+                    timerProgressBar: true
                 });
             }
 
@@ -1562,13 +1559,16 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#scanMethodInput').val('hardware');
         const handler = function(success) {
             if (success) {
+                playSuccessFeedback();
                 unlockInputs();
-                // Toast mirip kamera
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end',
-                    showConfirmButton: false, timer: 1200, timerProgressBar: true
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Item Berhasil Ditambahkan ke List!',
+                    position: 'center',
+                    showConfirmButton: false,
+                    timer: 1200,
+                    timerProgressBar: true
                 });
-                Toast.fire({ icon: 'success', title: 'Item Berhasil Ditambahkan ke List!' });
             } else {
                 $('#sapCodeInput').val('').focus();
             }
@@ -1711,6 +1711,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function applyAutoFocus() {
         setTimeout(function() {
+            if ($("#tempQueueCard").length && !$("#tempQueueCard").hasClass("d-none")) {
+                $('html, body').stop().animate({
+                    scrollTop: $("#tempQueueCard").offset().top - 80
+                }, 300);
+            }
             const $input = $("#sapCodeInput");
             if ($input.length) {
                 $input.attr('inputmode', 'none');
@@ -1719,7 +1724,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     $(this).attr('inputmode', 'text');
                 });
             }
-        }, 300);
+        }, 200);
     }
 
     function addToQueue() {
@@ -1786,16 +1791,16 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
 
         resetFormForNextInput();
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 1500,
-            timerProgressBar: true
-        });
-        Toast.fire({
+        renderQueueTable();
+        applyAutoFocus();
+
+        Swal.fire({
             icon: 'success',
-            title: 'Data Masuk ke Antrean'
+            title: 'Data Masuk ke Antrean',
+            position: 'center',
+            showConfirmButton: false,
+            timer: 1200,
+            timerProgressBar: true
         });
     }
 

@@ -48,7 +48,62 @@ class IncomingExportService extends BaseService
                 $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
                     $itemQuery->where('name', 'like', "%{$searchTerm}%")
                         ->orWhere('part_number', 'like', "%{$searchTerm}%");
-                })->orWhere('operator_initials', 'like', "%{$searchTerm}%");
+                })->orWhere('operator_initials', 'like', "%{$searchTerm}%")
+                  ->orWhere('qrcode', 'like', "%{$searchTerm}%")
+                  ->orWhere('unique_code_id', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        if (!empty($filters['qr_raw'])) {
+            $qrRaw = $filters['qr_raw'];
+            $query->where(function ($q) use ($qrRaw) {
+                $q->where('qrcode', 'like', "%{$qrRaw}%")
+                  ->orWhere('unique_code_id', 'like', "%{$qrRaw}%")
+                  ->orWhere('part_code', 'like', "%{$qrRaw}%")
+                  ->orWhere('sap_code', 'like', "%{$qrRaw}%");
+            });
+        }
+
+        if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
+            $query->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNotNull('qrcode')->where('qrcode', '!=', '');
+                })->orWhere(function ($sub) {
+                    $sub->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
+                })->orWhereIn('scan_method', ['hardware', 'camera']);
+            });
+        } elseif (!empty($filters['entry_method'])) {
+            if (in_array($filters['entry_method'], ['qr', 'verification'])) {
+                $query->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNotNull('qrcode')->where('qrcode', '!=', '');
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('unique_code_id')->where('unique_code_id', '!=', '');
+                    })->orWhereIn('scan_method', ['hardware', 'camera']);
+                });
+            } elseif (in_array($filters['entry_method'], ['manual', 'regular'])) {
+                $query->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                    })->where(function ($sub) {
+                        $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                    })->where(function ($sub) {
+                        $sub->whereNull('scan_method')
+                            ->orWhere('scan_method', 'manual');
+                    });
+                });
+            }
+        } else {
+            // Default when view_mode is not verifikasi: only show manual (regular) data
+            $query->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('scan_method')
+                        ->orWhere('scan_method', 'manual');
+                });
             });
         }
 
@@ -83,6 +138,14 @@ class IncomingExportService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'defects' => json_encode($defects),
+                'part_code'         => !empty($data['part_code']) ? $data['part_code'] : null,
+                'supplier_id'       => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
+                'quantity'          => !empty($data['quantity']) ? $data['quantity'] : null,
+                'unique_code_id'    => !empty($data['unique_code_id']) ? $data['unique_code_id'] : null,
+                'sap_code'          => !empty($data['sap_code']) ? $data['sap_code'] : null,
+                'scan_method'       => !empty($data['scan_method']) ? $data['scan_method'] : 'manual',
+                'qrcode'            => !empty($data['qrcode']) ? $data['qrcode'] : null,
+                'cycle_time'        => $data['cycle_time'] ?? null,
             ]);
 
             DB::commit();
@@ -118,6 +181,14 @@ class IncomingExportService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'defects' => json_encode($defects),
+                'part_code'         => !empty($data['part_code']) ? $data['part_code'] : $checksheet->part_code,
+                'supplier_id'       => !empty($data['supplier_id']) ? $data['supplier_id'] : $checksheet->supplier_id,
+                'quantity'          => !empty($data['quantity']) ? $data['quantity'] : $checksheet->quantity,
+                'unique_code_id'    => !empty($data['unique_code_id']) ? $data['unique_code_id'] : $checksheet->unique_code_id,
+                'sap_code'          => !empty($data['sap_code']) ? $data['sap_code'] : $checksheet->sap_code,
+                'scan_method'       => !empty($data['scan_method']) ? $data['scan_method'] : $checksheet->scan_method,
+                'qrcode'            => !empty($data['qrcode']) ? $data['qrcode'] : $checksheet->qrcode,
+                'cycle_time'        => $data['cycle_time'] ?? $checksheet->cycle_time,
             ]);
 
             DB::commit();

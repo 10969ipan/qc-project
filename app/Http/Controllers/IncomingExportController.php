@@ -62,10 +62,35 @@ class IncomingExportController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $plantInput = $request->get('plant', auth()->user()->plant_id);
+        $filters = [
+            'plant'             => $plantInput,
+            'start_date'        => $request->start_date,
+            'end_date'          => $request->end_date,
+            'approval_status'   => $request->approval_status,
+            'item_id'           => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'search'            => $request->search,
+            'qr_raw'            => $request->qr_raw,
+            'entry_method'      => $request->entry_method,
+            'view_mode'         => $request->view_mode,
+            'id'                => $request->id,
+        ];
+
+        if ($request->get('view_mode') !== 'verifikasi' && empty($filters['entry_method'])) {
+            $filters['entry_method'] = 'manual';
+        }
+
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'];
-        $items = Item::byCategory($categories)->orderBy('name')->get();
+
+        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+        $user = auth()->user();
+        $currentPlantId = $request->has('plant') ? Plant::resolveId($request->query('plant')) : $user->plant_id;
+        $plantIds = array_unique(array_filter([$currentPlantId, $jakartaPlantId, $karawangPlantId]));
+
+        $items = Item::byCategory($categories)->whereIn('plant_id', $plantIds)->orderBy('name')->get();
 
         return view('incoming.exports.index', compact('checksheets', 'items'));
     }
@@ -73,13 +98,14 @@ class IncomingExportController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'SUB ASSY', 'Plating', 'PLATING'];
+        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
         $query = Item::byCategory($categories)->orderBy('name');
 
         $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
         $currentPlantId = $request->has('plant') ? Plant::resolveId($request->query('plant')) : $user->plant_id;
 
-        $plantIds = array_unique(array_filter([$currentPlantId, $jakartaPlantId]));
+        $plantIds = array_unique(array_filter([$currentPlantId, $jakartaPlantId, $karawangPlantId]));
         $query->whereIn('plant_id', $plantIds);
 
         $items = $query->get();
@@ -99,17 +125,20 @@ class IncomingExportController extends Controller
                 ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Export baru: {$checksheet->item->name}");
             }
             $message = 'Data Incoming Export berhasil disimpan.';
+            $plantInput = $request->get('plant') ?? $request->get('plant_id') ?? auth()->user()->plant_id;
+            $plantCode = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
+            $plantCode = strtolower($plantCode ?: 'karawang');
+            $indexUrl = route('incoming.exports.index', ['plant' => $plantCode]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => $message,
-                    'index_url' => route('incoming.exports.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
+                    'index_url' => $indexUrl
                 ]);
             }
 
-            return redirect()->route('incoming.exports.index', ['plant' => $request->get('plant', auth()->user()->plant_id)])
-                ->with('success', $message);
+            return redirect()->to($indexUrl)->with('success', $message);
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -124,7 +153,12 @@ class IncomingExportController extends Controller
     public function edit($id)
     {
         $checksheet = IncomingExport::findOrFail($id);
-        $items = Item::byCategory(['Incoming Export', 'INPROSES', 'SUB ASSY'])->orderBy('name')->get();
+        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        $jakartaPlantId = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+        $plantIds = array_unique(array_filter([$checksheet->plant_id, $jakartaPlantId, $karawangPlantId]));
+
+        $items = Item::byCategory($categories)->whereIn('plant_id', $plantIds)->orderBy('name')->get();
 
         if (request()->ajax()) {
             return view('incoming.exports.partials.edit_form', compact('checksheet', 'items'));

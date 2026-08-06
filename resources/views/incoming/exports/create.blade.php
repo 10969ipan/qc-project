@@ -416,6 +416,16 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.INCOMING_PART_CONFIG = {
+            arrivalsUrl: "",
+            checkFirstTimeUrl: "",
+            qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
+            itemSearchUrl: "{{ route('items.search-by-part') }}",
+            index_url: "{{ route('incoming.exports.index', ['plant' => request('plant') ?? auth()->user()->plant_id]) }}",
+            useQueue: true
+        };
+    </script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script>
