@@ -798,7 +798,20 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'categories', 'averages', 'testType', 'isTrial'));
+        $rekapMatching = ($testType === 'thickness' && isset($allMatching)) ? $allMatching : (clone $query)->get();
+        $rekapSummary = $rekapMatching->groupBy('standard_performance_test_id')->map(function ($group) {
+            $first = $group->first();
+            $std = $first->standard ?? null;
+            return (object)[
+                'part_name' => $std->part_name ?? '-',
+                'part_number' => $std->part_number ?? '-',
+                'customer_name' => $std->customer_name ?? '-',
+                'customer_standard' => $std->customer_standard ?? '-',
+                'total' => $group->count(),
+            ];
+        })->values()->sortBy('part_name');
+
+        return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'categories', 'averages', 'rekapSummary', 'testType', 'isTrial'));
     }
 
     public function updateThickness(Request $request, $id)

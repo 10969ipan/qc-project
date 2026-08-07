@@ -359,10 +359,13 @@
                 <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
                     <i class="fas fa-search fa-sm"></i>
                 </button>
-                <a href="{{ route('standard-performance-tests.report') }}"
+                <a href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report') }}"
                     class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
                 </a>
+                <button type="button" class="btn btn-info btn-sm shadow-sm rounded-pill px-3 font-weight-bold" data-toggle="modal" data-target="#modalRekapData" title="Rekap Data Part">
+                    <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap
+                </button>
                 <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Print Laporan">
                     <i class="fas fa-print fa-sm"></i> Print
                 </button>
@@ -3182,12 +3185,125 @@
     </div>
 </div>
 
+<!-- Modal Rekap Data Part -->
+<div class="modal fade" id="modalRekapData" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 950px;">
+        <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title font-weight-bold text-gray-800" style="font-size: 1.1rem;">
+                    Rekap Data Pengujian Part {{ ucwords(str_replace('_', ' ', $testType)) }} Test
+                </h5>
+                <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 75vh; overflow-y: auto;">
+                
+                <!-- Metadata Header Card -->
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+                    <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+                        <div>
+                            <span class="small font-weight-bold text-gray-700 uppercase" style="letter-spacing: 0.5px;">
+                                PERIODE FILTER:
+                            </span>
+                            <span class="font-weight-bold text-gray-800 ml-1" style="font-size: 0.85rem;">
+                                @if(request('start_date') || request('end_date'))
+                                    {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : 'Awal' }} 
+                                    s/d 
+                                    {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : 'Akhir' }}
+                                @else
+                                    Semua Periode Tanggal
+                                @endif
+                            </span>
+                        </div>
+                        <div>
+                            <div class="small font-weight-bold text-gray-800" style="font-size: 0.8rem;">
+                                Total Part: <span class="text-gray-900">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Table Card -->
+                <div class="card border-0 shadow-sm" style="border-radius: 10px;">
+                    <div class="card-body p-3">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Cari Data Rekap</label>
+                            <input type="text" id="searchRekapInput" class="form-control form-control-sm border-0 shadow-sm bg-light" placeholder="Ketik Nama Part / Part No / Customer..." style="padding-left: 12px;">
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto; border: 1px solid #e2e8f0 !important; border-radius: 8px;">
+                            <table class="table table-bordered table-hover mb-0" id="tableRekapData" style="font-size: 0.78rem;">
+                                <thead>
+                                    <tr style="background-color: #f8fafc !important;">
+                                        <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 50px;">No.</th>
+                                        <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Nama Part</th>
+                                        <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Part No</th>
+                                        <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Customer</th>
+                                        <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Standard Customer</th>
+                                        <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 90px;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($rekapSummary ?? [] as $idx => $r)
+                                        <tr>
+                                            <td class="text-center align-middle font-weight-bold text-muted">{{ $idx + 1 }}</td>
+                                            <td class="align-middle font-weight-bold text-gray-800">{{ $r->part_name }}</td>
+                                            <td class="text-center align-middle font-mono">{{ $r->part_number }}</td>
+                                            <td class="align-middle">{{ $r->customer_name }}</td>
+                                            <td class="align-middle">{{ $r->customer_standard }}</td>
+                                            <td class="text-center align-middle font-weight-bold text-gray-800" style="font-size: 0.82rem;">
+                                                {{ $r->total }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted italic">
+                                                <i class="fas fa-info-circle mr-1"></i> Tidak ada data pengujian part pada periode/filter ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                                @if(($rekapSummary ?? collect())->count() > 0)
+                                    <tfoot class="bg-light font-weight-bold text-gray-800" style="position: sticky; bottom: 0; z-index: 10; border-top: 2px solid #cbd5e1;">
+                                        <tr>
+                                            <td colspan="5" class="text-right py-2 pr-3">Total Keseluruhan Pengujian:</td>
+                                            <td class="text-center py-2 text-gray-800 font-weight-bold" style="font-size: 0.85rem;">
+                                                {{ $rekapSummary->sum('total') }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+                <button type="button" class="btn btn-light btn-sm border px-4 font-weight-bold" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
     @php $bulkApproveRoute = route('standard-performance-tests.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+    <script>
+        $(document).ready(function() {
+            $('#searchRekapInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#tableRekapData tbody tr').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
 @endpush
+
 
 
 
