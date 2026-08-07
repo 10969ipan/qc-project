@@ -227,9 +227,11 @@ class IncomingPartController extends Controller
 
         $validated = $request->validate([
             'qty_datang'     => 'required|integer|min:1',
-            'qty_sisa'       => 'required|integer|min:0',
+            'qty_sisa'       => 'required|integer|min:0|lte:qty_datang',
             'tanggal_datang' => 'nullable|date',
             'shift_datang'   => 'nullable|string',
+        ], [
+            'qty_sisa.lte' => 'Qty Sisa Stok tidak boleh melebihi Qty Datang Awal.',
         ]);
 
         try {
@@ -270,8 +272,15 @@ class IncomingPartController extends Controller
         try {
             $arrival = IncomingPartArrival::findOrFail($id);
             $itemName = $arrival->item ? $arrival->item->name : '-';
-            
-            IncomingPart::where('arrival_id', $arrival->id)->update(['arrival_id' => null]);
+
+            // Cegah hapus jika sudah ada riwayat checksheet QC tersimpan
+            $checksheetCount = IncomingPart::where('arrival_id', $arrival->id)->count();
+            if ($checksheetCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Stok kedatangan tidak dapat dihapus karena sudah digunakan oleh {$checksheetCount} data checksheet QC yang tersimpan."
+                ], 422);
+            }
 
             $arrival->delete();
             ActivityLogger::log('deleted', null, "Menghapus Stok Kedatangan Awal Incoming Part: {$itemName}");
