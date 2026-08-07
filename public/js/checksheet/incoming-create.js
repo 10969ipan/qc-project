@@ -1519,19 +1519,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (matchedItemValue) {
-            // Isi field-field wajib sebelum autoAddScanToQueue dipanggil
-            $('#qrcodeInput').val(val);
-            $('#partCodeInput').val(matchedPartNumber || val);
-            $('#sapCodeInputHidden').val(matchedSapCode || val);
-            $('#quantityInput').val(1);   // default 1 unit jika scan tanpa QR lengkap
-            $('#totalCheckInput').val(1); // default 1 unit
-            $('#scanMethodInput').val('hardware');
+            // Jika scan/ketik tanpa pipa (|) QR code, tetap perlakukan sebagai pencarian manual untuk memilih item
+            $('#qrcodeInput').val('');
+            $('#partCodeInput').val(matchedPartNumber || '');
+            $('#sapCodeInputHidden').val(matchedSapCode || '');
+            $('#scanMethodInput').val('manual');
             $('#itemSelect').val(matchedItemValue).trigger('change');
 
-            setTimeout(function() {
-                autoAddScanToQueue();
-                if (callback) callback(true);
-            }, 150);
+            if (callback) callback(true);
         } else {
             Swal.fire({
                 icon: "error",
@@ -1556,7 +1551,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Segera kosongkan input agar tidak ada sisa karakter
         $('#sapCodeInput').val('');
 
-        $('#scanMethodInput').val('hardware');
         const handler = function(success) {
             if (success) {
                 playSuccessFeedback();
@@ -1580,8 +1574,10 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         if (val.includes('|')) {
+            $('#scanMethodInput').val('hardware');
             parseAndFillQR(val, handler);
         } else {
+            $('#scanMethodInput').val('manual');
             processSingleCodeScan(val, handler);
         }
     }
@@ -1607,14 +1603,18 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 80);
         });
 
-        // Tangkap scan alat tembak secara otomatis jika kursor terlepas dari sapCodeInput
+        // Tangkap scan alat tembak secara otomatis jika kursor berada pada sapCodeInput atau buffer memuat QR lengkap (|)
         let barcodeBuffer = '';
         let lastKeyTime = 0;
 
         $(document).on('keydown.hardwareScanner', function (e) {
-            if (isProcessingHardwareScan) { e.preventDefault(); return; }
+            if (isProcessingHardwareScan) return;
             const activeEl = document.activeElement;
-            if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.id === 'sapCodeInput')) return;
+            
+            // Abaikan tombol Enter pada input form standar agar tidak memicu scan hardware palsu saat bernavigasi
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'TEXTAREA')) {
+                if (activeEl.id !== 'sapCodeInput') return;
+            }
 
             const now = new Date().getTime();
             if (now - lastKeyTime > 100) barcodeBuffer = '';
@@ -1622,7 +1622,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (e.key === 'Enter') {
                 const buf = barcodeBuffer.trim();
-                if (buf.length > 0) {
+                if (buf.length > 0 && buf.includes('|')) {
                     e.preventDefault();
                     barcodeBuffer = '';
                     processHardwareScanValue(buf);
@@ -1680,7 +1680,7 @@ document.addEventListener('DOMContentLoaded', function () {
             quantity: $('#quantityInput').val(),
             unique_code_id: $('#uniqueCodeInput').val(),
             sap_code: $('#sapCodeInputHidden').val(),
-            scan_method: $('#scanMethodInput').val() || "hardware",
+            scan_method: $('#scanMethodInput').val() || "manual",
             item_id: itemId,
             tanggal_datang: $('#tanggalDatangInput').val() || $('input[name="date"]').val() || today,
             shift_datang: $('#shiftDatangSelect').val() || $('select[name="shift"]').val() || "1",

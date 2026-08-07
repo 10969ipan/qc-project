@@ -72,6 +72,7 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
                                 <div id="qcCheckJKT" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('incoming.parts.create', ['plant' => 'jakarta']) }}">Incoming Part</a>
                                     <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'jakarta']) }}">Sub Assy</a>
                                     <a class="collapse-item" href="{{ route('in_process.create', ['plant' => 'jakarta']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('first_piece_approval.create', ['plant' => 'jakarta']) }}">FPA</a>
@@ -85,6 +86,7 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanJKT">Laporan</a>
                                 <div id="qcLaporanJKT" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('incoming.parts.index', ['plant' => 'jakarta']) }}">Incoming Part</a>
                                     <a class="collapse-item" href="{{ route('admin.checksheets.index', ['plant' => 'jakarta']) }}">Sub Assy</a>
                                     <a class="collapse-item" href="{{ route('in_process.index', ['plant' => 'jakarta']) }}">Inprocess</a>
                                     <a class="collapse-item" href="{{ route('first_piece_approval.index', ['plant' => 'jakarta']) }}">FPA</a>
@@ -135,6 +137,7 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckKRW">Checksheet</a>
                                 <div id="qcCheckKRW" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('incoming.parts.create', ['plant' => 'karawang']) }}">Incoming Part</a>
                                     <a class="collapse-item" href="{{ route('checksheet.sub_assy', ['plant' => 'karawang']) }}">Sub
                                         Assy</a>
                                     <a class="collapse-item"
@@ -157,6 +160,7 @@
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanKRW">Laporan</a>
                                 <div id="qcLaporanKRW" class="collapse pl-2">
+                                    <a class="collapse-item" href="{{ route('incoming.parts.index', ['plant' => 'karawang']) }}">Incoming Part</a>
                                     <a class="collapse-item"
                                         href="{{ route('admin.checksheets.index', ['plant' => 'karawang']) }}">Sub
                                         Assy</a>
