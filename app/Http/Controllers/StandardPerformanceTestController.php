@@ -1458,4 +1458,69 @@ class StandardPerformanceTestController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    private function applyResultJudgmentFilter($query, $testType, $resultJudgment)
+    {
+        if (empty($resultJudgment)) {
+            return;
+        }
+
+        $val = strtoupper(trim($resultJudgment));
+
+        $targetColumn = match ($testType) {
+            'corrodkote' => 'result_judgment_corrodkote',
+            'cass' => 'result_judgment_cass',
+            'salt_spray' => 'result_judgment_salt_spray',
+            'porecount' => 'result_judgment_porecount',
+            default => 'result_judgment',
+        };
+
+        $query->where(function ($q) use ($val, $testType, $targetColumn) {
+            if ($val === 'NG') {
+                $q->where($targetColumn, 'LIKE', '%NG%');
+
+                if ($testType === 'salt_spray') {
+                    $q->orWhere($targetColumn, 'LIKE', '%WHITE%')
+                      ->orWhere($targetColumn, 'LIKE', '%RED%');
+                }
+
+                if ($testType === 'thickness') {
+                    $q->orWhereHas('standard', function ($sq) {
+                        $sq->whereRaw('(durability_thickness_reports.actual_cr REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_cr AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cr AS DECIMAL(10,4)))')
+                          ->orWhereRaw('(durability_thickness_reports.actual_ni REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_ni AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_ni AS DECIMAL(10,4)))')
+                          ->orWhereRaw('(durability_thickness_reports.actual_cu REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_cu AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cu AS DECIMAL(10,4)))');
+                    });
+                }
+            } elseif ($val === 'OK') {
+                $q->where(function ($sub) use ($targetColumn, $testType) {
+                    $sub->where($targetColumn, 'LIKE', '%OK%');
+                    if ($testType === 'salt_spray') {
+                        $sub->orWhere($targetColumn, 'LIKE', '%NO RUST%');
+                    }
+                });
+
+                // Must NOT be NG in the target column
+                $q->where($targetColumn, 'NOT LIKE', '%NG%');
+                if ($testType === 'salt_spray') {
+                    $q->where($targetColumn, 'NOT LIKE', '%WHITE%')
+                      ->where($targetColumn, 'NOT LIKE', '%RED%');
+                }
+
+                // For thickness, must NOT have any actual measurement less than standard
+                if ($testType === 'thickness') {
+                    $q->whereDoesntHave('standard', function ($sq) {
+                        $sq->whereRaw('(durability_thickness_reports.actual_cr REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_cr AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cr AS DECIMAL(10,4)))')
+                          ->orWhereRaw('(durability_thickness_reports.actual_ni REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_ni AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_ni AS DECIMAL(10,4)))')
+                          ->orWhereRaw('(durability_thickness_reports.actual_cu REGEXP "^[0-9]+([.][0-9]+)?$" AND CAST(durability_thickness_reports.actual_cu AS DECIMAL(10,4)) < CAST(standard_performance_tests.thickness_cu AS DECIMAL(10,4)))');
+                    });
+                }
+            } elseif (str_contains($val, 'WHITE')) {
+                $q->where($targetColumn, 'LIKE', '%WHITE%');
+            } elseif (str_contains($val, 'RED')) {
+                $q->where($targetColumn, 'LIKE', '%RED%');
+            } else {
+                $q->where($targetColumn, 'LIKE', "%$val%");
+            }
+        });
+    }
 }
