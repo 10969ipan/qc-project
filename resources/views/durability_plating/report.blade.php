@@ -3204,7 +3204,7 @@
                     <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
                         <div>
                             <span class="small font-weight-bold text-gray-700 uppercase" style="letter-spacing: 0.5px;">
-                                PERIODE FILTER:
+                                PERIODE:
                             </span>
                             <span class="font-weight-bold text-gray-800 ml-1" style="font-size: 0.85rem;">
                                 @if(request('start_date') || request('end_date'))
@@ -3218,7 +3218,7 @@
                         </div>
                         <div>
                             <div class="small font-weight-bold text-gray-800" style="font-size: 0.8rem;">
-                                Total Part: <span class="text-gray-900" id="rekapPartCount">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900" id="rekapTestCount">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
+                                Total: <span class="text-gray-900" id="rekapPartCount">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900" id="rekapTestCount">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
                             </div>
                         </div>
                     </div>
