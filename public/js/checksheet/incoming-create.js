@@ -2092,6 +2092,208 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#saveBtn').html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
     }
 
+    if (typeof window.initItemSearch === 'function') {
+        window.initItemSearch('itemSelect');
+    }
+
+    $('#formAddArrival').on('submit', function(e) {
+        e.preventDefault();
+        var $btn = $('#btnSubmitArrival');
+        var origText = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(res) {
+                $btn.prop('disabled', false).html(origText);
+                if (res.success) {
+                    $('#modalAddArrival').modal('hide');
+                    $('#formAddArrival')[0].reset();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 2000, showConfirmButton: false });
+                    } else {
+                        alert(res.message);
+                    }
+
+                    if (res.arrival) {
+                        $('#emptyArrivalRow').remove();
+                        var arr = res.arrival;
+                        var itemName = arr.item ? arr.item.name : '-';
+                        var partNo = arr.item && arr.item.part_number ? arr.item.part_number : '-';
+                        var tglParts = (arr.tanggal_datang || '').split('-');
+                        var tglFmt = tglParts.length === 3 ? (tglParts[2].substring(0, 2) + '/' + tglParts[1] + '/' + tglParts[0]) : (arr.tanggal_datang || '-');
+                        var qtyDatangFmt = new Intl.NumberFormat().format(arr.qty_datang);
+                        var qtySisaFmt = new Intl.NumberFormat().format(arr.qty_sisa);
+                        
+                        var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;" id="arrivalRow_' + arr.id + '">' +
+                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
+                            '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
+                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
+                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
+                            '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
+                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
+                            '<td class="align-middle text-center">' +
+                            '<button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival mr-1" data-id="' + arr.id + '" data-item-name="' + itemName + '" data-tgl="' + (arr.tanggal_datang ? arr.tanggal_datang.substring(0, 10) : '') + '" data-shift="' + arr.shift_datang + '" data-qty-datang="' + arr.qty_datang + '" data-qty-sisa="' + arr.qty_sisa + '" title="Edit Stok"><i class="fas fa-edit"></i></button>' +
+                            '<button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" title="Hapus Stok"><i class="fas fa-trash"></i></button>' +
+                            '</td>' +
+                            '</tr>';
+                            
+                        $('#tableOpenArrivals tbody').append(newRow);
+                        $('#tableOpenArrivals tbody tr').each(function(idx) {
+                            $(this).find('td:first').text(idx + 1);
+                        });
+                        $('#openArrivalCountBadge').text($('#tableOpenArrivals tbody tr').length + ' Lot Open');
+                    }
+
+                    // Refresh arrival dropdown if item matches
+                    var currentItemId = $('#itemSelect').val();
+                    if (currentItemId && res.arrival && currentItemId == res.arrival.item_id) {
+                        $('#itemSelect').trigger('change');
+                    }
+                } else {
+                    alert(res.message || 'Gagal menyimpan stok kedatangan.');
+                }
+            },
+            error: function(err) {
+                $btn.prop('disabled', false).html(origText);
+                var errMsg = err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'Terjadi kesalahan.';
+                alert(errMsg);
+            }
+        });
+    });
+
+    // Handle Edit Arrival
+    $(document).on('click', '.btn-edit-arrival', function() {
+        var id = $(this).data('id');
+        var itemName = $(this).data('item-name');
+        var tgl = $(this).data('tgl');
+        var shift = $(this).data('shift');
+        var qtyDatang = $(this).data('qty-datang');
+        var qtySisa = $(this).data('qty-sisa');
+        var csrfToken = window.csrfToken || $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+
+        Swal.fire({
+            title: 'Edit Stok Kedatangan',
+            html: `
+                <div class="text-left font-weight-bold mb-3 p-2 bg-light rounded small text-primary"><i class="fas fa-box mr-1"></i>${itemName}</div>
+                <div class="form-group text-left mb-2">
+                    <label class="small font-weight-bold text-gray-700">Tanggal Datang</label>
+                    <input type="date" id="swalEditTgl" class="form-control form-control-sm" value="${tgl}">
+                </div>
+                <div class="form-group text-left mb-2">
+                    <label class="small font-weight-bold text-gray-700">Shift Datang</label>
+                    <select id="swalEditShift" class="form-control form-control-sm">
+                        <option value="1" ${shift == '1' ? 'selected' : ''}>Shift 1</option>
+                        <option value="2" ${shift == '2' ? 'selected' : ''}>Shift 2</option>
+                        <option value="3" ${shift == '3' ? 'selected' : ''}>Shift 3</option>
+                    </select>
+                </div>
+                <div class="form-group text-left mb-2">
+                    <label class="small font-weight-bold text-gray-700">Qty Datang Awal (Pcs)</label>
+                    <input type="number" id="swalEditQtyDatang" class="form-control form-control-sm font-weight-bold" value="${qtyDatang}" min="1">
+                </div>
+                <div class="form-group text-left mb-2">
+                    <label class="small font-weight-bold text-gray-700">Qty Sisa Stok / Open (Pcs)</label>
+                    <input type="number" id="swalEditQtySisa" class="form-control form-control-sm font-weight-bold text-success" value="${qtySisa}" min="0">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-save mr-1"></i> Simpan Perubahan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#4e73df',
+            preConfirm: () => {
+                const newTgl = $('#swalEditTgl').val();
+                const newShift = $('#swalEditShift').val();
+                const newQtyDatang = $('#swalEditQtyDatang').val();
+                const newQtySisa = $('#swalEditQtySisa').val();
+
+                if (!newQtyDatang || parseInt(newQtyDatang) < 1) {
+                    Swal.showValidationMessage('Qty Datang Awal minimal 1');
+                    return false;
+                }
+                if (newQtySisa === '' || parseInt(newQtySisa) < 0) {
+                    Swal.showValidationMessage('Qty Sisa Stok tidak boleh minus atau kosong');
+                    return false;
+                }
+                return {
+                    tanggal_datang: newTgl,
+                    shift_datang: newShift,
+                    qty_datang: parseInt(newQtyDatang),
+                    qty_sisa: parseInt(newQtySisa)
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var data = result.value;
+                data._token = csrfToken;
+                data._method = 'PUT';
+
+                $.ajax({
+                    url: '/checksheet/incoming-part/arrival/' + id,
+                    type: 'POST',
+                    data: data,
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 1500, showConfirmButton: false }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Gagal memperbarui data.', 'error');
+                        }
+                    },
+                    error: function(err) {
+                        var msg = err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'Terjadi kesalahan.';
+                        Swal.fire('Gagal', msg, 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Handle Delete Arrival
+    $(document).on('click', '.btn-delete-arrival', function() {
+        var id = $(this).data('id');
+        var itemName = $(this).data('item-name');
+        var csrfToken = window.csrfToken || $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+
+        Swal.fire({
+            title: 'Hapus Stok Kedatangan?',
+            text: 'Anda yakin ingin menghapus stok kedatangan ' + itemName + '? Data ini tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/checksheet/incoming-part/arrival/' + id,
+                    type: 'POST',
+                    data: {
+                        _token: csrfToken,
+                        _method: 'DELETE'
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: res.message, timer: 1500, showConfirmButton: false }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Gagal menghapus data.', 'error');
+                        }
+                    },
+                    error: function(err) {
+                        var msg = err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'Terjadi kesalahan.';
+                        Swal.fire('Gagal', msg, 'error');
+                    }
+                });
+            }
+        });
+    });
+
 });
 
 

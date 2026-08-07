@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\IncomingPart;
+use App\Models\IncomingPartArrival;
 use App\Models\Item;
 use App\Services\IncomingPartService;
 use App\Http\Requests\StoreIncomingPartRequest;
@@ -217,6 +218,67 @@ class IncomingPartController extends Controller
                 ], 422);
             }
             return redirect()->back()->with('error', 'Gagal menyimpan stok kedatangan: ' . $e->getMessage());
+        }
+    }
+
+    public function updateArrival(Request $request, $id)
+    {
+        $arrival = IncomingPartArrival::findOrFail($id);
+
+        $validated = $request->validate([
+            'qty_datang'     => 'required|integer|min:1',
+            'qty_sisa'       => 'required|integer|min:0',
+            'tanggal_datang' => 'nullable|date',
+            'shift_datang'   => 'nullable|string',
+        ]);
+
+        try {
+            $arrival->qty_datang = (int)$validated['qty_datang'];
+            $arrival->qty_sisa = (int)$validated['qty_sisa'];
+            if (!empty($validated['tanggal_datang'])) {
+                $arrival->tanggal_datang = $validated['tanggal_datang'];
+            }
+            if (!empty($validated['shift_datang'])) {
+                $arrival->shift_datang = $validated['shift_datang'];
+            }
+            $arrival->status = ($arrival->qty_sisa <= 0) ? 'COMPLETED' : 'OPEN';
+            $arrival->save();
+
+            ActivityLogger::log('updated', $arrival, "Mengubah Data Kedatangan Awal Incoming Part: " . ($arrival->item ? $arrival->item->name : '-'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Kedatangan Awal berhasil diperbarui.',
+                'arrival' => $arrival->load('item'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengedit stok kedatangan: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function destroyArrival($id)
+    {
+        try {
+            $arrival = IncomingPartArrival::findOrFail($id);
+            $itemName = $arrival->item ? $arrival->item->name : '-';
+            
+            IncomingPart::where('arrival_id', $arrival->id)->update(['arrival_id' => null]);
+
+            $arrival->delete();
+            ActivityLogger::log('deleted', null, "Menghapus Stok Kedatangan Awal Incoming Part: {$itemName}");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stok Kedatangan Awal berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus stok kedatangan: ' . $e->getMessage()
+            ], 422);
         }
     }
 

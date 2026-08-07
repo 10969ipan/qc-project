@@ -606,12 +606,13 @@
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Tgl &amp; Shift Datang</th>
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Datang</th>
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Sisa Stok</th>
-                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Status</th>
+                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Status</th>
+                                            <th class="py-2 text-center" style="width: 80px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody style="color: #334155;">
                                         @forelse($openArrivals ?? [] as $arr)
-                                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                            <tr style="border-bottom: 1px solid #f1f5f9;" id="arrivalRow_{{ $arr->id }}">
                                                 <td class="align-middle" style="border-right: 1px solid #f1f5f9;">{{ $loop->iteration }}</td>
                                                 <td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">
                                                     {{ $arr->item->name ?? '-' }}
@@ -623,13 +624,31 @@
                                                 </td>
                                                 <td class="align-middle" style="border-right: 1px solid #f1f5f9;">{{ number_format($arr->qty_datang) }} pcs</td>
                                                 <td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">{{ number_format($arr->qty_sisa) }} pcs</td>
-                                                <td class="align-middle">
+                                                <td class="align-middle" style="border-right: 1px solid #f1f5f9;">
                                                     <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival mr-1" 
+                                                        data-id="{{ $arr->id }}" 
+                                                        data-item-name="{{ $arr->item->name ?? '-' }}" 
+                                                        data-tgl="{{ \Carbon\Carbon::parse($arr->tanggal_datang)->format('Y-m-d') }}"
+                                                        data-shift="{{ $arr->shift_datang }}"
+                                                        data-qty-datang="{{ $arr->qty_datang }}" 
+                                                        data-qty-sisa="{{ $arr->qty_sisa }}" 
+                                                        title="Edit Stok">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" 
+                                                        data-id="{{ $arr->id }}" 
+                                                        data-item-name="{{ $arr->item->name ?? '-' }}" 
+                                                        title="Hapus Stok">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         @empty
                                             <tr id="emptyArrivalRow">
-                                                <td colspan="6" class="text-center text-muted py-3">Belum ada stok kedatangan part yang OPEN.</td>
+                                                <td colspan="7" class="text-center text-muted py-3">Belum ada stok kedatangan part yang OPEN.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -656,84 +675,12 @@
             index_url: "{{ route('incoming.parts.index', ['plant' => request('plant') ?? auth()->user()->plant_id]) }}",
             useQueue: true
         };
+        window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
+        window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+        window.csrfToken = "{{ csrf_token() }}";
     </script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
-    <script>
-        window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
-        window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
-    </script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
-    <script>
-        $(document).ready(function () {
-            if(typeof window.initItemSearch === 'function') {
-                window.initItemSearch('itemSelect');
-            }
-
-            $('#formAddArrival').on('submit', function(e) {
-                e.preventDefault();
-                var $btn = $('#btnSubmitArrival');
-                var origText = $btn.html();
-                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
-
-                $.ajax({
-                    url: $(this).attr('action'),
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function(res) {
-                        $btn.prop('disabled', false).html(origText);
-                        if (res.success) {
-                            $('#modalAddArrival').modal('hide');
-                            $('#formAddArrival')[0].reset();
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 2000, showConfirmButton: false });
-                            } else {
-                                alert(res.message);
-                            }
-
-                            if (res.arrival) {
-                                $('#emptyArrivalRow').remove();
-                                var arr = res.arrival;
-                                var itemName = arr.item ? arr.item.name : '-';
-                                var partNo = arr.item && arr.item.part_number ? arr.item.part_number : '-';
-                                var tglParts = (arr.tanggal_datang || '').split('-');
-                                var tglFmt = tglParts.length === 3 ? (tglParts[2].substring(0, 2) + '/' + tglParts[1] + '/' + tglParts[0]) : (arr.tanggal_datang || '-');
-                                var qtyDatangFmt = new Intl.NumberFormat().format(arr.qty_datang);
-                                var qtySisaFmt = new Intl.NumberFormat().format(arr.qty_sisa);
-                                
-                                var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;">' +
-                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
-                                    '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
-                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
-                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
-                                    '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
-                                    '<td class="align-middle"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
-                                    '</tr>';
-                                    
-                                $('#tableOpenArrivals tbody').append(newRow);
-                                $('#tableOpenArrivals tbody tr').each(function(idx) {
-                                    $(this).find('td:first').text(idx + 1);
-                                });
-                                $('#openArrivalCountBadge').text($('#tableOpenArrivals tbody tr').length + ' Lot Open');
-                            }
-
-                            // Refresh arrival dropdown if item matches
-                            var currentItemId = $('#itemSelect').val();
-                            if (currentItemId && res.arrival && currentItemId == res.arrival.item_id) {
-                                $('#itemSelect').trigger('change');
-                            }
-                        } else {
-                            alert(res.message || 'Gagal menyimpan stok kedatangan.');
-                        }
-                    },
-                    error: function(err) {
-                        $btn.prop('disabled', false).html(origText);
-                        var errMsg = err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'Terjadi kesalahan.';
-                        alert(errMsg);
-                    }
-                });
-            });
-        });
-    </script>
 @endpush
