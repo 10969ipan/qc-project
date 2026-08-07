@@ -568,7 +568,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         };
 
-        checkFirstTimeAndConfirm(doSubmit);
+        confirmSelisihBeforeSubmit(function() {
+            checkFirstTimeAndConfirm(doSubmit);
+        });
     });
 
     // #sapCodeInput scan handling dilakukan oleh initHardwareScanner() di bawah
@@ -718,23 +720,81 @@ document.addEventListener('DOMContentLoaded', function () {
         let currentText = $remarks.val() || '';
         currentText = currentText.replace(/\[Selisih:[^\]]+\]\s*/gi, '').trim();
 
-        if (expected > 0 && actual > 0 && expected !== actual) {
+        if (expected > 0 && actual > 0 && actual > expected) {
             const diff = actual - expected;
-            let selisihTag = '';
-            if (diff < 0) {
-                selisihTag = `[Selisih: -${Math.abs(diff)} pcs (Kurang)]`;
-            } else {
-                selisihTag = `[Selisih: +${diff} pcs (Lebih)]`;
-            }
+            const selisihTag = `[Selisih: +${diff} pcs (Lebih)]`;
             $remarks.val(currentText ? `${selisihTag} ${currentText}` : selisihTag);
         } else {
             $remarks.val(currentText);
         }
     }
 
+    function getInitialBalanceVal() {
+        let init = parseFloat($('#initialBalanceInput').val()) || 0;
+        const curBal = parseFloat($('#qtyBalanceInput').val()) || 0;
+        const totalChk = parseFloat($('#totalCheckInput').val()) || 0;
+        const qrQty = parseFloat($('#quantityInput').val()) || 0;
+        const qtyDatang = parseFloat($('#qtyDatangInput').val()) || 0;
+
+        if (init <= 0) {
+            init = Math.max(curBal + totalChk, qrQty, qtyDatang);
+        }
+        return init;
+    }
+
+    function confirmSelisihBeforeSubmit(onConfirm) {
+        const initialBalance = getInitialBalanceVal();
+        const totalCheck = parseFloat($('#totalCheckInput').val()) || 0;
+
+        if (initialBalance > 0 && totalCheck > 0 && totalCheck < initialBalance) {
+            const selisihKurang = initialBalance - totalCheck;
+            const sisaBalance = initialBalance - totalCheck;
+
+            Swal.fire({
+                title: 'Konfirmasi Status Stok / Selisih',
+                html: `
+                    <div class="text-left mb-3">
+                        Total pengecekan (<b>${totalCheck.toLocaleString('id-ID')} pcs</b>) kurang dari stok kedatangan (<b>${initialBalance.toLocaleString('id-ID')} pcs</b>).
+                    </div>
+                    <div class="alert alert-info text-left small p-2 mb-3">
+                        <i class="fas fa-info-circle mr-1"></i>Sisa Stok saat ini: <b>${sisaBalance.toLocaleString('id-ID')} pcs</b>.
+                    </div>
+                    <p class="text-left font-weight-bold text-gray-800 mb-0" style="font-size: 0.85rem;">Apakah data ini <b>ADA SISA</b> (stok akan di-check pada shift berikutnya), atau <b>MEMANG ADA SELISIH (KURANG)</b>?</p>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: '<i class="fas fa-boxes mr-1"></i> Ada Sisa (Belum Selesai)',
+                denyButtonText: '<i class="fas fa-exclamation-triangle mr-1"></i> Ada Selisih (Kurang)',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#1cc88a',
+                denyButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796'
+            }).then((result) => {
+                const $remarks = $('textarea[name="remarks"]');
+                let currentText = ($remarks.val() || '').replace(/\[Selisih:[^\]]+\]\s*/gi, '').trim();
+
+                if (result.isConfirmed) {
+                    // Ada Sisa: Tidak perlu keterangan [Selisih: -300 pcs (Kurang)]
+                    $remarks.val(currentText);
+                    onConfirm();
+                } else if (result.isDenied) {
+                    // Memang Selisih: Otomatis terisi keterangan [Selisih: -300 pcs (Kurang)]
+                    const selisihTag = `[Selisih: -${selisihKurang} pcs (Kurang)]`;
+                    $remarks.val(currentText ? `${selisihTag} ${currentText}` : selisihTag);
+                    onConfirm();
+                }
+            });
+        } else {
+            onConfirm();
+        }
+    }
+
     $(document).on('input change', '#totalCheckInput, #qtyBalanceInput', function() {
         updateDynamicBalance();
     });
+
+
 
     function checkFirstTimeAndConfirm(callback) {
         const itemId = $('#itemSelect').val();
@@ -761,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (result.isConfirmed) {
                                 callback();
                             } else {
-                                $('#btnSubmitForm').prop('disabled', false).html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
+                                $('#saveBtn').prop('disabled', false).html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
                             }
                         });
                     } else {
@@ -1665,52 +1725,8 @@ document.addEventListener('DOMContentLoaded', function () {
             $('#totalCheckInput').val(totalCheck);
         }
 
-        const defect_types = [];
-        $('.defect-select').each(function () {
-            if ($(this).val()) defect_types.push($(this).val());
-        });
-        const defect_quantities = [];
-        $('.defect-qty').each(function () {
-            if ($(this).val()) defect_quantities.push($(this).val());
-        });
-
-        const today = new Date().toISOString().slice(0, 10);
-        const queueItem = {
-            plant_id: $('input[name="plant_id"]').val(),
-            arrival_id: $('#arrivalIdInput').val(),
-            qrcode: $('#qrcodeInput').val(),
-            part_code: $('#partCodeInput').val(),
-            supplier_id: $('#supplierIdInput').val(),
-            quantity: $('#quantityInput').val(),
-            unique_code_id: $('#uniqueCodeInput').val(),
-            sap_code: $('#sapCodeInputHidden').val(),
-            scan_method: $('#scanMethodInput').val() || "manual",
-            item_id: itemId,
-            tanggal_datang: $('#tanggalDatangInput').val() || $('input[name="date"]').val() || today,
-            shift_datang: $('#shiftDatangSelect').val() || $('select[name="shift"]').val() || "1",
-            qty_datang: $('#qtyBalanceInput').val() || $('#quantityInput').val() || 0,
-            date: $('input[name="date"]').val() || today,
-            shift: $('select[name="shift"]').val() || $('#shiftInput').val() || "1",
-            // Field wajib IncomingExport
-            tanggal_delivery: $('input[name="date"]').val() || today,
-            lot_qty: parseInt(totalCheck) || 1,
-            total_check: totalCheck,
-            judgment: $('#judgmentSelect').val() || "OK",
-            operator_initials: $('input[name="operator_initials"]').val(),
-            remarks: $('textarea[name="remarks"]').val(),
-            defect_types: defect_types,
-            defect_quantities: defect_quantities,
-            itemNameDisplay: $("#itemSelect option:selected").text().trim(),
-            dimensions: $('input[name^="dimensions"]').map(function() { return $(this).val(); }).get()
-        };
-
-        const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
-        queue.push(queueItem);
-        localStorage.setItem('incoming_part_queue', JSON.stringify(queue));
-
-        resetFormForNextInput();
-        renderQueueTable();
-        applyAutoFocus();
+        // Scan QR tidak berkaitan dengan konfirmasi sisa/selisih kedatangan — langsung push
+        _pushToQueue();
     }
 
     function applyAutoFocus() {
@@ -1731,18 +1747,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 200);
     }
 
-    function addToQueue() {
+    // ─── INTERNAL: push data ke queue tanpa konfirmasi (sudah dikonfirmasi sebelumnya) ───
+    function _pushToQueue() {
         const itemId = $('#itemSelect').val();
-        if (!itemId) {
-            Swal.fire('Form Belum Lengkap', 'Silakan pilih Item Part terlebih dahulu.', 'warning');
-            return;
-        }
-
         const totalCheck = $('#totalCheckInput').val();
-        if (!totalCheck || parseInt(totalCheck) <= 0) {
-            Swal.fire('Form Belum Lengkap', 'Total Check harus diisi dengan angka lebih dari 0.', 'warning');
-            return;
-        }
 
         const defect_types = [];
         $('.defect-select').each(function () {
@@ -1752,17 +1760,6 @@ document.addEventListener('DOMContentLoaded', function () {
         $('.defect-qty').each(function () {
             if ($(this).val()) defect_quantities.push($(this).val());
         });
-
-        const dimCheck = checkMandatoryDimensions();
-        if (!dimCheck.isValid) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Dimensi Belum Lengkap',
-                text: `Point dimensi berikut wajib diisi: ${dimCheck.missingPoints.join(', ')}`
-            });
-            if (dimCheck.firstEmpty) dimCheck.firstEmpty.focus();
-            return;
-        }
 
         const queueItem = {
             plant_id: $('input[name="plant_id"]').val(),
@@ -1805,6 +1802,35 @@ document.addEventListener('DOMContentLoaded', function () {
             showConfirmButton: false,
             timer: 1200,
             timerProgressBar: true
+        });
+    }
+
+    function addToQueue() {
+        const itemId = $('#itemSelect').val();
+        if (!itemId) {
+            Swal.fire('Form Belum Lengkap', 'Silakan pilih Item Part terlebih dahulu.', 'warning');
+            return;
+        }
+
+        const totalCheck = $('#totalCheckInput').val();
+        if (!totalCheck || parseInt(totalCheck) <= 0) {
+            Swal.fire('Form Belum Lengkap', 'Total Check harus diisi dengan angka lebih dari 0.', 'warning');
+            return;
+        }
+
+        const dimCheck = checkMandatoryDimensions();
+        if (!dimCheck.isValid) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Dimensi Belum Lengkap',
+                text: `Point dimensi berikut wajib diisi: ${dimCheck.missingPoints.join(', ')}`
+            });
+            if (dimCheck.firstEmpty) dimCheck.firstEmpty.focus();
+            return;
+        }
+
+        confirmSelisihBeforeSubmit(function() {
+            _pushToQueue();
         });
     }
 
