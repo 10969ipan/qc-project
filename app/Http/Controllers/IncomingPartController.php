@@ -111,24 +111,28 @@ class IncomingPartController extends Controller
 
         $initials = $initialsQuery->distinct()->pluck('operator_initials')->sort();
 
-        return view('incoming.parts.index', compact('checksheets', 'items', 'customers', 'initials'));
+        $openArrivals = \App\Models\IncomingPartArrival::with('item')
+            ->where('plant_id', $plantId)
+            ->where('status', 'OPEN')
+            ->where('qty_sisa', '>', 0)
+            ->orderBy('tanggal_datang', 'asc')
+            ->orderBy('shift_datang', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return view('incoming.parts.index', compact('checksheets', 'items', 'customers', 'initials', 'openArrivals'));
     }
 
     public function create(Request $request)
     {
         $user = auth()->user();
         $plantInput = $request->get('plant', $user->plant_id);
+        $plantId = Plant::resolveId($plantInput);
         $plantCodeVal = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
         $isJakarta = strtolower($plantCodeVal ?: '') === 'jakarta';
         $categories = $isJakarta ? ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess'] : 'Incoming Part';
 
-        $query = Item::byCategory($categories)->orderBy('name');
-
-        if ($request->has('plant')) {
-            $query->where('plant_id', Plant::resolveId($request->query('plant')));
-        } else {
-            $query->where('plant_id', $user->plant_id);
-        }
+        $query = Item::byCategory($categories)->orderBy('name')->where('plant_id', $plantId);
 
         $items = $query->get();
         $now = now();
@@ -136,7 +140,16 @@ class IncomingPartController extends Controller
         $defaultShift = ShiftHelper::getShift($now);
         $recentArrivals = [];
 
-        return view('incoming.parts.create', compact('items', 'defaultDate', 'defaultShift', 'recentArrivals'));
+        $openArrivals = \App\Models\IncomingPartArrival::with('item')
+            ->where('plant_id', $plantId)
+            ->where('status', 'OPEN')
+            ->where('qty_sisa', '>', 0)
+            ->orderBy('tanggal_datang', 'asc')
+            ->orderBy('shift_datang', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return view('incoming.parts.create', compact('items', 'defaultDate', 'defaultShift', 'recentArrivals', 'openArrivals'));
     }
 
     public function store(StoreIncomingPartRequest $request)
@@ -170,6 +183,40 @@ class IncomingPartController extends Controller
                 ], 422);
             }
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        }
+    }
+
+    public function storeArrival(Request $request)
+    {
+        $validated = $request->validate([
+            'plant_id'       => 'nullable|string',
+            'item_id'        => 'required|exists:items,id',
+            'tanggal_datang' => 'required|date',
+            'shift_datang'   => 'required|string',
+            'qty_datang'     => 'required|integer|min:1',
+        ]);
+
+        try {
+            $arrival = $this->checksheetService->createArrival($validated);
+            ActivityLogger::log('created', $arrival, "Menambahkan Stok Kedatangan Awal Incoming Part: " . ($arrival->item ? $arrival->item->name : '-'));
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Stok Kedatangan Awal berhasil disimpan.',
+                    'arrival' => $arrival->load('item'),
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Stok Kedatangan Awal berhasil disimpan.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan stok kedatangan: ' . $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'Gagal menyimpan stok kedatangan: ' . $e->getMessage());
         }
     }
 

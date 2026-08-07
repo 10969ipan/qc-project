@@ -136,17 +136,27 @@ class IncomingPartService extends BaseService
 
     public function getOutstandingArrivals($itemId)
     {
-        // Clean up orphan arrival records that have 0 checksheets attached
-        IncomingPartArrival::where('item_id', $itemId)
-            ->whereDoesntHave('checksheets')
-            ->delete();
-
         return IncomingPartArrival::where('item_id', $itemId)
             ->where('status', 'OPEN')
             ->where('qty_sisa', '>', 0)
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->get();
+    }
+
+    public function createArrival(array $data): IncomingPartArrival
+    {
+        $plantId = \App\Models\Plant::resolveId($data['plant_id'] ?? auth()->user()->plant_id);
+
+        return IncomingPartArrival::create([
+            'plant_id'       => $plantId,
+            'item_id'        => $data['item_id'],
+            'tanggal_datang' => $data['tanggal_datang'],
+            'shift_datang'   => $data['shift_datang'] ?? '1',
+            'qty_datang'     => (int)$data['qty_datang'],
+            'qty_sisa'       => (int)$data['qty_datang'],
+            'status'         => 'OPEN',
+        ]);
     }
 
     public function isFirstTimeArrival($itemId)

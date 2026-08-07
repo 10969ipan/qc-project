@@ -18,6 +18,27 @@
         table-layout: auto !important;
     }
     
+    /* Target tableOpenArrivals headers to override global admin blue thead th style */
+    #tableOpenArrivals,
+    #tableOpenArrivals > thead > tr > th,
+    #tableOpenArrivals > thead > tr > td,
+    #tableOpenArrivals th,
+    #tableOpenArrivals tr:first-child th,
+    #modalAddArrival table thead th,
+    #modalAddArrival table tr:first-child th {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.65rem !important;
+        letter-spacing: 0.3px !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-left: none !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+    }
+    
     #checksheetTable td, #checksheetTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
@@ -168,6 +189,14 @@
             @else
                 <h6 class="m-0 font-weight-bold text-gray-800">Data Masuk Incoming Part</h6>
             @endif
+            <div class="d-flex align-items-center" style="gap: 8px;">
+                <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
+                    <i class="fas fa-boxes mr-1"></i> INPUT STOK KEDATANGAN AWAL
+                </button>
+                <a href="{{ route('incoming.parts.create', ['plant' => request('plant')]) }}" class="btn btn-success btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;">
+                    <i class="fas fa-plus mr-1"></i> INPUT CHECKSHEET QC
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
@@ -634,6 +663,127 @@
     @php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
+    <!-- Modal Input & List Stok Kedatangan Awal -->
+    <div class="modal fade" id="modalAddArrival" tabindex="-1" role="dialog" aria-labelledby="modalAddArrivalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+                <div class="modal-header bg-white py-3 px-4" style="border-bottom: 2px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold text-gray-800 mb-0" id="modalAddArrivalTitle">
+                        Kelola Stok &amp; Input Kedatangan Awal
+                    </h5>
+                    <button type="button" class="close text-secondary opacity-100" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 text-left" style="background-color: #ffffff;">
+                    <!-- Form Input Kedatangan Baru -->
+                    <div class="card border-0 mb-4 shadow-sm" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Form Input Kedatangan Part Baru
+                            </h6>
+                        </div>
+                        <div class="card-body p-3 bg-white">
+                            <form action="{{ route('incoming.parts.store_arrival') }}" method="POST" id="formAddArrival">
+                                @csrf
+                                <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">
+                                <div class="form-row align-items-end">
+                                    <div class="form-group col-md-5 mb-2">
+                                        <label class="font-weight-bold text-gray-700 small mb-1">Item Part <span class="text-danger">*</span></label>
+                                        <select class="form-control form-control-sm select2" name="item_id" required style="width:100%;">
+                                            <option value="" disabled selected>-- Pilih Item Part --</option>
+                                            @foreach($items as $item)
+                                                <option value="{{ $item->id }}">
+                                                    {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-3 mb-2">
+                                        <label class="font-weight-bold text-gray-700 small mb-1">Tanggal Datang <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control form-control-sm" name="tanggal_datang" value="{{ date('Y-m-d') }}" required>
+                                    </div>
+                                    <div class="form-group col-md-2 mb-2">
+                                        <label class="font-weight-bold text-gray-700 small mb-1">Shift <span class="text-danger">*</span></label>
+                                        <select class="form-control form-control-sm" name="shift_datang" required>
+                                            <option value="1" selected>Shift 1</option>
+                                            <option value="2">Shift 2</option>
+                                            <option value="3">Shift 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-2 mb-2">
+                                        <label class="font-weight-bold text-gray-700 small mb-1">Qty Datang <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control form-control-sm font-weight-bold" name="qty_datang" min="1" placeholder="Pcs" required>
+                                    </div>
+                                </div>
+                                <div class="text-right mt-2">
+                                    <button type="submit" class="btn btn-sm btn-primary font-weight-bold px-4 shadow-sm" id="btnSubmitArrivalIndex">
+                                        <i class="fas fa-save mr-1"></i> Simpan Stok Kedatangan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Table Daftar Stok Kedatangan (Open Arrivals) -->
+                    <div class="card border-0 shadow-sm" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom d-flex justify-content-between align-items-center" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Daftar Tanggal &amp; Shift Kedatangan (Stok Open)
+                            </h6>
+                            <span class="badge badge-info px-2 py-1 font-weight-bold" id="openArrivalCountBadge">
+                                {{ count($openArrivals ?? []) }} Lot Open
+                            </span>
+                        </div>
+                        <div class="card-body p-0 bg-white">
+                            <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                                <table class="table table-hover table-sm text-center mb-0" id="tableOpenArrivals" style="font-size: 0.78rem;">
+                                    <thead style="background-color: #f8fafc !important; color: #475569 !important; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1 !important;">
+                                        <tr>
+                                            <th class="py-2 text-center" style="width: 45px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">No</th>
+                                            <th class="py-2 text-left" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Nama Part / Part No</th>
+                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Tgl &amp; Shift Datang</th>
+                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Datang</th>
+                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Sisa Stok</th>
+                                            <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="color: #334155;">
+                                        @forelse($openArrivals ?? [] as $arr)
+                                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                <td class="align-middle" style="border-right: 1px solid #f1f5f9;">{{ $loop->iteration }}</td>
+                                                <td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">
+                                                    {{ $arr->item->name ?? '-' }}
+                                                    <br><small class="text-muted">{{ $arr->item->part_number ?? '-' }}</small>
+                                                </td>
+                                                <td class="align-middle" style="border-right: 1px solid #f1f5f9;">
+                                                    <span class="font-weight-bold text-dark">{{ \Carbon\Carbon::parse($arr->tanggal_datang)->format('d/m/Y') }}</span>
+                                                    <br><small class="text-muted">Shift {{ $arr->shift_datang }}</small>
+                                                </td>
+                                                <td class="align-middle" style="border-right: 1px solid #f1f5f9;">{{ number_format($arr->qty_datang) }} pcs</td>
+                                                <td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">{{ number_format($arr->qty_sisa) }} pcs</td>
+                                                <td class="align-middle">
+                                                    <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr id="emptyArrivalRow">
+                                                <td colspan="6" class="text-center text-muted py-3">Belum ada stok kedatangan part yang OPEN.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white py-2 px-4" style="border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-sm btn-secondary font-weight-bold px-4" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
@@ -870,6 +1020,65 @@
                         <i class="fas fa-exclamation-triangle mr-1"></i> Gagal memuat form edit checksheet.
                     </div>
                 `);
+            });
+        });
+
+        // AJAX Add Arrival Form Submission
+        $('#formAddArrival').on('submit', function(e) {
+            e.preventDefault();
+            var $btn = $('#btnSubmitArrivalIndex');
+            var origText = $btn.html();
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(res) {
+                    $btn.prop('disabled', false).html(origText);
+                    if (res.success) {
+                        $('#modalAddArrival').modal('hide');
+                        $('#formAddArrival')[0].reset();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 2000, showConfirmButton: false });
+                        } else {
+                            alert(res.message);
+                        }
+
+                        if (res.arrival) {
+                            $('#emptyArrivalRow').remove();
+                            var arr = res.arrival;
+                            var itemName = arr.item ? arr.item.name : '-';
+                            var partNo = arr.item && arr.item.part_number ? arr.item.part_number : '-';
+                            var tglParts = (arr.tanggal_datang || '').split('-');
+                            var tglFmt = tglParts.length === 3 ? (tglParts[2].substring(0, 2) + '/' + tglParts[1] + '/' + tglParts[0]) : (arr.tanggal_datang || '-');
+                            var qtyDatangFmt = new Intl.NumberFormat().format(arr.qty_datang);
+                            var qtySisaFmt = new Intl.NumberFormat().format(arr.qty_sisa);
+                            
+                            var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
+                                '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
+                                '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
+                                '<td class="align-middle"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
+                                '</tr>';
+                                
+                            $('#tableOpenArrivals tbody').append(newRow);
+                            $('#tableOpenArrivals tbody tr').each(function(idx) {
+                                $(this).find('td:first').text(idx + 1);
+                            });
+                            $('#openArrivalCountBadge').text($('#tableOpenArrivals tbody tr').length + ' Lot Open');
+                        }
+                    } else {
+                        alert(res.message || 'Gagal menyimpan stok kedatangan.');
+                    }
+                },
+                error: function(err) {
+                    $btn.prop('disabled', false).html(origText);
+                    var errMsg = err.responseJSON && err.responseJSON.message ? err.responseJSON.message : 'Terjadi kesalahan.';
+                    alert(errMsg);
+                }
             });
         });
     });
