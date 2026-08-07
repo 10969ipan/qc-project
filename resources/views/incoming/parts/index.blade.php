@@ -189,14 +189,6 @@
             @else
                 <h6 class="m-0 font-weight-bold text-gray-800">Data Masuk Incoming Part</h6>
             @endif
-            <div class="d-flex align-items-center" style="gap: 8px;">
-                <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
-                    <i class="fas fa-boxes mr-1"></i> INPUT STOK KEDATANGAN AWAL
-                </button>
-                <a href="{{ route('incoming.parts.create', ['plant' => request('plant')]) }}" class="btn btn-success btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;">
-                    <i class="fas fa-plus mr-1"></i> INPUT CHECKSHEET QC
-                </a>
-            </div>
         </div>
         <div class="card-body">
             <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
