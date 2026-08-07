@@ -469,7 +469,7 @@
                                     {{-- Qty Balance Sisa --}}
                                     <td class="align-middle text-nowrap">
                                         @php
-                                            $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                            $sisaDisplay = $cs->arrival ? $cs->arrival->qty_sisa : (isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0);
                                             $statusDisplay = ($sisaDisplay <= 0) ? 'COMPLETED' : 'OPEN';
                                         @endphp
                                         <span>{{ number_format($sisaDisplay) }} pcs</span>

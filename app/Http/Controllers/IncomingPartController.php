@@ -244,6 +244,12 @@ class IncomingPartController extends Controller
             $arrival->status = ($arrival->qty_sisa <= 0) ? 'COMPLETED' : 'OPEN';
             $arrival->save();
 
+            // Sync latest checksheet's qty_balance_sisa if linked
+            $latestChecksheet = IncomingPart::where('arrival_id', $arrival->id)->latest('id')->first();
+            if ($latestChecksheet) {
+                $latestChecksheet->update(['qty_balance_sisa' => $arrival->qty_sisa]);
+            }
+
             ActivityLogger::log('updated', $arrival, "Mengubah Data Kedatangan Awal Incoming Part: " . ($arrival->item ? $arrival->item->name : '-'));
 
             return response()->json([

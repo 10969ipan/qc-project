@@ -47,6 +47,10 @@ function normalizeStandardValue(val) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    if (window.jQuery && $.fn && $.fn.modal && $.fn.modal.Constructor && $.fn.modal.Constructor.prototype) {
+        $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+    }
+
     let timerInterval = null;
     let totalSeconds = 0;
     let timerRunning = false;
@@ -2134,9 +2138,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
                             '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
                             '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
-                            '<td class="align-middle text-center">' +
-                            '<button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival mr-1" data-id="' + arr.id + '" data-item-name="' + itemName + '" data-tgl="' + (arr.tanggal_datang ? arr.tanggal_datang.substring(0, 10) : '') + '" data-shift="' + arr.shift_datang + '" data-qty-datang="' + arr.qty_datang + '" data-qty-sisa="' + arr.qty_sisa + '" title="Edit Stok"><i class="fas fa-edit"></i></button>' +
+                            '<td class="align-middle text-center text-nowrap" style="white-space: nowrap;">' +
+                            '<div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">' +
+                            '<button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" data-tgl="' + (arr.tanggal_datang ? arr.tanggal_datang.substring(0, 10) : '') + '" data-shift="' + arr.shift_datang + '" data-qty-datang="' + arr.qty_datang + '" data-qty-sisa="' + arr.qty_sisa + '" title="Edit Stok"><i class="fas fa-edit"></i></button>' +
                             '<button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" title="Hapus Stok"><i class="fas fa-trash"></i></button>' +
+                            '</div>' +
                             '</td>' +
                             '</tr>';
                             
@@ -2165,62 +2171,85 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Handle Edit Arrival
-    $(document).on('click', '.btn-edit-arrival', function() {
-        var id = $(this).data('id');
-        var itemName = $(this).data('item-name');
-        var tgl = $(this).data('tgl');
-        var shift = $(this).data('shift');
-        var qtyDatang = $(this).data('qty-datang');
-        var qtySisa = $(this).data('qty-sisa');
+    $(document).on('click', '.btn-edit-arrival', function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if ($.fn.modal && $.fn.modal.Constructor && $.fn.modal.Constructor.prototype) {
+            $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+        }
+
+        var $btn = $(this).closest('.btn-edit-arrival');
+        var id = $btn.data('id');
+        var itemName = $btn.data('item-name');
+        var tgl = $btn.data('tgl');
+        var shift = $btn.data('shift');
+        var qtyDatang = $btn.data('qty-datang');
+        var qtySisa = $btn.data('qty-sisa');
         var csrfToken = window.csrfToken || $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+        var updateBaseUrl = (window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.updateArrivalBaseUrl) 
+            ? window.INCOMING_PART_CONFIG.updateArrivalBaseUrl 
+            : '/checksheet/incoming-part/arrival';
+
+        if (!id) {
+            if (typeof Swal !== 'undefined') Swal.fire('Error', 'ID kedatangan tidak valid', 'error');
+            return;
+        }
+
+        // Format tanggal dd/mm/yyyy untuk display
+        var tglFmt = tgl;
+        if (tgl && tgl.indexOf('-') !== -1) {
+            var parts = tgl.split('-');
+            if (parts.length === 3) tglFmt = parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
 
         Swal.fire({
-            title: 'Edit Stok Kedatangan',
+            title: 'Edit Sisa Stok Kedatangan',
             html: `
                 <div class="text-left font-weight-bold mb-3 p-2 bg-light rounded small text-primary"><i class="fas fa-box mr-1"></i>${itemName}</div>
                 <div class="form-group text-left mb-2">
                     <label class="small font-weight-bold text-gray-700">Tanggal Datang</label>
-                    <input type="date" id="swalEditTgl" class="form-control form-control-sm" value="${tgl}">
+                    <input type="text" class="form-control form-control-sm" value="${tglFmt}" readonly disabled style="background-color: #e9ecef !important; cursor: not-allowed;">
                 </div>
                 <div class="form-group text-left mb-2">
                     <label class="small font-weight-bold text-gray-700">Shift Datang</label>
-                    <select id="swalEditShift" class="form-control form-control-sm">
-                        <option value="1" ${shift == '1' ? 'selected' : ''}>Shift 1</option>
-                        <option value="2" ${shift == '2' ? 'selected' : ''}>Shift 2</option>
-                        <option value="3" ${shift == '3' ? 'selected' : ''}>Shift 3</option>
-                    </select>
+                    <input type="text" class="form-control form-control-sm" value="Shift ${shift}" readonly disabled style="background-color: #e9ecef !important; cursor: not-allowed;">
                 </div>
                 <div class="form-group text-left mb-2">
                     <label class="small font-weight-bold text-gray-700">Qty Datang Awal (Pcs)</label>
-                    <input type="number" id="swalEditQtyDatang" class="form-control form-control-sm font-weight-bold" value="${qtyDatang}" min="1">
+                    <input type="number" class="form-control form-control-sm font-weight-bold" value="${qtyDatang}" readonly disabled style="background-color: #e9ecef !important; cursor: not-allowed;">
                 </div>
                 <div class="form-group text-left mb-2">
-                    <label class="small font-weight-bold text-gray-700">Qty Sisa Stok / Open (Pcs)</label>
+                    <label class="small font-weight-bold text-gray-700">Qty Sisa Stok / Open (Pcs) <span class="text-danger">*</span></label>
                     <input type="number" id="swalEditQtySisa" class="form-control form-control-sm font-weight-bold text-success" value="${qtySisa}" min="0">
                 </div>
             `,
+            focusConfirm: false,
+            didOpen: () => {
+                setTimeout(function() {
+                    const input = document.getElementById('swalEditQtySisa');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 100);
+            },
             showCancelButton: true,
             confirmButtonText: '<i class="fas fa-save mr-1"></i> Simpan Perubahan',
             cancelButtonText: 'Batal',
             confirmButtonColor: '#4e73df',
             preConfirm: () => {
-                const newTgl = $('#swalEditTgl').val();
-                const newShift = $('#swalEditShift').val();
-                const newQtyDatang = $('#swalEditQtyDatang').val();
                 const newQtySisa = $('#swalEditQtySisa').val();
 
-                if (!newQtyDatang || parseInt(newQtyDatang) < 1) {
-                    Swal.showValidationMessage('Qty Datang Awal minimal 1');
-                    return false;
-                }
                 if (newQtySisa === '' || parseInt(newQtySisa) < 0) {
                     Swal.showValidationMessage('Qty Sisa Stok tidak boleh minus atau kosong');
                     return false;
                 }
                 return {
-                    tanggal_datang: newTgl,
-                    shift_datang: newShift,
-                    qty_datang: parseInt(newQtyDatang),
+                    tanggal_datang: tgl,
+                    shift_datang: shift,
+                    qty_datang: parseInt(qtyDatang),
                     qty_sisa: parseInt(newQtySisa)
                 };
             }
@@ -2231,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data._method = 'PUT';
 
                 $.ajax({
-                    url: '/checksheet/incoming-part/arrival/' + id,
+                    url: updateBaseUrl + '/' + id,
                     type: 'POST',
                     data: data,
                     success: function(res) {
@@ -2253,10 +2282,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Handle Delete Arrival
-    $(document).on('click', '.btn-delete-arrival', function() {
-        var id = $(this).data('id');
-        var itemName = $(this).data('item-name');
+    $(document).on('click', '.btn-delete-arrival', function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if ($.fn.modal && $.fn.modal.Constructor && $.fn.modal.Constructor.prototype) {
+            $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+        }
+
+        var $btn = $(this).closest('.btn-delete-arrival');
+        var id = $btn.data('id');
+        var itemName = $btn.data('item-name');
         var csrfToken = window.csrfToken || $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+        var updateBaseUrl = (window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.updateArrivalBaseUrl) 
+            ? window.INCOMING_PART_CONFIG.updateArrivalBaseUrl 
+            : '/checksheet/incoming-part/arrival';
+
+        if (!id) {
+            if (typeof Swal !== 'undefined') Swal.fire('Error', 'ID kedatangan tidak valid', 'error');
+            return;
+        }
 
         Swal.fire({
             title: 'Hapus Stok Kedatangan?',
@@ -2270,7 +2316,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '/checksheet/incoming-part/arrival/' + id,
+                    url: updateBaseUrl + '/' + id,
                     type: 'POST',
                     data: {
                         _token: csrfToken,

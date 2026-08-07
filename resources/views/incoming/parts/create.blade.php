@@ -607,7 +607,7 @@
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Datang</th>
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Qty Sisa Stok</th>
                                             <th class="py-2 text-center" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Status</th>
-                                            <th class="py-2 text-center" style="width: 80px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Aksi</th>
+                                            <th class="py-2 text-center text-nowrap" style="width: 90px; min-width: 90px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody style="color: #334155;">
@@ -627,23 +627,25 @@
                                                 <td class="align-middle" style="border-right: 1px solid #f1f5f9;">
                                                     <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span>
                                                 </td>
-                                                <td class="align-middle text-center">
-                                                    <button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival mr-1" 
-                                                        data-id="{{ $arr->id }}" 
-                                                        data-item-name="{{ $arr->item->name ?? '-' }}" 
-                                                        data-tgl="{{ \Carbon\Carbon::parse($arr->tanggal_datang)->format('Y-m-d') }}"
-                                                        data-shift="{{ $arr->shift_datang }}"
-                                                        data-qty-datang="{{ $arr->qty_datang }}" 
-                                                        data-qty-sisa="{{ $arr->qty_sisa }}" 
-                                                        title="Edit Stok">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" 
-                                                        data-id="{{ $arr->id }}" 
-                                                        data-item-name="{{ $arr->item->name ?? '-' }}" 
-                                                        title="Hapus Stok">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
+                                                <td class="align-middle text-center text-nowrap" style="white-space: nowrap;">
+                                                    <div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">
+                                                        <button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival" 
+                                                            data-id="{{ $arr->id }}" 
+                                                            data-item-name="{{ e($arr->item->name ?? '-') }}" 
+                                                            data-tgl="{{ \Carbon\Carbon::parse($arr->tanggal_datang)->format('Y-m-d') }}"
+                                                            data-shift="{{ $arr->shift_datang }}"
+                                                            data-qty-datang="{{ $arr->qty_datang }}" 
+                                                            data-qty-sisa="{{ $arr->qty_sisa }}" 
+                                                            title="Edit Stok">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" 
+                                                            data-id="{{ $arr->id }}" 
+                                                            data-item-name="{{ e($arr->item->name ?? '-') }}" 
+                                                            title="Hapus Stok">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty
@@ -669,6 +671,7 @@
     <script>
         window.INCOMING_PART_CONFIG = {
             arrivalsUrl: "{{ route('incoming.parts.arrivals') }}",
+            updateArrivalBaseUrl: "{{ url('/checksheet/incoming-part/arrival') }}",
             checkFirstTimeUrl: "{{ route('incoming.parts.check_first_time') }}",
             qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
             itemSearchUrl: "{{ route('items.search-by-part') }}",
@@ -682,5 +685,5 @@
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
-    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}?v={{ filemtime(public_path('js/checksheet/incoming-create.js')) }}"></script>
 @endpush
