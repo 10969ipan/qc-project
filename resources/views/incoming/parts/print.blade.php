@@ -174,11 +174,11 @@
                     <td>{{ $cs->item->customer ?? '-' }}</td>
                     <td>{{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs</td>
                     <td>
-                        @if($cs->arrival)
-                            {{ number_format($cs->arrival->qty_sisa) }} pcs ({{ $cs->arrival->status }})
-                        @else
-                            -
-                        @endif
+                        @php
+                            $printSisa = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                            $printStatus = ($printSisa <= 0) ? 'COMPLETED' : 'OPEN';
+                        @endphp
+                        {{ number_format($printSisa) }} pcs ({{ $printStatus }})
                     </td>
                     <td><strong>{{ number_format($cs->total_check) }} pcs</strong></td>
                     <td>

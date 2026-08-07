@@ -245,9 +245,7 @@ class IncomingPartService extends BaseService
             if ($arrival) {
                 $historicalSisaSnapshot = max(0, $arrival->qty_sisa - $checkQty);
                 $arrival->qty_sisa = $historicalSisaSnapshot;
-                if ($historicalSisaSnapshot <= 0) {
-                    $arrival->status = 'COMPLETED';
-                }
+                $arrival->status = ($historicalSisaSnapshot <= 0) ? 'COMPLETED' : 'OPEN';
                 $arrival->save();
             } else {
                 $initialStock = (int)($data['qty_balance'] ?? $data['lot_qty'] ?? 0);
