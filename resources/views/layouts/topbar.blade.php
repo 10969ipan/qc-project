@@ -81,9 +81,9 @@
                                 <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    @foreach($menu->children as $child)
+                                     @foreach($menu->children as $child)
                                         @php
-                                            $childPlant = $child->plant_code;
+                                            $childPlant = $child->plant_code ?: request('plant');
                                             $childUrl = $child->route ? (Route::has($child->route) ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : url($child->route)) : '#';
                                         @endphp
                                         @if($child->children->isEmpty())
@@ -102,7 +102,7 @@
                                                 <ul class="dropdown-menu sub-menu">
                                                     @foreach($child->children as $grand)
                                                         @php
-                                                            $grandPlant = $grand->plant_code ?: $childPlant;
+                                                            $grandPlant = $grand->plant_code ?: $childPlant ?: request('plant');
                                                             $grandUrl = $grand->route ? (Route::has($grand->route) ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : url($grand->route)) : '#';
                                                         @endphp
                                                         @if($grand->children->isEmpty())
