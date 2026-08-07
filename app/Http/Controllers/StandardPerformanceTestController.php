@@ -809,7 +809,7 @@ class StandardPerformanceTestController extends Controller
                 'customer_standard' => $std->customer_standard ?? '-',
                 'total' => $group->count(),
             ];
-        })->values()->sortBy('part_name');
+        })->sortBy('part_name')->values();
 
         return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'categories', 'averages', 'rekapSummary', 'testType', 'isTrial'));
     }

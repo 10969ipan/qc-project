@@ -3309,6 +3309,7 @@
 
                     if (match) {
                         visibleCount++;
+                        $(this).find('td:first').text(visibleCount);
                         var cellVal = parseInt($(this).find('td:last').text().trim(), 10) || 0;
                         grandTotal += cellVal;
                     }
