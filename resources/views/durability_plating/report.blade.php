@@ -3218,7 +3218,7 @@
                         </div>
                         <div>
                             <div class="small font-weight-bold text-gray-800" style="font-size: 0.8rem;">
-                                Total Part: <span class="text-gray-900">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
+                                Total Part: <span class="text-gray-900" id="rekapPartCount">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900" id="rekapTestCount">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
                             </div>
                         </div>
                     </div>
@@ -3268,8 +3268,8 @@
                                     <tfoot class="bg-light font-weight-bold text-gray-800" style="position: sticky; bottom: 0; z-index: 10; border-top: 2px solid #cbd5e1;">
                                         <tr>
                                             <td colspan="5" class="text-right py-2 pr-3">Total Keseluruhan Pengujian:</td>
-                                            <td class="text-center py-2 text-gray-800 font-weight-bold" style="font-size: 0.85rem;">
-                                                {{ $rekapSummary->sum('total') }}
+                                            <td class="text-center py-2 text-gray-800 font-weight-bold" id="rekapGrandTotal" style="font-size: 0.85rem;">
+                                                {{ $rekapSummary ? $rekapSummary->sum('total') : 0 }}
                                             </td>
                                         </tr>
                                     </tfoot>
@@ -3294,11 +3294,29 @@
     @include('partials.bulk_approve_script')
     <script>
         $(document).ready(function() {
-            $('#searchRekapInput').on('keyup', function() {
-                var value = $(this).val().toLowerCase();
-                $('#tableRekapData tbody tr').filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            $('#searchRekapInput').on('keyup input', function() {
+                var value = $(this).val().toLowerCase().trim();
+                var visibleCount = 0;
+                var grandTotal = 0;
+
+                $('#tableRekapData tbody tr').each(function() {
+                    var isNoData = $(this).find('td[colspan]').length > 0;
+                    if (isNoData) return;
+
+                    var text = $(this).text().toLowerCase();
+                    var match = text.indexOf(value) > -1;
+                    $(this).toggle(match);
+
+                    if (match) {
+                        visibleCount++;
+                        var cellVal = parseInt($(this).find('td:last').text().trim(), 10) || 0;
+                        grandTotal += cellVal;
+                    }
                 });
+
+                $('#rekapPartCount').text(visibleCount + ' Part');
+                $('#rekapTestCount').text(grandTotal + ' Pengujian');
+                $('#rekapGrandTotal').text(grandTotal);
             });
         });
     </script>
