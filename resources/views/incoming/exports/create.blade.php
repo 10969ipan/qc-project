@@ -420,7 +420,7 @@
         window.INCOMING_PART_CONFIG = {
             arrivalsUrl: "",
             checkFirstTimeUrl: "",
-            qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
+            qrUniqueUrl: "",
             itemSearchUrl: "{{ route('items.search-by-part') }}",
             index_url: "{{ route('incoming.exports.index', ['plant' => request('plant') ?? auth()->user()->plant_id]) }}",
             useQueue: true

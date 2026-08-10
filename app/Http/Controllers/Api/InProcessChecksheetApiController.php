@@ -36,7 +36,6 @@ class InProcessChecksheetApiController extends Controller
             'Double Tape' => \App\Models\DoubleTapeChecksheet::class,
             'Plating' => \App\Models\PlatingChecksheet::class,
             'Painting' => \App\Models\PaintingChecksheet::class,
-            'Incoming Export' => \App\Models\IncomingExport::class,
             'Incoming Part' => \App\Models\IncomingPart::class,
         ];
 

@@ -596,7 +596,6 @@ class ItemController extends Controller
             'plating_checksheets'     => 'Plating',
             'double_tape_checksheets' => 'Double Tape',
             'painting_checksheets'    => 'Painting',
-            'incoming_exports'        => 'Incoming Export',
         ];
 
         foreach ($tables as $table => $moduleName) {
