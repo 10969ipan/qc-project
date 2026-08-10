@@ -349,6 +349,18 @@
             </div>
             @endif
 
+            <!-- Field: Rata-Rata Corrodkote (Plain Text Centered in Middle Space) -->
+            @if($testType == 'corrodkote' && isset($averages))
+            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+                <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
+                @if(!$isTrial)
+                    <span style="color: #7d7d7dff;">Aktual % Corrosion {{ $averages['corrosion1'] !== '-' ? $averages['corrosion1'] . '%' : '-' }}</span>
+                @else
+                    <span style="color: #7d7d7dff;">Aktual % Corrosion {{ $averages['corrosion2'] !== '-' ? $averages['corrosion2'] . '%' : '-' }}</span>
+                @endif
+            </div>
+            @endif
+
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
                 <style>
                     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }

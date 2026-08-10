@@ -583,39 +583,65 @@ class StandardPerformanceTestController extends Controller
             }
         }
 
-        // Calculate averages across all matching reports before pagination for THICKNESS report
+        // Calculate averages across all matching reports before pagination for THICKNESS and CORRODKOTE reports
         $averages = null;
         if ($testType === 'thickness') {
             $allMatching = (clone $query)->get();
 
-            if (!$isTrial && count($allMatching) > 0) {
-                $allIds = $allMatching->pluck('id')->filter()->unique();
-                $allTrials = DurabilityThicknessReport::where('is_trial', true)
-                    ->whereIn('data1_id', $allIds)
-                    ->get()
-                    ->keyBy('data1_id');
-
-                foreach ($allMatching as $m) {
-                    $tr = $allTrials->get($m->id);
-                    if ($tr) {
-                        $m->actual_cr_trial = $tr->actual_cr;
-                        $m->actual_ni_trial = $tr->actual_ni;
-                        $m->actual_cu_trial = $tr->actual_cu;
-                    }
-                }
-            }
-
             $cr1 = []; $ni1 = []; $cu1 = [];
             $cr2 = []; $ni2 = []; $cu2 = [];
 
-            foreach ($allMatching as $item) {
-                if (is_numeric($item->actual_cr)) $cr1[] = (float)$item->actual_cr;
-                if (is_numeric($item->actual_ni)) $ni1[] = (float)$item->actual_ni;
-                if (is_numeric($item->actual_cu)) $cu1[] = (float)$item->actual_cu;
+            if (!$isTrial) {
+                if (count($allMatching) > 0) {
+                    $allIds = $allMatching->pluck('id')->filter()->unique();
+                    $allTrials = DurabilityThicknessReport::where('is_trial', true)
+                        ->whereIn('data1_id', $allIds)
+                        ->get()
+                        ->keyBy('data1_id');
 
-                if (isset($item->actual_cr_trial) && is_numeric($item->actual_cr_trial)) $cr2[] = (float)$item->actual_cr_trial;
-                if (isset($item->actual_ni_trial) && is_numeric($item->actual_ni_trial)) $ni2[] = (float)$item->actual_ni_trial;
-                if (isset($item->actual_cu_trial) && is_numeric($item->actual_cu_trial)) $cu2[] = (float)$item->actual_cu_trial;
+                    foreach ($allMatching as $m) {
+                        $tr = $allTrials->get($m->id);
+                        if ($tr) {
+                            $m->actual_cr_trial = $tr->actual_cr;
+                            $m->actual_ni_trial = $tr->actual_ni;
+                            $m->actual_cu_trial = $tr->actual_cu;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    if (is_numeric($item->actual_cr)) $cr1[] = (float)$item->actual_cr;
+                    if (is_numeric($item->actual_ni)) $ni1[] = (float)$item->actual_ni;
+                    if (is_numeric($item->actual_cu)) $cu1[] = (float)$item->actual_cu;
+
+                    if (isset($item->actual_cr_trial) && is_numeric($item->actual_cr_trial)) $cr2[] = (float)$item->actual_cr_trial;
+                    if (isset($item->actual_ni_trial) && is_numeric($item->actual_ni_trial)) $ni2[] = (float)$item->actual_ni_trial;
+                    if (isset($item->actual_cu_trial) && is_numeric($item->actual_cu_trial)) $cu2[] = (float)$item->actual_cu_trial;
+                }
+            } else {
+                if (count($allMatching) > 0) {
+                    $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+
+                    foreach ($allMatching as $m) {
+                        $d1 = $allData1->get($m->data1_id);
+                        if ($d1) {
+                            $m->actual_cr_d1 = $d1->actual_cr;
+                            $m->actual_ni_d1 = $d1->actual_ni;
+                            $m->actual_cu_d1 = $d1->actual_cu;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    if (isset($item->actual_cr_d1) && is_numeric($item->actual_cr_d1)) $cr1[] = (float)$item->actual_cr_d1;
+                    if (isset($item->actual_ni_d1) && is_numeric($item->actual_ni_d1)) $ni1[] = (float)$item->actual_ni_d1;
+                    if (isset($item->actual_cu_d1) && is_numeric($item->actual_cu_d1)) $cu1[] = (float)$item->actual_cu_d1;
+
+                    if (is_numeric($item->actual_cr)) $cr2[] = (float)$item->actual_cr;
+                    if (is_numeric($item->actual_ni)) $ni2[] = (float)$item->actual_ni;
+                    if (is_numeric($item->actual_cu)) $cu2[] = (float)$item->actual_cu;
+                }
             }
 
             $averages = [
@@ -626,6 +652,72 @@ class StandardPerformanceTestController extends Controller
                 'cr2' => count($cr2) ? number_format(array_sum($cr2) / count($cr2), 2) : '-',
                 'ni2' => count($ni2) ? number_format(array_sum($ni2) / count($ni2), 2) : '-',
                 'cu2' => count($cu2) ? number_format(array_sum($cu2) / count($cu2), 2) : '-',
+            ];
+        } elseif ($testType === 'corrodkote') {
+            $allMatching = (clone $query)->get();
+
+            $parseVal = function($val) {
+                if (is_null($val)) return null;
+                $cleaned = str_replace(',', '.', trim(str_replace('%', '', (string)$val)));
+                return is_numeric($cleaned) ? (float)$cleaned : null;
+            };
+
+            $corr1 = [];
+            $corr2 = [];
+
+            if (!$isTrial) {
+                if (count($allMatching) > 0) {
+                    $allIds = $allMatching->pluck('id')->filter()->unique();
+                    $allTrials = DurabilityThicknessReport::where('is_trial', true)
+                        ->whereIn('data1_id', $allIds)
+                        ->get()
+                        ->keyBy('data1_id');
+
+                    foreach ($allMatching as $m) {
+                        $tr = $allTrials->get($m->id);
+                        if ($tr) {
+                            $m->aktual_corrosion_trial = $tr->aktual_corrosion;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    $v1 = $parseVal($item->aktual_corrosion);
+                    if (!is_null($v1)) $corr1[] = $v1;
+
+                    if (isset($item->aktual_corrosion_trial)) {
+                        $v2 = $parseVal($item->aktual_corrosion_trial);
+                        if (!is_null($v2)) $corr2[] = $v2;
+                    }
+                }
+            } else {
+                if (count($allMatching) > 0) {
+                    $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+
+                    foreach ($allMatching as $m) {
+                        $d1 = $allData1->get($m->data1_id);
+                        if ($d1) {
+                            $m->aktual_corrosion_d1 = $d1->aktual_corrosion;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    if (isset($item->aktual_corrosion_d1)) {
+                        $v1 = $parseVal($item->aktual_corrosion_d1);
+                        if (!is_null($v1)) $corr1[] = $v1;
+                    }
+
+                    $v2 = $parseVal($item->aktual_corrosion);
+                    if (!is_null($v2)) $corr2[] = $v2;
+                }
+            }
+
+            $averages = [
+                'count' => count($allMatching),
+                'corrosion1' => count($corr1) ? number_format(array_sum($corr1) / count($corr1), 2) : '-',
+                'corrosion2' => count($corr2) ? number_format(array_sum($corr2) / count($corr2), 2) : '-',
             ];
         }
         
@@ -765,7 +857,7 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        $rekapMatching = ($testType === 'thickness' && isset($allMatching)) ? $allMatching : (clone $query)->get();
+        $rekapMatching = (($testType === 'thickness' || $testType === 'corrodkote') && isset($allMatching)) ? $allMatching : (clone $query)->get();
         $rekapSummary = $rekapMatching->groupBy('standard_performance_test_id')->map(function ($group) {
             $first = $group->first();
             $std = $first->standard ?? null;
