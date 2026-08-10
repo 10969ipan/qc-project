@@ -114,6 +114,7 @@ class FirstPieceApprovalController extends Controller
             'next_proses' => $request->next_proses,
             'id' => $request->id,
             'shift' => $request->shift,
+            'code_machine' => $request->code_machine,
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);
@@ -136,7 +137,17 @@ class FirstPieceApprovalController extends Controller
             ->pluck('operator_initials')
             ->sort();
 
-        return view('first_piece_approval.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials'));
+        $machines = collect();
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $machines = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+                ->whereNotNull('code_machine')
+                ->distinct()
+                ->pluck('code_machine')
+                ->sort(SORT_NUMERIC)
+                ->values();
+        }
+
+        return view('first_piece_approval.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines'));
     }
 
     public function create(Request $request)

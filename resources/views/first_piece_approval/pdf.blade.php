@@ -222,6 +222,9 @@
                 <th rowspan="2" class="col-compact">Jam (Bef)</th>
                 <th rowspan="2" class="col-compact">Jam (Aft)</th>
                 <th rowspan="2" class="col-compact">Cycle</th>
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <th rowspan="2" class="col-compact">No Mesin</th>
+                @endif
                 <th rowspan="2" class="col-compact">Shift</th>
                 <th rowspan="2" class="w-barang">Barang</th>
                 <th rowspan="2" class="w-part-no">Part No</th>
@@ -250,6 +253,9 @@
                     <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->created_at->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->cycle_time ?? '-' }}</td>
+                    @if(auth()->check() && auth()->user()->role === 'admin')
+                        <td class="col-compact">{{ $checksheet->code_machine ?? '-' }}</td>
+                    @endif
                     <td class="col-compact">{{ $checksheet->shift }}</td>
                     <td class="col-info">{{ $checksheet->item->name ?? '-' }}</td>
                     <td class="col-info">{{ $checksheet->item->part_number ?? '-' }}</td>

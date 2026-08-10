@@ -110,7 +110,7 @@
     <table class="table">
         <thead>
             <tr>
-                <td colspan="19" style="height:4mm; border:none; padding:0; background:#fff;"></td>
+                <td colspan="{{ auth()->check() && auth()->user()->role === 'admin' ? 20 : 19 }}" style="height:4mm; border:none; padding:0; background:#fff;"></td>
             </tr>
             <tr>
                 <th rowspan="2" class="col-compact">No</th>
@@ -118,6 +118,9 @@
                 <th rowspan="2" class="col-compact">Jam (Before)</th>
                 <th rowspan="2" class="col-compact">Jam (After)</th>
                 <th rowspan="2" class="col-compact">Cycle</th>
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <th rowspan="2" class="col-compact">No Mesin</th>
+                @endif
                 <th rowspan="2" class="col-compact">Shift</th>
                 <th rowspan="2" class="w-barang">Barang</th>
                 <th rowspan="2" class="w-part-no">Part No</th>
@@ -186,6 +189,9 @@
                     <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->created_at->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->cycle_time ?? '-' }}</td>
+                    @if(auth()->check() && auth()->user()->role === 'admin')
+                        <td class="col-compact">{{ $checksheet->code_machine ?? '-' }}</td>
+                    @endif
                     <td class="col-compact">{{ $checksheet->shift }}</td>
                     <td style="text-align:left; font-size:6.5px;">{{ $checksheet->item->name ?? '-' }}</td>
                     <td style="text-align:left; font-size:6.5px;">{{ $checksheet->item->part_number ?? '-' }}</td>

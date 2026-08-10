@@ -291,6 +291,23 @@
                     </div>
                 </div>
 
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                <!-- Field: Mesin (Khusus Admin) -->
+                <div class="d-flex align-items-center">
+                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Mesin:</label>
+                    <div style="width: 115px;" class="custom-filter-wrapper">
+                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm border-0 shadow-sm font-weight-bold">
+                            <option value="">Semua Mesin</option>
+                            @foreach($machines as $m)
+                                <option value="{{ $m }}" {{ request('code_machine') == $m ? 'selected' : '' }}>
+                                    MESIN-{{ $m }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Tombol Aksi -->
                 <div class="ml-auto d-flex" style="gap: 5px;">
                     <style>
@@ -358,6 +375,9 @@
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
                             <th rowspan="2" class="align-middle">Jam (After)</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @if(auth()->check() && auth()->user()->role === 'admin')
+                                <th rowspan="2" class="align-middle">No Mesin</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
@@ -401,6 +421,9 @@
                                 </td>
                                 <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                @if(auth()->check() && auth()->user()->role === 'admin')
+                                    <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
+                                @endif
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>

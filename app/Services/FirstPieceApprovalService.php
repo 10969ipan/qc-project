@@ -214,6 +214,10 @@ class FirstPieceApprovalService extends BaseService
             $query->where("first_piece_approvals.shift", $filters["shift"]);
         }
 
+        if (!empty($filters["code_machine"])) {
+            $query->where("first_piece_approvals.code_machine", $filters["code_machine"]);
+        }
+
         return $query;
     }
 
