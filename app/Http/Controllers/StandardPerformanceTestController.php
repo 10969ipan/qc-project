@@ -1322,18 +1322,19 @@ class StandardPerformanceTestController extends Controller
             $report->$timeField = $now;
             $report->save();
 
-            // Sync to paired report (Data 1 / Data 2 Trial)
-            if ($report->data1_id) {
-                DurabilityThicknessReport::where('id', $report->data1_id)->update([
-                    $field => $userName,
-                    $timeField => $now,
-                ]);
-            } else {
-                DurabilityThicknessReport::where('data1_id', $report->id)->update([
-                    $field => $userName,
-                    $timeField => $now,
-                ]);
-            }
+            // Sync to paired report (Data 1 / Data 2 Trial) if it is also OK (not NG)
+            $pairedQuery = $report->data1_id
+                ? DurabilityThicknessReport::where('id', $report->data1_id)
+                : DurabilityThicknessReport::where('data1_id', $report->id);
+
+            $this->applyResultJudgmentFilter($pairedQuery, $testType ?? 'thickness', 'OK');
+
+            $pairedQuery->where(function($q) use ($field) {
+                $q->whereNull($field)->orWhere($field, 'REJECTED');
+            })->update([
+                $field => $userName,
+                $timeField => $now,
+            ]);
 
             ActivityLogger::log('approved', $report, "Melakukan approval ({$label}) pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
 
@@ -1466,18 +1467,20 @@ class StandardPerformanceTestController extends Controller
                     $timeField => $now,
                 ]);
 
-                // Sync paired report (Data 1 / Data 2 Trial)
-                if ($rep->data1_id) {
-                    DurabilityThicknessReport::where('id', $rep->data1_id)->update([
-                        $field => $userName,
-                        $timeField => $now,
-                    ]);
-                } else {
-                    DurabilityThicknessReport::where('data1_id', $rep->id)->update([
-                        $field => $userName,
-                        $timeField => $now,
-                    ]);
-                }
+                // Sync paired report (Data 1 / Data 2 Trial) if it also matches the result filter (and is not NG)
+                $pairedQuery = $rep->data1_id
+                    ? DurabilityThicknessReport::where('id', $rep->data1_id)
+                    : DurabilityThicknessReport::where('data1_id', $rep->id);
+
+                $judgmentFilter = $request->filled('result_judgment') ? $request->result_judgment : 'OK';
+                $this->applyResultJudgmentFilter($pairedQuery, $testType, $judgmentFilter);
+
+                $pairedQuery->where(function($q) use ($field) {
+                    $q->whereNull($field)->orWhere($field, 'REJECTED');
+                })->update([
+                    $field => $userName,
+                    $timeField => $now,
+                ]);
                 $updatedCount++;
             }
 
