@@ -310,11 +310,12 @@
                             <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
-                            @endif
-                            <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
-                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
+                                <th rowspan="2" class="align-middle">Jam</th>
+                            @else
                                 <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
+                                <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
                                 <th rowspan="2" class="align-middle">Jam (Before)</th>
                                 <th rowspan="2" class="align-middle">Jam (After)</th>
                                 <th rowspan="2" class="align-middle">Cycle Time (s)</th>
@@ -363,60 +364,63 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 @if(request('view_mode') === 'verifikasi')
-                                <td class="align-middle">
-                                    @if($canExport)
-                                    @php
-                                        $wipQr    = '-';
-                                        $pasangQr = '-';
-                                        $cabutQr  = '-';
-                                        $qcQr     = $checksheet->qrcode_verifikasi ?: '-';
+                                    <td class="align-middle">
+                                        @if($canExport)
+                                        @php
+                                            $wipQr    = '-';
+                                            $pasangQr = '-';
+                                            $cabutQr  = '-';
+                                            $qcQr     = $checksheet->qrcode_verifikasi ?: '-';
 
-                                        $rawQr = $checksheet->qrcode;
+                                            $rawQr = $checksheet->qrcode;
 
-                                        // Determine if the stored qrcode is CBT format (6 segments, last segment starts with CBT-)
-                                        $isCbtFormat = $rawQr && preg_match('/\|CBT-\d+$/', $rawQr);
+                                            // Determine if the stored qrcode is CBT format (6 segments, last segment starts with CBT-)
+                                            $isCbtFormat = $rawQr && preg_match('/\|CBT-\d+$/', $rawQr);
 
-                                        if ($checksheet->platingCabutSplit && $checksheet->platingCabutSplit->cabutRecord) {
-                                            // Found the CBT split record — resolve the full chain
-                                            $cabutRec = $checksheet->platingCabutSplit->cabutRecord;
-                                            $cabutQr  = $checksheet->platingCabutSplit->generated_qrcode ?: ($isCbtFormat ? $rawQr : '-');
-                                            $wipQr    = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->wip_qrcode ?: '-') : '-';
-                                            $pasangQr = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->generated_qrcode ?: '-') : '-';
-                                        } elseif ($isCbtFormat) {
-                                            // No split record yet but qrcode looks like CBT — show in Cabut slot
-                                            $cabutQr = $rawQr;
-                                        } elseif ($rawQr && $qcQr === '-') {
-                                            // qrcode is NOT CBT format and no qrcode_verifikasi — treat as QC Verifikasi
-                                            $qcQr = $rawQr;
-                                        }
-                                    @endphp
-                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
-                                        data-qr="{{ $checksheet->qrcode }}"
-                                        data-part="{{ $checksheet->part_code ?? '-' }}"
-                                        data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
-                                        data-qty="{{ $checksheet->quantity ?? '-' }}"
-                                        data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
-                                        data-sap="{{ $checksheet->sap_code ?? '-' }}"
-                                        data-qr-wip="{{ $wipQr }}"
-                                        data-qr-pasang="{{ $pasangQr }}"
-                                        data-qr-cabut="{{ $cabutQr }}"
-                                        data-qr-qc="{{ $qcQr }}">
-                                        <i class="fas fa-qrcode"></i> View
-                                    </button>
-                                    @else
-                                    <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
-                                    @endif
-                                </td>
-                                @endif
-                                <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
-                                </td>
-                                @if(request('view_mode') !== 'verifikasi')
+                                            if ($checksheet->platingCabutSplit && $checksheet->platingCabutSplit->cabutRecord) {
+                                                // Found the CBT split record — resolve the full chain
+                                                $cabutRec = $checksheet->platingCabutSplit->cabutRecord;
+                                                $cabutQr  = $checksheet->platingCabutSplit->generated_qrcode ?: ($isCbtFormat ? $rawQr : '-');
+                                                $wipQr    = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->wip_qrcode ?: '-') : '-';
+                                                $pasangQr = $cabutRec->pasangRecord ? ($cabutRec->pasangRecord->generated_qrcode ?: '-') : '-';
+                                            } elseif ($isCbtFormat) {
+                                                // No split record yet but qrcode looks like CBT — show in Cabut slot
+                                                $cabutQr = $rawQr;
+                                            } elseif ($rawQr && $qcQr === '-') {
+                                                // qrcode is NOT CBT format and no qrcode_verifikasi — treat as QC Verifikasi
+                                                $qcQr = $rawQr;
+                                            }
+                                        @endphp
+                                        <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
+                                            data-qr="{{ $checksheet->qrcode }}"
+                                            data-part="{{ $checksheet->part_code ?? '-' }}"
+                                            data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
+                                            data-qty="{{ $checksheet->quantity ?? '-' }}"
+                                            data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
+                                            data-sap="{{ $checksheet->sap_code ?? '-' }}"
+                                            data-qr-wip="{{ $wipQr }}"
+                                            data-qr-pasang="{{ $pasangQr }}"
+                                            data-qr-cabut="{{ $cabutQr }}"
+                                            data-qr-qc="{{ $qcQr }}">
+                                            <i class="fas fa-qrcode"></i> View
+                                        </button>
+                                        @else
+                                        <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
+                                        @endif
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
+                                    </td>
+                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
+                                @else
                                     <td class="align-middle text-nowrap">
                                         {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
                                     </td>
                                     <td class="align-middle text-nowrap">
                                         {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
                                     </td>
                                     <td class="align-middle">
                                         {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
