@@ -88,6 +88,26 @@
                                     </div>
                                 </div>
 
+                                <div class="premium-setting-item p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-tags mr-2 text-primary"></i>Kategori First Piece Approval (FPA)</h6>
+                                            <small class="text-muted">Daftar opsi kategori yang tampil pada form input First Piece Approval (pisahkan tiap kategori dengan baris baru)</small>
+                                        </div>
+                                    </div>
+                                    @php
+                                        $categoriesSetting = isset($generalSettings['fpa_categories']) ? $generalSettings['fpa_categories']->value : null;
+                                        if (empty($categoriesSetting)) {
+                                            $categoriesText = implode("\n", \App\Models\GeneralSetting::getFpaCategories());
+                                        } else {
+                                            $categoriesText = is_array(json_decode($categoriesSetting, true)) 
+                                                ? implode("\n", json_decode($categoriesSetting, true)) 
+                                                : $categoriesSetting;
+                                        }
+                                    @endphp
+                                    <textarea id="fpaCategoriesInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="awal produksi&#10;operator istirahat&#10;...">{!! e($categoriesText) !!}</textarea>
+                                </div>
+
                                 <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
 
                                 <div class="d-flex justify-content-between align-items-center mb-4">

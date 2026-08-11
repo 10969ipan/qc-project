@@ -379,6 +379,7 @@
                                 <th rowspan="2" class="align-middle">No Mesin</th>
                             @endif
                             <th rowspan="2" class="align-middle">Shift</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Kategori</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
@@ -425,6 +426,7 @@
                                     <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
                                 @endif
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
+                                <td class="align-middle text-nowrap text-capitalize">{{ $checksheet->category ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>

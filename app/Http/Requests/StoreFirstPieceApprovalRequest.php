@@ -30,6 +30,7 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'date' => 'required|date',
             'shift' => 'required|string',
             'code_machine' => 'required|string',
+            'category' => 'required|string',
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
@@ -56,6 +57,7 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'date.required' => 'Tanggal wajib diisi.',
             'shift.required' => 'Shift wajib dipilih.',
             'code_machine.required' => 'Kode mesin wajib diisi.',
+            'category.required' => 'Kategori wajib dipilih.',
             'judgment.in' => 'Judgment harus OK atau NG.',
             'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];

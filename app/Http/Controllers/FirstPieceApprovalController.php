@@ -186,7 +186,8 @@ class FirstPieceApprovalController extends Controller
             'defaultShift' => $defaultShift,
             'plant' => $plant,
             'nextProcesses' => $nextProcesses,
-            'partDimensionStandards' => $this->getConsolidatedStandards()
+            'partDimensionStandards' => $this->getConsolidatedStandards(),
+            'fpaCategories' => \App\Models\GeneralSetting::getFpaCategories()
         ]);
     }
 
@@ -258,13 +259,16 @@ class FirstPieceApprovalController extends Controller
             ->orderBy('order')
             ->get();
 
+        $fpaCategories = \App\Models\GeneralSetting::getFpaCategories();
+
         if (request()->ajax()) {
             return view('first_piece_approval.partials.edit_form', [
                 'checksheet' => $checksheet,
                 'items' => $items,
                 'partDimensionStandards' => $partDimensionStandards,
                 'users' => $users,
-                'nextProcesses' => $nextProcesses
+                'nextProcesses' => $nextProcesses,
+                'fpaCategories' => $fpaCategories
             ]);
         }
 
@@ -273,7 +277,8 @@ class FirstPieceApprovalController extends Controller
             'items' => $items,
             'partDimensionStandards' => $partDimensionStandards,
             'users' => $users,
-            'nextProcesses' => $nextProcesses
+            'nextProcesses' => $nextProcesses,
+            'fpaCategories' => $fpaCategories
         ]);
     }
 

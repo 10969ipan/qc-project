@@ -20,6 +20,7 @@ class FirstPieceApproval extends Model
         'date',
         'shift',
         'code_machine',
+        'category',
         'total_qty',
         'sampling_qty',
         'total_ok',

@@ -376,6 +376,18 @@
                                             @endforeach
                                         </select>
                                     </div>
+                                    <div class="form-group mt-2 mb-0">
+                                        <label class="sr-only">Kategori</label>
+                                        <select name="category" id="categoryInput" class="form-control"
+                                            style="min-width: 100px;" required>
+                                            <option value="">Pilih Kategori</option>
+                                            @foreach(($fpaCategories ?? []) as $cat)
+                                                <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>
+                                                    {{ ucfirst($cat) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </td>
 
                                 <!-- Total Kualitas (Total Kuantitas diproduksi) -->

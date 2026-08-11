@@ -61,4 +61,33 @@ class GeneralSetting extends Model
 
         return $defaults;
     }
+
+    /**
+     * Helper to get First Piece Approval Categories
+     */
+    public static function getFpaCategories()
+    {
+        $defaults = [
+            'awal produksi',
+            'operator istirahat',
+            'mati listrik',
+            'perbaikan NG',
+            'update ketrik',
+            'ganti material',
+            'perbaikan mold',
+            'perbaikan mesin',
+        ];
+
+        $settingVal = self::getValue('fpa_categories');
+        if ($settingVal) {
+            if (is_array($settingVal)) {
+                return array_values(array_filter(array_map('trim', $settingVal)));
+            }
+            $lines = explode("\n", str_replace("\r", "", (string) $settingVal));
+            $items = array_values(array_filter(array_map('trim', $lines)));
+            return !empty($items) ? $items : $defaults;
+        }
+
+        return $defaults;
+    }
 }

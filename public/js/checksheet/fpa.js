@@ -1333,6 +1333,7 @@ class FpaCreate {
             const judgment = $("#judgmentSelect").val();
             const nextProses = $("#nextProses").val();
             const codeMachine = $("#code_machine").val();
+            const category = $("#categoryInput").val() || $('select[name="category"]').val();
             const itemId = $("#itemSelect").val();
 
             // 1. Validasi: Item harus dipilih
@@ -1354,6 +1355,17 @@ class FpaCreate {
                 });
                 $("#code_machine").addClass("is-invalid").focus();
                 setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2b. Validasi: Kategori harus dipilih
+            if (!category) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kategori Belum Dipilih',
+                });
+                $("#categoryInput, select[name='category']").addClass("is-invalid").focus();
+                setTimeout(() => $("#categoryInput, select[name='category']").removeClass("is-invalid"), 3000);
                 return false;
             }
 
@@ -2077,6 +2089,7 @@ class FpaEdit {
             const nextProses = $("#nextProses").val() || $("#next_proses").val();
             const itemId = $("#itemSelect").val();
             const codeMachine = $("#code_machine").val();
+            const category = $("#categoryInput").val() || $('select[name="category"]').val();
             const totalQty = $('input[name="total_qty"]').val();
             const samplingQty = $('input[name="sampling_qty"]').val();
             const operatorInitials = $('input[name="operator_initials"]').val();
@@ -2102,6 +2115,18 @@ class FpaEdit {
                 });
                 $("#code_machine").addClass("is-invalid").focus();
                 setTimeout(() => $("#code_machine").removeClass("is-invalid"), 3000);
+                return false;
+            }
+
+            // 2b. Validasi: Kategori harus dipilih
+            if (!category) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "warning",
+                    title: "Kategori Belum Dipilih",
+                });
+                $("#categoryInput, select[name='category']").addClass("is-invalid").focus();
+                setTimeout(() => $("#categoryInput, select[name='category']").removeClass("is-invalid"), 3000);
                 return false;
             }
 
