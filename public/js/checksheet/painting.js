@@ -566,8 +566,69 @@ class PaintingCreate {
         this.initFormSubmit();
         this.initHardwareScanner();
 
+        // Inisialisasi mode berdasarkan input tersembunyi is_scanned (default: manual mode)
+        this.setScanMode(false);
+
         // Inisialisasi awal untuk logic kalkulasi & judgment
         this.updateJudgment();
+    }
+
+    /**
+     * Mengatur mode scan vs manual.
+     * Scan mode: kolom Injection/Lot ID dan Painting/Plating disembunyikan (dikosongkan, tidak required).
+     * Manual mode: semua kolom ditampilkan dan bisa diisi.
+     */
+    setScanMode(isScanned) {
+        // Selector ID untuk painting (tdLotId / tdPainting) atau plating (tdInjection / tdPlating)
+        const $tdProcess1 = $('#tdLotId, #tdInjection');
+        const $tdProcess2 = $('#tdPainting, #tdPlating');
+        const $thProcess1 = $('#thLotId, #thInjection');
+        const $thProcess2 = $('#thPainting, #thPlating');
+
+        // Field dengan atribut data-scan-optional akan di-clear dan tidak required saat scan
+        const $scanOptionalFields = $('[data-scan-optional="1"]');
+
+        if (isScanned) {
+            // SCAN MODE: sembunyikan kolom Injection/Lot ID dan Painting/Plating
+            $tdProcess1.hide();
+            $tdProcess2.hide();
+            $thProcess1.hide();
+            $thProcess2.hide();
+
+            // Kosongkan nilai dan hapus required pada field-field opsional saat scan
+            $scanOptionalFields.each(function() {
+                $(this).removeAttr('required');
+                // Kosongkan teks/value (kecuali select, biarkan pilihan defaultnya)
+                if (this.tagName === 'INPUT') {
+                    $(this).val('');
+                }
+            });
+
+            // Tandai form dalam mode scan
+            $('#isScannedInput').val('1');
+
+            // Tampilkan badge info di bawah tabel
+            if ($('#scanModeInfo').length === 0) {
+                $('<div id="scanModeInfo" class="alert alert-info py-2 px-3 mt-2 mb-0 small">' +
+                    '<i class="fas fa-qrcode mr-1"></i> <strong>Mode Scan:</strong> Kolom Lot ID &amp; Painting/Plating tidak diisi otomatis. ' +
+                    'Data Quality (Tgl/Shift) tetap tersedia untuk diisi.' +
+                '</div>').insertAfter('#checksheetTable');
+            } else {
+                $('#scanModeInfo').show();
+            }
+        } else {
+            // MANUAL MODE: tampilkan semua kolom
+            $tdProcess1.show();
+            $tdProcess2.show();
+            $thProcess1.show();
+            $thProcess2.show();
+
+            // Sembunyikan badge info scan mode
+            $('#scanModeInfo').hide();
+
+            // Tandai form dalam mode manual
+            $('#isScannedInput').val('0');
+        }
     }
 
     lockInputs(lock) {
@@ -762,6 +823,8 @@ class PaintingCreate {
             if (success) {
                 this.playSuccessFeedback();
                 this.lockInputs(false);
+                // Aktifkan mode scan: sembunyikan kolom Injection/Lot ID & Painting/Plating
+                this.setScanMode(true);
                 setTimeout(() => {
                     $("#checksheetForm").submit();
                 }, 1200);
@@ -1948,6 +2011,8 @@ class PaintingCreate {
                 if (success) {
                     this.playSuccessFeedback();
                     this.lockInputs(false);
+                    // Aktifkan mode scan: sembunyikan kolom Injection/Lot ID & Painting/Plating
+                    this.setScanMode(true);
                     setTimeout(() => {
                         $("#checksheetForm").submit();
                     }, 1200);

@@ -308,13 +308,17 @@
                                 </th>
                             @endif
                             <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
-                            <th rowspan="2" class="align-middle">QR-Code</th>
-                            <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift / Inisial)</th>
-                            <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
+                            @if(request('view_mode') === 'verifikasi')
+                                <th rowspan="2" class="align-middle">QR-Code</th>
+                            @endif
                             <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
-                            <th rowspan="2" class="align-middle">Jam (Before)</th>
-                            <th rowspan="2" class="align-middle">Jam (After)</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
+                                <th rowspan="2" class="align-middle">Jam (Before)</th>
+                                <th rowspan="2" class="align-middle">Jam (After)</th>
+                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Customer</th>
@@ -358,6 +362,7 @@
                                     </td>
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                @if(request('view_mode') === 'verifikasi')
                                 <td class="align-middle">
                                     @if($canExport)
                                     @php
@@ -402,20 +407,23 @@
                                     <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
                                     @endif
                                 </td>
-                                <td class="align-middle text-nowrap">
-                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
-                                </td>
-                                <td class="align-middle text-nowrap">
-                                    {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
-                                </td>
+                                @endif
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
                                 </td>
-                                <td class="align-middle">
-                                    {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
-                                </td>
-                                <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
-                                <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
+                                    </td>
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
+                                    </td>
+                                    <td class="align-middle">
+                                        {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                    </td>
+                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
+                                    <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
+                                @endif
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>

@@ -116,8 +116,8 @@
                         <thead>
                             <tr class="text-center">
                                 <th rowspan="2" style="vertical-align: middle;">Item Part</th>
-                                <th rowspan="2" style="vertical-align: middle;">Injection<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" style="vertical-align: middle;">Plating<br>(Tgl / Shift / Lot)</th>
+                                <th rowspan="2" style="vertical-align: middle;" id="thInjection">Injection<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" style="vertical-align: middle;" id="thPlating">Plating<br>(Tgl / Shift / Lot)</th>
                                 <th colspan="2" style="vertical-align: middle;">Quality</th>
                                 <th rowspan="2" style="vertical-align: middle;">Total Qty (Lot)</th>
                                 <th rowspan="2" style="vertical-align: middle; min-width: 150px;">Jenis (OK/NG) &amp; Detail NG
@@ -177,30 +177,30 @@
                                 </td>
 
                                 <!-- Injection -->
-                                <td class="align-middle">
+                                <td class="align-middle" id="tdInjection">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
-                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" required>
+                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" data-scan-optional="1">
+                                    <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" data-scan-optional="1">
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
                                     <input type="text" class="form-control form-control-sm text-center" name="injection_initials" id="injectionInitialsInput"
                                         style="min-width: 80px; text-transform: uppercase;"
-                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
+                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" data-scan-optional="1">
                                 </td>
 
                                 <!-- Plating -->
-                                 <td class="align-middle">
+                                 <td class="align-middle" id="tdPlating">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
-                                        name="plating_date" id="platingDateInput" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm mb-1" name="plating_shift" id="platingShiftInput" required>
+                                        name="plating_date" id="platingDateInput" value="{{ $defaultDate }}" data-scan-optional="1">
+                                    <select class="form-control form-control-sm mb-1" name="plating_shift" id="platingShiftInput" data-scan-optional="1">
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
                                     <input type="text" class="form-control form-control-sm" name="no_lot" id="noLotInput"
-                                        placeholder="No Lot..." autocomplete="off">
+                                        placeholder="No Lot..." autocomplete="off" data-scan-optional="1">
                                 </td>
 
                                 <!-- Kualitas (Tanggal/Shift/Meja yang Ada) -->

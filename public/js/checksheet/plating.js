@@ -566,8 +566,67 @@ class PlatingCreate {
         this.initFormSubmit();
         this.initHardwareScanner();
 
+        // Inisialisasi mode berdasarkan input tersembunyi is_scanned (default: manual mode)
+        this.setScanMode(false);
+
         // Inisialisasi awal untuk logic kalkulasi & judgment
         this.updateJudgment();
+    }
+
+    /**
+     * Mengatur mode scan vs manual.
+     * Scan mode: kolom Injection dan Plating disembunyikan (dikosongkan, tidak required).
+     * Manual mode: semua kolom ditampilkan dan bisa diisi.
+     */
+    setScanMode(isScanned) {
+        const $tdProcess1 = $('#tdInjection');
+        const $tdProcess2 = $('#tdPlating');
+        const $thProcess1 = $('#thInjection');
+        const $thProcess2 = $('#thPlating');
+
+        // Field dengan atribut data-scan-optional akan di-clear dan tidak required saat scan
+        const $scanOptionalFields = $('[data-scan-optional="1"]');
+
+        if (isScanned) {
+            // SCAN MODE: sembunyikan kolom Injection dan Plating
+            $tdProcess1.hide();
+            $tdProcess2.hide();
+            $thProcess1.hide();
+            $thProcess2.hide();
+
+            // Kosongkan nilai dan hapus required pada field-field opsional saat scan
+            $scanOptionalFields.each(function() {
+                $(this).removeAttr('required');
+                if (this.tagName === 'INPUT') {
+                    $(this).val('');
+                }
+            });
+
+            // Tandai form dalam mode scan
+            $('#isScannedInput').val('1');
+
+            // Tampilkan badge info di bawah tabel
+            if ($('#scanModeInfo').length === 0) {
+                $('<div id="scanModeInfo" class="alert alert-info py-2 px-3 mt-2 mb-0 small">' +
+                    '<i class="fas fa-qrcode mr-1"></i> <strong>Mode Scan:</strong> Kolom Injection &amp; Plating tidak diisi otomatis. ' +
+                    'Data Quality (Tgl/Shift) tetap tersedia untuk diisi.' +
+                '</div>').insertAfter('#checksheetTable');
+            } else {
+                $('#scanModeInfo').show();
+            }
+        } else {
+            // MANUAL MODE: tampilkan semua kolom
+            $tdProcess1.show();
+            $tdProcess2.show();
+            $thProcess1.show();
+            $thProcess2.show();
+
+            // Sembunyikan badge info scan mode
+            $('#scanModeInfo').hide();
+
+            // Tandai form dalam mode manual
+            $('#isScannedInput').val('0');
+        }
     }
 
     lockInputs(lock) {
@@ -762,6 +821,8 @@ class PlatingCreate {
             if (success) {
                 this.playSuccessFeedback();
                 this.lockInputs(false);
+                // Aktifkan mode scan: sembunyikan kolom Injection & Plating
+                this.setScanMode(true);
                 setTimeout(() => {
                     $("#checksheetForm").submit();
                 }, 1200);
@@ -1948,6 +2009,8 @@ class PlatingCreate {
                 if (success) {
                     this.playSuccessFeedback();
                     this.lockInputs(false);
+                    // Aktifkan mode scan: sembunyikan kolom Injection & Plating
+                    this.setScanMode(true);
                     setTimeout(() => {
                         $("#checksheetForm").submit();
                     }, 1200);
