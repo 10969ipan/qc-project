@@ -86,7 +86,7 @@
                     <select name="category" id="edit_category" class="form-control form-control-sm border-0 shadow-sm">
                         <option value="">-- Pilih Kategori --</option>
                         @foreach (($fpaCategories ?? \App\Models\GeneralSetting::getFpaCategories()) as $cat)
-                            <option value="{{ $cat }}" {{ $checksheet->category == $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                            <option value="{{ $cat }}" {{ $checksheet->category == $cat ? 'selected' : '' }}>{{ strtoupper($cat) }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -68,24 +68,25 @@ class GeneralSetting extends Model
     public static function getFpaCategories()
     {
         $defaults = [
-            'awal produksi',
-            'operator istirahat',
-            'mati listrik',
-            'perbaikan NG',
-            'update ketrik',
-            'ganti material',
-            'perbaikan mold',
-            'perbaikan mesin',
+            'AWAL PRODUKSI',
+            'OPERATOR ISTIRAHAT',
+            'MATI LISTRIK',
+            'PERBAIKAN NG',
+            'UPDATE KETRIK',
+            'GANTI MATERIAL',
+            'PERBAIKAN MOLD',
+            'PERBAIKAN MESIN',
         ];
 
         $settingVal = self::getValue('fpa_categories');
         if ($settingVal) {
             if (is_array($settingVal)) {
-                return array_values(array_filter(array_map('trim', $settingVal)));
+                $items = array_values(array_filter(array_map('trim', $settingVal)));
+            } else {
+                $lines = explode("\n", str_replace("\r", "", (string) $settingVal));
+                $items = array_values(array_filter(array_map('trim', $lines)));
             }
-            $lines = explode("\n", str_replace("\r", "", (string) $settingVal));
-            $items = array_values(array_filter(array_map('trim', $lines)));
-            return !empty($items) ? $items : $defaults;
+            return !empty($items) ? array_map('strtoupper', $items) : $defaults;
         }
 
         return $defaults;

@@ -383,7 +383,7 @@
                                             <option value="">Pilih Kategori</option>
                                             @foreach(($fpaCategories ?? []) as $cat)
                                                 <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>
-                                                    {{ ucfirst($cat) }}
+                                                    {{ strtoupper($cat) }}
                                                 </option>
                                             @endforeach
                                         </select>

@@ -52,6 +52,11 @@ class FirstPieceApproval extends Model
         'date' => 'date',
     ];
 
+    public function setCategoryAttribute($value)
+    {
+        $this->attributes['category'] = $value ? strtoupper(trim($value)) : null;
+    }
+
     public function item()
     {
         return $this->belongsTo(Item::class);
