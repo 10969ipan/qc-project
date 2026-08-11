@@ -1518,6 +1518,31 @@
                 $('#printQrPreviewModalBody').html('<div class="alert alert-danger">Gagal memuat pratinjau dari server.</div>');
             });
         }
+
+        window.formatInitialsInput = function(value) {
+            if (!value) return '';
+            const clean = value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+            if (!clean) return '';
+            const chunks = clean.match(/.{1,2}/g) || [];
+            return chunks.join(' / ');
+        };
+
+        document.addEventListener('input', function(e) {
+            if (e.target && (
+                e.target.name === 'injection_initials' || 
+                e.target.name === 'operator_initials' || 
+                e.target.id === 'operatorInitialsInput' || 
+                e.target.id === 'injectionInitialsInput' || 
+                e.target.id === 'operator_initials_edit' || 
+                e.target.classList.contains('initials-format')
+            )) {
+                const val = e.target.value;
+                const formatted = window.formatInitialsInput(val);
+                if (formatted !== val) {
+                    e.target.value = formatted;
+                }
+            }
+        });
     </script>
 
     @stack('scripts')

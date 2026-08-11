@@ -47,13 +47,14 @@
         </div>
     </div>
 
-    {{-- Hidden inputs to preserve QR data during update --}}
+    {{-- Hidden inputs to preserve QR & Cycle Time data during update --}}
     <input type="hidden" name="qrcode" value="{{ $checksheet->qrcode }}">
     <input type="hidden" name="part_code" value="{{ $checksheet->part_code }}">
     <input type="hidden" name="supplier_id" value="{{ $checksheet->supplier_id }}">
     <input type="hidden" name="quantity" value="{{ $checksheet->quantity }}">
     <input type="hidden" name="unique_code_id" value="{{ $checksheet->unique_code_id }}">
     <input type="hidden" name="sap_code" value="{{ $checksheet->sap_code }}">
+    <input type="hidden" name="cycle_time" value="{{ $checksheet->cycle_time }}">
 
     <div class="row">
         <!-- 2. Kolom Kiri: Informasi Produksi -->

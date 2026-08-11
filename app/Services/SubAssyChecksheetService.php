@@ -167,7 +167,7 @@ class SubAssyChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
-                'cycle_time' => $data['cycle_time'] ?? null,
+                'cycle_time' => $data['cycle_time'] ?? $checksheet->cycle_time,
                 'defects' => $defects,
             ]);
 

@@ -65,6 +65,16 @@ class PlatingChecksheet extends Model
         'manager_approved_at' => 'datetime',
     ];
 
+    public function setInjectionInitialsAttribute($value)
+    {
+        $this->attributes['injection_initials'] = \App\Helpers\ChecksheetHelper::formatInitials($value);
+    }
+
+    public function setOperatorInitialsAttribute($value)
+    {
+        $this->attributes['operator_initials'] = \App\Helpers\ChecksheetHelper::formatInitials($value);
+    }
+
     public function item()
     {
         return $this->belongsTo(Item::class);
