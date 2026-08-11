@@ -48,6 +48,7 @@ class PlatingChecksheetController extends Controller
             'No',
             'Tgl Injection',
             'Shift Injection',
+            'Inisial Injection',
             'Tgl Plating',
             'Shift Plating',
             'No Lot',
@@ -77,6 +78,7 @@ class PlatingChecksheetController extends Controller
             $c->id,
             $c->injection_date ? $c->injection_date->format('d/m/Y') : '-',
             $c->injection_shift ?? '-',
+            $c->injection_initials ?? '-',
             $c->plating_date ? $c->plating_date->format('d/m/Y') : '-',
             $c->plating_shift ?? '-',
             $c->no_lot ?? '-',
@@ -469,6 +471,7 @@ class PlatingChecksheetController extends Controller
             'success' => true,
             'injection_date' => $lastItemActivity && $lastItemActivity->injection_date ? $lastItemActivity->injection_date->toDateString() : null,
             'injection_shift' => $lastItemActivity ? $lastItemActivity->injection_shift : null,
+            'injection_initials' => $lastItemActivity ? $lastItemActivity->injection_initials : null,
             'line' => $line
         ]);
     }

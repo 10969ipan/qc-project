@@ -116,7 +116,7 @@
                         <thead>
                             <tr class="text-center">
                                 <th rowspan="2" style="vertical-align: middle;">Item Part</th>
-                                <th rowspan="2" style="vertical-align: middle;">Injection<br>(Tgl / Shift)</th>
+                                <th rowspan="2" style="vertical-align: middle;">Injection<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" style="vertical-align: middle;">Plating<br>(Tgl / Shift / Lot)</th>
                                 <th colspan="2" style="vertical-align: middle;">Quality</th>
                                 <th rowspan="2" style="vertical-align: middle;">Total Qty (Lot)</th>
@@ -180,11 +180,14 @@
                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
                                         name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm" name="injection_shift" id="injectionShiftInput" required>
+                                    <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
+                                    <input type="text" class="form-control form-control-sm text-center" name="injection_initials" id="injectionInitialsInput"
+                                        style="min-width: 80px; text-transform: uppercase;"
+                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Plating -->
@@ -567,6 +570,7 @@
 
             const injectionDateInput = document.getElementById('injectionDateInput');
             const injectionShiftInput = document.getElementById('injectionShiftInput');
+            const injectionInitialsInput = document.getElementById('injectionInitialsInput');
             const lineSelect = document.getElementById('lineSelect');
 
             function debounce(func, wait) {
@@ -622,6 +626,7 @@
                         if (data.success) {
                             if (data.injection_date) injectionDateInput.value = data.injection_date;
                             if (data.injection_shift) injectionShiftInput.value = data.injection_shift;
+                            if (data.injection_initials && injectionInitialsInput) injectionInitialsInput.value = data.injection_initials;
                             if (data.line) lineSelect.value = data.line;
                         }
                     })

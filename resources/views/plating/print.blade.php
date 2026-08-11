@@ -127,7 +127,7 @@
         <thead>
             <tr>
                 <th rowspan="2" class="col-compact">No</th>
-                <th rowspan="2" class="col-compact">Injection<br>(Tgl / Shift)</th>
+                <th rowspan="2" class="col-compact">Injection<br>(Tgl / Shift / Inisial)</th>
                 <th rowspan="2" class="col-compact">Plating<br>(Tgl / Shift / Lot)</th>
                 <th rowspan="2" class="col-compact">Quality<br>(Tgl / Shift)</th>
                 <th rowspan="2" class="col-compact">Jam (Before)</th>
@@ -172,7 +172,7 @@
                 <tr>
                     <td class="col-compact">{{ $loop->iteration }}</td>
                     <td class="col-compact">
-                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}
+                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
                     </td>
                     <td class="col-compact">
                         {{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}

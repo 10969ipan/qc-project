@@ -82,13 +82,18 @@
                                 <input type="date" name="injection_date" class="form-control form-control-sm" 
                                     value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}">
                             </div>
-                            <div class="form-group mb-0">
+                            <div class="form-group mb-2">
                                 <select name="injection_shift" class="form-control form-control-sm">
                                     <option value="">Shift</option>
                                     <option value="1" {{ $checksheet->injection_shift == '1' ? 'selected' : '' }}>1</option>
                                     <option value="2" {{ $checksheet->injection_shift == '2' ? 'selected' : '' }}>2</option>
                                     <option value="3" {{ $checksheet->injection_shift == '3' ? 'selected' : '' }}>3</option>
                                 </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <input type="text" name="injection_initials" class="form-control form-control-sm text-center"
+                                    value="{{ $checksheet->injection_initials ?? '' }}" placeholder="Inisial"
+                                    style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" required>
                             </div>
                         </div>
                         <div class="col-md-6">

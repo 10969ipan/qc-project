@@ -309,7 +309,7 @@
                             @endif
                             <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
                             <th rowspan="2" class="align-middle">QR-Code</th>
-                            <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift)</th>
+                            <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
                             <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
                             <th rowspan="2" class="align-middle">Jam (Before)</th>
@@ -403,7 +403,7 @@
                                     @endif
                                 </td>
                                 <td class="align-middle text-nowrap">
-                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}
+                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
                                 </td>
                                 <td class="align-middle text-nowrap">
                                     {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}

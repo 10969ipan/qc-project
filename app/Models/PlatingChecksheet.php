@@ -46,6 +46,7 @@ class PlatingChecksheet extends Model
         'rejection_remarks',
         'injection_date',
         'injection_shift',
+        'injection_initials',
         'plating_date',
         'plating_shift',
         'no_lot',
