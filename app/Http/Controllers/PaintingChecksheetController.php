@@ -40,8 +40,9 @@ class PaintingChecksheetController extends Controller
     {
         return [
             'No',
-            'Tgl Injection',
-            'Shift Injection',
+            'Tgl Lot ID',
+            'Shift Lot ID',
+            'Inisial Lot ID',
             'Tgl Painting',
             'Shift Painting',
             'No Lot',
@@ -71,6 +72,7 @@ class PaintingChecksheetController extends Controller
             $c->id,
             $c->injection_date ? $c->injection_date->format('d/m/Y') : '-',
             $c->injection_shift ?? '-',
+            $c->injection_initials ?? '-',
             $c->painting_date ? $c->painting_date->format('d/m/Y') : '-',
             $c->painting_shift ?? '-',
             $c->no_lot ?? '-',
@@ -459,6 +461,7 @@ class PaintingChecksheetController extends Controller
             'success' => true,
             'injection_date' => $lastItemActivity && $lastItemActivity->injection_date ? $lastItemActivity->injection_date->toDateString() : null,
             'injection_shift' => $lastItemActivity ? $lastItemActivity->injection_shift : null,
+            'injection_initials' => $lastItemActivity ? $lastItemActivity->injection_initials : null,
             'line' => $line
         ]);
     }

@@ -46,6 +46,7 @@ class PaintingChecksheet extends Model
         'rejection_remarks',
         'injection_date',
         'injection_shift',
+        'injection_initials',
         'painting_date',
         'painting_shift',
         'no_lot',

@@ -1,4 +1,4 @@
-<form id="editChecksheetForm" class="ajax-form"
+<form id="editChecksheetForm" class="ajax-form" novalidate
     action="{{ route('painting.update', ['id' => $checksheet->id, 'plant' => request('plant')]) }}" method="POST">
     <div id="modal-errors" class="mb-3" style="display: none;"></div>
     @csrf
@@ -61,7 +61,7 @@
                 <div class="card-body py-3">
                     <div class="form-group mb-3">
                         <label class="small font-weight-bold text-gray-700">Item Part <span class="text-danger">*</span></label>
-                        <select name="item_id" id="item_id_edit" class="form-control form-control-sm select2-standard" required>
+                        <select name="item_id" id="item_id_edit" class="form-control form-control-sm select2-standard" data-field-name="Item Part" required>
                             <option value="" disabled>Pilih Item Part</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" {{ $checksheet->item_id == $item->id ? 'selected' : '' }}
@@ -74,32 +74,37 @@
                         </select>
                     </div>
 
-                    <!-- Painting Specific Fields -->
+                    <!-- Painting Specific Fields (Lot ID & Painting) -->
                     <div class="row bg-light p-2 rounded mb-3 border">
                         <div class="col-md-6 border-right">
-                            <label class="x-small font-weight-bold text-primary text-uppercase mb-1">Injection</label>
+                            <label class="x-small font-weight-bold text-primary text-uppercase mb-1">Lot ID <span class="text-danger">*</span></label>
                             <div class="form-group mb-2">
-                                <input type="date" name="injection_date" class="form-control form-control-sm" 
-                                    value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}">
+                                <input type="date" name="injection_date" class="form-control form-control-sm" data-field-name="Tanggal Lot ID"
+                                    value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}" required>
                             </div>
-                            <div class="form-group mb-0">
-                                <select name="injection_shift" class="form-control form-control-sm">
+                            <div class="form-group mb-2">
+                                <select name="injection_shift" class="form-control form-control-sm" data-field-name="Shift Lot ID" required>
                                     <option value="">Shift</option>
                                     <option value="1" {{ $checksheet->injection_shift == '1' ? 'selected' : '' }}>1</option>
                                     <option value="2" {{ $checksheet->injection_shift == '2' ? 'selected' : '' }}>2</option>
                                     <option value="3" {{ $checksheet->injection_shift == '3' ? 'selected' : '' }}>3</option>
                                 </select>
                             </div>
+                            <div class="form-group mb-0">
+                                <input type="text" name="injection_initials" class="form-control form-control-sm text-center" data-field-name="Inisial Lot ID"
+                                    value="{{ $checksheet->injection_initials ?? '' }}" placeholder="Inisial Lot ID"
+                                    style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="x-small font-weight-bold text-info text-uppercase mb-1">Painting</label>
+                            <label class="x-small font-weight-bold text-info text-uppercase mb-1">Painting <span class="text-danger">*</span></label>
                             <div class="form-group mb-2">
-                                <input type="date" name="painting_date" class="form-control form-control-sm"
-                                    value="{{ $checksheet->painting_date ? $checksheet->painting_date->format('Y-m-d') : '' }}">
+                                <input type="date" name="painting_date" class="form-control form-control-sm" data-field-name="Tanggal Painting"
+                                    value="{{ $checksheet->painting_date ? $checksheet->painting_date->format('Y-m-d') : '' }}" required>
                             </div>
                             <div class="row no-gutters">
                                 <div class="col-4 pr-1">
-                                    <select name="painting_shift" class="form-control form-control-sm">
+                                    <select name="painting_shift" class="form-control form-control-sm" data-field-name="Shift Painting" required>
                                         <option value="">Shf</option>
                                         <option value="1" {{ $checksheet->painting_shift == '1' ? 'selected' : '' }}>1</option>
                                         <option value="2" {{ $checksheet->painting_shift == '2' ? 'selected' : '' }}>2</option>
@@ -118,14 +123,14 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Tanggal Quality <span class="text-danger">*</span></label>
-                                <input type="date" name="date" id="date_edit" class="form-control form-control-sm"
+                                <input type="date" name="date" id="date_edit" class="form-control form-control-sm" data-field-name="Tanggal Quality"
                                     value="{{ \Carbon\Carbon::parse($checksheet->date)->format('Y-m-d') }}" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Shift Quality <span class="text-danger">*</span></label>
-                                <select name="shift" id="shift_edit" class="form-control form-control-sm" required>
+                                <select name="shift" id="shift_edit" class="form-control form-control-sm" data-field-name="Shift Quality" required>
                                     <option value="1" {{ $checksheet->shift == '1' ? 'selected' : '' }}>Shift 1</option>
                                     <option value="2" {{ $checksheet->shift == '2' ? 'selected' : '' }}>Shift 2</option>
                                     <option value="3" {{ $checksheet->shift == '3' ? 'selected' : '' }}>Shift 3</option>
@@ -138,7 +143,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Meja <span class="text-danger">*</span></label>
-                                <select name="line" id="line_edit" class="form-control form-control-sm" required>
+                                <select name="line" id="line_edit" class="form-control form-control-sm" data-field-name="Meja" required>
                                     <option value="">Pilih Meja</option>
                                     @foreach (range(1, 15) as $num)
                                         <option value="{{ $num }}" {{ $checksheet->line == $num ? 'selected' : '' }}>Meja {{ $num }}</option>
@@ -148,9 +153,9 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Inisial Operator</label>
-                                <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm text-uppercase"
-                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial...">
+                                <label class="small font-weight-bold text-gray-700">Inisial Operator QC <span class="text-danger">*</span></label>
+                                <input type="text" name="operator_initials" id="operator_initials_edit" class="form-control form-control-sm text-uppercase" data-field-name="Inisial Operator QC"
+                                    value="{{ $checksheet->operator_initials }}" placeholder="Inisial..." required>
                             </div>
                         </div>
                     </div>
@@ -193,7 +198,7 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small font-weight-bold">Total Qty (Pcs) <span class="text-danger">*</span></label>
-                            <input type="number" name="total_qty" id="total_qty_edit" class="form-control form-control-sm font-weight-bold bg-light"
+                            <input type="number" name="total_qty" id="total_qty_edit" class="form-control form-control-sm font-weight-bold bg-light" data-field-name="Total Qty (Pcs)"
                                 value="{{ $checksheet->total_qty }}" required>
                         </div>
                         <div class="col-6">
@@ -211,7 +216,7 @@
                         </div>
                         <div class="col-6">
                             <label class="small font-weight-bold text-danger">Total NG <span class="text-danger">*</span></label>
-                            <input type="number" name="total_ng" id="total_ng_edit" class="form-control form-control-sm font-weight-bold text-danger border-danger"
+                            <input type="number" name="total_ng" id="total_ng_edit" class="form-control form-control-sm font-weight-bold text-danger border-danger" data-field-name="Total NG"
                                 value="{{ $checksheet->total_ng }}" required readonly>
                         </div>
                     </div>
@@ -260,7 +265,7 @@
                     <div id="editNextProsesGroup" style="{{ $checksheet->judgment == 'NG' ? '' : 'display: none;' }}">
                         <div class="form-group mb-0 p-2 border border-danger rounded bg-white">
                             <label class="small font-weight-bold text-danger">Next Proses <span class="text-danger">*</span></label>
-                            <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm border-danger">
+                            <select name="next_proses" id="next_proses_edit" class="form-control form-control-sm border-danger" data-field-name="Next Proses">
                                 <option value="">-- Pilih Next Proses --</option>
                                 @foreach($nextProcesses as $opt)
                                     <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>

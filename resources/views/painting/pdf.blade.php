@@ -172,7 +172,7 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width: 20px;">No</th>
-                <th rowspan="2">Injection<br>(Tgl/Shf)</th>
+                <th rowspan="2">Lot ID<br>(Tgl/Shf/Ini)</th>
                 <th rowspan="2">Painting<br>(Tgl/Shf/Lot)</th>
                 <th rowspan="2">Quality<br>(Tgl/Shf)</th>
                 <th rowspan="2">Jam (Bef)</th>
@@ -199,7 +199,7 @@
             @foreach($checksheets as $checksheet)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }}</td>
+                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}</td>
                     <td>{{ $checksheet->painting_date ? $checksheet->painting_date->format('d/m/y') : '-' }} / {{ $checksheet->painting_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}</td>
                     <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }}</td>
                     <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
