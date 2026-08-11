@@ -79,14 +79,16 @@ class GeneralSetting extends Model
         ];
 
         $settingVal = self::getValue('fpa_categories');
-        if ($settingVal) {
+        if ($settingVal !== null && $settingVal !== '') {
             if (is_array($settingVal)) {
                 $items = array_values(array_filter(array_map('trim', $settingVal)));
             } else {
-                $lines = explode("\n", str_replace("\r", "", (string) $settingVal));
+                $lines = preg_split('/\r\n|\r|\n/', (string) $settingVal);
                 $items = array_values(array_filter(array_map('trim', $lines)));
             }
-            return !empty($items) ? array_map('strtoupper', $items) : $defaults;
+            if (!empty($items)) {
+                return array_values(array_unique(array_map('strtoupper', $items)));
+            }
         }
 
         return $defaults;

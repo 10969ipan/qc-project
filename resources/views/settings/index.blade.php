@@ -97,12 +97,15 @@
                                     </div>
                                     @php
                                         $categoriesSetting = isset($generalSettings['fpa_categories']) ? $generalSettings['fpa_categories']->value : null;
-                                        if (empty($categoriesSetting)) {
-                                            $categoriesText = implode("\n", \App\Models\GeneralSetting::getFpaCategories());
+                                        if ($categoriesSetting !== null && $categoriesSetting !== '') {
+                                            $decoded = json_decode($categoriesSetting, true);
+                                            if (is_array($decoded)) {
+                                                $categoriesText = implode("\n", $decoded);
+                                            } else {
+                                                $categoriesText = $categoriesSetting;
+                                            }
                                         } else {
-                                            $categoriesText = is_array(json_decode($categoriesSetting, true)) 
-                                                ? implode("\n", json_decode($categoriesSetting, true)) 
-                                                : $categoriesSetting;
+                                            $categoriesText = implode("\n", \App\Models\GeneralSetting::getFpaCategories());
                                         }
                                     @endphp
                                     <textarea id="fpaCategoriesInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="awal produksi&#10;operator istirahat&#10;...">{!! e($categoriesText) !!}</textarea>

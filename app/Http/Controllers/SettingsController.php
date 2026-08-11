@@ -45,9 +45,9 @@ class SettingsController extends Controller
         // Fetch general settings - use resilient query in case migration hasn't been run
         $query = \App\Models\GeneralSetting::query();
         if (\Illuminate\Support\Facades\Schema::hasColumn('general_settings', 'category')) {
-            $query->where('category', 'security')->orWhere('key', 'daily_approval_gate_enabled');
+            $query->where('category', 'security')->orWhereIn('key', ['daily_approval_gate_enabled', 'fpa_categories']);
         } else {
-            $query->where('key', 'daily_approval_gate_enabled');
+            $query->whereIn('key', ['daily_approval_gate_enabled', 'fpa_categories']);
         }
         $generalSettings = $query->get()->keyBy('key');
 

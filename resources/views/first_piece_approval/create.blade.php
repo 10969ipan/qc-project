@@ -381,7 +381,7 @@
                                         <select name="category" id="categoryInput" class="form-control"
                                             style="min-width: 100px;" required>
                                             <option value="">Pilih Kategori</option>
-                                            @foreach(($fpaCategories ?? []) as $cat)
+                                            @foreach(($fpaCategories ?? \App\Models\GeneralSetting::getFpaCategories()) as $cat)
                                                 <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>
                                                     {{ strtoupper($cat) }}
                                                 </option>
