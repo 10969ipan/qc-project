@@ -32,15 +32,20 @@ class ActivityLogger
             }
         }
 
-        return ActivityLog::create([
-            'user_id' => Auth::id(),
-            'action' => $action,
-            'model_type' => $model ? get_class($model) : null,
-            'model_id' => $model ? $model->id : null,
-            'description' => $description,
-            'properties' => $properties,
-            'ip_address' => Request::ip(),
-            'user_agent' => Request::userAgent(),
-        ]);
+        try {
+            return ActivityLog::create([
+                'user_id' => Auth::id() ?? 1,
+                'action' => $action,
+                'model_type' => $model ? get_class($model) : null,
+                'model_id' => $model ? $model->id : null,
+                'description' => $description,
+                'properties' => $properties,
+                'ip_address' => Request::ip(),
+                'user_agent' => Request::userAgent(),
+            ]);
+        } catch (\Throwable $e) {
+            // Silence logger exceptions to prevent interrupting core business logic
+            return null;
+        }
     }
 }

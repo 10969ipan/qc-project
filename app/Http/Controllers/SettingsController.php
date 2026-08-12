@@ -534,13 +534,28 @@ class SettingsController extends Controller
         DB::beginTransaction();
         try {
             foreach ($settings as $key => $value) {
-                GeneralSetting::updateOrCreate(
-                    ['key' => $key],
-                    ['value' => $value]
-                );
+                if ($key === 'fpa_categories' && is_string($value)) {
+                    $lines = preg_split('/\r\n|\r|\n|,/', $value);
+                    $cleanLines = array_values(array_unique(array_filter(array_map('strtoupper', array_map('trim', $lines)))));
+                    $value = implode("\n", $cleanLines);
+                }
+
+                $updated = GeneralSetting::where('key', $key)->update(['value' => $value]);
+                if (!$updated) {
+                    GeneralSetting::create([
+                        'key' => $key,
+                        'value' => $value
+                    ]);
+                }
             }
             DB::commit();
             
+            try {
+                \Illuminate\Support\Facades\Artisan::call('view:clear');
+            } catch (\Throwable $th) {
+                // Ignore if view:clear fails in certain restricted environments
+            }
+
             ActivityLogger::log('updated', null, "Memperbarui konfigurasi sistem umum");
 
             return response()->json([

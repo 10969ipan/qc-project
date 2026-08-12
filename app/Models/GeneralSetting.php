@@ -22,22 +22,33 @@ class GeneralSetting extends Model
     public static function getValue($key, $default = null)
     {
         try {
-            $setting = self::where('key', $key)->first();
+            $setting = self::where('key', $key)
+                ->whereNotNull('value')
+                ->where('value', '!=', '')
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if (!$setting) {
+                $setting = self::where('key', $key)->first();
+            }
+
             if (!$setting) return $default;
 
             $value = $setting->value;
             
             // Try to decode JSON if it looks like JSON
-            if (is_string($value) && (str_starts_with($value, '{') || str_starts_with($value, '['))) {
-                $decoded = json_decode($value, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    return $decoded;
+            if (is_string($value)) {
+                $trimmed = trim($value);
+                if (str_starts_with($trimmed, '{') || str_starts_with($trimmed, '[')) {
+                    $decoded = json_decode($trimmed, true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        return $decoded;
+                    }
                 }
             }
 
             return $value;
         } catch (\Exception $e) {
-            // Log error if needed, but return default to prevent breaking the flow
             return $default;
         }
     }
@@ -80,14 +91,36 @@ class GeneralSetting extends Model
 
         $settingVal = self::getValue('fpa_categories');
         if ($settingVal !== null && $settingVal !== '') {
+            $raw = [];
             if (is_array($settingVal)) {
-                $items = array_values(array_filter(array_map('trim', $settingVal)));
+                $raw = $settingVal;
             } else {
-                $lines = preg_split('/\r\n|\r|\n/', (string) $settingVal);
-                $items = array_values(array_filter(array_map('trim', $lines)));
+                $str = trim((string) $settingVal);
+                if ((str_starts_with($str, '"') && str_ends_with($str, '"')) || (str_starts_with($str, "'") && str_ends_with($str, "'"))) {
+                    $str = trim(substr($str, 1, -1));
+                    $str = stripslashes($str);
+                }
+                $decoded = json_decode($str, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $raw = $decoded;
+                } else {
+                    $raw = preg_split('/\r\n|\r|\n|,/', $str);
+                }
             }
-            if (!empty($items)) {
-                return array_values(array_unique(array_map('strtoupper', $items)));
+
+            $clean = [];
+            foreach ($raw as $item) {
+                if (is_string($item) || is_numeric($item)) {
+                    $val = strtoupper(trim((string) $item));
+                    $val = trim($val, "[]\"'");
+                    if ($val !== '') {
+                        $clean[] = $val;
+                    }
+                }
+            }
+
+            if (!empty($clean)) {
+                return array_values(array_unique($clean));
             }
         }
 

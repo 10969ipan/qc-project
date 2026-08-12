@@ -41,7 +41,7 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
             'date' => 'required|date',
             'shift' => 'required|string',
             'code_machine' => 'required|string',
-            'category' => 'nullable|string',
+            'category' => 'required|string',
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',
