@@ -108,6 +108,8 @@
                 <th rowspan="3">No Lot</th>
                 @if($testType == 'corrodkote')
                 <th rowspan="3">Aktual % Corrosion</th>
+                @elseif($testType == 'cass')
+                <th rowspan="3">Aktual RN</th>
                 @endif
                 <th rowspan="3">Tgl Check</th>
                 <th rowspan="3">Result</th>
@@ -185,6 +187,10 @@
                     @if($testType == 'corrodkote')
                     <td>
                         {{ (isset($report->aktual_corrosion) && $report->aktual_corrosion !== '' && $report->aktual_corrosion !== '-') ? $report->aktual_corrosion . '%' : '-' }}
+                    </td>
+                    @elseif($testType == 'cass')
+                    <td>
+                        {{ (isset($report->aktual_rn) && $report->aktual_rn !== '' && $report->aktual_rn !== '-') ? $report->aktual_rn : '-' }}
                     </td>
                     @endif
                     <td>{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d-m-Y') : '-' }}</td>

@@ -323,6 +323,7 @@ class StandardPerformanceTestController extends Controller
             'aktual_corrosion' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
             'standar_jam_cass' => 'nullable|string|max:255',
+            'aktual_rn' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
             'standar_jam_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
@@ -342,6 +343,7 @@ class StandardPerformanceTestController extends Controller
             'aktual_corrosion_trial' => 'nullable|string|max:255',
             'actual_cass_waktu_trial' => 'nullable|string|max:255',
             'standar_jam_cass_trial' => 'nullable|string|max:255',
+            'aktual_rn_trial' => 'nullable|string|max:255',
             'actual_salt_spray_waktu_trial' => 'nullable|string|max:255',
             'standar_jam_salt_spray_trial' => 'nullable|string|max:255',
             'actual_porecount_trial' => 'nullable|string|max:255',
@@ -389,6 +391,7 @@ class StandardPerformanceTestController extends Controller
                 'aktual_corrosion' => $request->aktual_corrosion ?? null,
                 'actual_cass_waktu' => $request->actual_cass_waktu ?? '-',
                 'standar_jam_cass' => $request->standar_jam_cass ?? '-',
+                'aktual_rn' => $request->aktual_rn ?? null,
                 'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
                 'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
                 'actual_porecount' => $request->actual_porecount ?? '-',
@@ -427,6 +430,7 @@ class StandardPerformanceTestController extends Controller
             'aktual_corrosion' => $request->aktual_corrosion ?? null,
             'actual_cass_waktu' => $request->actual_cass_waktu ?? '-',
             'standar_jam_cass' => $request->standar_jam_cass ?? '-',
+            'aktual_rn' => $request->aktual_rn ?? null,
             'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
             'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
             'actual_porecount' => $request->actual_porecount ?? '-',
@@ -473,6 +477,7 @@ class StandardPerformanceTestController extends Controller
             'aktual_corrosion' => $request->filled('aktual_corrosion_trial') ? $request->aktual_corrosion_trial : null,
             'actual_cass_waktu' => $request->filled('actual_cass_waktu_trial') ? $request->actual_cass_waktu_trial : '-',
             'standar_jam_cass' => $request->filled('standar_jam_cass_trial') ? $request->standar_jam_cass_trial : ($request->standar_jam_cass ?? '-'),
+            'aktual_rn' => $request->filled('aktual_rn_trial') ? $request->aktual_rn_trial : null,
             'actual_salt_spray_waktu' => $request->filled('actual_salt_spray_waktu_trial') ? $request->actual_salt_spray_waktu_trial : '-',
             'standar_jam_salt_spray' => $request->filled('standar_jam_salt_spray_trial') ? $request->standar_jam_salt_spray_trial : ($request->standar_jam_salt_spray ?? '-'),
             'actual_porecount' => $request->filled('actual_porecount_trial') ? $request->actual_porecount_trial : '-',
@@ -719,6 +724,72 @@ class StandardPerformanceTestController extends Controller
                 'corrosion1' => count($corr1) ? number_format(array_sum($corr1) / count($corr1), 2) : '-',
                 'corrosion2' => count($corr2) ? number_format(array_sum($corr2) / count($corr2), 2) : '-',
             ];
+        } elseif ($testType === 'cass') {
+            $allMatching = (clone $query)->get();
+
+            $parseVal = function($val) {
+                if (is_null($val)) return null;
+                $cleaned = str_replace(',', '.', trim(str_ireplace('rn', '', (string)$val)));
+                return is_numeric($cleaned) ? (float)$cleaned : null;
+            };
+
+            $rn1 = [];
+            $rn2 = [];
+
+            if (!$isTrial) {
+                if (count($allMatching) > 0) {
+                    $allIds = $allMatching->pluck('id')->filter()->unique();
+                    $allTrials = DurabilityThicknessReport::where('is_trial', true)
+                        ->whereIn('data1_id', $allIds)
+                        ->get()
+                        ->keyBy('data1_id');
+
+                    foreach ($allMatching as $m) {
+                        $tr = $allTrials->get($m->id);
+                        if ($tr) {
+                            $m->aktual_rn_trial = $tr->aktual_rn;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    $v1 = $parseVal($item->aktual_rn);
+                    if (!is_null($v1)) $rn1[] = $v1;
+
+                    if (isset($item->aktual_rn_trial)) {
+                        $v2 = $parseVal($item->aktual_rn_trial);
+                        if (!is_null($v2)) $rn2[] = $v2;
+                    }
+                }
+            } else {
+                if (count($allMatching) > 0) {
+                    $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+
+                    foreach ($allMatching as $m) {
+                        $d1 = $allData1->get($m->data1_id);
+                        if ($d1) {
+                            $m->aktual_rn_d1 = $d1->aktual_rn;
+                        }
+                    }
+                }
+
+                foreach ($allMatching as $item) {
+                    if (isset($item->aktual_rn_d1)) {
+                        $v1 = $parseVal($item->aktual_rn_d1);
+                        if (!is_null($v1)) $rn1[] = $v1;
+                    }
+
+                    $v2 = $parseVal($item->aktual_rn);
+                    if (!is_null($v2)) $rn2[] = $v2;
+                }
+            }
+
+            $averages = [
+                'count' => count($allMatching),
+                'rn1' => count($rn1) ? number_format(array_sum($rn1) / count($rn1), 2) : '-',
+                'rn2' => count($rn2) ? number_format(array_sum($rn2) / count($rn2), 2) : '-',
+            ];
         }
         
         if ($request->has('print')) {
@@ -857,7 +928,7 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        $rekapMatching = (($testType === 'thickness' || $testType === 'corrodkote') && isset($allMatching)) ? $allMatching : (clone $query)->get();
+        $rekapMatching = (($testType === 'thickness' || $testType === 'corrodkote' || $testType === 'cass') && isset($allMatching)) ? $allMatching : (clone $query)->get();
         $rekapSummary = $rekapMatching->groupBy('standard_performance_test_id')->map(function ($group) {
             $first = $group->first();
             $std = $first->standard ?? null;
@@ -888,15 +959,37 @@ class StandardPerformanceTestController extends Controller
             'actual_cu' => 'nullable|string|max:255',
             'actual_ni' => 'nullable|string|max:255',
             'actual_cr' => 'nullable|string|max:255',
+            'actual_cu_trial' => 'nullable|string|max:255',
+            'actual_ni_trial' => 'nullable|string|max:255',
+            'actual_cr_trial' => 'nullable|string|max:255',
             'actual_corrodkote_waktu' => 'nullable|string|max:255',
             'standar_jam_corrodkote' => 'nullable|string|max:255',
             'aktual_corrosion' => 'nullable|string|max:255',
+            'actual_corrodkote_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_corrodkote_trial' => 'nullable|string|max:255',
+            'aktual_corrosion_trial' => 'nullable|string|max:255',
             'actual_cass_waktu' => 'nullable|string|max:255',
             'standar_jam_cass' => 'nullable|string|max:255',
+            'aktual_rn' => 'nullable|string|max:255',
+            'actual_cass_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_cass_trial' => 'nullable|string|max:255',
+            'aktual_rn_trial' => 'nullable|string|max:255',
             'actual_salt_spray_waktu' => 'nullable|string|max:255',
             'standar_jam_salt_spray' => 'nullable|string|max:255',
             'actual_porecount' => 'nullable|string|max:255',
+            'actual_salt_spray_waktu_trial' => 'nullable|string|max:255',
+            'standar_jam_salt_spray_trial' => 'nullable|string|max:255',
+            'actual_porecount_trial' => 'nullable|string|max:255',
             'result_judgment' => 'nullable|string|max:255',
+            'result_judgment_corrodkote' => 'nullable|string|max:255',
+            'result_judgment_cass' => 'nullable|string|max:255',
+            'result_judgment_salt_spray' => 'nullable|string|max:255',
+            'result_judgment_porecount' => 'nullable|string|max:255',
+            'result_judgment_trial' => 'nullable|string|max:255',
+            'result_judgment_corrodkote_trial' => 'nullable|string|max:255',
+            'result_judgment_cass_trial' => 'nullable|string|max:255',
+            'result_judgment_salt_spray_trial' => 'nullable|string|max:255',
+            'result_judgment_porecount_trial' => 'nullable|string|max:255',
             'tgl_masuk' => 'nullable|date',
             'jam_masuk' => 'nullable|date_format:H:i',
             'tgl_keluar' => 'nullable|date',
@@ -907,6 +1000,11 @@ class StandardPerformanceTestController extends Controller
             'description_cass' => 'nullable|string',
             'description_salt_spray' => 'nullable|string',
             'description_porecount' => 'nullable|string',
+            'description_trial' => 'nullable|string',
+            'description_corrodkote_trial' => 'nullable|string',
+            'description_cass_trial' => 'nullable|string',
+            'description_salt_spray_trial' => 'nullable|string',
+            'description_porecount_trial' => 'nullable|string',
         ]);
 
         $report = DurabilityThicknessReport::findOrFail($id);
@@ -914,7 +1012,7 @@ class StandardPerformanceTestController extends Controller
         $updateData = [];
         $fields = [
             'production_date', 'shift', 'lot_no', 'actual_cu', 'actual_ni', 'actual_cr',
-            'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'aktual_corrosion', 'actual_cass_waktu', 'standar_jam_cass',
+            'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'aktual_corrosion', 'actual_cass_waktu', 'standar_jam_cass', 'aktual_rn',
             'actual_salt_spray_waktu', 'standar_jam_salt_spray', 'actual_porecount',
             'result_judgment', 'result_judgment_corrodkote', 'result_judgment_cass', 'result_judgment_salt_spray', 'result_judgment_porecount',
             'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek',
@@ -1007,6 +1105,7 @@ class StandardPerformanceTestController extends Controller
 
             if ($request->filled('actual_cass_waktu_trial')) $trialReport->actual_cass_waktu = $request->actual_cass_waktu_trial;
             if ($request->filled('standar_jam_cass_trial')) $trialReport->standar_jam_cass = $request->standar_jam_cass_trial;
+            if ($request->filled('aktual_rn_trial')) $trialReport->aktual_rn = $request->aktual_rn_trial;
 
             if ($request->filled('actual_salt_spray_waktu_trial')) $trialReport->actual_salt_spray_waktu = $request->actual_salt_spray_waktu_trial;
             if ($request->filled('standar_jam_salt_spray_trial')) $trialReport->standar_jam_salt_spray = $request->standar_jam_salt_spray_trial;

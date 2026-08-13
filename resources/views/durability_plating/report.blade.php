@@ -361,6 +361,18 @@
             </div>
             @endif
 
+            <!-- Field: Rata-Rata Cass Test (Plain Text Centered in Middle Space) -->
+            @if($testType == 'cass' && isset($averages))
+            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+                <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
+                @if(!$isTrial)
+                    <span style="color: #7d7d7dff;">Aktual RN {{ $averages['rn1'] ?? '-' }}</span>
+                @else
+                    <span style="color: #7d7d7dff;">Aktual RN {{ $averages['rn2'] ?? '-' }}</span>
+                @endif
+            </div>
+            @endif
+
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
                 <style>
                     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
@@ -477,6 +489,8 @@
                         <th rowspan="2" class="align-middle text-center">No Lot</th>
                         @if($testType == 'corrodkote')
                         <th rowspan="2" class="align-middle text-center">Aktual<br>% Corrosion</th>
+                        @elseif($testType == 'cass')
+                        <th rowspan="2" class="align-middle text-center">Aktual<br>RN</th>
                         @endif
                         <th rowspan="2" class="align-middle text-center">Result</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
@@ -486,6 +500,9 @@
                         <th rowspan="2" class="align-middle text-center">Description</th>
                         @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                             <th rowspan="2" class="align-middle text-center">Thickness</th>
+                        @endif
+                        @if($testType == 'cass')
+                            <th rowspan="2" class="align-middle text-center">Porecount</th>
                         @endif
                         <th colspan="4" class="align-middle text-center" style="color: #4e73df; font-weight: 700; font-size: 0.65rem; letter-spacing: 0.5px;">APPROVAL STATUS</th>
                         <th rowspan="2" class="align-middle text-center" style="min-width: 200px;">Keterangan / Rejection</th>
@@ -611,6 +628,10 @@
                             <td class="text-center font-weight-bold">
                                 {{ (isset($report->aktual_corrosion) && $report->aktual_corrosion !== '' && $report->aktual_corrosion !== '-') ? $report->aktual_corrosion . '%' : '-' }}
                             </td>
+                            @elseif($testType == 'cass')
+                            <td class="text-center font-weight-bold">
+                                {{ (isset($report->aktual_rn) && $report->aktual_rn !== '' && $report->aktual_rn !== '-') ? $report->aktual_rn : '-' }}
+                            </td>
                             @endif
                             <td class="text-center">
                                 @php
@@ -701,7 +722,7 @@
                                     {{ $report->description ?? '-' }}
                                 @endif
                             </td>
-                            @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
                                  <td class="text-center">
                                      @php
                                          $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
@@ -711,6 +732,23 @@
                                      @endphp
                                      @if($hasThicknessData)
                                          <a href="{{ route($targetRoute, ['report_id' => $targetReportId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
+                                             <i class="fas fa-external-link-alt"></i> Data
+                                         </a>
+                                     @else
+                                         <span class="text-muted" style="font-size: 0.75rem; font-style: italic;">tidak ada data</span>
+                                     @endif
+                                 </td>
+                             @endif
+                             @if($testType == 'cass')
+                                 <td class="text-center">
+                                     @php
+                                         $targetPoreRoute = $isTrial ? 'standard-performance-tests-trial.report.porecount' : 'standard-performance-tests.report.porecount';
+                                         $validVal = fn($v) => !is_null($v) && trim((string)$v) !== '' && trim((string)$v) !== '-';
+                                         $hasPoreData = $validVal($report->actual_porecount) || $validVal($report->actual_porecount_trial);
+                                         $targetPoreReportId = ($isTrial && !empty($report->data1_ref_id)) ? $report->data1_ref_id : $report->id;
+                                     @endphp
+                                     @if($hasPoreData)
+                                         <a href="{{ route($targetPoreRoute, ['report_id' => $targetPoreReportId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Porecount">
                                              <i class="fas fa-external-link-alt"></i> Data
                                          </a>
                                      @else
@@ -931,19 +969,29 @@
                                                     </button>
                                                 @endif
 
-                                                @if(($canCreateReport || $canEditReport) && $testType == 'thickness')
-                                                    <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
-                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
-                                                    </button>
-                                                    <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
-                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
-                                                    </button>
-                                                    <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
-                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
-                                                    </button>
-                                                    <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
-                                                        <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
-                                                    </button>
+                                                @if(($canCreateReport || $canEditReport))
+                                                    @if($testType == 'thickness')
+                                                        <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
+                                                        </button>
+                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
+                                                        </button>
+                                                        <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
+                                                        </button>
+                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
+                                                        </button>
+                                                    @elseif($testType == 'porecount')
+                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
+                                                        </button>
+                                                    @elseif($testType == 'cass')
+                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                            <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
+                                                        </button>
+                                                    @endif
                                                 @endif
                                                 
                                                 @if($canDeleteReport)
@@ -1075,16 +1123,13 @@
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     <div class="font-weight-bold">DATA 1 (AKTUAL)</div>
+                                    @if($testType == 'thickness')
                                     <div class="d-flex align-items-center">
                                         <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                             STD: Cr <span id="edit_std_cr_display">-</span> | Ni <span id="edit_std_ni_display">-</span> | Cu <span id="edit_std_cu_display">-</span>
                                         </div>
-                                        @if($testType != 'thickness')
-                                        <div class="badge badge-light border text-primary font-weight-bold shadow-sm ml-2" style="font-size: 0.75rem; padding: 4px 8px;">
-                                            THICKNESS: Cr <span id="edit_actual_cr_text">-</span> | Ni <span id="edit_actual_ni_text">-</span> | Cu <span id="edit_actual_cu_text">-</span>
-                                        </div>
-                                        @endif
                                     </div>
+                                    @endif
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'thickness')
@@ -1123,6 +1168,10 @@
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                                         <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn" id="edit_aktual_rn" class="form-control form-control-sm border-0 shadow-sm">
                                     </div>
                                     @elseif($testType == 'salt_spray')
                                     <div class="form-group mb-3">
@@ -1166,16 +1215,13 @@
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                                     <div class="font-weight-bold">DATA 2</div>
+                                    @if($testType == 'thickness')
                                     <div class="d-flex align-items-center">
                                         <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                             STD: Cr <span id="edit_std_cr_display_2">-</span> | Ni <span id="edit_std_ni_display_2">-</span> | Cu <span id="edit_std_cu_display_2">-</span>
                                         </div>
-                                        @if($testType != 'thickness')
-                                        <div class="badge badge-light border text-primary font-weight-bold shadow-sm ml-2" style="font-size: 0.75rem; padding: 4px 8px;">
-                                            THICKNESS: Cr <span id="edit_actual_cr_text_2">-</span> | Ni <span id="edit_actual_ni_text_2">-</span> | Cu <span id="edit_actual_cu_text_2">-</span>
-                                        </div>
-                                        @endif
                                     </div>
+                                    @endif
                                 </div>
                                 <div class="card-body p-3">
                                     @if($testType == 'thickness')
@@ -1214,6 +1260,10 @@
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                                         <input type="text" name="standar_jam_cass_trial" id="edit_standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn_trial" id="edit_aktual_rn_trial" class="form-control form-control-sm border-0 shadow-sm">
                                     </div>
                                     @elseif($testType == 'salt_spray')
                                     <div class="form-group mb-3">
@@ -1258,9 +1308,11 @@
                         <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold d-flex align-items-center justify-content-between" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
                             <div class="font-weight-bold">HASIL PENGUJIAN
                             </div>
+                            @if($testType == 'thickness')
                             <div class="badge badge-light border text-dark font-weight-bold shadow-sm" style="font-size: 0.75rem; padding: 4px 8px;">
                                 STD: Cr <span id="edit_std_cr_display_single">-</span> | Ni <span id="edit_std_ni_display_single">-</span> | Cu <span id="edit_std_cu_display_single">-</span>
                             </div>
+                            @endif
                         </div>
                         <div class="card-body p-3">
                             @if($testType == 'thickness')
@@ -1299,6 +1351,10 @@
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                                 <input type="text" name="standar_jam_cass" id="edit_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                <input type="text" name="aktual_rn" id="edit_aktual_rn" class="form-control form-control-sm border-0 shadow-sm">
                             </div>
                             @elseif($testType == 'salt_spray')
                             <div class="form-group mb-3">
@@ -1839,6 +1895,10 @@
                                         <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
                                     </div>
                                     <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn" id="cass_aktual_rn" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
+                                    </div>
+                                    <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_cass" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
@@ -1871,6 +1931,10 @@
                                         <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
                                     </div>
                                     <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn_trial" id="cass_aktual_rn_trial" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
+                                    </div>
+                                    <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
                                             <option value="-">-</option>
@@ -1900,6 +1964,10 @@
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Standar Jam <span class="text-danger">*</span></label>
                                 <input type="text" name="standar_jam_cass" id="cass_standar_jam" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                <input type="text" name="aktual_rn" id="cass_aktual_rn" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
                             </div>
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
@@ -2873,6 +2941,10 @@
                                         <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                                         <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
+                                    </div>
                                     @elseif($testType == 'salt_spray')
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
@@ -2939,6 +3011,10 @@
                                     <div class="form-group mb-3">
                                         <label class="small font-weight-bold text-gray-700">Standar Jam</label>
                                         <input type="text" name="standar_jam_cass_trial" class="form-control form-control-sm border-0 shadow-sm">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                        <input type="text" name="aktual_rn_trial" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
                                     </div>
                                     @elseif($testType == 'salt_spray')
                                     <div class="form-group mb-3">
@@ -3292,7 +3368,10 @@
                 </div>
 
             </div>
-            <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
+            <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center" style="border-radius: 0 0 12px 12px;">
+                <button type="button" class="btn btn-primary btn-sm px-3 font-weight-bold shadow-sm" id="btnPrintRekapData">
+                    <i class="fas fa-print fa-sm mr-1"></i> Cetak Rekap
+                </button>
                 <button type="button" class="btn btn-light btn-sm border px-4 font-weight-bold" data-dismiss="modal">Tutup</button>
             </div>
         </div>
@@ -3330,6 +3409,101 @@
                 $('#rekapPartCount').text(visibleCount + ' Part');
                 $('#rekapTestCount').text(grandTotal + ' Pengujian');
                 $('#rekapGrandTotal').text(grandTotal);
+            });
+
+            $('#btnPrintRekapData').on('click', function() {
+                var title = "REKAP DATA PENGUJIAN PART " + "{{ strtoupper(ucwords(str_replace('_', ' ', $testType))) }} TEST";
+                var periode = "@if(request('start_date') || request('end_date')){{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : 'Awal' }} s/d {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : 'Akhir' }}@else Semua Periode Tanggal @endif";
+                var totalPart = $('#rekapPartCount').text();
+                var totalPengujian = $('#rekapTestCount').text();
+                var logoUrl = "{{ asset('master item/ipp.jpg') }}";
+
+                var rowsHtml = '';
+                var idx = 1;
+                $('#tableRekapData tbody tr').each(function() {
+                    if ($(this).is(':visible') && $(this).find('td[colspan]').length === 0) {
+                        var partName = $(this).find('td:nth-child(2)').text().trim();
+                        var partNo = $(this).find('td:nth-child(3)').text().trim();
+                        var customer = $(this).find('td:nth-child(4)').text().trim();
+                        var total = $(this).find('td:nth-child(6)').text().trim();
+
+                        rowsHtml += '<tr>' +
+                            '<td style="text-align: center; padding: 5px;">' + (idx++) + '</td>' +
+                            '<td style="text-align: left; padding: 5px; font-weight: bold;">' + partName + '</td>' +
+                            '<td style="text-align: center; padding: 5px;">' + partNo + '</td>' +
+                            '<td style="text-align: left; padding: 5px;">' + customer + '</td>' +
+                            '<td style="text-align: center; padding: 5px; font-weight: bold;">' + total + '</td>' +
+                        '</tr>';
+                    }
+                });
+
+                var grandTotal = $('#rekapGrandTotal').text().trim();
+
+                var printContent = '<!DOCTYPE html>' +
+                '<html>' +
+                '<head>' +
+                    '<title>' + title + '</title>' +
+                    '<style>' +
+                        '@page { size: A4 portrait; margin: 10mm; }' +
+                        'body { font-family: Arial, sans-serif; font-size: 9px; color: #333; margin: 0; padding: 10px; }' +
+                        '.header-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }' +
+                        '.header-table td { border: 1px solid #000; padding: 5px; vertical-align: middle; }' +
+                        '.logo { width: 70px; text-align: center; }' +
+                        '.title { text-align: center; font-size: 13px; font-weight: bold; }' +
+                        '.meta-info { margin-bottom: 10px; font-size: 9px; display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 4px; }' +
+                        '.table { width: 100%; border-collapse: collapse; margin-top: 5px; }' +
+                        '.table th { background-color: #f2f2f2; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 9px; }' +
+                        '.table td { border: 1px solid #000; padding: 4px 5px; font-size: 9px; }' +
+                        '.table tfoot td { border: 1px solid #000; padding: 5px; font-weight: bold; background-color: #f9f9f9; }' +
+                        '@media print { body { padding: 0; } }' +
+                    '</style>' +
+                '</head>' +
+                '<body>' +
+                    '<table class="header-table">' +
+                        '<tr>' +
+                            '<td class="logo"><img src="' + logoUrl + '" style="max-width: 60px; max-height: 40px;"></td>' +
+                            '<td class="title">' + title + '</td>' +
+                            '<td style="width: 140px; font-size: 8px;">' +
+                                '<div>Tgl. Cetak: ' + new Date().toLocaleDateString('id-ID') + '</div>' +
+                                '<div>Jam: ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB</div>' +
+                            '</td>' +
+                        '</tr>' +
+                    '</table>' +
+                    '<div class="meta-info">' +
+                        '<div>PERIODE: ' + periode + '</div>' +
+                        '<div>TOTAL: ' + totalPart + ' | ' + totalPengujian + '</div>' +
+                    '</div>' +
+                    '<table class="table">' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<th style="width: 30px;">NO.</th>' +
+                                '<th>NAMA PART</th>' +
+                                '<th style="width: 110px;">PART NO</th>' +
+                                '<th>CUSTOMER</th>' +
+                                '<th style="width: 70px;">TOTAL</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>' +
+                            (rowsHtml || '<tr><td colspan="5" style="text-align:center; padding:10px;">Tidak ada data</td></tr>') +
+                        '</tbody>' +
+                        '<tfoot>' +
+                            '<tr>' +
+                                '<td colspan="4" style="text-align: right;">Total Keseluruhan Pengujian:</td>' +
+                                '<td style="text-align: center;">' + grandTotal + '</td>' +
+                            '</tr>' +
+                        '</tfoot>' +
+                    '</table>' +
+                '</body>' +
+                '</html>';
+
+                var printWindow = window.open('', '_blank', 'width=900,height=650');
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(function() {
+                    printWindow.print();
+                    printWindow.close();
+                }, 400);
             });
         });
     </script>

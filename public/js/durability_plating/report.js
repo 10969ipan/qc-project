@@ -30,6 +30,7 @@ $(document).ready(function () {
 
         $('#edit_actual_cass_waktu').val(item.actual_cass_waktu);
         $('#edit_standar_jam_cass').val(item.standar_jam_cass);
+        $('#edit_aktual_rn').val(item.aktual_rn || '');
 
         $('#edit_actual_salt_spray_waktu').val(item.actual_salt_spray_waktu);
         $('#edit_standar_jam_salt_spray').val(item.standar_jam_salt_spray);
@@ -75,6 +76,7 @@ $(document).ready(function () {
 
         $('#edit_actual_cass_waktu_trial').val(item.actual_cass_waktu_trial ?? '');
         $('#edit_standar_jam_cass_trial').val(item.standar_jam_cass_trial ?? '');
+        $('#edit_aktual_rn_trial').val(item.aktual_rn_trial ?? '');
 
         $('#edit_actual_salt_spray_waktu_trial').val(item.actual_salt_spray_waktu_trial ?? '');
         $('#edit_standar_jam_salt_spray_trial').val(item.standar_jam_salt_spray_trial ?? '');
@@ -452,12 +454,14 @@ $(document).ready(function () {
         // Data 1 Fields
         form.find('[name="actual_cass_waktu"]').val(item.actual_cass_waktu && item.actual_cass_waktu !== '-' ? item.actual_cass_waktu : '');
         form.find('[name="standar_jam_cass"]').val(item.standar_jam_cass && item.standar_jam_cass !== '-' ? item.standar_jam_cass : ($(this).data('time') || ''));
+        form.find('[name="aktual_rn"]').val(item.aktual_rn || '');
         form.find('[name="result_judgment_cass"]').val(item.result_judgment_cass || '');
         form.find('[name="description_cass"]').val(item.description_cass || '');
 
         // Data 2 Fields
         form.find('[name="actual_cass_waktu_trial"]').val(item.actual_cass_waktu_trial && item.actual_cass_waktu_trial !== '-' ? item.actual_cass_waktu_trial : '');
         form.find('[name="standar_jam_cass_trial"]').val(item.standar_jam_cass_trial && item.standar_jam_cass_trial !== '-' ? item.standar_jam_cass_trial : ($(this).data('time') || ''));
+        form.find('[name="aktual_rn_trial"]').val(item.aktual_rn_trial || '');
         form.find('[name="result_judgment_cass_trial"]').val(item.result_judgment_cass_trial || '-');
         form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
