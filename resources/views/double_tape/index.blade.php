@@ -884,7 +884,7 @@
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
+    <script src="{{ asset('js/checksheet/double-tape.js') }}?v={{ time() }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof window.initDoubleTapeIndex === 'function') {

@@ -190,6 +190,8 @@ class DoubleTapeChecksheetService extends BaseService
         try {
             $checksheet = DoubleTapeChecksheet::findOrFail($id);
 
+            $defects = $this->processDefects($data);
+
             $updateData = [
                 'item_id' => $data['item_id'],
                 'qrcode' => $data['qrcode'] ?? $checksheet->qrcode,
@@ -206,17 +208,22 @@ class DoubleTapeChecksheetService extends BaseService
                 'plating_date' => array_key_exists('plating_date', $data) ? $data['plating_date'] : $checksheet->plating_date,
                 'plating_shift' => array_key_exists('plating_shift', $data) ? $data['plating_shift'] : $checksheet->plating_shift,
                 'plating_initials' => array_key_exists('plating_initials', $data) ? $data['plating_initials'] : $checksheet->plating_initials,
-                'check_type' => $data['check_type'] ?? 'sampling',
+                'check_type' => $data['check_type'] ?? $checksheet->check_type ?? 'sampling',
                 'total_qty' => $data['total_qty'],
                 'sampling_qty' => $data['sampling_qty'],
                 'total_ok' => $data['total_ok'],
                 'total_ng' => $data['total_ng'],
                 'judgment' => $data['judgment'],
-                'operator_initials' => $data['operator_initials'] ?? null,
-                'remarks' => $data['remarks'] ?? null,
-                'next_proses' => $data['next_proses'] ?? null,
+                'operator_initials' => array_key_exists('operator_initials', $data) ? $data['operator_initials'] : $checksheet->operator_initials,
+                'remarks' => array_key_exists('remarks', $data) ? $data['remarks'] : $checksheet->remarks,
+                'next_proses' => array_key_exists('next_proses', $data) ? $data['next_proses'] : $checksheet->next_proses,
                 'cycle_time' => $data['cycle_time'] ?? $checksheet->cycle_time,
+                'defects' => $defects,
             ];
+
+            if (!empty($data['user_id'])) {
+                $updateData['user_id'] = $data['user_id'];
+            }
 
             $checksheet->update($updateData);
 

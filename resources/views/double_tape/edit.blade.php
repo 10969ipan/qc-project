@@ -33,5 +33,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/checksheet/double-tape.js') }}"></script>
+    <script src="{{ asset('js/checksheet/double-tape.js') }}?v={{ time() }}"></script>
 @endpush
