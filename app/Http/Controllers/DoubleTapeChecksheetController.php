@@ -227,10 +227,33 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $this->checksheetService->updateChecksheet($id, $request->validated());
-        $checksheet = DoubleTapeChecksheet::find($id);
-        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Double Tape: {$checksheet->item->name}");
-        return redirect()->back()->with('success', 'Checksheet Double Tape berhasil diperbarui.');
+        try {
+            $this->checksheetService->updateChecksheet($id, $request->validated());
+            $checksheet = DoubleTapeChecksheet::find($id);
+            if ($checksheet && $checksheet->item) {
+                \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Double Tape: {$checksheet->item->name}");
+            }
+
+            $message = 'Checksheet Double Tape berhasil diperbarui.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'index_url' => route('double_tape.index')
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui checksheet: ' . $e->getMessage()
+                ], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal memperbarui checksheet: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
@@ -344,8 +367,20 @@ class DoubleTapeChecksheetController extends Controller
 
         $this->checksheetService->updateApprovalStatus($id, $validated);
         $checksheet = DoubleTapeChecksheet::find($id);
-        \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Double Tape: {$checksheet->item->name}");
-        return redirect()->back()->with('success', 'Status approval Double Tape berhasil diperbarui.');
+        if ($checksheet && $checksheet->item) {
+            \App\Helpers\ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Double Tape: {$checksheet->item->name}");
+        }
+
+        $message = 'Status approval Double Tape berhasil diperbarui.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**

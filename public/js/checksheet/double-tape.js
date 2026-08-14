@@ -97,6 +97,48 @@ class DoubleTapeIndex {
 
             $modalErrors.hide().empty();
             $form.find(".is-invalid").removeClass("is-invalid");
+
+            // Client-side validation check for required fields
+            let emptyRequiredFields = [];
+            $form.find("input[required], select[required], textarea[required]").each(function () {
+                const val = $(this).val();
+                if (!val || (typeof val === "string" && val.trim() === "")) {
+                    $(this).addClass("is-invalid");
+                    let fieldName = $(this).attr("data-field-name") || $(this).attr("placeholder");
+                    if (!fieldName) {
+                        const $parentGroup = $(this).closest(".form-group, .col-md-6, .col-6, td");
+                        let $label = $parentGroup.find("label").first();
+                        if ($label.length) {
+                            fieldName = $label.text().replace(/\*/g, "").trim();
+                        }
+                    }
+                    if (!fieldName) {
+                        fieldName = $(this).attr("name");
+                    }
+                    if (fieldName && !emptyRequiredFields.includes(fieldName)) {
+                        emptyRequiredFields.push(fieldName);
+                    }
+                }
+            });
+
+            if (emptyRequiredFields.length > 0) {
+                let errorList = emptyRequiredFields.map(f => '<li class="mb-1"><strong>' + f + '</strong> wajib diisi.</li>').join('');
+                let htmlMessage = '<div class="text-left"><p class="text-muted small mb-2">Mohon lengkapi kolom berikut sebelum menyimpan:</p><ul class="pl-3 mb-0 small text-danger">' + errorList + '</ul></div>';
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap!',
+                        html: htmlMessage,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#e74a3b'
+                    });
+                } else {
+                    alert("Mohon lengkapi semua field yang wajib diisi:\n- " + emptyRequiredFields.join("\n- "));
+                }
+                return false;
+            }
+
             $submitBtn
                 .prop("disabled", true)
                 .html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
@@ -108,16 +150,34 @@ class DoubleTapeIndex {
                 dataType: "json",
                 success: function (response) {
                     if (response.success) {
-                        window.location.reload();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message || 'Data berhasil disimpan.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
-                        $modalErrors
-                            .html(
-                                '<div class="alert alert-danger">' +
-                                (response.message ||
-                                    "Terjadi kesalahan saat menyimpan data.") +
-                                "</div>",
-                            )
-                            .fadeIn();
+                        const msg = response.message || "Terjadi kesalahan saat menyimpan data.";
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan!',
+                                text: msg,
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        } else {
+                            $modalErrors
+                                .html('<div class="alert alert-danger">' + msg + '</div>')
+                                .fadeIn();
+                        }
                         $submitBtn
                             .prop("disabled", false)
                             .html(originalBtnHtml);
@@ -136,18 +196,34 @@ class DoubleTapeIndex {
                                 .addClass("is-invalid");
                         });
                         errorHtml += "</ul></div>";
-                        $modalErrors.html(errorHtml).fadeIn();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Validasi Gagal!',
+                                html: errorHtml,
+                                confirmButtonText: 'Tutup',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        } else {
+                            $modalErrors.html(errorHtml).fadeIn();
+                        }
                     } else {
                         const message = xhr.responseJSON
                             ? xhr.responseJSON.message
                             : "Terjadi kesalahan sistem.";
-                        $modalErrors
-                            .html(
-                                '<div class="alert alert-danger">' +
-                                message +
-                                "</div>",
-                            )
-                            .fadeIn();
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Kesalahan Sistem',
+                                text: message,
+                                confirmButtonText: 'Tutup',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        } else {
+                            $modalErrors
+                                .html('<div class="alert alert-danger">' + message + '</div>')
+                                .fadeIn();
+                        }
                     }
                 },
             });

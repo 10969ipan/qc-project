@@ -62,8 +62,12 @@ trait HasDeleteNotification
                 }
 
                 if ($type) {
-                    $deleted = Notification::whereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$model->id])
-                        ->whereRaw("JSON_EXTRACT(data, '$.checksheet_type') = ?", [$type])
+                    $deleted = Notification::whereIn('type', ['ng_finding', 'rejection_alert'])
+                        ->where(function ($query) use ($model) {
+                            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.checksheet_id')) = ?", [(string) $model->id])
+                                  ->orWhereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$model->id]);
+                        })
+                        ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.checksheet_type')) = ?", [$type])
                         ->delete();
                     
                     Log::info("Deleted {$deleted} notifications for deleted checksheet: ID={$model->id}, Type={$type}");
