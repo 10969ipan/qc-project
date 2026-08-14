@@ -122,11 +122,47 @@ class StandardPerformanceTestController extends Controller
     {
         $standard = StandardPerformanceTest::findOrFail($id);
         $name = $standard->part_name;
+        $isTrial = request()->boolean('is_trial', false);
 
-        // Cek apakah data master ini sudah memiliki riwayat laporan transaksi di report.blade.php
-        $reportCount = $standard->reports()->count();
-        if ($reportCount > 0) {
-            return redirect()->back()->with('error', "Data Master \"{$name}\" tidak dapat dihapus karena sudah memiliki {$reportCount} data transaksi laporan pengujian di Laporan Durability Plating!");
+        // Ambil riwayat laporan pengujian transaksi terkait
+        $reports = $standard->reports()->where('is_trial', $isTrial)->get();
+        $totalCount = $reports->count();
+
+        if ($totalCount > 0) {
+            $activeReports = [];
+
+            $hasThickness = $reports->contains(function ($r) {
+                return !$this->isFieldEmpty($r->actual_cu) || !$this->isFieldEmpty($r->actual_ni) || !$this->isFieldEmpty($r->actual_cr);
+            });
+            if ($hasThickness) $activeReports[] = 'Laporan Thickness';
+
+            $hasCorrodkote = $reports->contains(function ($r) {
+                return !$this->isFieldEmpty($r->actual_corrodkote_waktu) || !$this->isFieldEmpty($r->standar_jam_corrodkote) || !$this->isFieldEmpty($r->aktual_corrosion);
+            });
+            if ($hasCorrodkote) $activeReports[] = 'Laporan Corrodkote';
+
+            $hasCass = $reports->contains(function ($r) {
+                return !$this->isFieldEmpty($r->actual_cass_waktu) || !$this->isFieldEmpty($r->standar_jam_cass) || !$this->isFieldEmpty($r->aktual_rn);
+            });
+            if ($hasCass) $activeReports[] = 'Laporan CASS Test';
+
+            $hasSaltSpray = $reports->contains(function ($r) {
+                return !$this->isFieldEmpty($r->actual_salt_spray_waktu) || !$this->isFieldEmpty($r->standar_jam_salt_spray);
+            });
+            if ($hasSaltSpray) $activeReports[] = 'Laporan Salt Spray Test';
+
+            $hasPorecount = $reports->contains(function ($r) {
+                return !$this->isFieldEmpty($r->actual_porecount);
+            });
+            if ($hasPorecount) $activeReports[] = 'Laporan Porecount Test';
+
+            if (empty($activeReports)) {
+                $activeReports[] = 'Laporan Durability Plating';
+            }
+
+            $reportNamesStr = implode(', ', $activeReports);
+
+            return redirect()->back()->with('error', "Data Master \"{$name}\" tidak dapat dihapus karena sudah memiliki {$totalCount} data transaksi di {$reportNamesStr}!");
         }
 
         $standard->delete();

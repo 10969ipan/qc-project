@@ -276,6 +276,7 @@
                                         <div class="dropdown-divider"></div>
                                         <form action="{{ route('standard-performance-tests.destroy', $std->id) }}" method="POST" class="d-inline delete-form w-100">
                                             @csrf @method('DELETE')
+                                            <input type="hidden" name="is_trial" value="{{ !empty($isTrial) ? 1 : 0 }}">
                                             <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
                                                 <i class="fas fa-trash fa-fw mr-2"></i> Hapus
                                             </button>
