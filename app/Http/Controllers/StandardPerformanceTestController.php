@@ -122,6 +122,13 @@ class StandardPerformanceTestController extends Controller
     {
         $standard = StandardPerformanceTest::findOrFail($id);
         $name = $standard->part_name;
+
+        // Cek apakah data master ini sudah memiliki riwayat laporan transaksi di report.blade.php
+        $reportCount = $standard->reports()->count();
+        if ($reportCount > 0) {
+            return redirect()->back()->with('error', "Data Master \"{$name}\" tidak dapat dihapus karena sudah memiliki {$reportCount} data transaksi laporan pengujian di Laporan Durability Plating!");
+        }
+
         $standard->delete();
         
         ActivityLogger::log('deleted', null, "Menghapus Master Data Standard Performance Test: {$name}");
@@ -298,9 +305,9 @@ class StandardPerformanceTestController extends Controller
                 $count++;
             }
             
-            // Hapus data di database yang tidak ada di file Excel (Sync)
-            if (count($processedIds) > 0) {
-                StandardPerformanceTest::whereNotIn('id', $processedIds)->delete();
+            // Opsional: Hapus data di database HANYA jika dicentang eksplisit oleh Admin dan TIDAK memiliki data transaksi
+            if ($request->boolean('delete_missing') && count($processedIds) > 0) {
+                StandardPerformanceTest::whereNotIn('id', $processedIds)->doesntHave('reports')->delete();
             }
             
             ActivityLogger::log('imported', null, "Mengimport dan mensinkronkan $count Master Data Standard Performance Test");
