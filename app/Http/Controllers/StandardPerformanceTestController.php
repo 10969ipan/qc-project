@@ -232,6 +232,10 @@ class StandardPerformanceTestController extends Controller
 
     public function import(Request $request)
     {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return redirect()->back()->with('error', 'Akses ditolak. Fitur Import Master Data hanya dapat dilakukan oleh Admin.');
+        }
+
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
         ]);

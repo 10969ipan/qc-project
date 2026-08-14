@@ -167,9 +167,11 @@
                     </div>
                 </div>
 
+                @if(auth()->check() && auth()->user()->role === 'admin')
                 <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalImport" title="Import Data">
                     <i class="fas fa-file-excel fa-sm"></i> Import
                 </button>
+                @endif
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambah" title="Tambah Data">
                     <i class="fas fa-plus fa-sm"></i> Tambah
                 </button>
@@ -583,6 +585,7 @@
     </div>
 </div>
 
+@if(auth()->check() && auth()->user()->role === 'admin')
 <!-- Modal Import -->
 <div class="modal fade" id="modalImport" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -621,6 +624,7 @@
         </div>
     </div>
 </div>
+@endif
 <!-- Modal Thickness -->
 <div class="modal fade" id="modalThickness" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog {{ !$isTrial ? 'modal-xl' : 'modal-lg' }}" role="document">
