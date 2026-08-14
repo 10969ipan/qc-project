@@ -52,6 +52,12 @@ class StoreDoubleTapeChecksheetRequest extends FormRequest
             'plant' => 'required',
             'date' => 'required|date',
             'shift' => 'required|string',
+            'injection_date' => 'nullable|date',
+            'injection_shift' => 'nullable|string',
+            'injection_initials' => 'nullable|string',
+            'plating_date' => 'nullable|date',
+            'plating_shift' => 'nullable|string',
+            'plating_initials' => 'nullable|string',
             'check_type' => 'nullable|in:sampling,fullcheck',
             // 'line' is omitted for Double Tape
             'total_qty' => 'required|integer|min:0',

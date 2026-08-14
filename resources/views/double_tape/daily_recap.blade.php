@@ -11,24 +11,24 @@
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-    #recapTable, #performanceTable {
+    #recapTable, #performanceTable, #ngRecapTable {
         border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
     }
-    #recapTable td, #recapTable th, #performanceTable td, #performanceTable th {
+    #recapTable td, #recapTable th, #performanceTable td, #performanceTable th, #ngRecapTable td, #ngRecapTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    #recapTable tbody td, #performanceTable tbody td {
+    #recapTable tbody td, #performanceTable tbody td, #ngRecapTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         vertical-align: middle !important;
         color: #000000 !important;
         font-size: 0.75rem !important;
         padding: 8px 12px !important;
     }
-    #recapTable thead th, #performanceTable thead th {
+    #recapTable thead th, #performanceTable thead th, #ngRecapTable thead th {
         position: sticky !important;
         top: 0 !important;
         z-index: 10 !important;
@@ -41,7 +41,7 @@
         padding: 10px 12px !important;
         border-bottom: 1px solid #e2e8f0 !important;
     }
-    #recapTable tfoot td, #performanceTable tfoot td {
+    #recapTable tfoot td, #performanceTable tfoot td, #ngRecapTable tfoot td {
         background-color: #f8fafc !important;
         font-weight: 700 !important;
         color: #1e293b !important;
@@ -96,12 +96,12 @@
 
         .sub-header { margin-bottom: 8px; font-size: 10px; display: block !important; }
 
-        #recapTable, #performanceTable {
+        #recapTable, #performanceTable, #ngRecapTable {
             width: 100% !important;
             border-collapse: collapse !important;
             table-layout: auto !important;
         }
-        #recapTable thead th, #performanceTable thead th {
+        #recapTable thead th, #performanceTable thead th, #ngRecapTable thead th {
             border: 1px solid #000 !important;
             background-color: #f2f2f2 !important;
             color: #000 !important;
@@ -111,13 +111,13 @@
             padding: 4px 6px !important;
             position: static !important;
         }
-        #recapTable tbody td, #performanceTable tbody td {
+        #recapTable tbody td, #performanceTable tbody td, #ngRecapTable tbody td {
             border: 1px solid #000 !important;
             padding: 4px 6px !important;
             font-size: 9px !important;
             color: #000 !important;
         }
-        #recapTable tfoot td, #performanceTable tfoot td {
+        #recapTable tfoot td, #performanceTable tfoot td, #ngRecapTable tfoot td {
             border: 1px solid #000 !important;
             background-color: #f2f2f2 !important;
             -webkit-print-color-adjust: exact;
@@ -264,7 +264,6 @@
                             <th class="text-center">Packing</th>
                             <th class="text-center">Total Packing</th>
                             <th class="text-center text-success">Total OK</th>
-                            <th class="text-center text-danger">Total NG</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -280,11 +279,10 @@
                                 <td class="text-center font-weight">{{ number_format($row->packing_size) }} pcs</td>
                                 <td class="text-center font-weight">{{ number_format($row->total_packing) }} box/bucket/plastik</td>
                                 <td class="text-center font-weight">{{ number_format($row->total_ok_sum) }}</td>
-                                <td class="text-center font-weight">{{ number_format($row->total_ng_sum) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-5">
+                                <td colspan="8" class="text-center py-5">
                                     <div class="py-5">
                                         <i class="fas fa-folder-open fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data verification pada kriteria ini.</p>
@@ -312,6 +310,7 @@
                             <th>Inisial Inspector</th>
                             <th>Nama Barang</th>
                             <th class="text-center">Total Qty</th>
+                            <th class="text-center text-danger">Total NG</th>
                             <th class="text-center" style="background-color: #28a745; color: white;">AKT. DURA (MENIT)</th>
                             <th class="text-center">STD CT (MENIT)</th>
                             <th class="text-center">Target Pencapaian (pcs)</th>
@@ -333,6 +332,7 @@
                                     @endif
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
+                                    <td class="text-center font-weight text-danger">{{ number_format($row->total_ng_sum ?? 0) }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
                                     <td class="text-center small">
                                         @if($row->sct > 0)
@@ -364,10 +364,83 @@
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="py-5">
                                         <i class="fas fa-user-clock fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data performa pada kriteria ini.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- NG DATA RECAP CARD -->
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-dark">Rekap Data NG Per Defect</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0" id="ngRecapTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th>Nama Barang</th>
+                            <th>Part Number</th>
+                            <th>Customer</th>
+                            <th class="text-center">Total Checked</th>
+                            <th class="text-center text-danger">Defect NG</th>
+                            <th class="text-center text-danger">Qty NG</th>
+                            <th class="text-center text-danger">% NG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($ngRecap as $itemIndex => $row)
+                            @php
+                                $defectCount = count($row->defects);
+                            @endphp
+                            @foreach($row->defects as $defectIndex => $defect)
+                                <tr>
+                                    @if($loop->first)
+                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
+                                            {{ $itemIndex + 1 }}
+                                        </td>
+                                        <td rowspan="{{ $defectCount }}" class="font-weight align-middle" style="background-color: #fcfcfc;">
+                                            {{ $row->item->name ?? '-' }}
+                                        </td>
+                                        <td rowspan="{{ $defectCount }}" class="text-uppercase small font-weight align-middle" style="background-color: #fcfcfc;">
+                                            {{ $row->item->part_number ?? '-' }}
+                                        </td>
+                                        <td rowspan="{{ $defectCount }}" class="small align-middle" style="background-color: #fcfcfc;">
+                                            {{ $row->item->customer ?? '-' }}
+                                        </td>
+                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight align-middle" style="background-color: #fcfcfc;">
+                                            {{ number_format($row->total_qty_sum) }} pcs
+                                        </td>
+                                    @endif
+                                    <td class="font-weight-bold text-danger align-middle">
+                                        {{ $defect->defect_type }}
+                                    </td>
+                                    <td class="text-center font-weight text-danger align-middle">
+                                        {{ number_format($defect->defect_qty) }} pcs
+                                    </td>
+                                    <td class="text-center font-weight-bold text-danger align-middle">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.75rem;">
+                                            {{ number_format($defect->percentage, 2) }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="py-5">
+                                        <i class="fas fa-check-circle fa-3x text-gray-300 mb-3"></i>
+                                        <p class="text-muted">Tidak ada temuan defect NG pada kriteria ini.</p>
                                     </div>
                                 </td>
                             </tr>

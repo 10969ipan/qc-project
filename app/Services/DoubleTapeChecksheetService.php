@@ -80,6 +80,31 @@ class DoubleTapeChecksheetService extends BaseService
             $query->where('double_tape_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
         }
 
+        // Entry Method filter (Verification vs Regular)
+        if (!empty($filters['entry_method'])) {
+            if ($filters['entry_method'] === 'verification' || $filters['entry_method'] === 'qr') {
+                $query->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNotNull('double_tape_checksheets.qrcode')
+                            ->where('double_tape_checksheets.qrcode', '!=', '');
+                    })->orWhere(function ($sub) {
+                        $sub->whereNotNull('double_tape_checksheets.unique_code_id')
+                            ->where('double_tape_checksheets.unique_code_id', '!=', '');
+                    });
+                });
+            } elseif ($filters['entry_method'] === 'regular' || $filters['entry_method'] === 'manual') {
+                $query->where(function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('double_tape_checksheets.qrcode')
+                            ->orWhere('double_tape_checksheets.qrcode', '');
+                    })->where(function ($sub) {
+                        $sub->whereNull('double_tape_checksheets.unique_code_id')
+                            ->orWhere('double_tape_checksheets.unique_code_id', '');
+                    });
+                });
+            }
+        }
+
         if (!empty($filters['shift'])) {
             $query->where('double_tape_checksheets.shift', $filters['shift']);
         }
@@ -113,6 +138,12 @@ class DoubleTapeChecksheetService extends BaseService
                 'sap_code' => $data['sap_code'] ?? null,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
+                'injection_date' => $data['injection_date'] ?? null,
+                'injection_shift' => $data['injection_shift'] ?? null,
+                'injection_initials' => $data['injection_initials'] ?? null,
+                'plating_date' => $data['plating_date'] ?? null,
+                'plating_shift' => $data['plating_shift'] ?? null,
+                'plating_initials' => $data['plating_initials'] ?? null,
                 'check_type' => $data['check_type'] ?? 'sampling',
                 // No 'line' field
                 'total_qty' => $data['total_qty'],
@@ -169,6 +200,12 @@ class DoubleTapeChecksheetService extends BaseService
                 'sap_code' => $data['sap_code'] ?? $checksheet->sap_code,
                 'date' => $data['date'],
                 'shift' => $data['shift'],
+                'injection_date' => $data['injection_date'] ?? $checksheet->injection_date,
+                'injection_shift' => $data['injection_shift'] ?? $checksheet->injection_shift,
+                'injection_initials' => $data['injection_initials'] ?? $checksheet->injection_initials,
+                'plating_date' => $data['plating_date'] ?? $checksheet->plating_date,
+                'plating_shift' => $data['plating_shift'] ?? $checksheet->plating_shift,
+                'plating_initials' => $data['plating_initials'] ?? $checksheet->plating_initials,
                 'check_type' => $data['check_type'] ?? 'sampling',
                 'total_qty' => $data['total_qty'],
                 'sampling_qty' => $data['sampling_qty'],
@@ -262,9 +299,16 @@ class DoubleTapeChecksheetService extends BaseService
             $query->where('shift', $filters['shift']);
         }
 
-        if (!empty($filters['operator_initials'])) {
-            $query->where('operator_initials', $filters['operator_initials']);
-        }
+        // Filter HANYA data verifikasi scan QR
+        $query->where(function ($q) {
+            $q->where(function ($sub) {
+                $sub->whereNotNull('double_tape_checksheets.qrcode')
+                    ->where('double_tape_checksheets.qrcode', '!=', '');
+            })->orWhere(function ($sub) {
+                $sub->whereNotNull('double_tape_checksheets.unique_code_id')
+                    ->where('double_tape_checksheets.unique_code_id', '!=', '');
+            });
+        });
 
         return $query->get();
     }
@@ -280,11 +324,23 @@ class DoubleTapeChecksheetService extends BaseService
                 'double_tape_checksheets.operator_initials',
                 'double_tape_checksheets.item_id',
                 DB::raw('SUM(double_tape_checksheets.total_qty) as total_qty_sum'),
+                DB::raw('SUM(double_tape_checksheets.total_ng) as total_ng_sum'),
                 DB::raw('SUM(double_tape_checksheets.cycle_time) as total_act'),
                 DB::raw('MAX(items.standard_cycle_time) as sct'),
                 DB::raw('COUNT(*) as total_entries')
             )
             ->groupBy('double_tape_checksheets.operator_initials', 'double_tape_checksheets.item_id');
+
+        // Filter HANYA data input manual
+        $query->where(function ($q) {
+            $q->where(function ($sub) {
+                $sub->whereNull('double_tape_checksheets.qrcode')
+                    ->orWhere('double_tape_checksheets.qrcode', '');
+            })->where(function ($sub) {
+                $sub->whereNull('double_tape_checksheets.unique_code_id')
+                    ->orWhere('double_tape_checksheets.unique_code_id', '');
+            });
+        });
 
         if (isset($filters['plant'])) {
             $query->where('double_tape_checksheets.plant_id', $this->resolvePlantId($filters['plant']));
@@ -321,5 +377,98 @@ class DoubleTapeChecksheetService extends BaseService
             
             return $row;
         });
+    }
+
+    /**
+     * Get NG daily recap per item for NG tracking and percentage calculation
+     */
+    public function getNgDailyRecap(array $filters)
+    {
+        $baseQuery = DoubleTapeChecksheet::with('item')
+            ->where('plant_id', $this->resolvePlantId($filters['plant'] ?? 'karawang'));
+
+        if (!empty($filters['start_date'])) {
+            $baseQuery->whereDate('date', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $baseQuery->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            if (!empty($filters['date'])) {
+                $baseQuery->whereDate('date', $filters['date']);
+            } else {
+                $baseQuery->whereDate('date', now()->toDateString());
+            }
+        }
+
+        if (!empty($filters['shift'])) {
+            $baseQuery->where('shift', $filters['shift']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $baseQuery->where('operator_initials', $filters['operator_initials']);
+        }
+
+        $allChecksheets = $baseQuery->get();
+        $grouped = $allChecksheets->groupBy('item_id');
+
+        $result = collect();
+
+        foreach ($grouped as $itemId => $items) {
+            $totalQtySum = $items->sum('total_qty');
+            $totalNgSum = $items->sum('total_ng');
+
+            if ($totalNgSum <= 0 || $totalQtySum <= 0) {
+                continue;
+            }
+
+            $first = $items->first();
+
+            $defectsSummary = [];
+            foreach ($items as $c) {
+                if ($c->total_ng <= 0) continue;
+                $defectsData = is_array($c->defects) ? $c->defects : json_decode($c->defects, true);
+                if (is_array($defectsData)) {
+                    foreach ($defectsData as $d) {
+                        if (is_array($d) && isset($d['type'])) {
+                            $type = $d['type'];
+                            $qty = (int)($d['qty'] ?? 1);
+                            $defectsSummary[$type] = ($defectsSummary[$type] ?? 0) + $qty;
+                        } elseif (is_string($d)) {
+                            $defectsSummary[$d] = ($defectsSummary[$d] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+
+            $defectsList = collect();
+            $maxPct = 0;
+            foreach ($defectsSummary as $defectType => $defectQty) {
+                $percentage = ($defectQty / $totalQtySum) * 100;
+                if ($percentage > $maxPct) {
+                    $maxPct = $percentage;
+                }
+                $defectsList->push((object)[
+                    'defect_type' => $defectType,
+                    'defect_qty' => $defectQty,
+                    'percentage' => round($percentage, 2)
+                ]);
+            }
+
+            $defectsList = $defectsList->sortByDesc('percentage')->values();
+
+            $result->push((object)[
+                'item_id' => $itemId,
+                'item' => $first->item,
+                'total_qty_sum' => $totalQtySum,
+                'total_ng_sum' => $totalNgSum,
+                'max_percentage' => round($maxPct, 2),
+                'defects' => $defectsList
+            ]);
+        }
+
+        return $result->sortByDesc('max_percentage')->values();
     }
 }

@@ -24,6 +24,12 @@ class DoubleTapeChecksheet extends Model
         'check_type',
         'date',
         'shift',
+        'injection_date',
+        'injection_shift',
+        'injection_initials',
+        'plating_date',
+        'plating_shift',
+        'plating_initials',
         // 'line' is omitted
         'total_qty',
         'sampling_qty',
@@ -50,6 +56,8 @@ class DoubleTapeChecksheet extends Model
     protected $casts = [
         'defects' => 'array',
         'date' => 'date',
+        'injection_date' => 'date',
+        'plating_date' => 'date',
         'kashift_approved_at' => 'datetime',
         'supervisor_approved_at' => 'datetime',
         'asst_manager_approved_at' => 'datetime',

@@ -45,11 +45,11 @@ class DoubleTapeChecksheetController extends Controller
     {
         return [
             'No',
-            'Tanggal',
+            'Lot ID',
+            'Checked (Tgl / Shift / Inisial)',
             'Jam Before',
             'Jam After',
             'Cycle Time',
-            'Shift',
             'Barang',
             'Part No',
             'Customer',
@@ -58,7 +58,6 @@ class DoubleTapeChecksheetController extends Controller
             'Total OK',
             'Total NG',
             'Judgment',
-            'Inisial Operator',
             'Remarks',
             'Ka Shift',
             'Supervisor',
@@ -71,11 +70,11 @@ class DoubleTapeChecksheetController extends Controller
     {
         return [
             $c->id,
-            $c->date->format('d/m/Y'),
+            $c->injection_date ? $c->injection_date->format('d/m/Y') . ' / ' . ($c->injection_shift ?? '-') . ' / ' . ($c->injection_initials ?? '-') : '-',
+            $c->date->format('d/m/Y') . ' / ' . $c->shift . ' / ' . ($c->operator_initials ?? '-'),
             $c->created_at->copy()->subSeconds($c->cycle_time ?? 0)->format('H:i:s'),
             $c->created_at->format('H:i:s'),
             $c->cycle_time ?? '-',
-            $c->shift,
             $c->item->name ?? '-',
             $c->item->part_number ?? '-',
             $c->item->customer ?? '-',
@@ -84,7 +83,6 @@ class DoubleTapeChecksheetController extends Controller
             $c->total_ok,
             $c->total_ng,
             $c->judgment,
-            $c->operator_initials,
             $c->remarks ?? '-',
             $c->kashift_qc ?? '',
             $c->supervisor_qc ?? '',
@@ -97,8 +95,15 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw', 'shift', 'operator_initials', 'customer', 'entry_method']);
         $filters['plant'] = 'karawang';
+
+        // Pemisah data manual (regular) vs verifikasi scan QR code:
+        if ($request->get('view_mode') === 'verifikasi') {
+            $filters['entry_method'] = 'verification';
+        } else {
+            $filters['entry_method'] = 'regular';
+        }
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         
@@ -364,6 +369,7 @@ class DoubleTapeChecksheetController extends Controller
 
         $recap = $this->checksheetService->getDailyRecap($filters);
         $inspectorRecap = $this->checksheetService->getInspectorDailyRecap($filters);
+        $ngRecap = $this->checksheetService->getNgDailyRecap($filters);
         
         $plantId = \App\Models\Plant::resolveId('karawang');
         $initials = DoubleTapeChecksheet::where('plant_id', $plantId)
@@ -376,6 +382,6 @@ class DoubleTapeChecksheetController extends Controller
         $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
         $plantName = $plantModel ? $plantModel->name : 'Karawang';
 
-        return view('double_tape.daily_recap', compact('recap', 'inspectorRecap', 'startDate', 'endDate', 'plantName', 'plantCode', 'initials'));
+        return view('double_tape.daily_recap', compact('recap', 'inspectorRecap', 'ngRecap', 'startDate', 'endDate', 'plantName', 'plantCode', 'initials'));
     }
 }

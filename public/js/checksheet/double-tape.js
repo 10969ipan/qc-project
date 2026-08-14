@@ -372,6 +372,8 @@ class DoubleTapeCreate {
         this.currentPdfIndex = 0;
         this.totalPdfFiles = 0;
         this.currentItemId = null;
+        this.isTypeConfirmed = false;
+        this.isFullcheck = true;
 
         // QR Scanner Logic
         this.qrScanner = null;
@@ -384,6 +386,7 @@ class DoubleTapeCreate {
         this.initInputLocking();
         this.initTimer();
         this.initTypeHandling();
+        this.updateCheckType($("#checkTypeHidden").val() || "fullcheck");
         this.initAQLCalculations();
         this.initSAPCodeAutoSelect();
         this.initItemSelection();
@@ -392,6 +395,7 @@ class DoubleTapeCreate {
         this.initPDFModal();
         this.initImageZoom();
         this.initQRScanner();
+        this.initHardwareScanner();
         this.initFormSubmission();
 
         // Inisialisasi awal untuk logic kalkulasi & judgment
@@ -558,7 +562,18 @@ class DoubleTapeCreate {
     handleQRScanned(decodedText) {
         this.stopScanner();
         $("#qrScannerModal").modal("hide");
-        this.parseAndFillQR(decodedText);
+        if (!this.timerRunning) {
+            this.startTimer();
+        }
+        $("#scanMethodInput").val("qr");
+        this.parseAndFillQR(decodedText, (success) => {
+            if (success) {
+                setTimeout(() => {
+                    console.log("Auto-submitting form after successful camera QR scan...");
+                    $("#checksheetForm").trigger("submit");
+                }, 300);
+            }
+        });
     }
 
     unlockAudio() {
@@ -586,11 +601,28 @@ class DoubleTapeCreate {
         }
     }
 
-    parseAndFillQR(decodedText) {
+    parseAndFillQR(decodedText, callback) {
         try {
             $("#qrcodeInput").val(decodedText);
             const parts = decodedText.split("|");
             if (parts.length >= 5) {
+                const partCode = parts[0].trim();
+                const supplierId = parts[1].trim();
+                const quantity = parseInt(parts[2]) || 0;
+                const uniqueCode = parts[3].trim();
+                const sapCode = parts[4].trim();
+
+                if (!partCode || !supplierId || quantity <= 0 || !uniqueCode || sapCode === "0" || !sapCode) {
+                    window.playAppAudio('format_error');
+                    Swal.fire({
+                        icon: "warning",
+                        title: "FORMAT QR SALAH!",
+                        text: "Scan QR Internal, Bukan QR Customer!"
+                    });
+                    if (callback) callback(false);
+                    return;
+                }
+
                 // 1. Validasi QR Duplikat via AJAX
                 if (this.config.qrUniqueUrl) {
                     $.get(
@@ -601,18 +633,19 @@ class DoubleTapeCreate {
                                 window.playAppAudio('duplicate_saved');
                                 Swal.fire(
                                     "QR-Code Duplicate",
-                                    res.message,
+                                    res.message || "QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.",
                                     "error",
                                 );
+                                if (callback) callback(false);
                             } else {
-                                this.processFillQR(decodedText, parts);
+                                this.processFillQR(decodedText, parts, callback);
                             }
                         },
                     ).fail(() => {
-                        this.processFillQR(decodedText, parts);
+                        this.processFillQR(decodedText, parts, callback);
                     });
                 } else {
-                    this.processFillQR(decodedText, parts);
+                    this.processFillQR(decodedText, parts, callback);
                 }
             } else {
                 window.playAppAudio('format_error');
@@ -621,6 +654,7 @@ class DoubleTapeCreate {
                     "Data QR tidak sesuai standar (" + decodedText + ")",
                     "warning",
                 );
+                if (callback) callback(false);
             }
         } catch (e) {
             console.error("Parse QR Error:", e);
@@ -629,10 +663,11 @@ class DoubleTapeCreate {
                 "Gagal memproses data QR: " + e.message,
                 "error",
             );
+            if (callback) callback(false);
         }
     }
 
-    processFillQR(decodedText, parts) {
+    processFillQR(decodedText, parts, callback) {
         try {
             const partCode = parts[0].trim();
             const supplierId = parts[1].trim();
@@ -685,6 +720,8 @@ class DoubleTapeCreate {
                     new Event("change", { bubbles: true }),
                 );
 
+                $("#totalQty").val(quantity).trigger("input");
+
                 this.playSuccessFeedback();
                 Swal.fire({
                     icon: "success",
@@ -693,61 +730,217 @@ class DoubleTapeCreate {
                     timer: 1500,
                     showConfirmButton: false,
                 });
+                if (callback) callback(true);
             } else {
+                $("#totalQty").val(quantity).trigger("input");
                 window.playAppAudio('item_not_found');
                 Swal.fire(
                     "Info",
                     "Data item QR terbaca, tetapi tidak ditemukan di master item. Silahkan konfirmasi kepada admin untuk menambahkan data item QR.",
                     "warning",
                 );
+                if (callback) callback(false);
             }
-
-            $("#totalQty").val(quantity).trigger("input");
         } catch (e) {
             console.error("Fill QR Error:", e);
             Swal.fire("Error", "Gagal mengisi data QR: " + e.message, "error");
+            if (callback) callback(false);
         }
     }
 
     initInputLocking() {
         this.formInputs = $(
-            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
+            '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn):not(#sapCodeInput), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
         );
         this.formInputs.prop("disabled", true);
         $("#checksheetForm").addClass("inputs-locked");
+        if (!$("#inputsLockedStyles").length) {
+            $(
+                '<style id="inputsLockedStyles">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>',
+            ).appendTo("head");
+        }
+        $("#sapCodeInput").prop("disabled", false);
+    }
+
+    startTimer() {
+        if (!this.timerRunning) {
+            this.timerRunning = true;
+            $("#startTimerBtn")
+                .removeClass("btn-success")
+                .addClass("btn-secondary")
+                .attr("disabled", true)
+                .html('<i class="fas fa-clock"></i> Running...');
+            $("#saveBtn").prop("disabled", false);
+
+            // Buka kunci input
+            this.formInputs = $(
+                '#checksheetForm input:not([type="hidden"]):not(#startTimerBtn):not(#sapCodeInput), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)',
+            );
+            this.formInputs.prop("disabled", false);
+            $("#checksheetForm").removeClass("inputs-locked");
+            $("#sapCodeInput").prop("disabled", false);
+
+            // Logika readonly spesifik — total_ok & total_ng readonly (auto-kalkulasi)
+            $("#samplingQty").prop("readonly", this.isFullcheck);
+            $('input[name="total_ok"]').prop("readonly", true);
+            $('input[name="total_ng"]').prop("readonly", true);
+
+            // Inisialisasi nilai awal: OK = samplingQty, NG = 0
+            this.calculateTotalNG();
+
+            this.timerInterval = setInterval(() => {
+                this.totalSeconds++;
+                this.updateTimerDisplay();
+            }, 1000);
+
+            $("#itemSelect").focus();
+        }
     }
 
     initTimer() {
         $("#startTimerBtn").on("click", () => {
+            this.startTimer();
+        });
+    }
+
+    initHardwareScanner() {
+        let buffer = "";
+        let lastTime = Date.now();
+        let scanTimeout;
+
+        const processScan = (raw) => {
+            raw = (raw || "").trim();
+            console.log("Hardware Scan Triggered (Double Tape):", raw);
+
+            this.isProcessingScan = true;
+            clearTimeout(this.scanLockTimeout);
+
+            if (!raw.includes("|")) {
+                window.playAppAudio('format_error');
+                Swal.fire({
+                    icon: "warning",
+                    title: "Format QR Salah",
+                    text: "Data QR tidak mengandung delimiter '|'"
+                });
+                this.isProcessingScan = false;
+                buffer = "";
+                return;
+            }
+
+            const parts = raw.split("|");
+            if (parts.length !== 5) {
+                window.playAppAudio('format_error');
+                Swal.fire({
+                    icon: "warning",
+                    title: "Format QR Salah",
+                    text: "Format QR salah (harus 5 bagian)"
+                });
+                this.isProcessingScan = false;
+                buffer = "";
+                return;
+            }
+
+            // Auto start timer jika belum berjalan
             if (!this.timerRunning) {
-                this.timerRunning = true;
-                $("#startTimerBtn")
-                    .removeClass("btn-success")
-                    .addClass("btn-secondary")
-                    .attr("disabled", true)
-                    .html('<i class="fas fa-clock"></i> Running...');
-                $("#saveBtn").prop("disabled", false);
+                this.startTimer();
+            }
 
-                // Buka kunci input
-                this.formInputs.prop("disabled", false);
-                $("#checksheetForm").removeClass("inputs-locked");
+            // Kunci input agar tidak bisa scan kedua sebelum data diproses
+            $("#sapCodeInput").val("").prop("disabled", true).css("background", "#f1f5f9");
+            $("#scanMethodInput").val("hardware");
 
-                // Logika readonly spesifik — total_ok & total_ng readonly (auto-kalkulasi)
-                $("#samplingQty").prop("readonly", this.isFullcheck);
-                $('input[name="total_ok"]').prop("readonly", true);
-                $('input[name="total_ng"]').prop("readonly", true);
+            // Panggil parseAndFillQR dengan callback
+            this.parseAndFillQR(raw, (success) => {
+                if (success) {
+                    setTimeout(() => {
+                        console.log("Auto-submitting form after successful hardware scan...");
+                        $("#checksheetForm").trigger("submit");
+                        this.scanLockTimeout = setTimeout(() => { this.isProcessingScan = false; }, 2000);
+                    }, 300);
+                } else {
+                    $("#sapCodeInput").prop("disabled", false).css("background", "");
+                    this.isProcessingScan = false;
+                }
+            });
+            buffer = "";
+        };
 
-                // Inisialisasi nilai awal: OK = samplingQty, NG = 0
-                this.calculateTotalNG();
+        // ─── Method PDA: Global Capturing Listener ───
+        window.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.keyCode === 13) && document.activeElement && document.activeElement.id === 'sapCodeInput') {
+                console.log("Enter key captured and blocked (Double Tape PDA Mode)");
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
 
-                this.timerInterval = setInterval(() => {
-                    this.totalSeconds++;
-                    this.updateTimerDisplay();
-                }, 1000);
+        // ─── Method A: Dedicated input handler for PDA Keyboard Wedge ───
+        $("#sapCodeInput").on("keydown", (e) => {
+            if (e.key === "Enter" || e.keyCode === 13) {
+                e.preventDefault();
+                e.stopPropagation();
 
-                $("#itemSelect").focus();
+                const val = ($("#sapCodeInput").val() || "").trim();
+                if (val.length > 10 && val.includes("|") && val.split("|").length === 5) {
+                    $("#sapCodeInput").val(""); // Clear field
+                    processScan(val);
+                }
+                return false;
             }
         });
+
+        // Fallback for PDA scanners that only send input events without Enter
+        let sapInputTimeout;
+        $("#sapCodeInput").on("input", () => {
+            const val = ($("#sapCodeInput").val() || "").trim();
+            if (val.length > 10 && val.includes("|") && val.split("|").length === 5) {
+                clearTimeout(sapInputTimeout);
+                sapInputTimeout = setTimeout(() => {
+                    const finalVal = ($("#sapCodeInput").val() || "").trim();
+                    if (finalVal && finalVal === val) { // Ensure typing has stopped
+                        $("#sapCodeInput").val("");
+                        processScan(finalVal);
+                    }
+                }, 80); // Wait 80ms to ensure the full SAP code is typed
+            }
+        });
+
+        // ─── Method B: Global keydown buffer (PC wired/wireless scanners) ───
+        window.addEventListener("keydown", (e) => {
+            const currentTime = Date.now();
+            const isTerminator = e.key === "Enter" || e.keyCode === 13 ||
+                e.key === "Tab" || e.keyCode === 9;
+
+            // Reset buffer if gap is too long (human typing)
+            if (currentTime - lastTime > 1000) {
+                buffer = "";
+            }
+
+            if (!isTerminator) {
+                const char = e.key;
+                if (char && char.length === 1) {
+                    buffer += char;
+                } else if (e.keyCode >= 32 && e.keyCode <= 126) {
+                    buffer += String.fromCharCode(e.keyCode);
+                }
+            } else if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length === 5) {
+                e.preventDefault();
+                clearTimeout(scanTimeout);
+                processScan(buffer);
+                buffer = "";
+            }
+
+            lastTime = currentTime;
+
+            // Auto-process on timeout for scanners without Enter terminator
+            clearTimeout(scanTimeout);
+            scanTimeout = setTimeout(() => {
+                if (buffer.length > 10 && buffer.includes("|") && buffer.split("|").length === 5) {
+                    processScan(buffer);
+                    buffer = "";
+                }
+            }, 80);
+        }, true);
     }
 
     updateTimerDisplay() {
@@ -761,31 +954,29 @@ class DoubleTapeCreate {
         $("#cycleTimeInput").val(this.totalSeconds);
     }
 
+    updateCheckType(type) {
+        this.isFullcheck = (type === "fullcheck");
+        $("#checkTypeHidden").val(this.isFullcheck ? "fullcheck" : "sampling");
+
+        if (this.isFullcheck) {
+            $(".judgment-header, .judgment-cell").hide();
+            $("#samplingQtyHeader").text("Fullcheck Qty");
+            $("#totalNG").trigger("input");
+        } else {
+            $(".judgment-header, .judgment-cell").show();
+            $("#samplingQtyHeader").text("Sampling Qty");
+        }
+
+        if (this.timerRunning) {
+            $("#samplingQty").prop("readonly", this.isFullcheck);
+        }
+        $("#totalQty").trigger("input");
+        this.calculateTotalNG();
+    }
+
     initTypeHandling() {
-        $('input[name="check_type_option"]').on("change", (e) => {
-            this.isFullcheck = $(e.currentTarget).val() === "fullcheck";
-
-            // Sync hidden field for form submission
-            $("#checkTypeHidden").val(
-                this.isFullcheck ? "fullcheck" : "sampling",
-            );
-
-            // Toggle Judgment column visibility
-            if (this.isFullcheck) {
-                $(".judgment-header, .judgment-cell").hide();
-                $("#samplingQtyHeader").text("Fullcheck Qty");
-                // Fullcheck = pengecekan 100%, set judgment berdasarkan NG count
-                $("#totalNG").trigger("input");
-            } else {
-                $(".judgment-header, .judgment-cell").show();
-                $("#samplingQtyHeader").text("Sampling Qty");
-            }
-
-            if (this.timerRunning) {
-                $("#samplingQty").prop("readonly", this.isFullcheck);
-            }
-            $("#totalQty").trigger("input");
-            this.calculateTotalNG();
+        $("#checkTypeHidden").on("change", (e) => {
+            this.updateCheckType($(e.currentTarget).val());
         });
     }
 
@@ -1731,6 +1922,39 @@ class DoubleTapeCreate {
                 },
             );
 
+            // Opsi Tipe Pengecekan via Swal Modal untuk input manual
+            const scanMethod = $("#scanMethodInput").val();
+            if (scanMethod === "manual" && !this.isTypeConfirmed) {
+                $("#global-loader").hide();
+                Swal.fire({
+                    title: "Pilih Tipe Pengecekan",
+                    text: "Silakan pilih tipe pengecekan untuk data yang akan disimpan:",
+                    icon: "question",
+                    showConfirmButton: true,
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-check-double mr-1"></i> Full Check (Export)',
+                    denyButtonText: '<i class="fas fa-chart-pie mr-1"></i> Sampling (AQL 0.65)',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#1cc88a',
+                    denyButtonColor: '#4e73df',
+                    cancelButtonColor: '#858796',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.updateCheckType("fullcheck");
+                        this.isTypeConfirmed = true;
+                        $form.trigger("submit");
+                    } else if (result.isDenied) {
+                        this.updateCheckType("sampling");
+                        this.isTypeConfirmed = true;
+                        $form.trigger("submit");
+                    }
+                });
+                return false;
+            }
+            this.isTypeConfirmed = false;
+
             const saveBtn = $("#saveBtn");
             const originalHtml = saveBtn.html();
             saveBtn
@@ -1835,16 +2059,14 @@ class DoubleTapeCreate {
         $('input[name="sampling_qty"]').val("");
         $(".defect-qty").val("");
 
-        $("#checkTypeSampling").prop("checked", true).trigger("change");
+        this.updateCheckType("fullcheck");
+        this.isTypeConfirmed = false;
 
         // Reset QR fields
         $(
             "#qrcodeInput, #partCodeInput, #supplierIdInput, #quantityInput, #uniqueCodeInput, #sapCodeInputHidden",
         ).val("");
         $("#sapCodeInput").removeClass("is-valid is-invalid").val("");
-
-        $("#labelSampling").addClass("active");
-        $("#labelFullcheck").removeClass("active");
     }
 }
 

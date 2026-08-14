@@ -81,6 +81,29 @@
                         </select>
                     </div>
 
+                    <!-- Lot ID (Injection) -->
+                    <div class="form-group mb-3 p-2 bg-light rounded border">
+                        <label class="x-small font-weight-bold text-primary text-uppercase mb-1">Lot ID</label>
+                        <div class="row no-gutters">
+                            <div class="col-md-5 pr-1">
+                                <input type="date" name="injection_date" class="form-control form-control-sm"
+                                    value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}">
+                            </div>
+                            <div class="col-md-3 pr-1">
+                                <select name="injection_shift" class="form-control form-control-sm">
+                                    <option value="">Shift</option>
+                                    <option value="1" {{ $checksheet->injection_shift == '1' ? 'selected' : '' }}>Shift 1</option>
+                                    <option value="2" {{ $checksheet->injection_shift == '2' ? 'selected' : '' }}>Shift 2</option>
+                                    <option value="3" {{ $checksheet->injection_shift == '3' ? 'selected' : '' }}>Shift 3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="injection_initials" id="injection_initials_edit" class="form-control form-control-sm text-center text-uppercase initials-format"
+                                    value="{{ $checksheet->injection_initials }}" placeholder="Inisial">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group mb-3">

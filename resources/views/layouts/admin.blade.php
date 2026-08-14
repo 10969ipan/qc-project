@@ -1530,10 +1530,13 @@
         document.addEventListener('input', function(e) {
             if (e.target && (
                 e.target.name === 'injection_initials' || 
+                e.target.name === 'plating_initials' || 
                 e.target.name === 'operator_initials' || 
                 e.target.id === 'operatorInitialsInput' || 
                 e.target.id === 'injectionInitialsInput' || 
+                e.target.id === 'platingInitialsInput' || 
                 e.target.id === 'operator_initials_edit' || 
+                e.target.id === 'plating_initials_edit' || 
                 e.target.classList.contains('initials-format')
             )) {
                 const val = e.target.value;

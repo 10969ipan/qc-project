@@ -173,22 +173,20 @@
         <thead>
             <tr>
                 <th rowspan="2">No</th>
-                <th rowspan="2">Tanggal</th>
+                <th rowspan="2">Lot ID<br>(Tgl/Shf/Ini)</th>
+                <th rowspan="2">Checked<br>(Tgl/Shf/Ini)</th>
                 <th rowspan="2">Jam (Bef)</th>
                 <th rowspan="2">Jam (Aft)</th>
                 <th rowspan="2">Cycle (s)</th>
-                <th rowspan="2">Shift</th>
                 <th rowspan="2" style="display:none;">Kode SAP</th>
                 <th rowspan="2">Item Part</th>
                 <th rowspan="2">Cust</th>
                 <th rowspan="2">Part No</th>
                 <th rowspan="2">Total</th>
-                <th rowspan="2">Sample</th>
                 <th rowspan="2">OK</th>
                 <th rowspan="2">NG</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2">Jdg</th>
-                <th rowspan="2">Inisial</th>
                 <th rowspan="2">Ket</th>
             </tr>
             <tr>
@@ -200,18 +198,17 @@
             @foreach($checksheets as $checksheet)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-y') }}</td>
+                    <td>{{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}</td>
+                    <td>{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}</td>
                     <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
                     <td>{{ $checksheet->created_at->format('H:i') }}</td>
                     <td>{{ $checksheet->cycle_time ?? '-' }}</td>
-                    <td>{{ $checksheet->shift }}</td>
                     <td style="display:none;">{{ $checksheet->item->sap_code ?? '-' }}</td>
                     <td>{{ $checksheet->item->name ?? '-' }}</td>
                     <td>{{ $checksheet->item->customer ?? '-' }}</td>
                     <td>{{ $checksheet->item->part_number ?? '-' }}</td>
                     <td>{{ $checksheet->total_qty }}</td>
-                    <td>{{ $checksheet->sampling_qty }}</td>
-                    <td class="text-success">{{ $checksheet->total_ok }}</td>
+                    <td class="text-success">{{ max(0, $checksheet->total_qty - $checksheet->total_ng) }}</td>
                     <td class="text-danger">{{ $checksheet->total_ng }}</td>
 
                     @php
@@ -240,12 +237,11 @@
                         {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
                     </td>
 
-                    <td>
-                        <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
-                            {{ $checksheet->judgment }}
+                    <td style="font-weight: bold; white-space: nowrap;">
+                        <span style="color: #1cc88a;">
+                            {!! $checksheet->check_type === 'fullcheck' ? 'OK<br><span style="white-space: nowrap;">Full Check</span>' : 'OK<br>Sampling' !!}
                         </span>
                     </td>
-                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
                     <td style="text-align: left; font-size: 7px; min-width: 60px;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach

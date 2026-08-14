@@ -1,8 +1,20 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Input Data Double Tape Checksheet')
 
 @section('content')
+
+    @push('styles')
+    <style>
+        #checksheetTable th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; background-color: #f8f9fc; }
+        #checksheetTable td { font-size: 0.85rem; }
+        .ok-label { background-color: #28a745; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
+        .ng-label { background-color: #dc3545; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
+        .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
+        .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
+        #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+    @endpush
 
     @php
         $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
@@ -74,9 +86,9 @@
             <h6 class="m-0 font-weight-bold text-primary">Input Data Double Tape</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('double_tape.store') }}" method="POST" id="checksheetForm" novalidate>
+            <form action="{{ route('double_tape.store') }}" method="POST" id="checksheetForm" class="ajax-form" novalidate>
                 @csrf
-                <input type="hidden" name="check_type" id="checkTypeHidden" value="sampling">
+                <input type="hidden" name="check_type" id="checkTypeHidden" value="fullcheck">
                 <input type="hidden" name="plant" value="karawang">
                 <input type="hidden" name="qrcode" id="qrcodeInput">
                 <input type="hidden" name="part_code" id="partCodeInput">
@@ -84,44 +96,23 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
-
-                <div class="alert alert-info mb-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-3">
-                            <label class="font-weight-bold mb-0"><i class="fas fa-clipboard-check"></i> Tipe
-                                Pengecekan:</label>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-outline-primary active" id="labelSampling">
-                                    <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling"
-                                        checked>
-                                    <i class="fas fa-chart-pie"></i> Sampling (AQL 0.65)
-                                </label>
-                                <label class="btn btn-outline-success" id="labelFullcheck">
-                                    <input type="radio" name="check_type_option" id="checkTypeFullcheck" value="fullcheck">
-                                    <i class="fas fa-check-double"></i> Fullcheck (Export) - 100%
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
 
                 <div class="table-responsive">
-                    <table class="table" id="checksheetTable" width="100%" cellspacing="0">
+                    <table class="table table-bordered" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th rowspan="2" class="align-middle">Item Part</th>
-                                <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                                <th rowspan="2" class="align-middle">Total Qty</th>
-                                <th rowspan="2" class="align-middle" id="samplingQtyHeader">Sampling Qty</th>
-                                <th rowspan="2" class="align-middle" style="min-width: 280px;">Detail NG</th>
-                                <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                                <th rowspan="2" class="align-middle judgment-header">Judgment</th>
-                                <th rowspan="2" class="align-middle">Inisial QC</th>
-                                <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                                <th rowspan="2" style="vertical-align: middle;">Item Part</th>
+                                <th rowspan="2" style="vertical-align: middle;" id="thLotId">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" style="vertical-align: middle;" id="thChecked">Checked<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" style="vertical-align: middle;">Total Qty</th>
+                                <th rowspan="2" style="vertical-align: middle; display: none;" id="samplingQtyHeader">Sampling Qty</th>
+                                <th rowspan="2" style="vertical-align: middle; min-width: 280px;">Detail NG</th>
+                                <th rowspan="2" style="vertical-align: middle;">Total (OK/NG)</th>
+                                <th rowspan="2" class="judgment-header" style="vertical-align: middle;">Judgment</th>
+                                <th rowspan="2" style="vertical-align: middle;">DESCRIPTION</th>
                             </tr>
-                            <tr></tr>
+                            <tr class="text-center"></tr>
                         </thead>
                         <tbody>
                             <tr>
@@ -129,21 +120,21 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold small text-muted mb-1">
-                                            Kode SAP
+                                        <label class="font-weight-bold small font-weight-bold mb-1">
+                                            Scan Verifikasi Quanlity
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Cari Kode SAP..." autocomplete="off">
+                                                placeholder="Tap kolom ini, lalu scan barcode label" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
                                                     <i class="fas fa-qrcode"></i>
-                                                    <span class="d-none d-md-inline ml-1">Scan QR Label Internal</span>
+                                                    <span class="d-none d-md-inline ml-1"></span>
                                                 </button>
                                             </div>
                                         </div>
-                                        <small class="text-muted">Auto-select item berdasarkan SAP code</small>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Arahkan kursor ke sini sebelum menembak QR</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold">Item Part</label>
@@ -171,19 +162,34 @@
                                     </div>
                                 </td>
 
-                                <!-- Tanggal / Shift -->
-                                <td class="align-middle">
-                                    <div class="form-group mb-2">
-                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
-                                            value="{{ $defaultDate }}" required>
-                                    </div>
-                                    <div class="form-group mb-0">
-                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
-                                            <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
-                                            <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
-                                            <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
-                                        </select>
-                                    </div>
+                                <!-- Lot ID (Injection) -->
+                                <td class="align-middle" id="tdLotId">
+                                    <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
+                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" data-field-name="Tanggal Lot ID" data-scan-optional="1">
+                                    <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" data-field-name="Shift Lot ID" data-scan-optional="1">
+                                        <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
+                                        <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
+                                        <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
+                                    </select>
+                                    <input type="text" class="form-control form-control-sm text-center initials-format" name="injection_initials" id="injectionInitialsInput"
+                                        placeholder="Inisial" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" data-field-name="Inisial Lot ID" data-scan-optional="1">
+                                </td>
+
+
+
+                                <!-- Checked (Quality Date / Shift / Inisial QC) -->
+                                <td class="align-middle" id="tdChecked">
+                                    <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
+                                        name="date" value="{{ $defaultDate }}" required>
+                                    <select class="form-control form-control-sm mb-1" name="shift" id="shiftInput" required>
+                                        <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
+                                        <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
+                                        <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
+                                    </select>
+                                    <input type="text" class="form-control form-control-sm text-center initials-format" id="operatorInitialsInput"
+                                        style="text-transform: uppercase;"
+                                        name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
+                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
                                 </td>
 
                                 <!-- Total Qty -->
@@ -193,7 +199,7 @@
                                 </td>
 
                                 <!-- Qty Sampling -->
-                                <td class="align-middle">
+                                <td class="align-middle d-none">
                                     <input type="number" class="form-control text-center" style="min-width: 60px;"
                                         name="sampling_qty" id="samplingQty" placeholder="0" min="0" required>
                                     <div id="aql_info" class="text-xs text-center mt-1 font-weight-bold"
@@ -259,13 +265,7 @@
                                     </select>
                                 </td>
 
-                                <!-- Inisial QC -->
-                                <td class="align-middle">
-                                    <input type="text" class="form-control text-center"
-                                        style="min-width: 60px; text-transform: uppercase;"
-                                        name="operator_initials" value="{{ auth()->user()->initials ?? '' }}"
-                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" required>
-                                </td>
+
 
                                 <!-- Keterangan -->
                                 <td class="align-middle" style="min-width: 320px;">
