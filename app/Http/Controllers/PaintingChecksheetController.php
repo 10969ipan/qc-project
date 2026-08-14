@@ -487,11 +487,12 @@ class PaintingChecksheetController extends Controller
 
         $recap = $this->checksheetService->getDailyRecap($filters);
         $inspectorRecap = $this->checksheetService->getInspectorDailyRecap($filters);
+        $ngRecap = $this->checksheetService->getNgDailyRecap($filters);
         
         $plantModel = \App\Models\Plant::where('code', $plant)->orWhere('id', $plant)->first();
         $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
         $plantName = $plantModel ? $plantModel->name : 'Karawang';
 
-        return view('painting.daily_recap', compact('recap', 'inspectorRecap', 'startDate', 'endDate', 'plantName', 'plantCode'));
+        return view('painting.daily_recap', compact('recap', 'inspectorRecap', 'ngRecap', 'startDate', 'endDate', 'plantName', 'plantCode'));
     }
 }

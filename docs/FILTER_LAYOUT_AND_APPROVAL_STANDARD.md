@@ -349,3 +349,28 @@ $(document).on('click', '.btn-print-direct', function(e) {
     </div>
 </div>
 ```
+
+---
+
+## 6. Standar Spesifik Modul Double Tape Checksheet
+
+Berikut adalah aturan standar penyeragaman khusus pada modul **Double Tape Checksheet**:
+
+1. **Format Lot ID**:
+   - Menampilkan **Lot ID (Tgl / Shift / Inisial)** yang bersumber dari data proses Injection (`injection_date`, `injection_shift`, `injection_initials`).
+   - Jika data belum diisi saat pembuatan, data Lot ID dapat ditambahkan/diperbarui kapan saja melalui modal Edit.
+
+2. **Format Checked Column**:
+   - Menampilkan **Checked (Tgl / Shift / Inisial)** yang bersumber dari tanggal checksheet (`date`), shift (`shift`), dan inisial operator (`operator_initials`).
+
+3. **Penyederhanaan Form Input (Create & Edit Modal)**:
+   - Field input manual QC Plating disederhanakan/dihapus dari form create & edit modal untuk mengurangi redudansi data.
+
+4. **Validasi & AJAX Respon Edit Modal**:
+   - Proses pengeditan data dari modal edit diproses secara AJAX dengan pengembalian respon JSON terstruktur (`{ success: true, message: "..." }`).
+   - Menyimpan dan memvalidasi daftar defect (`defect_types` & `defect_quantities`) serta user inspector pendukung.
+   - Menggunakan penampil notifikasi sukses berbasis **SweetAlert (Swal)** sebelum merefresh tampilan tabel.
+
+5. **Cache-Busting Script Assets**:
+   - Pemanggilan file JavaScript (`double-tape.js`) di Blade template wajib menyertakan query parameter versioning `?v={{ time() }}` untuk mencegah browser menyimpan cache versi lama di local maupun server production.
+

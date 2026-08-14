@@ -337,4 +337,97 @@ class PlatingChecksheetService extends BaseService
             return $row;
         });
     }
+
+    /**
+     * Get NG daily recap per item for NG tracking and percentage calculation
+     */
+    public function getNgDailyRecap(array $filters)
+    {
+        $baseQuery = PlatingChecksheet::with('item')
+            ->where('plant_id', $this->resolvePlantId($filters['plant'] ?? 'karawang'));
+
+        if (!empty($filters['start_date'])) {
+            $baseQuery->whereDate('date', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $baseQuery->whereDate('date', '<=', $filters['end_date']);
+        }
+
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            if (!empty($filters['date'])) {
+                $baseQuery->whereDate('date', $filters['date']);
+            } else {
+                $baseQuery->whereDate('date', now()->toDateString());
+            }
+        }
+
+        if (!empty($filters['shift'])) {
+            $baseQuery->where('shift', $filters['shift']);
+        }
+
+        if (!empty($filters['operator_initials'])) {
+            $baseQuery->where('operator_initials', $filters['operator_initials']);
+        }
+
+        $allChecksheets = $baseQuery->get();
+        $grouped = $allChecksheets->groupBy('item_id');
+
+        $result = collect();
+
+        foreach ($grouped as $itemId => $items) {
+            $totalQtySum = $items->sum('total_qty');
+            $totalNgSum = $items->sum('total_ng');
+
+            if ($totalNgSum <= 0 || $totalQtySum <= 0) {
+                continue;
+            }
+
+            $first = $items->first();
+
+            $defectsSummary = [];
+            foreach ($items as $c) {
+                if ($c->total_ng <= 0) continue;
+                $defectsData = is_array($c->defects) ? $c->defects : json_decode($c->defects, true);
+                if (is_array($defectsData)) {
+                    foreach ($defectsData as $d) {
+                        if (is_array($d) && isset($d['type'])) {
+                            $type = $d['type'];
+                            $qty = (int)($d['qty'] ?? 1);
+                            $defectsSummary[$type] = ($defectsSummary[$type] ?? 0) + $qty;
+                        } elseif (is_string($d)) {
+                            $defectsSummary[$d] = ($defectsSummary[$d] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+
+            $defectsList = collect();
+            $maxPct = 0;
+            foreach ($defectsSummary as $defectType => $defectQty) {
+                $percentage = ($defectQty / $totalQtySum) * 100;
+                if ($percentage > $maxPct) {
+                    $maxPct = $percentage;
+                }
+                $defectsList->push((object)[
+                    'defect_type' => $defectType,
+                    'defect_qty' => $defectQty,
+                    'percentage' => round($percentage, 2)
+                ]);
+            }
+
+            $defectsList = $defectsList->sortByDesc('percentage')->values();
+
+            $result->push((object)[
+                'item_id' => $itemId,
+                'item' => $first->item,
+                'total_qty_sum' => $totalQtySum,
+                'total_ng_sum' => $totalNgSum,
+                'max_percentage' => round($maxPct, 2),
+                'defects' => $defectsList
+            ]);
+        }
+
+        return $result;
+    }
 }
