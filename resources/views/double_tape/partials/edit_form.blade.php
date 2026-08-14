@@ -81,16 +81,19 @@
                         </select>
                     </div>
 
-                    <!-- Lot ID (Injection) -->
+                    <!-- Lot ID (Tgl / Shift / Inisial) -->
                     <div class="form-group mb-3 p-2 bg-light rounded border">
-                        <label class="x-small font-weight-bold text-primary text-uppercase mb-1">Lot ID</label>
+                        <label class="x-small font-weight-bold text-primary text-uppercase mb-1">
+                            <i class="fas fa-barcode mr-1"></i> Lot ID (Tgl / Shift / Inisial)
+                        </label>
                         <div class="row no-gutters">
                             <div class="col-md-5 pr-1">
                                 <input type="date" name="injection_date" class="form-control form-control-sm"
-                                    value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}">
+                                    value="{{ $checksheet->injection_date ? $checksheet->injection_date->format('Y-m-d') : '' }}"
+                                    title="Tanggal Lot ID">
                             </div>
                             <div class="col-md-3 pr-1">
-                                <select name="injection_shift" class="form-control form-control-sm">
+                                <select name="injection_shift" class="form-control form-control-sm" title="Shift Lot ID">
                                     <option value="">Shift</option>
                                     <option value="1" {{ $checksheet->injection_shift == '1' ? 'selected' : '' }}>Shift 1</option>
                                     <option value="2" {{ $checksheet->injection_shift == '2' ? 'selected' : '' }}>Shift 2</option>
