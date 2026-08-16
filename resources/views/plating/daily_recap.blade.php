@@ -66,7 +66,7 @@
             padding: 0;
             background: #fff !important;
         }
-        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3 {
+        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3, .card-header {
             display: none !important;
         }
         #content-wrapper {
@@ -233,9 +233,12 @@
     </div>
 
     <!-- ITEM RECAP CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardVerifikasiItem">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Verifikasi per Item</h6>
+            <button type="button" onclick="printCardSection('cardVerifikasiItem')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -285,9 +288,12 @@
     </div>
 
     <!-- INSPECTOR PERFORMANCE CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardPerformanceInspector">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Performance Inspector</h6>
+            <button type="button" onclick="printCardSection('cardPerformanceInspector')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -365,9 +371,12 @@
     </div>
 
     <!-- NG DATA RECAP CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardNgDefect">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Data NG Per Defect</h6>
+            <button type="button" onclick="printCardSection('cardNgDefect')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -438,3 +447,66 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable) {
+            $('#recapTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+
+            $('#performanceTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+
+            $('#ngRecapTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+        }
+    });
+
+    function printCardSection(cardId) {
+        $('.recap-card').addClass('d-print-none');
+        $('#' + cardId).removeClass('d-print-none');
+        window.print();
+        $('.recap-card').removeClass('d-print-none');
+    }
+</script>
+@endpush

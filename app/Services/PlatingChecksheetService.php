@@ -294,7 +294,10 @@ class PlatingChecksheetService extends BaseService
     {
         $query = PlatingChecksheet::query()
             ->join('items', 'plating_checksheets.item_id', '=', 'items.id')
-            ->whereNotNull('plating_checksheets.qrcode')
+            ->where(function($q) {
+                $q->whereNull('plating_checksheets.qrcode')
+                  ->orWhere('plating_checksheets.qrcode', '');
+            })
             ->select(
                 'plating_checksheets.operator_initials',
                 'plating_checksheets.item_id',

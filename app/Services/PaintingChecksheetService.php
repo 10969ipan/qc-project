@@ -285,7 +285,10 @@ class PaintingChecksheetService extends BaseService
     {
         $query = PaintingChecksheet::query()
             ->join('items', 'painting_checksheets.item_id', '=', 'items.id')
-            ->whereNotNull('painting_checksheets.qrcode')
+            ->where(function($q) {
+                $q->whereNull('painting_checksheets.qrcode')
+                  ->orWhere('painting_checksheets.qrcode', '');
+            })
             ->select(
                 'painting_checksheets.operator_initials',
                 'painting_checksheets.item_id',

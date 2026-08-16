@@ -9,16 +9,23 @@
         display: none !important;
     }
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
+        max-height: 68vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
 
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
+    .dataTables_wrapper {
+        position: relative;
+    }
+    #customTableFooter .dataTables_info,
+    #customTableFooter .dataTables_paginate {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        font-size: 0.78rem !important;
+    }
+    #customTableFooter .pagination {
+        margin-bottom: 0 !important;
     }
     #dataTable, table.dataTable {
         border-collapse: separate !important;
@@ -83,48 +90,12 @@
     ]);
 @endphp
 
-<div class="card shadow mb-2">
-    <div class="card-body p-0">
-        <table style="width:100%; border-collapse:collapse;">
-            <tr>
-                <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;" loading="lazy">
-                </td>
-                <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                    <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                        STANDARD PERFORMANCE TEST PLATING PLASTIC
-                    </h1>
-                </td>
-                <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                    <table style="border-collapse:collapse; font-size:0.68rem;">
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
-
 <div class="card shadow mb-4">
+    <div class="card-header py-2 px-3">
+        <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">
+            STANDARD PERFORMANCE TEST PLATING PLASTIC
+        </h6>
+    </div>
     <div class="card-body">
         <form id="filterFormMaster" onsubmit="return false;"
             class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
@@ -132,17 +103,18 @@
             
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                <input type="text" name="search_master" id="search_master" class="form-control form-control-sm border-0 shadow-sm no-autoupper" 
-                    placeholder="Nama Part / Customer..." value="{{ request('search') }}" style="width: 250px; font-size: 0.75rem; text-transform: none !important;">
+                <div class="input-group input-group-sm shadow-sm rounded" style="width: 250px;">
+                    <input type="text" name="search_master" id="search_master" class="form-control border-0 no-autoupper" 
+                        placeholder="Nama Part / Customer..." value="{{ request('search') }}" style="font-size: 0.75rem; text-transform: none !important;">
+                    <div class="input-group-append" id="btnClearSearchMaster" style="display: none; cursor: pointer;">
+                        <span class="input-group-text bg-white border-0 text-muted" style="padding-left: 4px; padding-right: 8px;">
+                            <i class="fas fa-times-circle"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
 
             <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                <button type="button" id="btnFilterSearchMaster" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
-                    <i class="fas fa-search fa-sm"></i>
-                </button>
-                <button type="button" id="btnResetFilterMaster" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
-                    <i class="fas fa-undo fa-sm"></i>
-                </button>
                 <div class="dropdown">
                     <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window">
                         <i class="fas fa-file-alt fa-sm"></i> Laporan
@@ -187,8 +159,8 @@
 
         <!-- Table Container (Hidden until initialized) -->
         <div id="tableContainer" style="display: none;">
-            <div class="table-responsive" style="min-height: 300px;">
-                <table class="table table-hover text-center align-middle" id="dataTable" width="100%" cellspacing="0">
+            <div class="table-responsive">
+                <table class="table table-hover text-center align-middle mb-0" id="dataTable" width="100%" cellspacing="0">
                 <thead class="bg-light">
                     <tr>
                         <th rowspan="2">No.</th>
@@ -226,10 +198,10 @@
                     @foreach($standards as $index => $std)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td class="text-left font-weight-bold">{{ $std->part_name }}</td>
-                            <td>{{ $std->part_number ?: '-' }}</td>
-                            <td>{{ $std->customer_name }}</td>
-                            <td>{{ $std->customer_standard }}</td>
+                            <td class="text-left font-weight-bold text-nowrap">{{ $std->part_name }}</td>
+                            <td class="text-nowrap">{{ $std->part_number ?: '-' }}</td>
+                            <td class="text-nowrap">{{ $std->customer_name }}</td>
+                            <td class="text-nowrap">{{ $std->customer_standard }}</td>
                             <td>{{ $std->category ?: '-' }}</td>
                             
                             <!-- Thickness -->
@@ -290,6 +262,11 @@
             </table>
         </div>
         </div>
+    </div>
+    <div class="card-footer py-2 px-3 bg-white border-top d-flex justify-content-between align-items-center" id="customTableFooter" style="font-size: 0.8rem;">
+        <!-- Container untuk info & pagination DataTables -->
+        <div id="dataTableInfoContainer" class="text-muted small"></div>
+        <div id="dataTablePaginateContainer"></div>
     </div>
 </div>
 
@@ -835,6 +812,7 @@
         var table = $('#dataTable').DataTable({
             deferRender: true,
             processing: true,
+            pageLength: 10,
             initComplete: function(settings, json) {
                 $('#tableLoader').hide();
                 $('#tableContainer').fadeIn('fast', function() {
@@ -843,8 +821,25 @@
             }
         });
 
-        // DataTables draw event for Auto-Highlight
+        // Move DataTables pagination & info to card-footer
+        function movePaginationToFooter() {
+            var wrapper = $('#dataTable_wrapper');
+            var info = wrapper.find('.dataTables_info');
+            var paginate = wrapper.find('.dataTables_paginate');
+            
+            if (info.length) {
+                $('#dataTableInfoContainer').append(info);
+            }
+            if (paginate.length) {
+                $('#dataTablePaginateContainer').append(paginate);
+            }
+        }
+
+        movePaginationToFooter();
+
+        // DataTables draw event for Auto-Highlight & keep footer updated
         table.on('draw', function() {
+            movePaginationToFooter();
             var tbody = table.table().body();
             
             // Unmark previous
@@ -885,25 +880,30 @@
             });
         });
 
-        // Instant smart search on keyup
+        // Instant smart search on keyup & clear icon handling
+        function toggleClearBtn() {
+            var val = $('#search_master').val();
+            if (val && val.length > 0) {
+                $('#btnClearSearchMaster').show();
+            } else {
+                $('#btnClearSearchMaster').hide();
+            }
+        }
+
         $('#search_master').on('keypress', function (e) {
             if (e.which == 13) e.preventDefault();
         });
 
-        $('#search_master').on('keyup input', function () {
+        $('#search_master').on('keyup input change', function () {
+            toggleClearBtn();
             table.search($(this).val()).draw();
         });
 
-        // Search Button Fallback
-        $('#btnFilterSearchMaster').on('click', function () {
-            table.search($('#search_master').val()).draw();
-        });
-
-        // Client-side DataTables Reset
-        $('#btnResetFilterMaster').on('click', function () {
-            $('#search_master').val('');
+        $('#btnClearSearchMaster').on('click', function () {
+            $('#search_master').val('').trigger('input');
             table.search('').draw();
         });
+        toggleClearBtn();
         // Thickness Modal
         var stdCr = 0, stdNi = 0, stdCu = 0;
         $('#dataTable').on('click', '.btn-thickness', function() {

@@ -177,92 +177,12 @@
     ]);
 @endphp
 
-<div class="card shadow mb-2">
-    <div class="card-body p-0">
-        <table style="width:100%; border-collapse:collapse;">
-            <tr>
-                <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;" loading="lazy">
-                </td>
-                <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                    <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                        LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST
-                    </h1>
-                </td>
-                <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                    <table style="border-collapse:collapse; font-size:0.68rem;">
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-@if(session('success'))
-    <div class="alert alert-success border-0 shadow-sm rounded mb-3 mt-3">
-        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger border-0 shadow-sm rounded mb-3 mt-3">
-        <i class="fas fa-exclamation-circle mr-2"></i> {{ session('error') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-@if($errors->any())
-    <div class="alert alert-danger border-0 shadow-sm rounded mb-3 mt-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <span class="font-weight-bold"><i class="fas fa-exclamation-triangle mr-2"></i>Terdapat Kesalahan Input:</span>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <hr class="my-2">
-        <ul class="mb-0 pl-3">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    
-    <script>
-        // Auto-open modal if there are errors (assuming it's the Add Data modal that failed, because it's the only one submitting directly here. Actually Edit uses update via Ajax or normal form? Let's assume user knows).
-        document.addEventListener("DOMContentLoaded", function() {
-            if ($('#modalAddData').length) {
-                $('#modalAddData').modal('show');
-            }
-        });
-    </script>
-@endif
-
 <div class="card shadow mb-4">
+    <div class="card-header py-2 px-3">
+        <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">
+            LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST
+        </h6>
+    </div>
     <div class="card-body">
         <form action="{{ url()->current() }}" method="GET"
             class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
