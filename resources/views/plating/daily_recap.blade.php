@@ -303,6 +303,7 @@
                             <th class="text-center">No</th>
                             <th>Inisial Inspector</th>
                             <th>Nama Barang</th>
+                            <th>Part Number</th>
                             <th class="text-center">Total Qty</th>
                             <th class="text-center" style="background-color: #28a745; color: white;">AKT. DURA (MENIT)</th>
                             <th class="text-center">STD CT (MENIT)</th>
@@ -322,6 +323,7 @@
                                         {{ $operator }}
                                     </td>
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
+                                    <td class="text-uppercase small font-weight">{{ $row->item->part_number ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
                                     <td class="text-center small">

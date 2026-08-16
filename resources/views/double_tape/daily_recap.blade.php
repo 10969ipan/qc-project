@@ -66,7 +66,7 @@
             padding: 0;
             background: #fff !important;
         }
-        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3 {
+        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3, .card-header {
             display: none !important;
         }
         #content-wrapper {
@@ -247,9 +247,12 @@
     </div>
 
     <!-- ITEM RECAP CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardVerifikasiItem">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Verifikasi per Item</h6>
+            <button type="button" onclick="printCardSection('cardVerifikasiItem')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -264,6 +267,7 @@
                             <th class="text-center">Packing</th>
                             <th class="text-center">Total Packing</th>
                             <th class="text-center text-success">Total OK</th>
+                            <th class="text-center text-danger">Total NG</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -279,10 +283,11 @@
                                 <td class="text-center font-weight">{{ number_format($row->packing_size) }} pcs</td>
                                 <td class="text-center font-weight">{{ number_format($row->total_packing) }} box/bucket/plastik</td>
                                 <td class="text-center font-weight">{{ number_format($row->total_ok_sum) }}</td>
+                                <td class="text-center font-weight">{{ number_format($row->total_ng_sum) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="py-5">
                                         <i class="fas fa-folder-open fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data verification pada kriteria ini.</p>
@@ -297,9 +302,12 @@
     </div>
 
     <!-- INSPECTOR PERFORMANCE CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardPerformanceInspector">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Performance Inspector</h6>
+            <button type="button" onclick="printCardSection('cardPerformanceInspector')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -309,6 +317,7 @@
                             <th class="text-center">No</th>
                             <th>Inisial Inspector</th>
                             <th>Nama Barang</th>
+                            <th>Part Number</th>
                             <th class="text-center">Total Qty</th>
                             <th class="text-center text-danger">Total NG</th>
                             <th class="text-center" style="background-color: #28a745; color: white;">AKT. DURA (MENIT)</th>
@@ -322,15 +331,14 @@
                         @forelse($inspectorRecap->groupBy('operator_initials') as $operator => $rows)
                             @foreach($rows as $index => $row)
                                 <tr>
-                                    @if($loop->first)
-                                        <td rowspan="{{ $rows->count() }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $globalIndex++ }}
-                                        </td>
-                                        <td rowspan="{{ $rows->count() }}" class="font-weight-bold text-primary align-middle" style="background-color: #fcfcfc; text-transform: uppercase;">
-                                            {{ $operator }}
-                                        </td>
-                                    @endif
+                                    <td class="text-center font-weight small align-middle">
+                                        {{ $globalIndex++ }}
+                                    </td>
+                                    <td class="font-weight-bold text-primary align-middle" style="text-transform: uppercase;">
+                                        {{ $operator }}
+                                    </td>
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
+                                    <td class="text-uppercase small font-weight">{{ $row->item->part_number ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
                                     <td class="text-center font-weight text-danger">{{ number_format($row->total_ng_sum ?? 0) }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
@@ -364,7 +372,7 @@
                             @endforeach
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-5">
+                                <td colspan="10" class="text-center py-5">
                                     <div class="py-5">
                                         <i class="fas fa-user-clock fa-3x text-gray-300 mb-3"></i>
                                         <p class="text-muted">Tidak ada data performa pada kriteria ini.</p>
@@ -379,9 +387,12 @@
     </div>
 
     <!-- NG DATA RECAP CARD -->
-    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden">
-        <div class="card-header bg-white py-3">
+    <div class="card shadow mb-4 border-0 rounded-lg overflow-hidden recap-card" id="cardNgDefect">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-dark">Rekap Data NG Per Defect</h6>
+            <button type="button" onclick="printCardSection('cardNgDefect')" class="btn btn-sm btn-outline-dark rounded-pill px-3 no-print" title="Cetak Rekap Ini Saja">
+                <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
+            </button>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -399,29 +410,25 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $globalNgIndex = 1; @endphp
                         @forelse($ngRecap as $itemIndex => $row)
-                            @php
-                                $defectCount = count($row->defects);
-                            @endphp
                             @foreach($row->defects as $defectIndex => $defect)
                                 <tr>
-                                    @if($loop->first)
-                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $itemIndex + 1 }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->name ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="text-uppercase small font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->part_number ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->customer ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ number_format($row->total_qty_sum) }} pcs
-                                        </td>
-                                    @endif
+                                    <td class="text-center font-weight small align-middle">
+                                        {{ $globalNgIndex++ }}
+                                    </td>
+                                    <td class="font-weight align-middle">
+                                        {{ $row->item->name ?? '-' }}
+                                    </td>
+                                    <td class="text-uppercase small font-weight align-middle">
+                                        {{ $row->item->part_number ?? '-' }}
+                                    </td>
+                                    <td class="small align-middle">
+                                        {{ $row->item->customer ?? '-' }}
+                                    </td>
+                                    <td class="text-center font-weight align-middle">
+                                        {{ number_format($row->total_qty_sum) }} pcs
+                                    </td>
                                     <td class="font-weight-bold text-danger align-middle">
                                         {{ $defect->defect_type }}
                                     </td>
@@ -452,3 +459,66 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        if ($.fn.DataTable) {
+            $('#recapTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+
+            $('#performanceTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+
+            $('#ngRecapTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Lanjut",
+                        previous: "Kembali"
+                    }
+                }
+            });
+        }
+    });
+
+    function printCardSection(cardId) {
+        $('.recap-card').addClass('d-print-none');
+        $('#' + cardId).removeClass('d-print-none');
+        window.print();
+        $('.recap-card').removeClass('d-print-none');
+    }
+</script>
+@endpush
