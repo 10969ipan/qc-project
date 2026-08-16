@@ -4,17 +4,79 @@
     $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
 @endphp
 
-<nav class="navbar topbar shadow px-4 d-flex align-items-center justify-content-between flex-nowrap" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1030;">
+<style>
+    .main-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+    }
+    .main-nav > li {
+        position: relative;
+        margin: 0 2px;
+        z-index: 1001;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .main-nav > li > a {
+        font-family: 'Inter', sans-serif !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        padding: 0 0.9rem !important;
+        height: 38px !important;
+        line-height: 38px !important;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        transition: background 0.2s ease, color 0.2s ease;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        border-radius: 4px;
+        text-decoration: none !important;
+        border: 0 !important;
+        outline: none !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+    }
+    .main-nav i,
+    #topbar-nav-menu i,
+    .main-nav .fas,
+    .main-nav .fa,
+    #topbar-nav-menu .fas,
+    #topbar-nav-menu .fa {
+        font-family: "Font Awesome 5 Free" !important;
+        font-weight: 900 !important;
+        font-style: normal !important;
+        display: inline-block !important;
+        font-size: 0.85rem !important;
+        line-height: 1 !important;
+        width: 1.1em !important;
+        text-align: center !important;
+        margin-right: 0.35rem !important;
+        flex-shrink: 0 !important;
+        opacity: 0.9;
+    }
+</style>
+
+<nav class="navbar topbar shadow px-4 d-flex align-items-center justify-content-between flex-nowrap" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1030; height: 60px; min-height: 60px;">
     <div class="d-flex align-items-center flex-grow-1">
         <button class="menu-toggle mr-2" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
         </button>
-        <a class="sidebar-brand d-flex align-items-center text-decoration-none mr-3" href="{{ url('/') }}">
-            <div class="sidebar-brand-text font-weight-bold text-white h6 mb-0">QC APPS</div>
+        <a class="sidebar-brand d-flex align-items-center text-decoration-none mr-3" href="{{ url('/') }}" style="border: none !important; outline: none !important; background: transparent !important; box-shadow: none !important;">
+            <div class="sidebar-brand-text font-weight-bold text-white h6 mb-0" style="border: none !important; outline: none !important; background: transparent !important;">QC APPS</div>
         </a>
         @if(auth()->check() && auth()->user()->plant)
-            <div class="px-2 py-1 border border-white rounded text-white small font-weight-bold mr-4"
-                style="font-size: 0.65rem; border-color: rgba(255,255,255,0.4) !important;">
+            <div class="px-2 py-1 rounded text-white small font-weight-bold mr-4"
+                style="font-size: 0.65rem; border: 1px solid rgba(255,255,255,0.4) !important; background: transparent !important; outline: none !important; box-shadow: none !important;">
                 {{ strtoupper(auth()->user()->plant->name) }}
             </div>
         @endif
@@ -275,36 +337,68 @@
             position: relative;
             margin: 0 2px;
             z-index: 1001;
+            height: 100%;
+            display: flex;
+            align-items: center;
         }
 
         .main-nav > li > a {
+            font-family: 'Inter', sans-serif !important;
             color: rgba(255, 255, 255, 0.85) !important;
-            padding: 0.6rem 0.9rem !important;
+            padding: 0 0.9rem !important;
+            height: 38px !important;
+            line-height: 38px !important;
             font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            transition: all 0.25s ease;
-            display: flex;
-            align-items: center;
+            transition: background 0.2s ease, color 0.2s ease;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
             border-radius: 4px;
             text-decoration: none !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
         }
 
         .main-nav > li > a:hover,
         .main-nav > li.dropdown-item-hover > a.expanded {
             color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         .main-nav > li.active > a {
             color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25) !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
-        .main-nav > li > a i {
-            font-size: 1rem;
+        .main-nav i,
+        #topbar-nav-menu i,
+        .main-nav .fas,
+        .main-nav .fa,
+        #topbar-nav-menu .fas,
+        #topbar-nav-menu .fa {
+            font-family: "Font Awesome 5 Free" !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+            display: inline-block !important;
+            font-size: 0.85rem !important;
+            line-height: 1 !important;
+            width: 1.1em !important;
+            text-align: center !important;
+            margin-right: 0.35rem !important;
+            flex-shrink: 0 !important;
             opacity: 0.9;
         }
 

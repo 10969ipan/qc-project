@@ -3,26 +3,40 @@
 
     const DASH = window.__DASHBOARD__ || {};
 
+
+
+    // Gauge: pakai FusionCharts.ready() — sudah lazy via event
     if (window.FusionCharts) {
         FusionCharts.ready(function () {
             renderGauges();
         });
     }
 
-    window.addEventListener('load', function () {
-        if (DASH.isDualView && DASH.statsJakarta && DASH.statsKarawang) {
-            if (document.getElementById("chartJakarta")) {
-                renderChart("chartJakarta", "STATUS APPROVAL - JAKARTA", DASH.statsJakarta);
-            }
-            if (document.getElementById("chartKarawang")) {
-                renderChart("chartKarawang", "STATUS APPROVAL - KARAWANG", DASH.statsKarawang);
-            }
-        } else if (DASH.combinedStats && document.getElementById("chartContainer")) {
-            renderChart("chartContainer", "Status Approval", DASH.combinedStats);
-        }
+    const idle = window.requestIdleCallback
+        ? (fn, ms) => requestIdleCallback(fn, { timeout: ms })
+        : (fn) => setTimeout(fn, 100);
 
-        renderClaimChart();
-        renderNgRateCharts();
+    // Chart approval & claim: defer ke idle setelah page load
+    window.addEventListener('load', function () {
+        idle(function () {
+            if (DASH.isDualView && DASH.statsJakarta && DASH.statsKarawang) {
+                if (document.getElementById("chartJakarta")) {
+                    renderChart("chartJakarta", "STATUS APPROVAL - JAKARTA", DASH.statsJakarta);
+                }
+                if (document.getElementById("chartKarawang")) {
+                    renderChart("chartKarawang", "STATUS APPROVAL - KARAWANG", DASH.statsKarawang);
+                }
+            } else if (DASH.combinedStats && document.getElementById("chartContainer")) {
+                renderChart("chartContainer", "Status Approval", DASH.combinedStats);
+            }
+
+            renderClaimChart();
+        }, 1500);
+
+        // NG Rate: defer lebih jauh — tidak kritis untuk above-the-fold
+        idle(function () {
+            renderNgRateCharts();
+        }, 3000);
     });
 
     function explodePie(e) {

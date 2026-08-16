@@ -39,14 +39,15 @@
         };
     </script>
 
+    <link rel="preload" href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/css/all.min.css') }}"
         rel="stylesheet" type="text/css">
 
-    <link href="{{ asset('fonts/ibm-plex-sans.css') }}" rel="stylesheet">
-    <link href="{{ asset('fonts/nunito.css') }}" rel="stylesheet">
+    <link href="{{ asset('fonts/inter.css') }}" rel="stylesheet">
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom-responsive.css') }}?v={{ time() }}" rel="stylesheet">
+    <link href="{{ asset('css/custom-responsive.css') }}?v={{ filemtime(public_path('css/custom-responsive.css')) }}" rel="stylesheet">
+    @stack('styles')
 
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/datatables/dataTables.bootstrap4.min.css') }}"
         rel="stylesheet">
@@ -54,12 +55,47 @@
     <script src="{{ asset('js/vendor/chart.umd.min.js') }}" defer></script>
     <script src="{{ asset('js/vendor/chartjs-plugin-datalabels.min.js') }}" defer></script>
 
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.js') }}" defer></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.widgets.js') }}" defer></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.fusion.js') }}" defer></script>
-    <script type="text/javascript" src="{{ asset('js/vendor/fusioncharts.theme.gammel.js') }}" defer></script>
+    {{-- FusionCharts dipindah ke bottom body agar tidak timing-race dengan script yang butuh window.FusionCharts --}}
 
     <style>
+        @font-face {
+            font-family: 'Font Awesome 5 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: block;
+            src: url("{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/fontawesome-free/webfonts/fa-solid-900.woff2') }}") format("woff2");
+        }
+
+        html {
+            overflow-y: scroll !important;
+            overflow-x: hidden !important;
+        }
+        body {
+            overflow-x: hidden !important;
+        }
+
+        #wrapper,
+        #content-wrapper,
+        #content {
+            overflow: visible !important;
+        }
+
+        /* Custom Scrollbar Ramping & Clean */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8f9fc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         html, body {
             height: 100%;
             margin: 0;
@@ -72,18 +108,51 @@
         h5,
         h6,
         p,
-        span:not([class*="fa"]):not([class*="icon"]),
-        div:not([class*="fa"]):not([class*="icon"]),
-        a:not([class*="fa"]):not([class*="icon"]),
-        button:not([class*="fa"]):not([class*="icon"]),
+        span:not([class*="fa"]):not([class*="icon"]):not([class*="material"]),
+        div:not([class*="fa"]):not([class*="icon"]):not([class*="material"]),
+        a:not([class*="fa"]):not([class*="icon"]):not([class*="material"]),
+        button:not([class*="fa"]):not([class*="icon"]):not([class*="material"]),
         input,
         textarea,
         select,
         label,
         td,
         th,
-        li {
-            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
+        li:not([class*="fa"]):not([class*="material"]) {
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        i,
+        .fa,
+        .fas,
+        .far,
+        .fab,
+        [class*="fa-"],
+        [class*="icon"] {
+            font-family: "Font Awesome 5 Free" !important;
+            font-style: normal !important;
+        }
+        .far {
+            font-weight: 400 !important;
+        }
+        .fab {
+            font-family: "Font Awesome 5 Brands" !important;
+        }
+
+        .material-icons,
+        .material-icons-round,
+        .material-icons-outlined,
+        .material-symbols-outlined,
+        [class*="material-icons"] {
+            font-family: 'Material Icons Round', 'Material Icons', sans-serif !important;
+            font-weight: normal !important;
+            font-style: normal !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            word-wrap: normal !important;
+            white-space: nowrap !important;
+            direction: ltr !important;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
@@ -431,6 +500,7 @@
 
         .topbar {
             height: 60px !important;
+            min-height: 60px !important;
             padding: 0 1rem !important;
             flex-direction: row !important;
             display: flex !important;
@@ -446,9 +516,23 @@
         }
 
         .main-nav {
-            display: flex;
-            height: 100%;
-            align-items: center;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+        }
+
+        .main-nav > li {
+            position: relative;
+            margin: 0 2px;
+            z-index: 1001;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
         }
 
         @media (max-width: 991.98px) {
@@ -588,20 +672,29 @@
             font-size: 0.85rem;
             font-weight: 500;
             padding: 0 1rem !important;
-            height: 40px;
-            display: flex;
-            align-items: center;
+            height: 38px !important;
+            line-height: 38px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
             border-radius: 0.5rem;
-            transition: all 0.2s;
+            transition: background 0.2s, color 0.2s;
             text-decoration: none;
-            border-bottom: none !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
         }
 
         .main-nav>li:hover>a,
         .main-nav>li.active>a {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         .dropdown-item-hover:hover>.dropdown-menu {
@@ -643,76 +736,22 @@
             position: relative;
         }
 
-        .main-nav>li>a {
-            display: block;
-            padding: 0.55rem 1.25rem;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            border-bottom: 3px solid transparent;
+        .main-nav li {
+            position: relative;
         }
-
-        .main-nav>li:hover>a,
-        .main-nav>li.active>a {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            border-bottom-color: #36b9cc;
-        }
-
-        .main-nav .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            min-width: 250px;
-            background: white;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            border: 1px solid #e3e6f0;
-            border-radius: 0.35rem;
-            margin-top: 0;
-            padding: 0.5rem 0;
-            z-index: 1050;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease, padding 0.3s ease;
-        }
-
-        .main-nav .dropdown-menu.show {
-            display: block;
-            max-height: 600px;
-            padding: 0.5rem 0;
-        }
-
-
 
         .main-nav .dropdown-item {
-            padding: 0.75rem 1.25rem;
-            font-size: 0.85rem;
-            color: #4e73df;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s;
             cursor: pointer;
-            background: transparent;
-            border: none;
             width: 100%;
             text-align: left;
-        }
-
-        .main-nav .dropdown-item:hover {
-            background-color: #f8f9fc;
-            color: #224abe;
-            padding-left: 1.5rem;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         .main-nav .dropdown-item i.submenu-arrow,
         .main-nav>li>a i.fa-chevron-down {
             font-size: 0.7rem;
-            transition: transform 0.3s ease;
         }
 
         .main-nav>li.expanded>a i.fa-chevron-down,
@@ -876,10 +915,17 @@
         }
 
         #content-wrapper {
-            transition: all 0.3s ease;
+            transition: none !important;
             width: 100% !important;
             max-width: 100% !important;
             margin-left: 0 !important;
+        }
+
+        .animated--grow-in,
+        .animated--fade-in,
+        #topbar-nav-menu .dropdown-menu {
+            animation: none !important;
+            transition: none !important;
         }
 
         body.sidebar-toggled #content-wrapper {
@@ -1548,6 +1594,7 @@
         });
     </script>
 
+    @stack('fusioncharts')
     @stack('scripts')
 
 </body>

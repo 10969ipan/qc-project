@@ -1,4 +1,4 @@
-﻿<style>
+<style>
     /* Settings Style Sidebar */
     .settings-sidebar-container {
         border-right: 1px solid #e2e8f0;
@@ -614,13 +614,10 @@
         opacity: 1 !important;
     }
 
-    /* Accordion card entry animation */
-    @keyframes cardSlideIn {
-        from { opacity: 0; transform: translateY(6px); }
-        to   { opacity: 1; transform: translateY(0);   }
-    }
     .perm-module-card {
-        animation: cardSlideIn 0.3s ease forwards;
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
     }
     .perm-module-card:nth-child(1) { animation-delay: 0.02s; }
     .perm-module-card:nth-child(2) { animation-delay: 0.06s; }
@@ -691,14 +688,13 @@
     .custom-switch-warning .custom-control-input:checked ~ .custom-control-label::before { background-color: #f6c23e; border-color: #f6c23e; }
     .custom-switch-secondary .custom-control-input:checked ~ .custom-control-label::before { background-color: #858796; border-color: #858796; }
     
-    /* Animations */
+    /* Disable Animations for Instant Load */
+    .fade-in-quick,
+    .perm-module-card,
     .slide-in {
-        animation: slideInUp 0.4s ease forwards;
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    @keyframes slideInUp {
-        to { opacity: 1; transform: translateY(0); }
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
     }
     
     /* Sortable Menu */

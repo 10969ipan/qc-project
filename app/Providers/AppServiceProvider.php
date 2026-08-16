@@ -24,29 +24,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Share unread rejection alerts with all views for inspectors
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $inputRoutes = [
-                'checksheet.sub_assy',
-                'plating.create',
-                'double_tape.create',
-                'in_process.create',
-                'first_piece_approval.create',
-                'cross_cut.create',
-                'cross_cut_painting.create',
-                'sortir.create',
-            ];
-
-            $isInputRoute = false;
-            foreach ($inputRoutes as $route) {
-                if (request()->routeIs($route)) {
-                    $isInputRoute = true;
-                    break;
-                }
-            }
-
-            // Also check for incoming wildcard routes
-            if (!$isInputRoute && request()->routeIs('incoming.*.create')) {
-                $isInputRoute = true;
-            }
+            $isInputRoute = request()->routeIs(
+                'checksheet.sub_assy', 'plating.create', 'double_tape.create',
+                'in_process.create', 'first_piece_approval.create',
+                'cross_cut.create', 'cross_cut_painting.create',
+                'sortir.create', 'incoming.*.create'
+            );
 
             if ($isInputRoute && auth()->check() && auth()->user()->role === 'inspector') {
                 $rejectionAlerts = \App\Models\Notification::where('user_id', auth()->id())
@@ -71,102 +54,95 @@ class AppServiceProvider extends ServiceProvider
                 $role   = auth()->user()->role;
                 $userId = auth()->id();
 
-                // Admin bypasses all permission checks
-                if ($role === 'admin') {
-                    $menus = \App\Models\AppMenu::whereNull('parent_id')
+                // Cache key per user – invalidate when permissions change (10 menit)
+                $cacheKey = "topbar_menus_{$userId}_{$role}";
+
+                $menus = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(10), function () use ($role, $userId) {
+                    // Admin bypasses all permission checks
+                    if ($role === 'admin') {
+                        return \App\Models\AppMenu::whereNull('parent_id')
+                            ->where('is_active', true)
+                            ->with(['children' => function($q) {
+                                $q->where('is_active', true)
+                                  ->with(['children' => function($sq) {
+                                      $sq->where('is_active', true)
+                                         ->with(['children' => function($ssq) {
+                                             $ssq->where('is_active', true)->orderBy('order');
+                                         }])->orderBy('order');
+                                  }])->orderBy('order');
+                            }])
+                            ->orderBy('order')
+                            ->get();
+                    }
+
+                    // ── Permission filter closure ─────────────────────────────────
+                    $permissionCheck = function($q) use ($role, $userId) {
+                        $q->where(function($query) use ($role, $userId) {
+                            $query->whereHas('userPermissions', function($up) use ($userId) {
+                                $up->where('user_id', $userId)->where('can_view', true);
+                            })
+                            ->orWhere(function($sub) use ($role, $userId) {
+                                $sub->whereHas('permissions', function($p) use ($role) {
+                                    $p->where('role', $role)->where('can_view', true);
+                                })->whereDoesntHave('userPermissions', function($up) use ($userId) {
+                                    $up->where('user_id', $userId);
+                                });
+                            });
+                        });
+                    };
+
+                    $visibleMenus = \App\Models\AppMenu::whereNull('parent_id')
                         ->where('is_active', true)
-                        ->with(['children' => function($q) {
+                        ->with(['children' => function($q) use ($permissionCheck) {
                             $q->where('is_active', true)
-                              ->with(['children' => function($sq) {
+                              ->where(function($sq) use ($permissionCheck) {
+                                  $permissionCheck($sq);
+                              })
+                              ->with(['children' => function($sq) use ($permissionCheck) {
                                   $sq->where('is_active', true)
-                                     ->with(['children' => function($ssq) {
-                                         $ssq->where('is_active', true)->orderBy('order');
-                                     }])->orderBy('order');
-                              }])->orderBy('order');
+                                     ->where(function($ssq) use ($permissionCheck) {
+                                         $permissionCheck($ssq);
+                                     })
+                                     ->with(['children' => function($ssq) use ($permissionCheck) {
+                                         $ssq->where('is_active', true)
+                                             ->where(function($sssq) use ($permissionCheck) {
+                                                 $permissionCheck($sssq);
+                                             })
+                                             ->orderBy('order');
+                                     }])
+                                     ->orderBy('order');
+                              }])
+                              ->orderBy('order');
                         }])
                         ->orderBy('order')
                         ->get();
-                    $view->with('dynamicMenus', $menus);
-                    return;
-                }
 
-                // ── Permission filter closure ─────────────────────────────────
-                // A menu is visible if:
-                //  (a) User has a specific override with can_view = true, OR
-                //  (b) The role has can_view = true AND no user-level override exists for this menu
-                $permissionCheck = function($q) use ($role, $userId) {
-                    $q->where(function($query) use ($role, $userId) {
-                        // (a) User-specific override: can_view = true
-                        $query->whereHas('userPermissions', function($up) use ($userId) {
-                            $up->where('user_id', $userId)->where('can_view', true);
-                        })
-                        // (b) Role permission: can_view = true, with no user-level override
-                        ->orWhere(function($sub) use ($role, $userId) {
-                            $sub->whereHas('permissions', function($p) use ($role) {
-                                $p->where('role', $role)->where('can_view', true);
-                            })->whereDoesntHave('userPermissions', function($up) use ($userId) {
-                                $up->where('user_id', $userId);
-                            });
-                        });
-                        // NOTE: Removed ->orWhere('route', '/') — parent menus must also have
-                        // explicit can_view permission. They only show if a child is visible.
-                    });
-                };
+                    return $visibleMenus->filter(function($menu) use ($permissionCheck, $role, $userId) {
+                        if ($menu->children->isNotEmpty()) return true;
 
-                // Load leaf menus filtered by permission
-                $visibleMenus = \App\Models\AppMenu::whereNull('parent_id')
-                    ->where('is_active', true)
-                    ->with(['children' => function($q) use ($permissionCheck) {
-                        $q->where('is_active', true)
-                          ->where(function($sq) use ($permissionCheck) {
-                              $permissionCheck($sq);
-                          })
-                          ->with(['children' => function($sq) use ($permissionCheck) {
-                              $sq->where('is_active', true)
-                                 ->where(function($ssq) use ($permissionCheck) {
-                                     $permissionCheck($ssq);
-                                 })
-                                 ->with(['children' => function($ssq) use ($permissionCheck) {
-                                     $ssq->where('is_active', true)
-                                         ->where(function($sssq) use ($permissionCheck) {
-                                             $permissionCheck($sssq);
-                                         })
-                                         ->orderBy('order');
-                                 }])
-                                 ->orderBy('order');
-                          }])
-                          ->orderBy('order');
-                    }])
-                    ->orderBy('order')
-                    ->get();
+                        $hasUserPerm = \App\Models\UserPermission::where('user_id', $userId)
+                            ->where('menu_id', $menu->id)->where('can_view', true)->exists();
+                        if ($hasUserPerm) return true;
 
-                // Filter parent menus: show only if
-                //  (a) has direct can_view permission, OR
-                //  (b) has at least one visible child (container dropdown)
-                $menus = $visibleMenus->filter(function($menu) use ($permissionCheck, $role, $userId) {
-                    // Has at least one visible child?
-                    if ($menu->children->isNotEmpty()) {
-                        return true;
-                    }
-                    // No children — check its own permission
-                    $hasUserPerm = \App\Models\UserPermission::where('user_id', $userId)
-                        ->where('menu_id', $menu->id)->where('can_view', true)->exists();
-                    if ($hasUserPerm) return true;
-
-                    $hasRolePerm = \App\Models\RolePermission::where('role', $role)
-                        ->where('menu_id', $menu->id)->where('can_view', true)->exists();
-                    $hasUserOverride = \App\Models\UserPermission::where('user_id', $userId)
-                        ->where('menu_id', $menu->id)->exists();
-                    return $hasRolePerm && !$hasUserOverride;
-                })->values();
+                        $hasRolePerm = \App\Models\RolePermission::where('role', $role)
+                            ->where('menu_id', $menu->id)->where('can_view', true)->exists();
+                        $hasUserOverride = \App\Models\UserPermission::where('user_id', $userId)
+                            ->where('menu_id', $menu->id)->exists();
+                        return $hasRolePerm && !$hasUserOverride;
+                    })->values();
+                });
 
                 $view->with('dynamicMenus', $menus);
             }
         });
 
-        // Share dynamic Next Process options with all views
+        // Share dynamic Next Process options with all views (cached 30 menit)
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $view->with('nextProcessesGlobal', \App\Models\NextProcess::where('is_active', true)->orderBy('plant_id')->orderBy('order')->get());
+            $view->with('nextProcessesGlobal', \Illuminate\Support\Facades\Cache::remember(
+                'next_processes_active',
+                now()->addMinutes(30),
+                fn() => \App\Models\NextProcess::where('is_active', true)->orderBy('plant_id')->orderBy('order')->get()
+            ));
         });
 
         // Register Global Observer for Activity Log Diff

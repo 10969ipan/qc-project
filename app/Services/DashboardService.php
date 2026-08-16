@@ -337,8 +337,6 @@ class DashboardService extends BaseService
 
         $results = $query->selectRaw(implode(', ', $selects))->first();
 
-        \Illuminate\Support\Facades\Log::info("DEBUG: Stats for {$modelClass} ({$plantId}) dailyOnly={$dailyOnly}: " . json_encode($results));
-
         if ($results && $results->total_rows > 0) {
             foreach ($columns as $column) {
                 $stats['rejected'] += (int) ($results->{"{$column}_rejected"} ?? 0);
