@@ -315,14 +315,12 @@
                         @forelse($inspectorRecap->groupBy('operator_initials') as $operator => $rows)
                             @foreach($rows as $index => $row)
                                 <tr>
-                                    @if($loop->first)
-                                        <td rowspan="{{ $rows->count() }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $globalIndex++ }}
-                                        </td>
-                                        <td rowspan="{{ $rows->count() }}" class="font-weight-bold text-primary align-middle" style="background-color: #fcfcfc; text-transform: uppercase;">
-                                            {{ $operator }}
-                                        </td>
-                                    @endif
+                                    <td class="text-center font-weight small align-middle">
+                                        {{ $globalIndex++ }}
+                                    </td>
+                                    <td class="font-weight-bold text-primary align-middle" style="text-transform: uppercase;">
+                                        {{ $operator }}
+                                    </td>
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
@@ -394,29 +392,25 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php $globalNgIndex = 1; @endphp
                         @forelse($ngRecap as $itemIndex => $row)
-                            @php
-                                $defectCount = count($row->defects);
-                            @endphp
                             @foreach($row->defects as $defectIndex => $defect)
                                 <tr>
-                                    @if($loop->first)
-                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $itemIndex + 1 }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->name ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="text-uppercase small font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->part_number ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="small align-middle" style="background-color: #fcfcfc;">
-                                            {{ $row->item->customer ?? '-' }}
-                                        </td>
-                                        <td rowspan="{{ $defectCount }}" class="text-center font-weight align-middle" style="background-color: #fcfcfc;">
-                                            {{ number_format($row->total_qty_sum) }} pcs
-                                        </td>
-                                    @endif
+                                    <td class="text-center font-weight small align-middle">
+                                        {{ $globalNgIndex++ }}
+                                    </td>
+                                    <td class="font-weight align-middle">
+                                        {{ $row->item->name ?? '-' }}
+                                    </td>
+                                    <td class="text-uppercase small font-weight align-middle">
+                                        {{ $row->item->part_number ?? '-' }}
+                                    </td>
+                                    <td class="small align-middle">
+                                        {{ $row->item->customer ?? '-' }}
+                                    </td>
+                                    <td class="text-center font-weight align-middle">
+                                        {{ number_format($row->total_qty_sum) }} pcs
+                                    </td>
                                     <td class="font-weight-bold text-danger align-middle">
                                         {{ $defect->defect_type }}
                                     </td>
