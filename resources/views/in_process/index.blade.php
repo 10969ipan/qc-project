@@ -964,142 +964,150 @@
 
 
                                 @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
-                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                    <td class="align-middle text-center text-nowrap no-export" style="{{ auth()->user()->role === 'admin' ? 'width: 50px;' : 'min-width: 170px;' }}">
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
-                                        @endphp
-                                        @if(request('view_mode') !== 'verifikasi')
-                                        @if($loop->first)
-                                            @include('partials.bulk_approve_button')
-                                        @endif
-                                        {{-- Tombol Aksi untuk Persetujuan --}}
-                                        @php
                                             $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
-                                                $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
-                                                (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
-                                                (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
-                                                $checksheet->manager_qc === 'REJECTED');
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+
+                                            $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
+                                            $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
+                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
+
+                                            $showEdit = (request('view_mode') === 'verifikasi' || $canEdit);
+                                            $showDel = (request('view_mode') === 'verifikasi' || $canDelete);
+                                            $statusUrl = $isAdmin ? route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null;
                                         @endphp
 
-                                        @if($canApproveKashift)
-                                            <form
-                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveAsst)
-                                            <form
-                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveManager)
-                                            <form
-                                                action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                        @if(request('view_mode') !== 'verifikasi' && $loop->first)
+                                            @include('partials.bulk_approve_button')
                                         @endif
 
-                                        @php $showEdit = (request('view_mode') === 'verifikasi' || $canEdit); $showDel = (request('view_mode') === 'verifikasi' || $canDelete); @endphp
-                                        @include('partials.action_dropdown', [
-                                            'canEdit'      => $showEdit,
-                                            'canDelete'    => $showDel,
-                                            'editUrl'      => route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())),
-                                            'deleteRoute'  => route('in_process.destroy', array_merge(request()->query(), ['id' => $checksheet->id])),
-                                            'deleteParams' => [],
-                                            'statusUrl'    => $isAdmin ? route('admin.in_process.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
-                                        ])
+                                        {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
+                                        @if(request('view_mode') !== 'verifikasi' && !$isAdmin)
+                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
+                                                <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
+                                                        <i class="fas fa-check"></i> Approve{{ $kashiftAcronym }}
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'supervisor' && $canApproveSupervisor)
+                                                <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)">
+                                                        <i class="fas fa-check"></i> Approve SPV
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @endif
+                                        @endif
+
+                                        {{-- 3-Dots Dropdown Menu --}}
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-light btn-sm border shadow-sm" type="button"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                    style="width:32px;height:32px;border-radius:8px;padding:0;" title="Opsi Aksi">
+                                                <i class="fas fa-ellipsis-v text-secondary"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:8px;min-width:180px;">
+                                                @if(request('view_mode') !== 'verifikasi' && $isAdmin)
+                                                    {{-- Approve Kashift (Admin Only in Dropdown) --}}
+                                                    @if($canApproveKashift)
+                                                        <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve {{ $kashiftLabel }}
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Supervisor (Admin Only in Dropdown) --}}
+                                                    @if($canApproveSupervisor)
+                                                        <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve SPV
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    @if($statusUrl)
+                                                        <a href="{{ $statusUrl }}" class="dropdown-item no-loader btn-status-modal">
+                                                            <i class="fas fa-user-check text-info fa-fw mr-2"></i> Status Approval
+                                                        </a>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+                                                @endif
+
+                                                @if($showEdit)
+                                                    <a href="{{ route('in_process.edit', array_merge(['id' => $checksheet->id], request()->all())) }}" class="dropdown-item no-loader btn-edit-modal">
+                                                        <i class="fas fa-edit text-warning fa-fw mr-2"></i> Edit
+                                                    </a>
+                                                @endif
+
+                                                @if($showDel)
+                                                    @if($showEdit) <div class="dropdown-divider"></div> @endif
+                                                    <form action="{{ route('in_process.destroy', array_merge(request()->query(), ['id' => $checksheet->id])) }}" method="POST" class="d-inline w-100">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                            <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
                                 @endif
                             </tr>

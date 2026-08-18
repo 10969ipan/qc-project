@@ -5,13 +5,13 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: 68vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
     #checksheetTable {
-        border-collapse: collapse !important;
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
@@ -28,8 +28,9 @@
         border-top: none !important;
         vertical-align: middle !important;
         color: #334155 !important;
-        font-size: 0.68rem !important;
-        padding: 4px 6px !important;
+        font-size: 0.60rem !important;
+        padding: 2px 4px !important;
+        line-height: 1.1 !important;
     }
 
     /* Global TH sticky setup */
@@ -37,51 +38,59 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
-        padding: 6px 12px !important;
+        font-size: 0.58rem !important;
+        letter-spacing: 0.1px;
+        padding: 3px 5px !important;
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
+        line-height: 1.1 !important;
         white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
+    }
+
+    #checksheetTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
+    }
+
+    #checksheetTable td.no-export {
+        min-width: 0 !important;
+        white-space: nowrap !important;
+    }
+    #checksheetTable .btn {
+        min-width: 0 !important;
+        padding: 0.1rem 0.3rem !important;
+        font-size: 0.58rem !important;
+        margin: 0px !important;
+    }
+    #checksheetTable .badge {
+        font-size: 0.58rem !important;
+        padding: 0.1rem 0.3rem !important;
     }
 
     /* Exact sticky heights */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 24px !important;
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+        top: 24px !important; 
         z-index: 104 !important;
-        height: 30px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        height: 20px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+    
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
-    }
-
-    /* Compact UI Overrides */
-    #checksheetTable .btn {
-        min-width: 0 !important;
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.6rem !important;
-        margin: 1px !important;
-    }
-    #checksheetTable .badge {
-        font-size: 0.6rem !important;
-        padding: 0.2rem 0.4rem !important;
-    }
-
-    #checksheetTable tbody tr:hover {
-        background-color: #f1f5f9 !important;
-        transition: background-color 0.2s ease;
+        top: 0 !important;
+        height: 44px !important; /* 24 + 20 */
+        z-index: 106 !important;
     }
 </style>
     <div class="card shadow mb-2">
@@ -127,28 +136,31 @@
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
+    <div class="card shadow mb-2">
+        <div class="card-header py-2 px-3">
             @if(request('view_mode') === 'verifikasi')
-                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-1"></i> Data Hasil Verifikasi Plating</h6>
+                <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA HASIL VERIFIKASI PLATING</h6>
             @else
-                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Plating</h6>
+                <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK PLATING</h6>
             @endif
         </div>
-        <div class="card-body">
-            <form action="{{ route('plating.index') }}" method="GET" 
-                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-4 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormPlating">
-                @if(request('plant'))
-                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+        <div class="card-body p-2">
+            <form action="{{ route('plating.index') }}" method="GET"
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormPlating">
+
+                {{-- Preserve Context Parameters --}}
+                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                @if(request('view_mode'))
+                    <input type="hidden" name="view_mode" value="{{ request('view_mode') }}">
                 @endif
 
-                <!-- Field: Part -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
+                <!-- 1. Field: Part Name -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
                     <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Item / Part No.</option>
+                            <option value="">Semua Part Name</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
@@ -158,23 +170,10 @@
                     </div>
                 </div>
 
-                <!-- Field: Inisial -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
-                    <div style="width: 110px;" class="custom-filter-wrapper">
-                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Inisial</option>
-                            @foreach($initials as $initial)
-                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Field: Customer -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
-                    <div style="width: 110px;" class="custom-filter-wrapper">
+                <!-- 2. Field: Customer -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
+                    <div style="width: 140px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
                             @foreach($customers as $customer)
@@ -184,13 +183,23 @@
                     </div>
                 </div>
 
+                <!-- 3. Field: Tanggal (dari - sampai) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
+                </div>
 
-
-                <!-- Field: Shift -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Shift:</label>
-                    <div style="width: 80px;" class="custom-filter-wrapper">
-                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm d-none">
+                <!-- 4. Field: Shift -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
+                    <div style="width: 95px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
                             <option value="">Semua</option>
                             <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
@@ -199,70 +208,83 @@
                     </div>
                 </div>
 
-                <!-- Filter Tanggal -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-1 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                <!-- 5. Field: Inisial -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Inisial</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
-                <!-- Filter QR Raw -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
-                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
+                <!-- Tombol Filter & Reset (Di Samping Inisial dengan 2x Space) -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
+                    </style>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
+                    </button>
+                    <a href="{{ route('plating.index', array_merge(['plant' => request('plant')], request('view_mode') ? ['view_mode' => request('view_mode')] : [])) }}"
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
+                    </a>
+                </div>
+
+                @if(request('view_mode') === 'verifikasi')
+                <!-- 6. Field: QR Code (Tampilkan HANYA untuk Mode Verifikasi) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">QR Code</label>
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 180px;">
                         <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
-                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.70rem; height: 26px;">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
-                                <i class="fas fa-qrcode" style="pointer-events: none;"></i>
+                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="height: 26px; padding: 0 8px;">
+                                <i class="fas fa-qrcode"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+                @endif
 
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
-                    </button>
-                    <a href="{{ route('plating.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
-                    </a>
+                <!-- Tombol Navigasi & Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if(request('view_mode') !== 'verifikasi')
                         <a href="{{ route('plating.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Data Hasil Verifikasi"
-                            style="background-color: #6f42c1; color: white;">
-                            <i class="fas fa-clipboard-check fa-sm"></i> Hasil Verifikasi
+                            class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Hasil Verifikasi"
+                            style="background-color: #6f42c1; color: white; font-size: 0.68rem; height: 26px;">
+                            <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
                         </a>
                     @else
                         <a href="{{ route('plating.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Kembali ke Data Regular"
-                            style="background-color: #6c757d; color: white;">
-                            <i class="fas fa-arrow-left fa-sm"></i> Kembali
+                            class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Kembali ke Data Regular"
+                            style="background-color: #6c757d; color: white; font-size: 0.68rem; height: 26px;">
+                            <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
                         </a>
                     @endif
                     <a href="{{ route('plating.daily_recap', ['start_date' => request('start_date') ?: now()->toDateString(), 'plant' => request('plant')]) }}"
                         id="btnDailyRecap"
-                        class="btn btn-dark btn-sm shadow-sm rounded-pill px-3 no-loader" title="Rekap Harian Verification"
-                        target="_blank">
-                        <i class="fas fa-list-alt fa-sm"></i>
+                        class="btn btn-dark btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Rekap Harian Verification"
+                        style="font-size: 0.68rem; height: 26px;" target="_blank">
+                        <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap
                     </a>
                     @if($canExport)
-                        <a href="{{ route('plating.print', request()->query()) }}" target="_blank"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview"
-                            style="background-color: #17a589; color: white;">
-                            <i class="fas fa-print fa-sm"></i>
-                        </a>
-                        <a href="{{ route('plating.export_pdf', request()->query()) }}"
-                            class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                            <i class="fas fa-file-pdf fa-sm"></i>
-                        </a>
+                    <a href="{{ route('plating.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
+                    </a>
+                    <a href="{{ route('plating.print', request()->query()) }}"
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
+                        style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
+                    </a>
                     @endif
                 </div>
             </form>
@@ -332,7 +354,7 @@
                             <th rowspan="2" class="align-middle">Inisial</th>
 
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="4" class="align-middle">Approval Status</th>
+                                <th colspan="2" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
@@ -343,11 +365,8 @@
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
                             <th style="min-width: 150px;">Jenis NG</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
-                                </th>
-                                <th style="font-size: 10px;"><x-approval-label level="supervisor" /></th>
-                                <th style="font-size: 10px;"><x-approval-label level="asst_manager" /></th>
-                                <th style="font-size: 10px;"><x-approval-label level="manager" /></th>
+                                <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                             @endif
                         </tr>
                     </thead>
@@ -490,90 +509,60 @@
 
                                 @if(request('view_mode') !== 'verifikasi')
                                 {{-- Kashift QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
                                     @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->kashift_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->kashift_qc }}</div>
+                                            @if($checksheet->kashift_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @else
-                                        <span class="badge badge-warning">
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
-                                    @endif
-                                    @if($checksheet->kashift_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
                                 {{-- Supervisor QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
                                     @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->supervisor_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->supervisor_qc }}</div>
+                                            @if($checksheet->supervisor_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @else
-                                        <span class="badge badge-warning">
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
-                                    @endif
-                                    @if($checksheet->supervisor_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Asst Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                    @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->asst_manager_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                    @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->manager_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
                                 @endif {{-- end view_mode !== verifikasi --}}
@@ -598,100 +587,150 @@
                                 </td>
 
                                 @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
-                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
+                                    <td class="align-middle text-center text-nowrap no-export" style="{{ auth()->user()->role === 'admin' ? 'width: 50px;' : 'min-width: 170px;' }}">
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
+                                            $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+
+                                            $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
+                                            $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
+                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
+
+                                            $showEdit = (request('view_mode') === 'verifikasi' || $canEdit);
+                                            $showDel = (request('view_mode') === 'verifikasi' || $canDelete);
+                                            $statusUrl = $isAdmin ? route('plating.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null;
                                         @endphp
-                                        @if(request('view_mode') !== 'verifikasi')
-                                        @if($loop->first)
+
+                                        @if(request('view_mode') !== 'verifikasi' && $loop->first)
                                             @include('partials.bulk_approve_button')
                                         @endif
-                                        @php
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
-                                        @endphp
 
-                                        @if($canApproveKashift)
-                                            <form
-                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve KS
+                                        {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
+                                        @if(request('view_mode') !== 'verifikasi' && !$isAdmin)
+                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
+                                                <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
+                                                        <i class="fas fa-check"></i> Approve{{ $kashiftAcronym }}
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                    <i class="fas fa-times"></i> Reject
                                                 </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-
-                                        @if($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve SPV
+                                            @elseif($user->role === 'supervisor' && $canApproveSupervisor)
+                                                <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)">
+                                                        <i class="fas fa-check"></i> Approve SPV
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
                                                 </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
+                                            @endif
                                         @endif
 
-                                        @if($canApproveAsst)
-                                            <form
-                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve AM
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
+                                        {{-- 3-Dots Dropdown Menu --}}
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-light btn-sm border shadow-sm" type="button"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                    style="width:32px;height:32px;border-radius:8px;padding:0;" title="Opsi Aksi">
+                                                <i class="fas fa-ellipsis-v text-secondary"></i>
                                             </button>
-                                        @endif
+                                            <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:8px;min-width:180px;">
+                                                @if(request('view_mode') !== 'verifikasi' && $isAdmin)
+                                                    {{-- Approve Kashift (Admin Only in Dropdown) --}}
+                                                    @if($canApproveKashift)
+                                                        <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve {{ $kashiftLabel }}
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
 
-                                        @if($canApproveManager)
-                                            <form
-                                                action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i> Approve MGR
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
+                                                    {{-- Approve Supervisor (Admin Only in Dropdown) --}}
+                                                    @if($canApproveSupervisor)
+                                                        <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve SPV
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
 
-                                        @endif
-                                        @php $showEdit = (request('view_mode') === 'verifikasi' || $canEdit); $showDel = (request('view_mode') === 'verifikasi' || $canDelete); @endphp
-                                        @include('partials.action_dropdown', [
-                                            'canEdit'      => $showEdit,
-                                            'canDelete'    => $showDel,
-                                            'editUrl'      => route('plating.edit', array_merge(['id' => $checksheet->id], request()->all())),
-                                            'deleteRoute'  => route('plating.destroy', array_merge(['id' => $checksheet->id], request()->all())),
-                                            'deleteParams' => [],
-                                            'statusUrl'    => $isAdmin ? route('plating.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
-                                        ])
+                                                    @if($statusUrl)
+                                                        <a href="{{ $statusUrl }}" class="dropdown-item no-loader btn-status-modal">
+                                                            <i class="fas fa-user-check text-info fa-fw mr-2"></i> Status Approval
+                                                        </a>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+                                                @endif
+
+                                                @if($showEdit)
+                                                    <a href="{{ route('plating.edit', array_merge(['id' => $checksheet->id], request()->all())) }}" class="dropdown-item no-loader btn-edit-modal">
+                                                        <i class="fas fa-edit text-warning fa-fw mr-2"></i> Edit
+                                                    </a>
+                                                @endif
+
+                                                @if($showDel)
+                                                    @if($showEdit) <div class="dropdown-divider"></div> @endif
+                                                    <form action="{{ route('plating.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}" method="POST" class="d-inline w-100">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                            <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
                                 @endif
                             </tr>
@@ -931,7 +970,6 @@
                 initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
                 initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });
-                initItemSearch('filterShift', { placeholder: 'Pilih Shift...', maxResults: 5 });
             }
 
             var form = document.getElementById('filterFormPlating');
@@ -1131,6 +1169,31 @@
                     });
                 });
             }
+        });
+
+        // Direct Print (Tanpa Buka Halaman Baru & Tanpa Double Dialog)
+        $(document).on('click', '.btn-print-direct', function(e) {
+            e.preventDefault();
+            var printUrl = $(this).attr('href');
+            if (!printUrl || printUrl === '#') return;
+
+            var oldIframe = document.getElementById('silentPrintIframe');
+            if (oldIframe) {
+                oldIframe.parentNode.removeChild(oldIframe);
+            }
+
+            var iframe = document.createElement('iframe');
+            iframe.id = 'silentPrintIframe';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.style.opacity = '0';
+            iframe.src = printUrl;
+
+            document.body.appendChild(iframe);
         });
     </script>
 @endpush

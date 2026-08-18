@@ -5,7 +5,7 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: 68vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
@@ -28,8 +28,9 @@
         border-top: none !important;
         vertical-align: middle !important;
         color: #334155 !important;
-        font-size: 0.68rem !important;
-        padding: 4px 6px !important;
+        font-size: 0.60rem !important;
+        padding: 2px 4px !important;
+        line-height: 1.1 !important;
     }
 
     /* Global TH sticky setup */
@@ -41,49 +42,54 @@
         color: #475569 !important;
         font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
-        padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
+        font-size: 0.58rem !important;
+        letter-spacing: 0.1px;
+        padding: 3px 5px !important;
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
         border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
-        white-space: nowrap !important; /* Force all headers to be side-by-side */
-        box-shadow: inset 0 -1px 0 #e2e8f0;
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
     }
 
-    /* Forced overrides for compact view */
+    #checksheetTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
+    }
+
     #checksheetTable td.no-export {
         min-width: 0 !important;
-        white-space: nowrap !important; 
+        white-space: nowrap !important;
     }
     #checksheetTable .btn {
         min-width: 0 !important;
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.6rem !important;
-        margin: 1px !important;
+        padding: 0.1rem 0.3rem !important;
+        font-size: 0.58rem !important;
+        margin: 0px !important;
     }
     #checksheetTable .badge {
-        font-size: 0.6rem !important;
-        padding: 0.2rem 0.4rem !important;
+        font-size: 0.58rem !important;
+        padding: 0.1rem 0.3rem !important;
     }
 
-    /* Exact sticky heights since headers no longer wrap */
+    /* Exact sticky heights */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 48px !important; 
+        height: 24px !important;
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 48px !important; 
+        top: 24px !important; 
         z-index: 104 !important;
-        height: 38px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        height: 20px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+    
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
         top: 0 !important;
-        height: 86px !important; /* 48 + 38 */
+        height: 44px !important; /* 24 + 20 */
         z-index: 106 !important;
     }
 
@@ -217,20 +223,24 @@
     <!-- Hidden Logo for PDF Export -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
-    <div class="card shadow mb-4">
-        <div class="card-body">
+    <div class="card shadow mb-2">
+        <div class="card-header py-2 px-3">
+            <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK FIRST PIECE APPROVAL</h6>
+        </div>
+        <div class="card-body p-2">
             <form action="{{ route('first_piece_approval.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 10px;" id="filterFormFpa">
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormFpa">
 
+                {{-- Preserve Context Parameters --}}
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <!-- Field: Part -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 240px;" class="custom-filter-wrapper">
+                <!-- 1. Field: Part Name -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
+                    <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Item / Part No.</option>
+                            <option value="">Semua Part Name</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
@@ -240,21 +250,47 @@
                     </div>
                 </div>
 
-                <!-- Field: Tanggal -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-2 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                <!-- 2. Field: Customer -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
+                    <div style="width: 140px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
-                <!-- Field: Inisial -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
+                <!-- 3. Field: Tanggal (dari - sampai) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
+                </div>
+
+                <!-- 4. Field: Shift -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
+                    <div style="width: 95px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 5. Field: Inisial -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Inisial</label>
                     <div style="width: 120px;" class="custom-filter-wrapper">
                         <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Inisial</option>
@@ -265,38 +301,12 @@
                     </div>
                 </div>
 
-                <!-- Field: Customer -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
-                    <div style="width: 130px;" class="custom-filter-wrapper">
-                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Customer</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer }}" {{ request('customer') == $customer ? 'selected' : '' }}>{{ $customer }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Field: Shift -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
-                    <div style="width: 90px;" class="custom-filter-wrapper">
-                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
-                            <option value="">Semua</option>
-                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
-                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
-                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
-                        </select>
-                    </div>
-                </div>
-
                 @if(auth()->check() && auth()->user()->role === 'admin')
-                <!-- Field: Mesin (Khusus Admin) -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Mesin:</label>
+                <!-- 6. Field: Line / Mesin -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Line / Mesin</label>
                     <div style="width: 115px;" class="custom-filter-wrapper">
-                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm border-0 shadow-sm font-weight-bold">
+                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
                             <option value="">Semua Mesin</option>
                             @foreach($machines as $m)
                                 <option value="{{ $m }}" {{ request('code_machine') == $m ? 'selected' : '' }}>
@@ -308,47 +318,51 @@
                 </div>
                 @endif
 
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
+                <!-- Tombol Filter & Reset (Di Samping Line/Mesin dengan 2x Space) -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
                     </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('first_piece_approval.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                </div>
+
+                <!-- Tombol Navigasi & Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
                     <a href="{{ route('first_piece_approval.export_measurements', request()->query()) }}"
-                        class="btn btn-info btn-sm shadow-sm rounded-pill px-3 no-loader" title="Export Metadata Pengukuran (Excel)">
-                        <i class="fas fa-file-excel fa-sm"></i>
+                        class="btn btn-info btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export Metadata Pengukuran (Excel)">
+                        <i class="fas fa-file-excel fa-sm mr-1"></i> Excel
                     </a>
                     <button type="button" 
-                        class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 no-loader" 
+                        class="btn btn-warning btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" 
+                        style="font-size: 0.68rem; height: 26px;"
                         title="Import Metadata Pengukuran"
                         data-toggle="modal" 
                         data-target="#importMetadataModal">
-                        <i class="fas fa-file-import fa-sm"></i>
+                        <i class="fas fa-file-import fa-sm mr-1"></i> Import
                     </button>
                     <a href="{{ route('first_piece_approval.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
                     </a>
                     <a href="{{ route('first_piece_approval.print', request()->query()) }}"
-                        target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
+                        style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     <a href="{{ route('first_piece_approval.daily_recap', ['plant' => request('plant'), 'date' => request('start_date') ?: now()->toDateString()]) }}"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold"
-                        title="Rekap Harian FPA  Distribusi Jam"
-                        style="background-color: #7c3aed; color: white;">
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader font-weight-bold d-flex align-items-center"
+                        title="Rekap Harian FPA — Distribusi Jam"
+                        style="background-color: #7c3aed; color: white; font-size: 0.68rem; height: 26px;">
                         <i class="fas fa-chart-bar fa-sm mr-1"></i> Rekap
                     </a>
                     @endif
@@ -394,7 +408,7 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
 
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th colspan="2" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="no-export align-middle">Action</th>
@@ -403,11 +417,8 @@
                         <tr class="text-center">
                             <th style="width: 5%">Pcs</th>
                             <th>Jenis NG</th>
-                            <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
-                            </th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
-                            <th style="font-size: 10px;">Asst. Manager QC</th>
-                            <th style="font-size: 10px;">Manager QC</th>
+                            <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -787,98 +798,60 @@
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kashift QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
                                     @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->kashift_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->kashift_qc }}</div>
+                                            @if($checksheet->kashift_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
-                                    @endif
-                                    @if($checksheet->kashift_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
                                 {{-- Supervisor QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
                                     @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->supervisor_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->supervisor_qc }}</div>
+                                            @if($checksheet->supervisor_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
-                                    @endif
-                                    @if($checksheet->supervisor_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Asst Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
-                                    @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->asst_manager_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
-                                    @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($checksheet->manager_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -907,13 +880,8 @@
                                     @endif
                                 </td>
 
-
                                 @if(!in_array(auth()->user()->role, ['inspector']))
-                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
-                                        @if($loop->first)
-                                            @include('partials.bulk_approve_button')
-                                        @endif
-                                        {{-- Action Buttons for Approvals --}}
+                                    <td class="align-middle text-center text-nowrap no-export" style="{{ auth()->user()->role === 'admin' ? 'width: 50px;' : 'min-width: 170px;' }}">
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
@@ -921,125 +889,142 @@
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
-                                                $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
-                                                (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
-                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
-                                                (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
-                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc ||
-                                                $checksheet->manager_qc === 'REJECTED');
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+
+                                            $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
+                                            $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
+                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
+
+                                            $showEdit = $canEdit;
+                                            $showDel = $canDelete;
+                                            $statusUrl = $isAdmin ? route('admin.first_piece_approval.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null;
                                         @endphp
 
-                                        @if($canApproveKashift)
-                                            <form
-                                                action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveAsst)
-                                            <form
-                                                action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @endif
-                                        @if($canApproveManager)
-                                            <form
-                                                action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}"
-                                                method="POST" class="d-inline ajax-form">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="item_id" value="{{ request('item_id') }}">
-                                                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)"
-                                                    style="min-width: 110px;">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)"
-                                                data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager"
-                                                style="min-width: 110px;">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
                                         @endif
 
-                                        @include('partials.action_dropdown', [
-                                            'canEdit'      => $canEdit,
-                                            'canDelete'    => $canDelete,
-                                            'editUrl'      => route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())),
-                                            'deleteRoute'  => route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())),
-                                            'deleteParams' => [],
-                                            'statusUrl'    => (auth()->user()->role === 'admin') ? route('admin.first_piece_approval.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null,
-                                        ])
+                                        {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
+                                        @if(!$isAdmin)
+                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
+                                                <form action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
+                                                        <i class="fas fa-check"></i> Approve{{ $kashiftAcronym }}
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'supervisor' && $canApproveSupervisor)
+                                                <form action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)">
+                                                        <i class="fas fa-check"></i> Approve SPV
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @endif
+                                        @endif
+
+                                        {{-- 3-Dots Dropdown Menu --}}
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-light btn-sm border shadow-sm" type="button"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                    style="width:32px;height:32px;border-radius:8px;padding:0;" title="Opsi Aksi">
+                                                <i class="fas fa-ellipsis-v text-secondary"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:8px;min-width:180px;">
+                                                @if($isAdmin)
+                                                    {{-- Approve Kashift (Admin Only in Dropdown) --}}
+                                                    @if($canApproveKashift)
+                                                        <form action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve {{ $kashiftLabel }}
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Supervisor (Admin Only in Dropdown) --}}
+                                                    @if($canApproveSupervisor)
+                                                        <form action="{{ route('first_piece_approval.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve SPV
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    @if($statusUrl)
+                                                        <a href="{{ $statusUrl }}" class="dropdown-item no-loader btn-status-modal">
+                                                            <i class="fas fa-user-check text-info fa-fw mr-2"></i> Status Approval
+                                                        </a>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+                                                @endif
+
+                                                @if($showEdit)
+                                                    <a href="{{ route('first_piece_approval.edit', array_merge(['id' => $checksheet->id], request()->all())) }}" class="dropdown-item no-loader btn-edit-modal">
+                                                        <i class="fas fa-edit text-warning fa-fw mr-2"></i> Edit
+                                                    </a>
+                                                @endif
+
+                                                @if($showDel)
+                                                    @if($showEdit) <div class="dropdown-divider"></div> @endif
+                                                    <form action="{{ route('first_piece_approval.destroy', array_merge(['id' => $checksheet->id], request()->all())) }}" method="POST" class="d-inline w-100">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                            <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
                                 @endif
                             </tr>
@@ -1047,13 +1032,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="pagination-container d-flex justify-content-between align-items-center">
-                <div class="text-muted small font-weight-bold">
-                    Menampilkan {{ $checksheets->firstItem() ?? 0 }} - {{ $checksheets->lastItem() ?? 0 }} dari {{ $checksheets->total() ?? 0 }} data
-                </div>
-                <div>
-                    {{ $checksheets->withQueryString()->links() }}
-                </div>
+            <div class="mt-4 pagination-container">
+                {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>
     </div>
@@ -1386,6 +1366,32 @@
 
     @php $bulkApproveRoute = route('first_piece_approval.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+    <script>
+        // Direct Print (Tanpa Buka Halaman Baru & Tanpa Double Dialog)
+        $(document).on('click', '.btn-print-direct', function(e) {
+            e.preventDefault();
+            var printUrl = $(this).attr('href');
+            if (!printUrl || printUrl === '#') return;
+
+            var oldIframe = document.getElementById('silentPrintIframe');
+            if (oldIframe) {
+                oldIframe.parentNode.removeChild(oldIframe);
+            }
+
+            var iframe = document.createElement('iframe');
+            iframe.id = 'silentPrintIframe';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.style.opacity = '0';
+            iframe.src = printUrl;
+
+            document.body.appendChild(iframe);
+        });
+    </script>
 @endpush
 
 
