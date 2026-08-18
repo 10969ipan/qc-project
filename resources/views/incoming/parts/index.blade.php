@@ -101,25 +101,11 @@
         z-index: 106 !important;
     }
 
-    /* Sticky Pagination */
-    .pagination-container {
-        position: sticky !important;
-        bottom: 0 !important;
-        background-color: #ffffff !important;
-        z-index: 106 !important;
-        padding: 12px 20px !important;
-        margin: 0 -20px -20px -20px !important;
-        border-top: 1px solid #e2e8f0 !important;
-        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-        border-bottom-left-radius: 0.35rem;
-        border-bottom-right-radius: 0.35rem;
-    }
-
-    /* Smart Filter Dropdown Style (In-Process Pattern) */
+    /* Minimalist Filter Style Override */
     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-    .custom-filter-wrapper { position: relative; top: -1px; }
+    .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+    .custom-filter-wrapper { position: relative; top: 0px; }
 </style>
 
     @php
@@ -140,62 +126,22 @@
         }
     @endphp
 
-    <!-- Header Dokumen IPP (Desain Selaras In-Process) -->
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA CHECKSHEET INCOMING PART
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0210</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">01/01/2026</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">0</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
+    <!-- Hidden Logo for PDF Export -->
+    <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <div class="card shadow mb-2">
+        <div class="card-header py-2 px-3">
             @if(request('view_mode') === 'verifikasi')
-                <h6 class="m-0 font-weight-bold text-gray-800">Data Hasil Verifikasi Incoming Part</h6>
+                <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA HASIL VERIFIKASI INCOMING PART</h6>
             @else
-                <h6 class="m-0 font-weight-bold text-gray-800">Data Masuk Incoming Part</h6>
+                <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK INCOMING PART</h6>
             @endif
         </div>
-        <div class="card-body">
-            <!-- Filter Bar Terpadu (Action Bar Selaras In-Process) -->
-            <!-- Filter Bar Terpadu (Action Bar Selaras Sub Assy & In-Process) -->
+        <div class="card-body p-2">
+            <!-- Filter Bar Terpadu (Action Bar Selaras Standard) -->
             <form action="{{ route('incoming.parts.index') }}" method="GET"
-                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncomingPart">
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormIncomingPart">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @if(request()->has('view_mode'))
@@ -205,10 +151,10 @@
                     <input type="hidden" name="entry_method" value="{{ request('entry_method') }}">
                 @endif
                 
-                <!-- Field: Part -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 200px;" class="custom-filter-wrapper">
+                <!-- 1. Field: Part Name -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
+                    <div style="width: 180px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($items as $item)
@@ -220,34 +166,9 @@
                     </div>
                 </div>
 
-                <!-- Field: Tanggal -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-1 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
-                    </div>
-                </div>
-
-                <!-- Field: Inisial -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Inisial:</label>
-                    <div style="width: 110px;" class="custom-filter-wrapper">
-                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Inisial</option>
-                            @foreach($initials ?? [] as $initial)
-                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Field: Customer -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cust:</label>
+                <!-- 2. Field: Customer -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
                     <div style="width: 110px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
@@ -258,11 +179,23 @@
                     </div>
                 </div>
 
-                <!-- Field: Shift -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Shift:</label>
+                <!-- 3. Field: Tanggal -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
+                </div>
+
+                <!-- 4. Field: Shift -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
                     <div style="width: 90px;" class="custom-filter-wrapper">
-                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
                             <option value="">Semua</option>
                             <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
@@ -271,60 +204,70 @@
                     </div>
                 </div>
 
-                <!-- Field: QR Raw (Khusus Data Hasil Verifikasi) -->
+                <!-- 5. Field: Inisial -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Inisial</label>
+                    <div style="width: 110px;" class="custom-filter-wrapper">
+                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Inisial</option>
+                            @foreach($initials ?? [] as $initial)
+                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 6. Field: QR Raw (Khusus Data Hasil Verifikasi) -->
                 @if(request('view_mode') === 'verifikasi')
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">QR:</label>
-                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 200px;">
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">QR Code</label>
+                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 180px;">
                         <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
-                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.70rem; height: 26px;">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
-                                <i class="fas fa-qrcode" style="pointer-events: none;"></i>
+                            <button type="button" class="btn btn-primary border-0 py-0 px-2" id="btnScanQRIndex" title="Scan QR Code" style="height: 26px; touch-action: manipulation;">
+                                <i class="fas fa-qrcode" style="pointer-events: none; font-size: 0.70rem;"></i>
                             </button>
                         </div>
                     </div>
                 </div>
                 @endif
 
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
-                    <style>
-                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
-                    </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
+                <!-- Tombol Filter & Reset -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                </div>
+
+                <!-- Tombol Navigasi & Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if(request('view_mode') !== 'verifikasi')
                         <a href="{{ route('incoming.parts.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
-                            style="background-color: #6f42c1; color: white;">
-                            Hasil Verifikasi
+                            class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader font-weight-bold d-flex align-items-center" title="Data Hasil Verifikasi"
+                            style="background-color: #6f42c1; color: white; font-size: 0.68rem; height: 26px;">
+                            <i class="fas fa-qrcode fa-sm mr-1"></i> Hasil Verifikasi
                         </a>
                     @else
                         <a href="{{ route('incoming.parts.index', ['plant' => request('plant')]) }}"
-                            class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Kembali ke Data Regular"
-                            style="background-color: #6c757d; color: white;">
+                            class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader font-weight-bold d-flex align-items-center" title="Kembali ke Data Regular"
+                            style="background-color: #6c757d; color: white; font-size: 0.68rem; height: 26px;">
                             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
                         </a>
                     @endif
                     @if($canExport)
                     <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export PDF">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
                     </a>
                     <a href="{{ route('incoming.parts.print', request()->query()) }}"
-                        target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Laporan"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Cetak Direct"
+                        style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     @endif
                 </div>
@@ -551,14 +494,8 @@
                 </table>
             </div>
 
-            <!-- Sticky Bottom Pagination Bar -->
-            <div class="pagination-container d-flex justify-content-between align-items-center mt-3">
-                <div class="small text-muted font-weight-bold">
-                    Menampilkan {{ $checksheets->firstItem() ?? 0 }} - {{ $checksheets->lastItem() ?? 0 }} dari total {{ $checksheets->total() ?? 0 }} data
-                </div>
-                <div>
-                    {{ $checksheets->withQueryString()->links() }}
-                </div>
+            <div class="mt-4">
+                {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>
     </div>
@@ -779,6 +716,41 @@
 @endsection
 
 @push('scripts')
+    <!-- Script Cetak Langsung (Direct Silent Print) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-print-direct').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var href = this.getAttribute('href');
+                    if (!href || href === '#') return;
+
+                    var iframe = document.getElementById('silentPrintIframe');
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.id = 'silentPrintIframe';
+                        iframe.style.position = 'fixed';
+                        iframe.style.right = '0';
+                        iframe.style.bottom = '0';
+                        iframe.style.width = '0';
+                        iframe.style.height = '0';
+                        iframe.style.border = '0';
+                        document.body.appendChild(iframe);
+                    }
+
+                    iframe.src = href;
+                    iframe.onload = function() {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (err) {
+                            window.open(href, '_blank');
+                        }
+                    };
+                });
+            });
+        });
+    </script>
 <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

@@ -5,101 +5,92 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
+        max-height: 68vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
-
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
-    }
-    #checksheetTable, #sortirTable {
-        border-collapse: collapse !important;
+    #sortirTable {
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
         table-layout: auto !important;
     }
-    }
-    #checksheetTable td, #checksheetTable th,
+    
     #sortirTable td, #sortirTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    }
-    #checksheetTable tbody td,
+
     #sortirTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
         vertical-align: middle !important;
         color: #334155 !important;
-        font-size: 0.68rem !important;
-        padding: 4px 6px !important;
+        font-size: 0.60rem !important;
+        padding: 2px 4px !important;
+        line-height: 1.1 !important;
     }
 
     /* Global TH sticky setup */
-    #checksheetTable > thead > tr > th,
     #sortirTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
-        padding: 6px 12px !important; /* Wider padding so it's not cramped sideways */
+        font-size: 0.58rem !important;
+        letter-spacing: 0.1px;
+        padding: 3px 5px !important;
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
-        white-space: nowrap !important; /* Force all headers to be side-by-side */
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
+    }
+
+    #sortirTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
     }
 
     /* Forced overrides for compact view */
-    #checksheetTable td.no-export,
     #sortirTable td.no-export {
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
-    }
-    #checksheetTable .btn,
     #sortirTable .btn {
-        min-width: 0 !important; /* Overrides 110px inline style */
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.6rem !important;
-        margin: 1px !important;
+        min-width: 0 !important;
+        padding: 0.1rem 0.3rem !important;
+        font-size: 0.58rem !important;
+        margin: 0px !important;
     }
-    }
-    #checksheetTable .badge,
     #sortirTable .badge {
-        font-size: 0.6rem !important;
-        padding: 0.2rem 0.4rem !important;
+        font-size: 0.58rem !important;
+        padding: 0.1rem 0.3rem !important;
     }
 
-    /* Exact sticky heights since headers no longer wrap */
-    #checksheetTable > thead > tr:nth-child(1) > th,
+    /* Exact sticky heights */
     #sortirTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 24px !important; 
     }
-    }
-    #checksheetTable > thead > tr:nth-child(2) > th,
     #sortirTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+        top: 24px !important; 
         z-index: 104 !important;
-        height: 30px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        height: 20px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
-    }
-    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"],
     #sortirTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
+        top: 0 !important;
+        height: 44px !important; /* 24 + 20 */
+        z-index: 106 !important;
     }
 </style>
     @php
@@ -114,121 +105,93 @@
         $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            HASIL DATA SORTIR
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? 'QC-JKT-F-034/0' : 'QC-KRW-F-0213' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? '18.02.2022' : '25/03/2015' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
-    <div class="card shadow mb-4">
-        <div class="card-body">
+    <div class="card shadow mb-2">
+        <div class="card-header py-2 px-3">
+            <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK SORTIR</h6>
+        </div>
+        <div class="card-body p-2">
             <form action="{{ route('sortir.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 10px;" id="filterFormSortir">
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormSortir">
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Cari:</label>
+                <!-- 1. Field: Part Name / Search -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
                     <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm"
-                        style="width: 160px; border-radius: 0.35rem;" placeholder="Nama item..."
+                        style="width: 150px; font-size: 0.70rem; height: 26px;" placeholder="Cari Item..."
                         value="{{ request('search') }}">
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sumber:</label>
-                    <select name="source_type" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;">
-                        <option value="">Semua</option>
-                        <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>Sub Assy</option>
-                        <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>In Process</option>
-                        <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>Cross Cut</option>
-                    </select>
+                <!-- 2. Field: Sumber -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Sumber</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="source_type" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua</option>
+                            <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>Sub Assy</option>
+                            <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>In Process</option>
+                            <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>Cross Cut</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
-                    <select name="shift" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem; width: 100px;">
-                        <option value="">Semua</option>
-                        <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
-                        <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
-                        <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
-                    </select>
+                <!-- 3. Field: Tanggal -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Dari:</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('start_date') }}">
-                </div>
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Sampai:</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm border-0 shadow-sm"
-                        style="border-radius: 0.35rem;" value="{{ request('end_date') }}">
+                <!-- 4. Field: Shift -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
+                    <div style="width: 95px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua</option>
+                            <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
+                            <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
+                            <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="ml-auto d-flex" style="gap: 5px;">
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
+                <!-- Tombol Filter & Reset -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
+                    <style>
+                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
+                    </style>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('sortir.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                </div>
+
+                <!-- Tombol Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
                     <a href="{{ route('sortir.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
                     </a>
                     <a href="{{ route('sortir.print', request()->query()) }}"
-                        target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;" title="Cetak Direct">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     @endif
                 </div>
@@ -265,9 +228,8 @@
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle">Line</th>
                             <th rowspan="2" class="align-middle">Sumber</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Total Qty</th>
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle">OK</th>
@@ -278,16 +240,15 @@
 
                             <th colspan="2" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
+                            @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="no-export align-middle">Actions</th>
                             @endif
                         </tr>
                         <tr class="text-center">
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
                             <th style="min-width: 150px;">Jenis NG</th>
-                            <th style="font-size: 10px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}
-                            </th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
+                            <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -328,9 +289,11 @@
                                         {{ strtoupper(str_replace('_', ' ', $checksheet->source_type)) }}
                                     </a>
                                 </td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
@@ -381,62 +344,54 @@
                                 <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kashift QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="font-size: 0.65rem;">
                                     @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</span>
                                         @if($checksheet->kashift_qc_time)
-                                            <br><small
-                                                class="text-muted">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</span>
                                         @endif
                                     @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->kashift_qc }}</small>
+                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ $checksheet->kashift_qc }}</span>
                                         @if($checksheet->kashift_qc_time)
-                                            <br><small
-                                                class="text-muted">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</span>
                                         @endif
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
                                 </td>
 
                                 {{-- Supervisor QC --}}
-                                <td class="align-middle text-center">
+                                <td class="align-middle text-center" style="font-size: 0.65rem;">
                                     @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
                                         </span>
-                                        <br><small class="text-muted">oleh
-                                            {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</span>
                                         @if($checksheet->supervisor_qc_time)
-                                            <br><small
-                                                class="text-muted">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</span>
                                         @endif
                                     @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
                                         </span>
-                                        <br><small class="text-muted">oleh {{ $checksheet->supervisor_qc }}</small>
+                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ $checksheet->supervisor_qc }}</span>
                                         @if($checksheet->supervisor_qc_time)
-                                            <br><small
-                                                class="text-muted">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</small>
+                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</span>
                                         @endif
                                     @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                        <span class="badge badge-warning px-2 py-1" style="font-size: 0.65rem;">
                                             <i class="fas fa-clock mr-1"></i> PENDING
                                         </span>
                                     @endif
                                 </td>
-
-                                {{-- Sel tabel untuk AM dan Manager dihapus --}}
 
                                 <td class="align-middle text-left">
                                     @if($checksheet->next_proses)
@@ -445,68 +400,80 @@
                                     {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> CLOSE</span>', e($checksheet->remarks ?? '-')) !!}
                                 </td>
 
-                                @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'karu_qc']))
-                                    <td class="align-middle text-center text-nowrap no-export" style="min-width: 300px;">
-                                        @if($loop->first)
-                                            @include('partials.bulk_approve_button')
-                                        @endif
+                                @if(!in_array(auth()->user()->role, ['inspector']))
+                                    <td class="align-middle text-center text-nowrap no-export" style="{{ auth()->user()->role === 'admin' ? 'width: 50px;' : 'min-width: 170px;' }}">
                                         @php
-                                            $isAdmin = auth()->user()->role === 'admin';
                                             $user = auth()->user();
+                                            $isAdmin = $user->role === 'admin';
                                             $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
                                             $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
                                             $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
+
+                                            $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
+                                            $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
+                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
+
+                                            $showEdit = $canEdit;
+                                            $showDel = $canDelete;
+                                            $statusUrl = $isAdmin ? route('sortir.edit_approval', array_merge(['id' => $checksheet->id], request()->all())) : null;
                                         @endphp
 
-                                        @if($canApproveKashift)
-                                            <form
-                                                action="{{ route('sortir.approve', ['id' => $checksheet->id, 'type' => 'kashift', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
-                                                    <i class="fas fa-check"></i>
-                                                    Approve{{ $isAdmin ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? ' KR' : '') }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal"
-                                                data-target="#rejectModal{{ $checksheet->id }}kashift" title="Reject (Kashift)">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        @elseif($canApproveSupervisor)
-                                            <form
-                                                action="{{ route('sortir.approve', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="page" value="{{ request('page') }}">
-                                                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                                                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                                                <input type="hidden" name="search" value="{{ request('search') }}">
-                                                <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Supervisor)">
-                                                    <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' SPV' : '' }}
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal"
-                                                data-target="#rejectModal{{ $checksheet->id }}supervisor" title="Reject (Supervisor)">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
+                                        @if($loop->first)
+                                            @include('partials.bulk_approve_button')
                                         @endif
 
+                                        {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
+                                        @if(!$isAdmin)
+                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
+                                                <form action="{{ route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $kashiftLabel }})">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift" title="Reject ({{ $kashiftLabel }})">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif(($user->role === 'supervisor' && !$isJakarta) && $canApproveSupervisor)
+                                                <form action="{{ route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Supervisor)">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor" title="Reject (Supervisor)">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @endif
+                                        @endif
+
+                                        {{-- Standard 3-Dot Action Dropdown Menu --}}
                                         @include('partials.action_dropdown', [
-                                            'canEdit'   => $canEdit,
-                                            'canDelete' => $canDelete,
-                                            'editUrl'   => route('sortir.edit', ['id' => $checksheet->id, 'plant' => request('plant')]),
-                                            'deleteRoute' => route('sortir.destroy', ['id' => $checksheet->id, 'plant' => request('plant')]),
-                                            'deleteParams' => [],
-                                            'statusUrl' => null,
+                                            'canEdit'        => $showEdit,
+                                            'canDelete'      => $showDel,
+                                            'editUrl'        => route('sortir.edit', array_merge(['id' => $checksheet->id], request()->all())),
+                                            'deleteRoute'    => route('sortir.destroy', ['id' => $checksheet->id]),
+                                            'deleteParams'   => request()->all(),
+                                            'statusUrl'      => $statusUrl,
+                                            'canApproveKashift' => $canApproveKashift,
+                                            'approveKashiftUrl' => route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())),
+                                            'rejectKashiftModalTarget' => '#rejectModal' . $checksheet->id . 'kashift',
+                                            'canApproveSupervisor' => $canApproveSupervisor,
+                                            'approveSupervisorUrl' => route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())),
+                                            'rejectSupervisorModalTarget' => '#rejectModal' . $checksheet->id . 'supervisor',
+                                            'kashiftLabel' => $kashiftLabel,
+                                            'kashiftAcronym' => $kashiftAcronym,
                                         ])
                                     </td>
                                 @endif
@@ -526,14 +493,9 @@
                                         $canReject = true;
                                     elseif ($rejectType == 'supervisor' && ($isAdmin || auth()->user()->role == 'supervisor'))
                                         $canReject = true;
-                                    elseif ($rejectType == 'asst_manager' && ($isAdmin || auth()->user()->role == 'asst_manager'))
-                                        $canReject = true;
-                                    elseif ($rejectType == 'manager' && ($isAdmin || auth()->user()->role == 'manager'))
-                                        $canReject = true;
                                 @endphp
                                 @if($canReject)
-                                    <div class="modal fade" id="rejectModal{{ $checksheet->id }}{{ $rejectType }}" tabindex="-1"
-                                        role="dialog">
+                                    <div class="modal fade" id="rejectModal{{ $checksheet->id }}{{ $rejectType }}" tabindex="-1" role="dialog">
                                         <div class="modal-dialog" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-danger text-white">
@@ -542,9 +504,7 @@
                                                         <span>&times;</span>
                                                     </button>
                                                 </div>
-                                                <form
-                                                    action="{{ route('sortir.reject', ['id' => $checksheet->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
-                                                    method="POST">
+                                                <form action="{{ route('sortir.reject', array_merge(['id' => $checksheet->id, 'type' => $rejectType], request()->all())) }}" method="POST">
                                                     @csrf
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -554,13 +514,11 @@
                                                     <div class="modal-body">
                                                         <div class="form-group">
                                                             <label>Alasan Rejection:</label>
-                                                            <textarea name="rejection_remarks" class="form-control" rows="3"
-                                                                required></textarea>
+                                                            <textarea name="rejection_remarks" class="form-control" rows="3" required></textarea>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-dismiss="modal">Batal</button>
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                                                         <button type="submit" class="btn btn-danger btn-confirm-reject">Reject</button>
                                                     </div>
                                                 </form>
@@ -574,15 +532,8 @@
                 </table>
             </div>
 
-            <!-- Paginasi -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div>
-                    Showing {{ $checksheets->firstItem() ?? 0 }} to {{ $checksheets->lastItem() ?? 0 }} of
-                    {{ $checksheets->total() }} entries
-                </div>
-                <div>
-                    {{ $checksheets->appends(request()->query())->links() }}
-                </div>
+            <div class="mt-4 pagination-container">
+                {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>
     </div>
@@ -636,6 +587,40 @@
             });
         });
     </script>
+
+    <!-- Script Cetak Langsung (Direct Silent Print) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-print-direct').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var printUrl = this.getAttribute('href');
+                    var iframe = document.createElement('iframe');
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = '0';
+                    iframe.src = printUrl;
+                    document.body.appendChild(iframe);
+                    iframe.onload = function() {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (err) {
+                            console.error('Print iframe error:', err);
+                            window.open(printUrl, '_blank');
+                        }
+                        setTimeout(function() {
+                            document.body.removeChild(iframe);
+                        }, 60000);
+                    };
+                });
+            });
+        });
+    </script>
+
     @php $bulkApproveRoute = route('sortir.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
@@ -762,6 +747,3 @@
     </script>
     @endif
 @endpush
-
-
-

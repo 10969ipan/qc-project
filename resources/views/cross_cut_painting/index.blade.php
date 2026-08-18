@@ -5,13 +5,13 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: 75vh !important;
+        max-height: 68vh !important;
         overflow: auto !important;
         border: none !important;
         box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
     }
     #checksheetTable {
-        border-collapse: collapse !important;
+        border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
@@ -28,8 +28,9 @@
         border-top: none !important;
         vertical-align: middle !important;
         color: #334155 !important;
-        font-size: 0.68rem !important;
-        padding: 4px 6px !important;
+        font-size: 0.60rem !important;
+        padding: 2px 4px !important;
+        line-height: 1.1 !important;
     }
 
     /* Global TH sticky setup */
@@ -37,18 +38,25 @@
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
+        background-clip: padding-box !important;
         color: #475569 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         text-transform: uppercase;
-        font-size: 0.62rem !important;
-        letter-spacing: 0.2px;
-        padding: 6px 12px !important;
+        font-size: 0.58rem !important;
+        letter-spacing: 0.1px;
+        padding: 3px 5px !important;
         border-left: none !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 2px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
-        line-height: 1.2;
+        line-height: 1.1 !important;
         white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1;
+    }
+
+    #checksheetTable tbody tr:hover {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
     }
 
     /* Forced overrides for compact view */
@@ -58,31 +66,32 @@
     }
     #checksheetTable .btn {
         min-width: 0 !important;
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.6rem !important;
-        margin: 1px !important;
+        padding: 0.1rem 0.3rem !important;
+        font-size: 0.58rem !important;
+        margin: 0px !important;
     }
     #checksheetTable .badge {
-        font-size: 0.6rem !important;
-        padding: 0.2rem 0.4rem !important;
+        font-size: 0.58rem !important;
+        padding: 0.1rem 0.3rem !important;
     }
 
-    /* Exact sticky heights since headers no longer wrap */
+    /* Exact sticky heights */
     #checksheetTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
-        height: 35px !important; 
+        height: 24px !important; 
     }
     #checksheetTable > thead > tr:nth-child(2) > th {
-        top: 35px !important; 
+        top: 24px !important; 
         z-index: 104 !important;
-        height: 30px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+        height: 20px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
     #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        height: 65px !important; 
+        top: 0 !important;
+        height: 44px !important; /* 24 + 20 */
+        z-index: 106 !important;
     }
-
 </style>
 
     @php
@@ -94,48 +103,7 @@
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
     @endphp
 
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA CHECKSHEET CROSS CUT PAINTING
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">QC-KRW-F-0215</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">3 / 22/12/2025</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-
-    <!-- Hidden Logo for PDF Export -->
+    <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
     @if (session('success'))
@@ -163,14 +131,21 @@
         </div>
     @endif
 
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <form action="{{ route('cross_cut_painting.index') }}" method="GET" class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" id="filterFormPainting" style="gap: 10px;">
+    <div class="card shadow mb-2">
+        <div class="card-header py-2 px-3">
+            <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK CROSS CUT PAINTING</h6>
+        </div>
+        <div class="card-body p-2">
+            <form action="{{ route('cross_cut_painting.index') }}" method="GET"
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormPainting">
+
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
-                    <div style="width: 240px;" class="custom-filter-wrapper">
+                <!-- 1. Field: Part Name -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
+                    <div style="width: 180px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Item / Part No.</option>
                             @foreach($items as $item)
@@ -182,32 +157,10 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Tanggal:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-2 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Inisial:</label>
+                <!-- 2. Field: Customer -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
                     <div style="width: 120px;" class="custom-filter-wrapper">
-                        <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Inisial</option>
-                            @foreach($initials as $initial)
-                                <option value="{{ $initial }}" {{ request('operator_initials') == $initial ? 'selected' : '' }}>{{ $initial }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
-                    <div style="width: 130px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
                             @foreach($customers as $customer)
@@ -217,11 +170,24 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Shift:</label>
-                    <div style="width: 100px;" class="custom-filter-wrapper">
-                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
-                            <option value="">Semua Shift</option>
+                <!-- 3. Field: Tanggal -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
+                </div>
+
+                <!-- 4. Field: Shift -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
+                    <div style="width: 95px;" class="custom-filter-wrapper">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua</option>
                             <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
                             <option value="3" {{ request('shift') == '3' ? 'selected' : '' }}>Shift 3</option>
@@ -229,39 +195,52 @@
                     </div>
                 </div>
 
-                <div class="ml-auto d-flex" style="gap: 5px;">
+                <!-- Tombol Filter & Reset -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
                     </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('cross_cut_painting.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                </div>
+
+                <!-- Tombol Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
-                    <a href="{{ route('cross_cut_painting.export_pdf') }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader" title="Export to PDF" target="_blank">
-                        <i class="fas fa-file-pdf fa-sm"></i>
+                    <a href="{{ route('cross_cut_painting.export_pdf', request()->query()) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
                     </a>
-                    <a href="{{ route('cross_cut_painting.print') }}"
-                        target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                    <a href="{{ route('cross_cut_painting.print', request()->query()) }}"
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;" title="Cetak Direct">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     @endif
                 </div>
+
             </form>
 
-            <hr>
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
+                        @php
+                            $requestPlant = request('plant');
+                            $userPlantCode = optional(auth()->user()->plant)->code;
+                            if (!empty($requestPlant)) {
+                                $plant = \App\Models\Plant::where('code', $requestPlant)->orWhere('id', $requestPlant)->first();
+                                $plantContext = strtolower($plant?->code ?? $requestPlant);
+                            } else {
+                                $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
+                            }
+                        @endphp
                         <tr class="text-center">
                             @if(!in_array(auth()->user()->role, ['inspector']) && auth()->user()->role === 'admin')
                                 <th rowspan="2" class="align-middle" style="width: 50px;">
@@ -283,26 +262,22 @@
                             <th rowspan="2" class="align-middle">Jam After</th>
                             <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                             <th rowspan="2" class="align-middle">Judgement</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             <th colspan="4" class="align-middle">Approval Status</th>
-                            <th colspan="2" class="align-middle">Mengetahui</th>
                             <th rowspan="2" class="align-middle" style="min-width: 400px;">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
                             @endif
                         </tr>
                         <tr class="text-center">
-                            <th style="font-size: 10px;">Kepala Regu QC</th>
-                            <th style="font-size: 10px;">Kashift Plating</th>
-                            <th style="font-size: 10px;">Supervisor Quality</th>
-                            <th style="font-size: 10px;">Supervisor Plating</th>
-                            <th style="font-size: 10px;">Asst Manager QC</th>
-                            <th style="font-size: 10px;">Asst Manager Plating</th>
+                            <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px; min-width: 120px;">Kashift Painting</th>
+                            <th style="font-size: 10px; min-width: 120px;">Supervisor Quality</th>
+                            <th style="font-size: 10px; min-width: 120px;">Supervisor Painting</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -331,9 +306,11 @@
                                 <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
                                 <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->name }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle p-2" style="min-width: 180px;">
                                     <table class="table table-bordered mb-2 text-left mx-auto" style="font-size: 0.8rem; max-width: 200px;">
                                         <tbody>
@@ -430,8 +407,6 @@
                                                 'kashift_plating' => 'Kashift P',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
-                                                'asst_manager' => 'Asst MGR Q',
-                                                'asst_manager_plating' => 'Asst MGR P'
                                             ];
                                             $approvalKeys = array_keys($rolesToApprove);
 
@@ -493,7 +468,7 @@
                                             'editUrl'      => route('cross_cut_painting.edit', array_merge(['id' => $checksheet->id], request()->query())),
                                             'deleteRoute'  => route('cross_cut_painting.destroy', array_merge(['id' => $checksheet->id], request()->query())),
                                             'deleteParams' => [],
-                                            'statusUrl'    => $isAdmin ? route('admin.cross_cut_painting.edit_approval', array_merge(['id' => $checksheet->id], request()->query())) : null,
+                                            'statusUrl'    => $isAdmin ? route('cross_cut_painting.edit_approval', array_merge(['id' => $checksheet->id], request()->query())) : null,
                                         ])
                                     </td>
                                 @endif
@@ -611,6 +586,38 @@
 @endsection
 
 @push('scripts')
+    <!-- Script Cetak Langsung (Direct Silent Print) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-print-direct').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var printUrl = this.getAttribute('href');
+                    var iframe = document.createElement('iframe');
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = '0';
+                    iframe.src = printUrl;
+                    document.body.appendChild(iframe);
+                    iframe.onload = function() {
+                        try {
+                            iframe.contentWindow.focus();
+                            iframe.contentWindow.print();
+                        } catch (err) {
+                            console.error('Print iframe error:', err);
+                            window.open(printUrl, '_blank');
+                        }
+                        setTimeout(function() {
+                            document.body.removeChild(iframe);
+                        }, 60000);
+                    };
+                });
+            });
+        });
+    </script>
     <script src="{{ asset('js/vendor/jspdf.umd.min.js') }}"></script>
     <script src="{{ asset('js/vendor/jspdf.plugin.autotable.min.js') }}"></script>
     <script src="{{ asset('js/checksheet/cross-cut.js') }}"></script>

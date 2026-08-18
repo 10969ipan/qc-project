@@ -87,7 +87,7 @@ class CrossCutPaintingChecksheetController extends Controller
             ->orderBy('operator_initials')
             ->pluck('operator_initials');
 
-        $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'asst_manager', 'asst_manager_plating'];
+        $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating'];
 
         $canExport = \App\Helpers\AppMenu::checkPermission('cross_cut_painting.index', 'export');
         $canEdit = \App\Helpers\AppMenu::checkPermission('cross_cut_painting.index', 'edit');

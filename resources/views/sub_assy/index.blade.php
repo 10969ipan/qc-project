@@ -120,62 +120,8 @@
                 if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
             }
         }
-
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('sub_assy', $plantCode, [
-            'no_dokumen' => $plantCode === 'jakarta' ? 'QC-JKT-F-034/0' : 'QC-KRW-F-0213',
-            'tgl_terbit' => $plantCode === 'jakarta' ? '18.02.2022' : '25/03/2015',
-            'revisi' => $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025',
-            'halaman' => '1 / 1'
-        ]);
     @endphp
-    <div class="card shadow mb-1">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:60px; border:1px solid #dee2e6; padding:2px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:44px; max-height:28px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:2px 6px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.75rem; letter-spacing:0.2px;">
-                            LAPORAN DATA CHECKSHEET SUB ASSY
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:2px 6px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.60rem;">
-                            <tr>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:0px 1px;">:</td>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">
-                                    {{ $docHeader['no_dokumen'] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:0px 1px;">:</td>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">
-                                    {{ $docHeader['tgl_terbit'] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:0px 1px;">:</td>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">
-                                    {{ $docHeader['revisi'] }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:0px 1px;">:</td>
-                                <td style="padding:0px 2px; font-weight:600; white-space:nowrap;">
-                                    {{ $docHeader['halaman'] }}
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
+
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
@@ -379,9 +325,8 @@
                             <th rowspan="2" class="align-middle">No. Meja</th>
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Total Qty</th>
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle">OK</th>
@@ -443,9 +388,11 @@
                                 <td class="align-middle">{{ $checksheet->line ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>

@@ -218,10 +218,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/first-piece-approvals/{id}/reject/{type}', [FirstPieceApprovalController::class, 'reject'])->name('first_piece_approval.reject');
         Route::post('/cross-cut-checksheets/{id}/approve/{type}', [CrossCutChecksheetController::class, 'approve'])->name('cross_cut.approve');
         Route::post('/cross-cut-checksheets/{id}/reject/{type}', [CrossCutChecksheetController::class, 'reject'])->name('cross_cut.reject');
+        Route::get('/report/cross-cut-checksheets/{id}/edit-approval', [CrossCutChecksheetController::class, 'editApproval'])->name('cross_cut.edit_approval');
+        Route::put('/report/cross-cut-checksheets/{id}/update-approval', [CrossCutChecksheetController::class, 'updateApproval'])->name('cross_cut.update_approval');
+
         Route::post('/cross-cut-painting-checksheets/{id}/approve/{type}', [CrossCutPaintingChecksheetController::class, 'approve'])->name('cross_cut_painting.approve');
         Route::post('/cross-cut-painting-checksheets/{id}/reject/{type}', [CrossCutPaintingChecksheetController::class, 'reject'])->name('cross_cut_painting.reject');
+        Route::get('/report/cross-cut-painting-checksheets/{id}/edit-approval', [CrossCutPaintingChecksheetController::class, 'editApproval'])->name('cross_cut_painting.edit_approval');
+        Route::put('/report/cross-cut-painting-checksheets/{id}/update-approval', [CrossCutPaintingChecksheetController::class, 'updateApproval'])->name('cross_cut_painting.update_approval');
+
         Route::post('/sortir-checksheets/{id}/approve/{type}', [SortirChecksheetController::class, 'approve'])->name('sortir.approve');
         Route::post('/sortir-checksheets/{id}/reject/{type}', [SortirChecksheetController::class, 'reject'])->name('sortir.reject');
+        Route::get('/report/sortir-checksheets/{id}/edit-approval', [SortirChecksheetController::class, 'editApproval'])->name('sortir.edit_approval');
 
         // Bulk Approval Routes
         Route::post('/checksheets/bulk-approve', [SubAssyChecksheetController::class, 'bulkApprove'])->name('admin.checksheets.bulk_approve');

@@ -94,56 +94,7 @@
     }
 </style>
 
-    @php
-        $plantCode = request('plant', 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('painting', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0183',
-            'tgl_terbit' => '25/03/2015',
-            'revisi' => '3 / 22/12/2025',
-            'halaman' => '1 / 1'
-        ]);
-    @endphp
 
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA CHECKSHEET PAINTING
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
 
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
@@ -355,9 +306,8 @@
                                 <th rowspan="2" class="align-middle">Cycle Time (s)</th>
                             @endif
                             <th rowspan="2" class="align-middle">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Total Qty</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
@@ -460,9 +410,11 @@
                                     <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 @endif
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>

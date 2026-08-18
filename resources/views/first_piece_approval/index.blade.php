@@ -139,23 +139,6 @@
         background-color: #f1f5f9 !important; 
     }
 
-    /* Sticky Pagination */
-    .pagination-container {
-        position: sticky !important;
-        bottom: 0 !important;
-        background-color: #ffffff !important;
-        z-index: 106 !important;
-        padding: 12px 20px !important;
-        margin: 0 -20px -20px -20px !important;
-        border-top: 1px solid #e2e8f0 !important;
-        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-        border-bottom-left-radius: 0.35rem;
-        border-bottom-right-radius: 0.35rem;
-    }
-    
-    .pagination-container .pagination {
-        margin-bottom: 0 !important;
-    }
 </style>
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
@@ -174,52 +157,7 @@
             }
         }
     @endphp
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA CHECKSHEET FIRST PIECE APPROVAL
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? 'QC-JKT-F-032/0' : 'QC-KRW-F-0212' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
+
     <!-- Hidden Logo for PDF Export -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
 
@@ -395,9 +333,8 @@
                             <th rowspan="2" class="align-middle">Shift</th>
                             <th rowspan="2" class="align-middle text-nowrap">Kategori</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Part No</th>
                             <th rowspan="2" class="align-middle">Total Qty</th>
                             <th rowspan="2" class="align-middle">Sampling Qty</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
@@ -439,9 +376,11 @@
                                 <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle text-nowrap text-uppercase">{{ $checksheet->category ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->name ?? '-' }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
                                 <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
 
@@ -1032,7 +971,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4 pagination-container">
+            <div class="mt-4">
                 {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>
