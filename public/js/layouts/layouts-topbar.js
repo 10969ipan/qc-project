@@ -231,12 +231,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Mobile Menu Toggle
     if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', function () {
+        menuToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             navMenu.classList.toggle('show');
         });
 
         document.addEventListener('click', function (event) {
-            if (!navMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+            if (navMenu.classList.contains('show') && !navMenu.contains(event.target) && !menuToggle.contains(event.target)) {
                 navMenu.classList.remove('show');
                 closeAllDropdowns();
             }

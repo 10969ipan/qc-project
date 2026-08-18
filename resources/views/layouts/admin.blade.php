@@ -588,9 +588,9 @@
             }
 
             .main-nav {
-                flex-direction: column;
-                align-items: flex-start;
-                height: auto;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                height: auto !important;
                 padding: 0 1rem;
             }
 
@@ -604,7 +604,7 @@
                 padding: 0.8rem 0 !important;
                 height: auto;
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start !important;
                 width: 100%;
             }
 

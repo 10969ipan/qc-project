@@ -6,45 +6,49 @@
 
 <style>
     .main-nav {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
         list-style: none !important;
     }
-    .main-nav > li {
-        position: relative;
-        margin: 0 2px;
-        z-index: 1001;
-        height: 100% !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-    .main-nav > li > a {
-        font-family: 'Inter', sans-serif !important;
-        color: rgba(255, 255, 255, 0.85) !important;
-        padding: 0 0.9rem !important;
-        height: 38px !important;
-        line-height: 38px !important;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        transition: background 0.2s ease, color 0.2s ease;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        white-space: nowrap !important;
-        flex-shrink: 0 !important;
-        border-radius: 4px;
-        text-decoration: none !important;
-        border: 0 !important;
-        outline: none !important;
-        box-shadow: none !important;
-        box-sizing: border-box !important;
+    @media (min-width: 992px) {
+        .main-nav {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+        .main-nav > li {
+            position: relative;
+            margin: 0 2px;
+            z-index: 1001;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .main-nav > li > a {
+            font-family: 'Inter', sans-serif !important;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0 0.9rem !important;
+            height: 38px !important;
+            line-height: 38px !important;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: background 0.2s ease, color 0.2s ease;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            border-radius: 4px;
+            text-decoration: none !important;
+            border: 0 !important;
+            outline: none !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
+        }
     }
     .main-nav i,
     #topbar-nav-menu i,
@@ -82,11 +86,7 @@
         @endif
 
         <div class="nav-menu-container flex-grow-1" id="topbar-nav-menu" style="z-index: 1000;">
-            <div class="mobile-header d-lg-none px-4 py-3 font-weight-bold text-white"
-                style="background: rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.2); font-size: 0.9rem; letter-spacing: 1px;">
-                QC APPS
-            </div>
-            <ul class="main-nav d-flex align-items-center list-unstyled mb-0">
+            <ul class="main-nav list-unstyled mb-0">
                     @foreach($dynamicMenus ?? [] as $menu)
                         @php
                             $menuRoutePath = trim($menu->route, '/');
@@ -318,7 +318,7 @@
             });
         })();
     </script>
-    <script src="{{ asset('js/layouts/layouts-topbar.js') }}"></script>
+    <script src="{{ asset('js/layouts/layouts-topbar.js') }}?v=1.5"></script>
     <style>
         #notification-list {
             max-height: 340px;
@@ -501,48 +501,61 @@
         }
 
         @media (max-width: 991.98px) {
+            .nav-menu-container:not(.show) {
+                display: none !important;
+            }
+
             #topbar-nav-menu {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background-color: #4e73df !important;
-                z-index: 1000;
-                padding: 10px 0 20px 0;
-                box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-                max-height: calc(100vh - 70px);
-                overflow-y: auto;
+                position: absolute !important;
+                top: 60px !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                background: linear-gradient(180deg, #4e73df 0%, #224abe 100%) !important;
+                z-index: 1050 !important;
+                padding: 10px 0 20px 0 !important;
+                box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3) !important;
+                max-height: calc(100vh - 60px) !important;
+                overflow-y: auto !important;
             }
 
             #topbar-nav-menu.show {
-                display: block;
+                display: block !important;
             }
 
             .main-nav {
-                flex-direction: column;
-                align-items: flex-start !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+                height: auto !important;
             }
 
-            .main-nav>li {
-                width: 100%;
+            .main-nav > li {
+                width: 100% !important;
                 display: block !important;
                 height: auto !important;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+                margin: 0 !important;
             }
 
-            .main-nav>li:last-child {
-                border-bottom: none;
+            .main-nav > li:last-child {
+                border-bottom: none !important;
             }
 
-            .main-nav>li>a {
+            .main-nav > li > a {
                 padding: 12px 20px !important;
-                font-size: 0.85rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                font-size: 0.85rem !important;
+                display: flex !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+                color: rgba(255, 255, 255, 0.9) !important;
+                width: 100% !important;
+                height: auto !important;
+                line-height: normal !important;
+                text-decoration: none !important;
             }
 
             #topbar-nav-menu .dropdown-menu {
