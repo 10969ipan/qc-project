@@ -250,8 +250,8 @@ trait HasChecksheetApproval
     public function bulkApprove(Request $request)
     {
         $request->validate([
-            'start_date' => 'required_without:ids|nullable|date',
-            'end_date' => 'required_without:ids|nullable|date|after_or_equal:start_date',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'ids' => 'nullable|array',
         ]);
 
@@ -307,13 +307,67 @@ trait HasChecksheetApproval
                 });
             }
 
-            // Filter by IDs or date range
+            // Filter by IDs or date range & active filters
             if ($request->filled('ids') && is_array($request->input('ids'))) {
                 $query->whereIn($query->getModel()->getTable() . '.id', $request->input('ids'));
             } else {
                 $dateColumn = $this->getApprovalDateColumn();
-                $query->whereDate($dateColumn, '>=', $request->start_date)
-                    ->whereDate($dateColumn, '<=', $request->end_date);
+                if ($request->filled('start_date')) {
+                    $query->whereDate($dateColumn, '>=', $request->start_date);
+                }
+                if ($request->filled('end_date')) {
+                    $query->whereDate($dateColumn, '<=', $request->end_date);
+                }
+
+                $table = (new $modelClass)->getTable();
+
+                if ($request->filled('shift')) {
+                    $shiftVal = $request->input('shift');
+                    if (Schema::hasColumn($table, 'qc_shift')) {
+                        $query->where("{$table}.qc_shift", $shiftVal);
+                    } elseif (Schema::hasColumn($table, 'shift')) {
+                        $query->where("{$table}.shift", $shiftVal);
+                    }
+                }
+
+                if ($request->filled('operator_initials')) {
+                    if (Schema::hasColumn($table, 'operator_initials')) {
+                        $query->where("{$table}.operator_initials", $request->input('operator_initials'));
+                    }
+                }
+
+                if ($request->filled('item_id')) {
+                    if (Schema::hasColumn($table, 'item_id')) {
+                        $query->where("{$table}.item_id", $request->input('item_id'));
+                    }
+                }
+
+                $cust = $request->input('customer', $request->input('customer_name'));
+                if (!empty($cust)) {
+                    if (Schema::hasColumn($table, 'customer')) {
+                        $query->where("{$table}.customer", $cust);
+                    } elseif (method_exists($modelClass, 'item')) {
+                        $query->whereHas('item', function ($q) use ($cust) {
+                            $q->where('customer', $cust);
+                        });
+                    }
+                }
+
+                if ($request->filled('search')) {
+                    $searchTerm = $request->input('search');
+                    $query->where(function ($q) use ($searchTerm, $modelClass, $table) {
+                        if (method_exists($modelClass, 'item')) {
+                            $q->whereHas('item', function ($itemQuery) use ($searchTerm) {
+                                $itemQuery->where('name', 'like', "%{$searchTerm}%")
+                                    ->orWhere('customer', 'like', "%{$searchTerm}%")
+                                    ->orWhere('part_number', 'like', "%{$searchTerm}%");
+                            });
+                        }
+                        if (Schema::hasColumn($table, 'operator_initials')) {
+                            $q->orWhere("{$table}.operator_initials", 'like', "%{$searchTerm}%");
+                        }
+                    });
+                }
             }
 
             // Only records that are pending approval (field is NULL or REJECTED)

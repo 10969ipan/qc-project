@@ -311,7 +311,7 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inisial</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="4" class="align-middle">Approval Status</th>
+                                <th colspan="2" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">Remarks</th>
                             <th rowspan="2" class="align-middle">Action</th>
@@ -322,13 +322,25 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px;">Supervisor QC</th>
-                                <th style="font-size: 10px;">Asst. Manager QC</th>
-                                <th style="font-size: 10px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
+                            @php
+                                $user = auth()->user();
+                                $isAdmin = $user->role === 'admin';
+                                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta' || strtolower(request('plant') ?? '') === 'jakarta';
+                                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                $canApproveKashift = (in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) 
+                                    && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED');
+
+                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
+                                    && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED')
+                                    && (!empty($cs->kashift_qc) && $cs->kashift_qc !== 'REJECTED');
+                            @endphp
                             <tr>
                                 <td class="align-middle text-center">
                                     <div class="custom-control custom-checkbox">
@@ -450,15 +462,32 @@
                                 
                                 @if(request('view_mode') !== 'verifikasi')
                                     {{-- Approval Columns --}}
-                                    @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
-                                        <td class="align-middle text-nowrap">
-                                            @if($cs->$lvl == 'REJECTED')
-                                                <span class="badge badge-danger">REJ</span>
+                                    @foreach(['kashift_qc', 'supervisor_qc'] as $lvl)
+                                        <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                            @if($cs->$lvl === 'REJECTED')
+                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
+                                                </div>
                                             @elseif($cs->$lvl)
-                                                <span class="badge badge-success">APP</span>
-                                                <br><small class="text-muted" style="font-size: 0.55rem;">{{ $cs->$lvl }}</small>
+                                                <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ $cs->$lvl }}</div>
+                                                    @php
+                                                        $timeField = str_replace('_qc', '', $lvl) . '_approved_at';
+                                                    @endphp
+                                                    @if(!empty($cs->$timeField))
+                                                        <div>{{ \Carbon\Carbon::parse($cs->$timeField)->format('d/m/Y H:i') }}</div>
+                                                    @endif
+                                                </div>
                                             @else
-                                                <span class="badge badge-warning">PEN</span>
+                                                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-clock mr-1"></i> PENDING
+                                                </span>
                                             @endif
                                         </td>
                                     @endforeach
@@ -466,9 +495,33 @@
 
                                 <td class="align-middle text-left small" style="min-width: 150px; white-space: normal;">{{ $cs->remarks ?? '-' }}</td>
 
-                                <td class="align-middle text-nowrap">
+                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 160px;">
                                     @if($loop->first)
                                         @include('partials.bulk_approve_button')
+                                    @endif
+
+                                    @if($canApproveKashift)
+                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $isJakarta ? 'Kepala Regu' : 'Kashift QC' }})" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ($isJakarta ? ' KR' : ' KS') : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $isJakarta ? 'Kepala Regu' : 'Kashift QC' }})" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
+                                    @if($canApproveSupervisor)
+                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Supervisor QC)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' SPV' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Supervisor QC)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
                                     @endif
                                     
                                     {{-- Action 3-dot Dropdown Selaras In-Process --}}
@@ -484,7 +537,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="26" class="text-center text-muted py-4">
+                                <td colspan="24" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
                                     Data checksheet tidak ditemukan.
                                 </td>
@@ -572,6 +625,66 @@
         </div>
     </div>
 
+    <!-- Modal Penolakan untuk setiap checksheet -->
+    @foreach($checksheets as $cs)
+        @foreach(['kashift', 'supervisor'] as $rejectType)
+            @php
+                $user = auth()->user();
+                $isAdmin = $user->role === 'admin';
+                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta' || strtolower(request('plant') ?? '') === 'jakarta';
+                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+                $canReject = false;
+                if ($rejectType == 'kashift' && ((in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED'))) {
+                    $canReject = true;
+                } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED'))) {
+                    $canReject = true;
+                }
+            @endphp
+            @if($canReject)
+                <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
+                    aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                                </h5>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="{{ route('incoming.parts.reject', array_merge(['id' => $cs->id, 'type' => $rejectType], request()->all())) }}" method="POST">
+                                @csrf
+                                <div class="modal-body text-left">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
+                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ($rejectType === 'kashift' ? 'Kashift QC' : 'Supervisor QC') }}</strong>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
+                                            Alasan Rejection <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
+                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
+                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-times-circle mr-1"></i> Konfirmasi Rejection
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    @endforeach
+
     <!-- Float Menu untuk Selected Box (Bulk Actions) -->
     <div id="bulkActionMenu" class="position-fixed shadow-lg rounded-pill" style="bottom: 40px; left: 50%; transform: translateX(-50%); display: none; z-index: 9999; background: white; padding: 12px 24px; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;">
         <div class="d-flex align-items-center">
@@ -582,15 +695,12 @@
                 </button>
             @endif
             @if(auth()->user()->role !== 'operator')
-                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" id="btnBulkApprove">
+                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" id="btnBulkApproveSelected">
                     <i class="fas fa-check-circle mr-1"></i> Approve Terpilih
                 </button>
             @endif
         </div>
     </div>
-
-    @php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
-    @include('partials.bulk_approve_script')
 
     <!-- Modal Input & List Stok Kedatangan Awal -->
     <div class="modal fade" id="modalAddArrival" tabindex="-1" role="dialog" aria-labelledby="modalAddArrivalTitle" aria-hidden="true">
@@ -876,61 +986,92 @@
             });
         });
 
-        $(document).on('click', '#btnBulkApprove', function () {
+        $(document).on('click', '#btnBulkApproveSelected', function () {
             const selectedIds = $('.row-checkbox:checked').map(function () {
                 return $(this).val();
             }).get();
 
             if (selectedIds.length === 0) return;
 
-            Swal.fire({
-                title: 'Approve ' + selectedIds.length + ' Data Terpilih?',
-                text: "Seluruh data terpilih akan disetujui untuk level approval Anda.",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#1cc88a',
-                cancelButtonColor: '#858796',
-                confirmButtonText: 'Ya, Approve Semua!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Memproses Approval...',
-                        text: 'Mohon tunggu sebentar',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
+            const userRole = "{{ auth()->user()->role }}";
+            const plantCode = "{{ strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang') }}";
+            const kashiftLabel = plantCode === 'jakarta' ? 'Kepala Regu (KR)' : 'Kashift QC';
 
-                    $.ajax({
-                        url: "{{ route('incoming.parts.bulk_approve') }}",
-                        type: 'POST',
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            ids: selectedIds,
-                            approval_type: "{{ auth()->user()->role }}"
-                        },
-                        success: function (response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil!',
-                                    text: response.message,
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    window.location.reload();
-                                });
-                            }
-                        },
-                        error: function (xhr) {
-                            const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan saat approve data.';
-                            Swal.fire('Gagal!', msg, 'error');
+            function processBulkApproveAjax(approvalType) {
+                Swal.fire({
+                    title: 'Memproses Approval...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('incoming.parts.bulk_approve') }}",
+                    type: 'POST',
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        ids: selectedIds,
+                        approval_type: approvalType
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: response.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload();
+                            });
                         }
-                    });
-                }
-            });
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan saat approve data.';
+                        Swal.fire('Gagal!', msg, 'error');
+                    }
+                });
+            }
+
+            if (userRole === 'admin') {
+                Swal.fire({
+                    title: 'Pilih Level Approval',
+                    input: 'select',
+                    inputOptions: {
+                        'kashift': kashiftLabel,
+                        'supervisor': 'Supervisor QC'
+                    },
+                    inputPlaceholder: 'Pilih level...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Approve Data Terpilih',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#1cc88a',
+                    inputValidator: (value) => {
+                        if (!value) return 'Anda harus memilih level approval!';
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        processBulkApproveAjax(result.value);
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Approve ' + selectedIds.length + ' Data Terpilih?',
+                    text: "Seluruh data terpilih akan disetujui untuk level approval Anda.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1cc88a',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Approve Semua!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        processBulkApproveAjax(userRole);
+                    }
+                });
+            }
         });
 
         // Handle SweetAlert2 Delete Confirmation (Selaras In-Process UI Standardization)
@@ -1047,4 +1188,6 @@
         });
     });
 </script>
+@php $bulkApproveRoute = route('incoming.parts.bulk_approve'); @endphp
+@include('partials.bulk_approve_script')
 @endpush

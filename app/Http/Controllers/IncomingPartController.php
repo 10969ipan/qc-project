@@ -31,6 +31,34 @@ class IncomingPartController extends Controller
         return IncomingPart::class;
     }
 
+    protected function getApprovalMapping($type)
+    {
+        $mapping = [
+            'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Kashift QC / Kepala Regu'],
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor QC'],
+        ];
+
+        return $mapping[$type] ?? null;
+    }
+
+    protected function applySequentialApprovalFilter($query, $type)
+    {
+        $sequence = [
+            'kashift' => 'kashift_qc',
+            'supervisor' => 'supervisor_qc',
+        ];
+
+        $keys = array_keys($sequence);
+        $currentIndex = array_search($type, $keys);
+
+        if ($currentIndex > 0) {
+            for ($i = $currentIndex - 1; $i >= 0; $i--) {
+                $prevField = $sequence[$keys[$i]];
+                $query->whereNotNull($prevField)->where($prevField, '!=', 'REJECTED');
+            }
+        }
+    }
+
     protected function getExportHeaders()
     {
         return [

@@ -1,7 +1,7 @@
 {{-- Bulk Approve JavaScript - Include in @push('scripts') --}}
 {{-- Requires: $bulkApproveRoute variable to be set before including --}}
 @php
-    $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('category');
+    $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
 @endphp
 @if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasFilter)
     <script>
@@ -13,8 +13,11 @@
                 var plant = '{{ request("plant", "") }}';
                 var resultJudgment = '{{ request("result_judgment", "") }}';
                 var search = '{{ request("search", "") }}';
-                var customerName = '{{ request("customer_name", "") }}';
+                var customerName = '{{ request("customer_name", request("customer", "")) }}';
                 var category = '{{ request("category", "") }}';
+                var shift = '{{ request("shift", "") }}';
+                var operatorInitials = '{{ request("operator_initials", "") }}';
+                var itemId = '{{ request("item_id", "") }}';
                 var userRole = '{{ auth()->user()->role }}';
 
                 var approvalType = userRole;
@@ -24,11 +27,14 @@
                         title: 'Pilih Level Approval',
                         input: 'select',
                         inputOptions: {
+                            'karu_qc': 'Karu QC',
                             'kashift': 'Kashift',
-                            'supervisor': 'Supervisor',
+                            'kashift_plating': 'Kashift Plating',
+                            'supervisor': 'Supervisor Quality',
                             'supervisor_plating': 'Supervisor Plating',
-                            'asst_manager': 'Asst Manager',
-                            'manager': 'Manager',
+                            'asst_manager': 'Asst Manager QC',
+                            'asst_manager_plating': 'Asst Manager Plating',
+                            'manager': 'Manager QC',
                             'manager_plating': 'Manager Plating'
                         },
                         inputPlaceholder: 'Pilih level...',
@@ -41,7 +47,7 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, result.value, resultJudgment, search, customerName, category);
+                            doBulkApprove(startDate, endDate, plant, result.value, resultJudgment, search, customerName, category, shift, operatorInitials, itemId);
                         }
                     });
                 } else {
@@ -52,6 +58,9 @@
                             '<ul>' +
                             (startDate ? '<li><strong>Dari Tanggal:</strong> ' + startDate + '</li>' : '') +
                             (endDate ? '<li><strong>Sampai Tanggal:</strong> ' + endDate + '</li>' : '') +
+                            (shift ? '<li><strong>Shift:</strong> Shift ' + shift + '</li>' : '') +
+                            (operatorInitials ? '<li><strong>Inisial:</strong> ' + operatorInitials + '</li>' : '') +
+                            (customerName ? '<li><strong>Customer:</strong> ' + customerName + '</li>' : '') +
                             (resultJudgment ? '<li><strong>Result:</strong> ' + resultJudgment + '</li>' : '') +
                             (search ? '<li><strong>Search:</strong> ' + search + '</li>' : '') +
                             (plant ? '<li><strong>Plant:</strong> ' + plant + '</li>' : '') +
@@ -67,13 +76,13 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category);
+                            doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category, shift, operatorInitials, itemId);
                         }
                     });
                 }
             });
 
-            function doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category) {
+            function doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category, shift, operatorInitials, itemId) {
                 // Show animated progress bar
                 let progress = 0;
                 Swal.fire({
@@ -118,7 +127,11 @@
                         result_judgment: resultJudgment || '',
                         search: search || '',
                         customer_name: customerName || '',
+                        customer: customerName || '',
                         category: category || '',
+                        shift: shift || '',
+                        operator_initials: operatorInitials || '',
+                        item_id: itemId || '',
                         test_type: '{{ $testType ?? "thickness" }}',
                         is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                     },
