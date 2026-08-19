@@ -240,6 +240,7 @@ class DashboardService extends BaseService
 
         if (!$type || $type === 'sub_assy') {
             $this->processModelStats(SubAssyChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year);
+            $this->processModelStats(SortirChecksheet::class, $stats, $plantId, $dailyOnly, $month, $year, 'sub_assy');
         }
 
         if (!$type || $type === 'in_process') {
@@ -262,7 +263,7 @@ class DashboardService extends BaseService
         return $stats;
     }
 
-    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false, $month = null, $year = null): void
+    private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false, $month = null, $year = null, ?string $sourceType = null): void
     {
         $table = (new $modelClass)->getTable();
         
@@ -291,6 +292,10 @@ class DashboardService extends BaseService
         $query = DB::table($table);
         if ($plantId) {
             $query->where('plant_id', $plantId);
+        }
+
+        if ($sourceType && $this->hasColumnCached($table, 'source_type')) {
+            $query->where('source_type', $sourceType);
         }
 
         // Hanya hitung data regular (bukan verification) untuk seluruh modul
@@ -517,7 +522,24 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        return $query->get()
+        $subAssyItems = $query->get();
+
+        $sortirQuery = SortirChecksheet::withoutGlobalScope('plant')
+            ->with('item:id,name,part_number')
+            ->where('source_type', 'sub_assy')
+            ->where('date', $date)
+            ->where('shift', $shift)
+            ->whereNotNull('line')
+            ->orderBy('created_at', 'desc');
+
+        if ($plantId) {
+            $sortirQuery->where('plant_id', $plantId);
+        }
+
+        $sortirItems = $sortirQuery->get();
+
+        return $subAssyItems->concat($sortirItems)
+            ->sortByDesc('created_at')
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
@@ -891,13 +913,32 @@ class DashboardService extends BaseService
             $records = collect();
 
             if ($type === 'sub_assy') {
-                $records = SubAssyChecksheet::withoutGlobalScope('plant')
+                $saRecords = SubAssyChecksheet::withoutGlobalScope('plant')
                     ->where('plant_id', $plantId)
                     ->whereBetween('date', [$start, $end])
                     ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(total_qty) as total')
                     ->groupBy('group_date')
                     ->get()
                     ->keyBy('group_date');
+
+                $sortirRecords = SortirChecksheet::withoutGlobalScope('plant')
+                    ->where('plant_id', $plantId)
+                    ->where('source_type', 'sub_assy')
+                    ->whereBetween('date', [$start, $end])
+                    ->selectRaw('DATE(date) as group_date, SUM(total_ng) as ng, SUM(COALESCE(total_qty, sampling_qty, 0)) as total')
+                    ->groupBy('group_date')
+                    ->get()
+                    ->keyBy('group_date');
+
+                $allDates = $saRecords->keys()->merge($sortirRecords->keys())->unique();
+                $records = collect();
+                foreach ($allDates as $gDate) {
+                    $sa = $saRecords->get($gDate);
+                    $so = $sortirRecords->get($gDate);
+                    $ng = ($sa ? $sa->ng : 0) + ($so ? $so->ng : 0);
+                    $tot = ($sa ? $sa->total : 0) + ($so ? $so->total : 0);
+                    $records->put($gDate, (object)['group_date' => $gDate, 'ng' => $ng, 'total' => $tot]);
+                }
             } elseif ($type === 'in_process') {
                 $records = InProcessChecksheet::withoutGlobalScope('plant')
                     ->where('plant_id', $plantId)

@@ -123,6 +123,18 @@ class DashboardController extends Controller
                     ->select('defects')
                     ->get();
 
+                if ($key === 'sub_assy') {
+                    $sortirRows = \Illuminate\Support\Facades\DB::table('sortir_checksheets')
+                        ->where('plant_id', $karawangId)
+                        ->where('source_type', 'sub_assy')
+                        ->where('date', '>=', $startDate)
+                        ->whereNotNull('defects')
+                        ->whereRaw("defects != '[]' AND defects != 'null' AND defects != '\"[]\"'")
+                        ->select('defects')
+                        ->get();
+                    $rows = $rows->concat($sortirRows);
+                }
+
                 $totals = [];
                 $grandTotal = 0;
 

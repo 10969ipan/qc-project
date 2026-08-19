@@ -22,6 +22,24 @@ class AnalysisService extends BaseService
         $query = $this->getQueryForType($type, $filters);
         $checksheets = $query->get();
 
+        if ($type === 'sub_assy') {
+            $sortirQuery = \App\Models\SortirChecksheet::select('date', 'item_id', 'operator_initials', 'cycle_time', 'plant_id', 'total_ng', 'defects', 'sampling_qty')
+                ->where('source_type', 'sub_assy')
+                ->with('item')
+                ->orderBy('date');
+
+            if (!empty($filters['plant'])) {
+                $sortirQuery->where('plant_id', $this->resolvePlantId($filters['plant']));
+            }
+            if (!empty($filters['start_date'])) {
+                $sortirQuery->whereDate('date', '>=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $sortirQuery->whereDate('date', '<=', $filters['end_date']);
+            }
+            $checksheets = $checksheets->concat($sortirQuery->get());
+        }
+
         $monthlyData = $this->calculateMonthlyData($checksheets, $type);
         $defectDistribution = $this->calculateDefectDistribution($checksheets, $type);
         $itemCycleTimeData = $this->calculateItemCycleTimeData($checksheets, $type);
