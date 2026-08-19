@@ -272,7 +272,7 @@
                             @endif
                         </tr>
                         <tr class="text-center">
-                            <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 10px; min-width: 120px;">Kepala Regu</th>
                             <th style="font-size: 10px; min-width: 120px;">Kashift Plating</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Quality</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Plating</th>
