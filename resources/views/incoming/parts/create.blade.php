@@ -96,31 +96,57 @@
             'halaman' => '- / -'
         ]);
     @endphp
-    
-
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Input Data Incoming Part</h6>
-            <div class="d-flex align-items-center" style="gap: 8px;">
-                <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
-                    <i class="fas fa-boxes mr-1"></i> INPUT STOK KEDATANGAN AWAL
-                </button>
-                <span class="badge badge-primary px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
-                    <i class="fas fa-industry mr-1"></i> PLANT: {{ strtoupper($plantCode) }}
-                </span>
-            </div>
-        </div>
         <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="flex-grow-1 mr-3">
+                    <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                        <tr>
+                            <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                                <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                            </td>
+                            <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                                <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                                    CHECK SHEET INCOMING PART
+                                </h1>
+                            </td>
+                            <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                                <table style="border-collapse:collapse; font-size:0.68rem;">
+                                    <tr>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                        <td style="padding:1px 2px;">:</td>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                        <td style="padding:1px 2px;">:</td>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                        <td style="padding:1px 2px;">:</td>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                        <td style="padding:1px 2px;">:</td>
+                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
+                        <i class="fas fa-boxes mr-1"></i> INPUT STOK KEDATANGAN AWAL
+                    </button>
+                    <span class="badge badge-primary px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                        <i class="fas fa-industry mr-1"></i> PLANT: {{ strtoupper($plantCode) }}
+                    </span>
+                </div>
+            </div>
             <form action="{{ route('incoming.parts.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
                 <input type="hidden" name="plant_id" value="{{ request('plant') ?? auth()->user()->plant_id }}">

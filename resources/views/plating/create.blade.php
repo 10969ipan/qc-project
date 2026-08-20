@@ -20,38 +20,55 @@
         $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('plating', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0202',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '0',
+            'halaman' => '- / -'
+        ]);
     @endphp
 
-
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
-    @if(isset($errors) && $errors instanceof \Illuminate\Support\ViewErrorBag && $errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <h6 class="font-weight-bold">Terjadi Kesalahan!</h6>
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
     <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">INPUT DATA OUTGOING PLATING</h6>
-        </div>
         <div class="card-body">
+            <div class="mb-3">
+                <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                    <tr>
+                        <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                            <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                        </td>
+                        <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                            <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                                CHECK SHEET PLATING
+                            </h1>
+                        </td>
+                        <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                            <table style="border-collapse:collapse; font-size:0.68rem;">
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
             <form action="{{ route('plating.store') }}" method="POST" id="checksheetForm" class="ajax-form" novalidate>
                 @csrf
                 <input type="hidden" name="plant" value="karawang">

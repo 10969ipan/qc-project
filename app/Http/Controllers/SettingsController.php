@@ -62,11 +62,15 @@ class SettingsController extends Controller
             ->get();
 
         $qcModules = [
+            'incoming_parts' => 'Incoming Part',
             'incoming_materials' => 'Incoming Material',
+            'incoming_sub_parts' => 'Incoming Sub-Part',
+            'incoming_chemicals' => 'Incoming Chemical',
+            'incoming_exports' => 'Incoming Export',
             'sub_assy' => 'Sub Assy',
             'sortir' => 'Sortir',
             'plating' => 'Plating',
-            'Painting' => 'Painting',
+            'painting' => 'Painting',
             'in_process' => 'In-Process',
             'first_piece_approval' => 'First Piece Approval (FPA)',
             'double_tape' => 'Double Tape',

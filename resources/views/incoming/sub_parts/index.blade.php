@@ -104,17 +104,55 @@
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.sub_parts.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0212',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '-',
+            'halaman' => '- / -'
+        ]);
     @endphp
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            @if(request('view_mode') === 'verifikasi')
-                <h6 class="m-0 font-weight-bold" style="color: #6f42c1;"><i class="fas fa-clipboard-check mr-2"></i>Data Hasil Verifikasi Incoming Sub-Part</h6>
-            @else
-                <h6 class="m-0 font-weight-bold text-primary">Data Masuk Incoming Sub-Part</h6>
-            @endif
-        </div>
         <div class="card-body">
+            <div class="mb-3">
+                <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                    <tr>
+                        <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                            <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                        </td>
+                        <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                            <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                                LAPORAN DATA INCOMING SUB-PART
+                            </h1>
+                        </td>
+                        <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                            <table style="border-collapse:collapse; font-size:0.68rem;">
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
             <form action="{{ route('incoming.sub_parts.index') }}" method="GET"
                 class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
                 style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncoming">
