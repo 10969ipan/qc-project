@@ -185,8 +185,6 @@ class IncomingChemicalController extends Controller
         $validated = $request->validate([
             'kashift_qc' => 'required|in:Pending,Approved,Rejected',
             'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
-            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
-            'manager_qc' => 'required|in:Pending,Approved,Rejected',
         ]);
 
         try {

@@ -107,6 +107,7 @@ class IncomingSubPartService extends BaseService
         DB::beginTransaction();
         try {
             $defects = $this->processDefects($data);
+            $checkDimensi = $this->resolveCheckDimensi($data);
 
             $checksheet = IncomingSubPart::create([
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? auth()->user()->plant_id),
@@ -117,12 +118,12 @@ class IncomingSubPartService extends BaseService
                 'lot_batch_number' => $data['lot_batch_number'],
                 'quantity' => $data['quantity'],
                 'sampling_size_pcs' => $data['sampling_size_pcs'],
-                'check_dimensi' => $data['check_dimensi'] ?? null,
-                'expired_date' => $data['expired_date'],
+                'check_dimensi' => $checkDimensi,
                 'judgment' => $data['judgment'],
                 'total_ng' => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
+                'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => json_encode($defects),
             ]);
 
@@ -146,6 +147,7 @@ class IncomingSubPartService extends BaseService
         try {
             $checksheet = IncomingSubPart::findOrFail($id);
             $defects = $this->processDefects($data);
+            $checkDimensi = $this->resolveCheckDimensi($data);
 
             $checksheet->update([
                 'item_id' => $data['item_id'],
@@ -155,12 +157,12 @@ class IncomingSubPartService extends BaseService
                 'lot_batch_number' => $data['lot_batch_number'],
                 'quantity' => $data['quantity'],
                 'sampling_size_pcs' => $data['sampling_size_pcs'],
-                'check_dimensi' => $data['check_dimensi'] ?? null,
-                'expired_date' => $data['expired_date'],
+                'check_dimensi' => $checkDimensi,
                 'judgment' => $data['judgment'],
                 'total_ng' => $data['total_ng'] ?? 0,
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
+                'cycle_time' => $data['cycle_time'] ?? $checksheet->cycle_time,
                 'defects' => json_encode($defects),
             ]);
 
@@ -171,6 +173,20 @@ class IncomingSubPartService extends BaseService
             Log::error('Gagal memperbarui checksheet Incoming Sub-Part', ['error' => $e->getMessage()]);
             throw $e;
         }
+    }
+
+    private function resolveCheckDimensi(array $data): string
+    {
+        if (!empty($data['check_dimensi'])) {
+            return $data['check_dimensi'];
+        }
+        if (!empty($data['dimensions']) && is_array($data['dimensions'])) {
+            $filtered = array_filter($data['dimensions'], fn($v) => $v !== null && trim((string)$v) !== '');
+            if (!empty($filtered)) {
+                return implode(', ', $filtered);
+            }
+        }
+        return 'OK';
     }
 
     public function deleteChecksheet(int $id): bool
@@ -188,12 +204,10 @@ class IncomingSubPartService extends BaseService
 
             $this->updateApprovalLevel($checksheet, 'kashift', $data['kashift_qc'], $user);
             $this->updateApprovalLevel($checksheet, 'supervisor', $data['supervisor_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'asst_manager', $data['asst_manager_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'manager', $data['manager_qc'], $user);
 
-            if (in_array('REJECTED', [$checksheet->manager_qc, $checksheet->asst_manager_qc, $checksheet->supervisor_qc, $checksheet->kashift_qc])) {
+            if (in_array('REJECTED', [$checksheet->supervisor_qc, $checksheet->kashift_qc])) {
                 $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->manager_qc && $checksheet->manager_qc !== 'Pending') {
+            } elseif ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'Pending') {
                 $checksheet->approval_status = 'Approved';
             } else {
                 $checksheet->approval_status = 'Pending';

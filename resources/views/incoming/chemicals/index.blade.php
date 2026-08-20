@@ -104,54 +104,7 @@
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.chemicals.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
-
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0214',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
     @endphp
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA INCOMING CHEMICAL
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -264,7 +217,7 @@
                             <th rowspan="2">Result</th>
                             <th colspan="2">Detail NG</th>
                             <th rowspan="2">QC</th>
-                            <th colspan="4">Approval</th>
+                            <th colspan="2">Approval</th>
                             <th rowspan="2">Description</th>
                             <th rowspan="2">Action</th>
                         </tr>
@@ -276,8 +229,6 @@
                             <th>Jenis</th>
                             <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                             <th style="font-size: 10px;">Supervisor QC</th>
-                            <th style="font-size: 10px;">Asst. Manager QC</th>
-                            <th style="font-size: 10px;">Manager QC</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -396,50 +347,6 @@
                                     @endif
                                     @if($cs->supervisor_approved_at)
                                         <br><small class="text-muted">{{ \Carbon\Carbon::parse($cs->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Asst Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($cs->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($cs->rejection_remarks) }}</small>
-                                    @elseif($cs->asst_manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $cs->asst_manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($cs->asst_manager_approved_at)
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($cs->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Manager QC --}}
-                                <td class="align-middle text-center">
-                                    @if($cs->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($cs->rejection_remarks) }}</small>
-                                    @elseif($cs->manager_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $cs->manager_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($cs->manager_approved_at)
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($cs->manager_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -608,7 +515,7 @@
 
     <!-- Rejection Modal for each checksheet and type -->
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+        @foreach(['kashift', 'supervisor'] as $rejectType)
             @php
                 $user = auth()->user();
                 $isAdmin = $user->role === 'admin';

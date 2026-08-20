@@ -39,19 +39,14 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4 form-group">
+        <div class="col-md-6 form-group">
             <label class="font-weight-bold">Check Dimensi</label>
             <select class="form-control" name="check_dimensi">
                 <option value="OK" {{ $checksheet->check_dimensi == 'OK' ? 'selected' : '' }}>OK</option>
                 <option value="NG" {{ $checksheet->check_dimensi == 'NG' ? 'selected' : '' }}>NG</option>
             </select>
         </div>
-        <div class="col-md-4 form-group">
-            <label class="font-weight-bold">Expired Date</label>
-            <input type="date" class="form-control" name="expired_date" value="{{ $checksheet->expired_date }}"
-                required>
-        </div>
-        <div class="col-md-4 form-group">
+        <div class="col-md-6 form-group">
             <label class="font-weight-bold">Judgment</label>
             <select class="form-control font-weight-bold" name="judgment" required>
                 <option value="OK" {{ $checksheet->judgment == 'OK' ? 'selected' : '' }}>OK</option>

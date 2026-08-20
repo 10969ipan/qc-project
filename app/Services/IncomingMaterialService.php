@@ -161,12 +161,10 @@ class IncomingMaterialService extends BaseService
 
             $this->updateApprovalLevel($checksheet, 'kashift', $data['kashift_qc'], $user);
             $this->updateApprovalLevel($checksheet, 'supervisor', $data['supervisor_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'asst_manager', $data['asst_manager_qc'], $user);
-            $this->updateApprovalLevel($checksheet, 'manager', $data['manager_qc'], $user);
 
-            if (in_array('REJECTED', [$checksheet->manager_qc, $checksheet->asst_manager_qc, $checksheet->supervisor_qc, $checksheet->kashift_qc])) {
+            if (in_array('REJECTED', [$checksheet->supervisor_qc, $checksheet->kashift_qc])) {
                 $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->manager_qc && $checksheet->manager_qc !== 'Pending') {
+            } elseif ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'Pending') {
                 $checksheet->approval_status = 'Approved';
             } else {
                 $checksheet->approval_status = 'Pending';

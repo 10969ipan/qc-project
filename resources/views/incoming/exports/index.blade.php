@@ -93,56 +93,7 @@
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
-
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0213',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
     @endphp
-
-    <!-- Header Document -->
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN DATA INCOMING EXPORT
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 pt-4 d-flex justify-content-between align-items-center">
@@ -253,7 +204,7 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
                             <th rowspan="2" class="align-middle">Inspector</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="4" class="align-middle">Approval Status</th>
+                                <th colspan="2" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             <th rowspan="2" class="no-export align-middle">Actions</th>
@@ -264,8 +215,6 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px;">Supervisor QC</th>
-                                <th style="font-size: 10px;">Asst. Manager QC</th>
-                                <th style="font-size: 10px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
@@ -312,7 +261,7 @@
                                 </td>
                                 <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
                                 @if(request('view_mode') !== 'verifikasi')
-                                    @foreach(['kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc'] as $lvl)
+                                    @foreach(['kashift_qc', 'supervisor_qc'] as $lvl)
                                         <td class="align-middle text-center">
                                             @if($cs->$lvl === 'REJECTED')
                                                 <span class="badge badge-danger" title="Rejected"><i class="fas fa-times"></i></span>

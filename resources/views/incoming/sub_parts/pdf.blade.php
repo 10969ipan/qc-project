@@ -153,7 +153,6 @@
                 <th rowspan="2" style="width: 35px;">Qty (Pcs)</th>
                 <th rowspan="2" style="width: 30px;">Samp.</th>
                 <th rowspan="2" style="width: 30px;">Dimensi</th>
-                <th rowspan="2" style="width: 45px;">Expired</th>
                 <th rowspan="2" style="width: 25px;">Jdg</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2" style="width: 30px;">QC</th>
@@ -174,7 +173,6 @@
                     <td>{{ $cs->quantity }}</td>
                     <td>{{ $cs->sampling_size_pcs }}</td>
                     <td>{{ $cs->check_dimensi }}</td>
-                    <td>{{ date('d/m/y', strtotime($cs->expired_date)) }}</td>
                     <td>
                         <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
                             {{ $cs->judgment }}

@@ -27,45 +27,20 @@
                 <label class="small font-weight-bold" for="kashift_qc">Status Kashift QC</label>
                 <select name="kashift_qc" id="kashift_qc" class="form-control form-control-sm">
                     <option value="Pending" @if(is_null($checksheet->kashift_qc)) selected @endif>Pending</option>
-                    <option value="Approved" @if($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED')
-                    selected @endif>Approved</option>
+                    <option value="Approved" @if($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED') selected @endif>Approved</option>
                     <option value="Rejected" @if($checksheet->kashift_qc === 'REJECTED') selected @endif>Rejected</option>
-                </select>
-            </div>
-
-            <!-- Supervisor QC -->
-            <div class="form-group mb-2">
-                <label class="small font-weight-bold" for="supervisor_qc">Status Supervisor QC</label>
-                <select name="supervisor_qc" id="supervisor_qc" class="form-control form-control-sm">
-                    <option value="Pending" @if(is_null($checksheet->supervisor_qc)) selected @endif>Pending</option>
-                    <option value="Approved" @if($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED')
-                    selected @endif>Approved</option>
-                    <option value="Rejected" @if($checksheet->supervisor_qc === 'REJECTED') selected @endif>Rejected
-                    </option>
                 </select>
             </div>
         </div>
 
         <div class="col-md-6">
-            <!-- Asst. Manager QC -->
+            <!-- Supervisor QC -->
             <div class="form-group mb-2">
-                <label class="small font-weight-bold" for="asst_manager_qc">Status Asst. Manager QC</label>
-                <select name="asst_manager_qc" id="asst_manager_qc" class="form-control form-control-sm">
-                    <option value="Pending" @if(is_null($checksheet->asst_manager_qc)) selected @endif>Pending</option>
-                    <option value="Approved" @if($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED') selected @endif>Approved</option>
-                    <option value="Rejected" @if($checksheet->asst_manager_qc === 'REJECTED') selected @endif>Rejected
-                    </option>
-                </select>
-            </div>
-
-            <!-- Manager QC -->
-            <div class="form-group mb-2">
-                <label class="small font-weight-bold" for="manager_qc">Status Manager QC</label>
-                <select name="manager_qc" id="manager_qc" class="form-control form-control-sm">
-                    <option value="Pending" @if(is_null($checksheet->manager_qc)) selected @endif>Pending</option>
-                    <option value="Approved" @if($checksheet->manager_qc && $checksheet->manager_qc !== 'REJECTED')
-                    selected @endif>Approved</option>
-                    <option value="Rejected" @if($checksheet->manager_qc === 'REJECTED') selected @endif>Rejected</option>
+                <label class="small font-weight-bold" for="supervisor_qc">Status Supervisor QC</label>
+                <select name="supervisor_qc" id="supervisor_qc" class="form-control form-control-sm">
+                    <option value="Pending" @if(is_null($checksheet->supervisor_qc)) selected @endif>Pending</option>
+                    <option value="Approved" @if($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED') selected @endif>Approved</option>
+                    <option value="Rejected" @if($checksheet->supervisor_qc === 'REJECTED') selected @endif>Rejected</option>
                 </select>
             </div>
         </div>

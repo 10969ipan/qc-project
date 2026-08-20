@@ -210,12 +210,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Hitung Otomatis Komper/Karung dari Qty (Kg)
+    // Hitung Otomatis Komper/Karung dari Qty (Kg) atau Sampling AQL dari Quantity Lot (Pcs)
     $(document).on('input change', '#lotQtyInput, #quantityInput', function() {
-        const qtyKg = parseFloat($(this).val()) || 0;
+        const qty = parseFloat($(this).val()) || 0;
         if ($('#komperKarungInput').length > 0) {
-            const totalKarung = qtyKg > 0 ? Math.ceil(qtyKg / 25) : 0;
+            const totalKarung = qty > 0 ? Math.ceil(qty / 25) : 0;
             $('#komperKarungInput').val(totalKarung).trigger('input');
+        } else if ($('#totalCheckInput').length > 0) {
+            if (qty > 0) {
+                const sampleSize = AQL_TABLE.getSampleSize(qty);
+                if (!$('#totalCheckInput').is(':focus')) {
+                    $('#totalCheckInput').val(sampleSize).trigger('input');
+                }
+            } else {
+                if (!$('#totalCheckInput').is(':focus')) {
+                    $('#totalCheckInput').val(0).trigger('input');
+                }
+            }
         }
     });
 

@@ -43,7 +43,6 @@ class IncomingSubPartController extends Controller
             'Qty',
             'Sampling',
             'Dimensi',
-            'Expired',
             'Judgment',
             'Inisial QC'
         ];
@@ -56,13 +55,12 @@ class IncomingSubPartController extends Controller
             $c->standard ?? '-',
             $c->item->name ?? '-',
             $c->item->part_number ?? '-',
-            $c->tanggal_datang->format('d/m/Y'),
-            $c->date->format('d/m/Y'),
+            $c->tanggal_datang ? $c->tanggal_datang->format('d/m/Y') : '-',
+            $c->date ? $c->date->format('d/m/Y') : '-',
             $c->lot_batch_number,
             $c->quantity,
             $c->sampling_size_pcs,
             $c->check_dimensi ?? '-',
-            $c->expired_date->format('d/m/Y'),
             $c->judgment,
             $c->operator_initials
         ];

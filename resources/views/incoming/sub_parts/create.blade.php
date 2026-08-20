@@ -8,73 +8,93 @@
     #checksheetTable td { font-size: 0.85rem; }
     .ok-label { background-color: #28a745; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
     .ng-label { background-color: #dc3545; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
-    .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
-    .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
     /* Dimension styling */
-    #dimensionTable th { background-color: #f1f5f9; color: #475569; font-size: 0.65rem; padding: 4px; }
-    #dimensionTable td { padding: 2px; }
-    .dimension-input { font-size: 0.7rem; border: 1px solid #e2e8f0; background: #fff; text-align: center; border-radius: 2px; width: 100%; min-width: 40px; padding: 2px; }
-    .dimension-input:focus { border-color: #6366f1; outline: none; }
+    #dimensionTable th { background-color: #f1f5f9; color: #475569; font-size: 0.65rem; padding: 6px; }
+    #dimensionTable td { padding: 4px; }
+    .dimension-input { font-size: 0.85rem; border: 1.5px solid #cbd5e1; background: #fff; text-align: center; border-radius: 4px; width: 100%; min-width: 50px; padding: 6px 8px; height: 38px; }
+    .dimension-input:focus { border-color: #4e73df; outline: none; box-shadow: 0 0 0 0.15rem rgba(78, 115, 223, 0.25); }
+
+    /* Form Inputs Overrides - "Besar & Pas" */
+    #checksheetForm .form-control,
+    #checksheetForm input[type="text"],
+    #checksheetForm input[type="number"],
+    #checksheetForm input[type="date"],
+    #checksheetForm select.form-control {
+        height: 42px !important;
+        font-size: 0.925rem !important;
+        font-weight: 500 !important;
+        padding: 0.45rem 0.85rem !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 0.4rem !important;
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    }
+
+    #checksheetForm textarea.form-control {
+        height: auto !important;
+        min-height: 80px !important;
+        font-size: 0.9rem !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 0.4rem !important;
+        background-color: #ffffff !important;
+        padding: 0.5rem 0.85rem !important;
+    }
+
+    #checksheetForm .form-control:focus,
+    #checksheetForm input:focus,
+    #checksheetForm select:focus,
+    #checksheetForm textarea:focus {
+        border-color: #4e73df !important;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25) !important;
+        background-color: #ffffff !important;
+        outline: none !important;
+    }
+
+    /* Select2 Container Overrides */
+    #checksheetForm .select2-container--default .select2-selection--single {
+        height: 42px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 0.4rem !important;
+        background-color: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    #checksheetForm .select2-container--default .select2-selection--single .select2-selection__rendered {
+        font-size: 0.925rem !important;
+        font-weight: 500 !important;
+        color: #1e293b !important;
+        line-height: 40px !important;
+        padding-left: 0.85rem !important;
+        padding-right: 1.5rem !important;
+    }
+
+    #checksheetForm .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 8px !important;
+    }
+
+    #checksheetForm label {
+        font-size: 0.825rem !important;
+        font-weight: 700 !important;
+        color: #334155 !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    #checksheetForm .defect-select,
+    #checksheetForm .defect-qty {
+        height: 42px !important;
+        font-size: 0.9rem !important;
+    }
 </style>
 @endpush
 
 @section('content')
-    @php
-        $plant = request('plant') ?? auth()->user()->plant_id;
-        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-        $plantCode = strtolower($plantCode ?: 'karawang');
-
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0212',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
-    @endphp
-    
-    <!-- Header Document -->
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
-                <tr>
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            CHECK SHEET INCOMING SUB-PART 
-                        </h1>
-                    </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
     
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
