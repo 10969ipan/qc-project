@@ -94,6 +94,19 @@
     }
 </style>
     @php
+        $currentMenu = \App\Models\AppMenu::where('route', 'painting.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuId) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            if (auth()->user()->role === 'admin') {
+                $canExport = true; $canEdit = true; $canDelete = true;
+            } else {
+                if (auth()->user()->hasPermission($menuId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($menuId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($menuId, 'delete')) $canDelete = true;
+            }
+        }
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');

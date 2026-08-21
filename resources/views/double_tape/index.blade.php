@@ -119,7 +119,17 @@
         // Resolve menu ID for permission checks
         $currentMenu = \App\Models\AppMenu::where('route', 'double_tape.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
-        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuId) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            if (auth()->user()->role === 'admin') {
+                $canExport = true; $canEdit = true; $canDelete = true;
+            } else {
+                if (auth()->user()->hasPermission($menuId, 'export')) $canExport = true;
+                if (auth()->user()->hasPermission($menuId, 'edit')) $canEdit = true;
+                if (auth()->user()->hasPermission($menuId, 'delete')) $canDelete = true;
+            }
+        }
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
