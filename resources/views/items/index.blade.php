@@ -376,7 +376,15 @@
                                 </td>
                                 <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                    <td class="no-export">
+                                    <td class="no-export text-nowrap">
+                                        @if(auth()->user()->role === 'admin')
+                                            <button type="button" class="btn btn-secondary btn-sm btn-copy-row-defects"
+                                                data-defects="{{ json_encode($item->defects ?? []) }}"
+                                                data-name="{{ $item->name }}"
+                                                title="Salin List Defect dari item ini">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        @endif
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
@@ -572,9 +580,24 @@
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">List Defect</label>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="font-weight-bold mb-0">List Defect</label>
+                                        @if(auth()->user()->role === 'admin')
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary shadow-sm" onclick="copyDefectsFromModal('edit')" title="Salin semua defect item ini">
+                                                    <i class="fas fa-copy mr-1"></i> Salin List
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary shadow-sm" onclick="pasteDefectsToModal('edit')" title="Tempel list defect dari clipboard">
+                                                    <i class="fas fa-paste mr-1"></i> Tempel List
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-danger shadow-sm" onclick="clearDefectsFromModal('edit')" title="Kosongkan semua defect">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <div class="d-flex w-100 mb-1">
-                                        <input type="text" id="edit_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="defectsList" placeholder="Cari / ketik defect..." autocomplete="off">
+                                        <input type="text" id="edit_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper defect-paste-input" data-prefix="edit" list="defectsList" placeholder="Cari / ketik / tempel defect (atau Ctrl+V)..." autocomplete="off">
                                         <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendDefect('edit_defect_search', 'edit')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
                                     </div>
                                     <div id="edit_defect_container" class="w-100 mt-2"></div>
@@ -854,9 +877,24 @@
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label class="font-weight-bold">List Defect</label>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="font-weight-bold mb-0">List Defect</label>
+                                        @if(auth()->user()->role === 'admin')
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-xs btn-outline-secondary shadow-sm" onclick="copyDefectsFromModal('add')" title="Salin semua defect item ini">
+                                                    <i class="fas fa-copy mr-1"></i> Salin List
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-primary shadow-sm" onclick="pasteDefectsToModal('add')" title="Tempel list defect dari clipboard">
+                                                    <i class="fas fa-paste mr-1"></i> Tempel List
+                                                </button>
+                                                <button type="button" class="btn btn-xs btn-outline-danger shadow-sm" onclick="clearDefectsFromModal('add')" title="Kosongkan semua defect">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <div class="d-flex w-100 mb-1">
-                                        <input type="text" id="add_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper" list="defectsList" placeholder="Cari / ketik defect..." autocomplete="off">
+                                        <input type="text" id="add_defect_search" class="form-control form-control-sm border-0 shadow-sm no-autoupper defect-paste-input" data-prefix="add" list="defectsList" placeholder="Cari / ketik / tempel defect (atau Ctrl+V)..." autocomplete="off">
                                         <button type="button" class="btn btn-sm btn-primary shadow-sm ml-1" onclick="appendDefect('add_defect_search', 'add')" title="Tambahkan ke list"><i class="fas fa-plus"></i></button>
                                     </div>
                                     <div id="add_defect_container" class="w-100 mt-2"></div>
@@ -1018,7 +1056,8 @@
                     pdfWorker: "{{ asset('js/vendor/pdf.worker.min.js') }}"
                 },
                 csrfToken: "{{ csrf_token() }}",
-                plant: "{{ $plantCode ?? '' }}"
+                plant: "{{ $plantCode ?? '' }}",
+                userRole: "{{ auth()->user()->role ?? '' }}"
             };
         </script>
         <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
@@ -1441,6 +1480,235 @@ document.addEventListener('DOMContentLoaded', function () {
             inputEl.focus();
         }
     };
+
+    // --- COPY / PASTE / CLEAR DEFECT LOGIC ---
+    window._copiedDefects = [];
+
+    window.copyDefectsFromModal = function(prefix) {
+        let container = document.getElementById(prefix + '_defect_container');
+        if (!container) return;
+        let inputs = container.querySelectorAll('input.defect-text');
+        let list = [];
+        inputs.forEach(function(inp) {
+            let val = inp.value.trim().replace(/^\d+[\.\)]\s*/, '');
+            if (val) list.push(val);
+        });
+
+        if (list.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'List Defect Kosong',
+                text: 'Tidak ada data defect untuk disalin.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        window._copiedDefects = list;
+        let textToCopy = list.join('\n');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Disalin!',
+                    text: list.length + ' item defect disalin ke clipboard.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }).catch(function() {
+                fallbackCopyDefects(textToCopy, list.length);
+            });
+        } else {
+            fallbackCopyDefects(textToCopy, list.length);
+        }
+    };
+
+    function fallbackCopyDefects(text, count) {
+        let ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Disalin!',
+            text: count + ' item defect disalin ke clipboard.',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    window.copyDefectsFromData = function(defectsData, itemName) {
+        let list = [];
+        if (Array.isArray(defectsData)) {
+            list = defectsData.map(d => String(d).trim()).filter(d => d !== '');
+        } else if (typeof defectsData === 'string') {
+            try {
+                let parsed = JSON.parse(defectsData);
+                if (Array.isArray(parsed)) {
+                    list = parsed.map(d => String(d).trim()).filter(d => d !== '');
+                }
+            } catch (e) {
+                list = defectsData.split(/[\r\n,;]+/).map(d => d.trim()).filter(d => d !== '');
+            }
+        }
+
+        if (list.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Defect Kosong',
+                text: 'Item "' + itemName + '" belum memiliki daftar defect.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        window._copiedDefects = list;
+        let textToCopy = list.join('\n');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Defect Disalin!',
+                    text: list.length + ' defect dari "' + itemName + '" disalin. Gunakan tombol "Tempel List" saat Tambah / Edit Item.',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            }).catch(function() {
+                fallbackCopyDefects(textToCopy, list.length);
+            });
+        } else {
+            fallbackCopyDefects(textToCopy, list.length);
+        }
+    };
+
+    window.pasteDefectsToModal = async function(prefix) {
+        let textToPaste = '';
+        
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                textToPaste = await navigator.clipboard.readText();
+            }
+        } catch (e) {
+            // Context/browser policy might block readText
+        }
+
+        if (!textToPaste && window._copiedDefects && window._copiedDefects.length > 0) {
+            textToPaste = window._copiedDefects.join('\n');
+        }
+
+        if (!textToPaste || !textToPaste.trim()) {
+            Swal.fire({
+                title: 'Tempel List Defect',
+                input: 'textarea',
+                inputLabel: 'Masukkan / Tempel daftar defect (pisahkan dengan baris baru atau koma):',
+                inputPlaceholder: 'Contoh:\nScratch\nKotor\nBintik',
+                showCancelButton: true,
+                confirmButtonText: 'Proses Tempel',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    processPastedDefects(result.value, prefix);
+                }
+            });
+            return;
+        }
+
+        processPastedDefects(textToPaste, prefix);
+    };
+
+    window.clearDefectsFromModal = function(prefix) {
+        let container = document.getElementById(prefix + '_defect_container');
+        if (!container) return;
+        let inputs = container.querySelectorAll('input.defect-text');
+        if (inputs.length === 0) return;
+
+        Swal.fire({
+            title: 'Kosongkan List Defect?',
+            text: 'Apakah Anda yakin ingin menghapus seluruh defect dari list ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74a3b',
+            confirmButtonText: 'Ya, Kosongkan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                container.innerHTML = '';
+                window.updateHiddenDefects(prefix);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'List defect telah dikosongkan.',
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
+
+    function processPastedDefects(rawText, prefix) {
+        let container = document.getElementById(prefix + '_defect_container');
+        if (!container) return;
+
+        let existingInputs = container.querySelectorAll('input.defect-text');
+        let existingSet = new Set();
+        existingInputs.forEach(inp => existingSet.add(inp.value.trim().toLowerCase()));
+
+        let lines = rawText.split(/[\r\n,;]+/);
+        let addedCount = 0;
+
+        lines.forEach(line => {
+            let clean = line.trim().replace(/^\d+[\.\)]\s*/, '');
+            if (clean && !existingSet.has(clean.toLowerCase())) {
+                window.addDefectBadge(clean, prefix);
+                existingSet.add(clean.toLowerCase());
+                addedCount++;
+            }
+        });
+
+        if (addedCount > 0) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Ditempel!',
+                text: addedCount + ' defect baru berhasil ditambahkan.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else {
+            Swal.fire({
+                icon: 'info',
+                title: 'Tidak Ada Defect Baru',
+                text: 'Semua defect yang ditempel sudah ada di dalam list.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    }
+
+    $(document).on('click', '.btn-copy-row-defects', function() {
+        let defects = $(this).data('defects');
+        let name = $(this).data('name');
+        window.copyDefectsFromData(defects, name);
+    });
+
+    $(document).on('paste', '.defect-paste-input', function(e) {
+        if (window.__ITEMS__ && window.__ITEMS__.userRole !== 'admin') return;
+        let clipboardData = e.originalEvent.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+
+        let pastedData = clipboardData.getData('Text');
+        if (pastedData && (pastedData.includes('\n') || pastedData.includes('\r') || pastedData.includes(',') || pastedData.includes(';'))) {
+            e.preventDefault();
+            let prefix = $(this).data('prefix');
+            processPastedDefects(pastedData, prefix);
+            $(this).val('');
+        }
+    });
 </script>
 
 <datalist id="defectsList">
