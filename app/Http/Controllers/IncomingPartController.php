@@ -263,8 +263,24 @@ class IncomingPartController extends Controller
         ]);
 
         try {
-            $arrival->qty_datang = (int)$validated['qty_datang'];
-            $arrival->qty_sisa = (int)$validated['qty_sisa'];
+            $qtyBefore = $arrival->qty_sisa;
+
+            $inputQtyDatang = (int)$validated['qty_datang'];
+            $inputQtySisa   = (int)$validated['qty_sisa'];
+
+            // Hitung akumulasi Total Check yang sudah dilakukan untuk lot ini
+            $totalChecked = (int)IncomingPart::where('arrival_id', $arrival->id)->sum('total_check');
+
+            if ($inputQtySisa !== $qtyBefore) {
+                // Jika user mengubah Qty Sisa Stok, sesuaikan Qty Datang Awal agar sinkron dengan Total Check
+                $arrival->qty_sisa = $inputQtySisa;
+                $arrival->qty_datang = $inputQtySisa + $totalChecked;
+            } else {
+                // Jika user mengubah Qty Datang Awal, sesuaikan Qty Sisa Stok agar sinkron dengan Total Check
+                $arrival->qty_datang = $inputQtyDatang;
+                $arrival->qty_sisa = max(0, $inputQtyDatang - $totalChecked);
+            }
+
             if (!empty($validated['tanggal_datang'])) {
                 $arrival->tanggal_datang = $validated['tanggal_datang'];
             }
@@ -274,6 +290,9 @@ class IncomingPartController extends Controller
             $arrival->status = ($arrival->qty_sisa <= 0) ? 'COMPLETED' : 'OPEN';
             $arrival->save();
 
+            $qtyAfter = $arrival->qty_sisa;
+            $qtyChange = $qtyAfter - $qtyBefore;
+
             // Sync latest checksheet's qty_balance_sisa if linked
             $latestChecksheet = IncomingPart::where('arrival_id', $arrival->id)->latest('id')->first();
             if ($latestChecksheet) {
@@ -281,6 +300,14 @@ class IncomingPartController extends Controller
             }
 
             ActivityLogger::log('updated', $arrival, "Mengubah Data Kedatangan Awal Incoming Part: " . ($arrival->item ? $arrival->item->name : '-'));
+            \App\Models\IncomingPartArrivalLog::record(
+                $arrival->load('item'),
+                'UPDATE',
+                $qtyBefore,
+                $qtyChange,
+                $qtyAfter,
+                "Update manual stok kedatangan (Qty Awal: {$arrival->qty_datang} pcs, Qty Sisa: {$arrival->qty_sisa} pcs)"
+            );
 
             return response()->json([
                 'success' => true,
@@ -310,6 +337,16 @@ class IncomingPartController extends Controller
                 ], 422);
             }
 
+            $qtyBefore = $arrival->qty_sisa;
+            \App\Models\IncomingPartArrivalLog::record(
+                $arrival->load('item'),
+                'DELETE',
+                $qtyBefore,
+                -$qtyBefore,
+                0,
+                "Menghapus Stok Kedatangan Awal (Qty Datang: {$arrival->qty_datang} pcs)"
+            );
+
             $arrival->delete();
             ActivityLogger::log('deleted', null, "Menghapus Stok Kedatangan Awal Incoming Part: {$itemName}");
 
@@ -323,6 +360,70 @@ class IncomingPartController extends Controller
                 'message' => 'Gagal menghapus stok kedatangan: ' . $e->getMessage()
             ], 422);
         }
+    }
+
+    public function getArrivalLogs(Request $request)
+    {
+        $plantInput = $request->get('plant', auth()->user()->plant_id);
+        $plantId = Plant::resolveId($plantInput);
+
+        $query = \App\Models\IncomingPartArrivalLog::query()
+            ->where(function ($q) use ($plantId) {
+                $q->where('plant_id', $plantId)
+                  ->orWhereNull('plant_id');
+            })
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('arrival_id')) {
+            $query->where('arrival_id', $request->arrival_id);
+        }
+
+        if ($request->filled('action_type')) {
+            $query->where('action_type', strtoupper($request->action_type));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('item_name', 'like', "%{$search}%")
+                  ->orWhere('part_number', 'like', "%{$search}%")
+                  ->orWhere('user_name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = (int)$request->get('per_page', 10);
+        $paginated = $query->paginate($perPage);
+
+        $logs = collect($paginated->items())->map(function ($log) {
+            return [
+                'id'             => $log->id,
+                'created_at'     => $log->created_at ? $log->created_at->format('d/m/Y H:i:s') : '-',
+                'user_name'      => $log->user_name ?? 'System',
+                'item_name'      => $log->item_name ?? '-',
+                'part_number'    => $log->part_number ?? '-',
+                'tanggal_datang' => $log->tanggal_datang ? \Carbon\Carbon::parse($log->tanggal_datang)->format('d/m/Y') : '-',
+                'shift_datang'   => $log->shift_datang ?? '-',
+                'action_type'    => $log->action_type,
+                'qty_before'     => number_format($log->qty_before),
+                'qty_change_raw' => $log->qty_change,
+                'qty_change'     => ($log->qty_change > 0 ? '+' : '') . number_format($log->qty_change),
+                'qty_after'      => number_format($log->qty_after),
+                'description'    => $log->description ?? '-',
+            ];
+        });
+
+        return response()->json([
+            'success'      => true,
+            'logs'         => $logs,
+            'current_page' => $paginated->currentPage(),
+            'last_page'    => $paginated->lastPage(),
+            'from'         => $paginated->firstItem() ?? 0,
+            'to'           => $paginated->lastItem() ?? 0,
+            'total'        => $paginated->total(),
+            'per_page'     => $paginated->perPage(),
+        ]);
     }
 
     public function edit($id)

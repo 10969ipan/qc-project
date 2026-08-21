@@ -454,7 +454,11 @@
                                     {{-- Qty Balance Sisa --}}
                                     <td class="align-middle text-nowrap">
                                         @php
-                                            $sisaDisplay = $cs->arrival ? $cs->arrival->qty_sisa : (isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0);
+                                            if ($cs->arrival && $cs->arrival->status === 'OPEN') {
+                                                $sisaDisplay = $cs->arrival->qty_sisa;
+                                            } else {
+                                                $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                            }
                                             $statusDisplay = ($sisaDisplay <= 0) ? 'COMPLETED' : 'OPEN';
                                         @endphp
                                         <span>{{ number_format($sisaDisplay) }} pcs</span>
@@ -808,9 +812,14 @@
                             <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
                                 Daftar Tanggal &amp; Shift Kedatangan (Stok Open)
                             </h6>
-                            <span class="badge badge-info px-2 py-1 font-weight-bold" id="openArrivalCountBadge">
-                                {{ count($openArrivals ?? []) }} Lot Open
-                            </span>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-xs btn-outline-primary font-weight-bold mr-2 px-2 py-1 shadow-sm" id="btnOpenArrivalLogModal" title="Lihat Log Riwayat Stok">
+                                    <i class="fas fa-history mr-1"></i> Log Data Stok
+                                </button>
+                                <span class="badge badge-info px-2 py-1 font-weight-bold" id="openArrivalCountBadge">
+                                    {{ count($openArrivals ?? []) }} Lot Open
+                                </span>
+                            </div>
                         </div>
                         <div class="card-body p-0 bg-white">
                             <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
@@ -851,6 +860,106 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white py-2 px-4" style="border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-sm btn-secondary font-weight-bold px-4" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Log Riwayat Data Stok Kedatangan -->
+    <div class="modal fade" id="modalArrivalLog" tabindex="-1" role="dialog" aria-labelledby="modalArrivalLogTitleIndex" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+                <div class="modal-header bg-white py-3 px-4" style="border-bottom: 2px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold text-gray-800 mb-0" id="modalArrivalLogTitleIndex" style="font-size: 0.95rem;">
+                        Log Activity &amp; Riwayat Stok Kedatangan (IN / OUT / UPDATE / DELETE)
+                    </h5>
+                    <button type="button" class="close text-secondary opacity-100" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 text-left" style="background-color: #ffffff;">
+                    <!-- Filter bar -->
+                    <div class="card border-0 shadow-sm mb-4" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Filter Data Log Stok
+                            </h6>
+                        </div>
+                        <div class="card-body p-3 bg-white">
+                            <div class="form-row align-items-center">
+                                <div class="col-md-5 mb-2 mb-md-0">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-light border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm border-left-0" id="arrivalLogSearch" placeholder="Cari Nama Part, Part No, User, Keterangan..." autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2 mb-md-0">
+                                    <select class="form-control form-control-sm" id="arrivalLogFilterAction">
+                                        <option value="">-- Semua Jenis Aksi --</option>
+                                        <option value="IN">IN (Stok Masuk / Kedatangan Baru)</option>
+                                        <option value="OUT">OUT (Stok Keluar / Checksheet QC)</option>
+                                        <option value="UPDATE">UPDATE (Perubahan Data)</option>
+                                        <option value="DELETE">DELETE (Penghapusan Stok)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 text-right">
+                                    <button type="button" class="btn btn-sm btn-primary font-weight-bold btn-block shadow-sm" id="btnRefreshArrivalLogs">
+                                        <i class="fas fa-sync-alt mr-1"></i> Refresh Log
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Table -->
+                    <div class="card border-0 shadow-sm" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Tabel Riwayat Perubahan Stok
+                            </h6>
+                        </div>
+                        <div class="card-body p-0 bg-white">
+                            <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                                <table class="table table-hover table-sm text-center mb-0" id="tableArrivalLogs" style="font-size: 0.78rem;">
+                                    <thead style="background-color: #f8fafc !important; color: #475569 !important; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1 !important;">
+                                        <tr>
+                                            <th class="py-2 text-center" style="width: 45px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">No</th>
+                                            <th class="py-2 text-center" style="width: 140px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Waktu Log</th>
+                                            <th class="py-2 text-center" style="width: 130px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Diubah Oleh (User)</th>
+                                            <th class="py-2 text-left" style="min-width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Nama Part / Part No</th>
+                                            <th class="py-2 text-center" style="width: 120px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Tgl &amp; Shift Datang</th>
+                                            <th class="py-2 text-center" style="width: 110px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Aksi</th>
+                                            <th class="py-2 text-center" style="width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Detail Stok (Awal &rarr; Ubah &rarr; Sisa)</th>
+                                            <th class="py-2 text-left" style="min-width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="arrivalLogTableBody" style="color: #334155;">
+                                        <tr>
+                                            <td colspan="8" class="text-center py-4 text-muted">
+                                                <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i>
+                                                Memuat log data stok...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light py-2 px-3 border-top d-flex justify-content-between align-items-center" style="border-top: 1px solid #e2e8f0 !important;" id="arrivalLogPaginationCardFooter">
+                            <small class="text-muted font-weight-bold" id="arrivalLogPaginationInfo">
+                                Menampilkan 0 - 0 dari 0 log data
+                            </small>
+                            <nav aria-label="Navigasi Halaman Log">
+                                <ul class="pagination pagination-sm m-0" id="arrivalLogPaginationNav">
+                                    <!-- Dynamic pagination links -->
+                                </ul>
+                            </nav>
                         </div>
                     </div>
                 </div>
@@ -1193,21 +1302,29 @@
                             var arr = res.arrival;
                             var itemName = arr.item ? arr.item.name : '-';
                             var partNo = arr.item && arr.item.part_number ? arr.item.part_number : '-';
-                            var tglParts = (arr.tanggal_datang || '').split('-');
-                            var tglFmt = tglParts.length === 3 ? (tglParts[2].substring(0, 2) + '/' + tglParts[1] + '/' + tglParts[0]) : (arr.tanggal_datang || '-');
+                            var tglClean = (arr.tanggal_datang || '').split('T')[0];
+                            var tglParts = tglClean.split('-');
+                            var tglFmt = tglParts.length === 3 ? (tglParts[2] + '/' + tglParts[1] + '/' + tglParts[0]) : tglClean;
                             var qtyDatangFmt = new Intl.NumberFormat().format(arr.qty_datang);
                             var qtySisaFmt = new Intl.NumberFormat().format(arr.qty_sisa);
                             
-                            var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;">' +
-                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
-                                '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
-                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
-                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
-                                '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
-                                '<td class="align-middle"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
-                                '</tr>';
-                                
-                            $('#tableOpenArrivals tbody').append(newRow);
+                            var $existingRow = $('#arrivalRow_' + arr.id);
+                            if ($existingRow.length > 0) {
+                                $existingRow.find('td:nth-child(4)').text(qtyDatangFmt + ' pcs');
+                                $existingRow.find('td:nth-child(5)').text(qtySisaFmt + ' pcs');
+                            } else {
+                                var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;" id="arrivalRow_' + arr.id + '">' +
+                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
+                                    '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
+                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
+                                    '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
+                                    '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
+                                    '<td class="align-middle"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
+                                    '</tr>';
+                                    
+                                $('#tableOpenArrivals tbody').append(newRow);
+                            }
+
                             $('#tableOpenArrivals tbody tr').each(function(idx) {
                                 $(this).find('td:first').text(idx + 1);
                             });
@@ -1223,6 +1340,99 @@
                     alert(errMsg);
                 }
             });
+        });
+
+        // --- Log Activity & Riwayat Stok Kedatangan ---
+        function fetchArrivalLogsIndex() {
+            var $tbody = $('#arrivalLogTableBody');
+            $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i><br>Memuat log data stok...</td></tr>');
+
+            var params = {
+                plant: '{{ request("plant") ?? auth()->user()->plant_id }}',
+                search: $('#arrivalLogSearch').val() || '',
+                action_type: $('#arrivalLogFilterAction').val() || ''
+            };
+
+            $.ajax({
+                url: '{{ route("incoming.parts.arrival_logs") }}',
+                type: 'GET',
+                data: params,
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success && res.logs && res.logs.length > 0) {
+                        var html = '';
+                        $.each(res.logs, function(idx, log) {
+                            var badgeClass = 'badge-secondary';
+                            var badgeIcon = 'fa-info-circle';
+                            var actionLabel = log.action_type;
+
+                            if (log.action_type === 'IN') {
+                                badgeClass = 'badge-success';
+                                badgeIcon = 'fa-arrow-down';
+                                actionLabel = 'STOK MASUK (IN)';
+                            } else if (log.action_type === 'OUT') {
+                                badgeClass = 'badge-danger';
+                                badgeIcon = 'fa-arrow-up';
+                                actionLabel = 'STOK KELUAR (OUT)';
+                            } else if (log.action_type === 'UPDATE') {
+                                badgeClass = 'badge-warning text-dark';
+                                badgeIcon = 'fa-edit';
+                                actionLabel = 'UPDATE DATA';
+                            } else if (log.action_type === 'DELETE') {
+                                badgeClass = 'badge-dark';
+                                badgeIcon = 'fa-trash';
+                                actionLabel = 'HAPUS DATA';
+                            }
+
+                            var changeColor = log.qty_change_raw > 0 ? 'text-success font-weight-bold' : (log.qty_change_raw < 0 ? 'text-danger font-weight-bold' : 'text-muted');
+
+                            html += '<tr>';
+                            html += '<td class="align-middle text-center">' + (idx + 1) + '</td>';
+                            html += '<td class="align-middle text-center font-weight-bold text-dark" style="font-size:0.75rem;">' + log.created_at + '</td>';
+                            html += '<td class="align-middle text-center"><span class="badge badge-light border text-dark font-weight-bold px-2 py-1"><i class="fas fa-user mr-1 text-primary"></i>' + log.user_name + '</span></td>';
+                            html += '<td class="align-middle text-left font-weight-bold">' + log.item_name + '<br><small class="text-muted">' + log.part_number + '</small></td>';
+                            html += '<td class="align-middle text-center">' + log.tanggal_datang + '<br><small class="text-muted">Shift ' + log.shift_datang + '</small></td>';
+                            html += '<td class="align-middle text-center"><span class="badge ' + badgeClass + ' px-2 py-1" style="font-size:0.68rem;"><i class="fas ' + badgeIcon + ' mr-1"></i>' + actionLabel + '</span></td>';
+                            html += '<td class="align-middle text-center" style="font-size:0.78rem;">' +
+                                    '<span class="text-muted">' + log.qty_before + '</span> &rarr; ' +
+                                    '<span class="' + changeColor + '">' + log.qty_change + '</span> &rarr; ' +
+                                    '<span class="font-weight-bold text-dark">' + log.qty_after + ' pcs</span>' +
+                                    '</td>';
+                            html += '<td class="align-middle text-left text-muted small">' + log.description + '</td>';
+                            html += '</tr>';
+                        });
+                        $tbody.html(html);
+                    } else {
+                        $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-history fa-2x mb-2 d-block text-gray-400"></i>Belum ada log data stok kedatangan recorded.</td></tr>');
+                    }
+                },
+                error: function(err) {
+                    $tbody.html('<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Gagal memuat log data stok.</td></tr>');
+                }
+            });
+        }
+
+        $(document).on('click', '#btnOpenArrivalLogModal', function(e) {
+            if (e) e.preventDefault();
+            $('#modalArrivalLog').modal('show');
+            fetchArrivalLogsIndex();
+        });
+
+        $(document).on('click', '#btnRefreshArrivalLogs', function(e) {
+            if (e) e.preventDefault();
+            fetchArrivalLogsIndex();
+        });
+
+        var logSearchTimerIndex;
+        $(document).on('keyup', '#arrivalLogSearch', function() {
+            clearTimeout(logSearchTimerIndex);
+            logSearchTimerIndex = setTimeout(function() {
+                fetchArrivalLogsIndex();
+            }, 300);
+        });
+
+        $(document).on('change', '#arrivalLogFilterAction', function() {
+            fetchArrivalLogsIndex();
         });
     });
 </script>

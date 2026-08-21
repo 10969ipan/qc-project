@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/checksheet/incoming-part/arrival/{id}', [IncomingPartController::class, 'updateArrival'])->name('incoming.parts.update_arrival');
         Route::delete('/checksheet/incoming-part/arrival/{id}', [IncomingPartController::class, 'destroyArrival'])->name('incoming.parts.destroy_arrival');
         Route::get('/checksheet/incoming-part/arrivals', [IncomingPartController::class, 'getArrivals'])->name('incoming.parts.arrivals');
+        Route::get('/checksheet/incoming-part/arrival-logs', [IncomingPartController::class, 'getArrivalLogs'])->name('incoming.parts.arrival_logs');
         Route::get('/checksheet/incoming-part/check-first-time', [IncomingPartController::class, 'checkFirstTimeArrival'])->name('incoming.parts.check_first_time');
         Route::get('/checksheet/incoming-material', [IncomingMaterialController::class, 'create'])->name('incoming.materials.create');
         Route::post('/checksheet/incoming-material', [IncomingMaterialController::class, 'store'])->name('incoming.materials.store');

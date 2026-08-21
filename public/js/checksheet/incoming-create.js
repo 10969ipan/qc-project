@@ -705,9 +705,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalCheck = parseFloat($('#totalCheckInput').val()) || 0;
 
         if (arrivalId && initialBalance > 0) {
+            $('#qtyBalanceInput').val(initialBalance);
             const remaining = Math.max(0, initialBalance - totalCheck);
-            $('#qtyBalanceInput').val(remaining);
-            $('#maxCheckHint').text('Maks. check: ' + initialBalance.toLocaleString('id-ID') + ' pcs');
+            if (totalCheck > 0) {
+                $('#maxCheckHint').html('Sisa stlh check: <b>' + remaining.toLocaleString('id-ID') + ' pcs</b>');
+            } else {
+                $('#maxCheckHint').text('Stok kedatangan: ' + initialBalance.toLocaleString('id-ID') + ' pcs');
+            }
             $('#totalCheckInput').attr('max', initialBalance);
 
             updateRemarksSelisih(initialBalance, totalCheck);
@@ -2163,27 +2167,40 @@ document.addEventListener('DOMContentLoaded', function () {
                         var arr = res.arrival;
                         var itemName = arr.item ? arr.item.name : '-';
                         var partNo = arr.item && arr.item.part_number ? arr.item.part_number : '-';
-                        var tglParts = (arr.tanggal_datang || '').split('-');
-                        var tglFmt = tglParts.length === 3 ? (tglParts[2].substring(0, 2) + '/' + tglParts[1] + '/' + tglParts[0]) : (arr.tanggal_datang || '-');
+                        var tglClean = (arr.tanggal_datang || '').split('T')[0];
+                        var tglParts = tglClean.split('-');
+                        var tglFmt = tglParts.length === 3 ? (tglParts[2] + '/' + tglParts[1] + '/' + tglParts[0]) : tglClean;
                         var qtyDatangFmt = new Intl.NumberFormat().format(arr.qty_datang);
                         var qtySisaFmt = new Intl.NumberFormat().format(arr.qty_sisa);
                         
-                        var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;" id="arrivalRow_' + arr.id + '">' +
-                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
-                            '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
-                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
-                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
-                            '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
-                            '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
-                            '<td class="align-middle text-center text-nowrap" style="white-space: nowrap;">' +
-                            '<div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">' +
-                            '<button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" data-tgl="' + (arr.tanggal_datang ? arr.tanggal_datang.substring(0, 10) : '') + '" data-shift="' + arr.shift_datang + '" data-qty-datang="' + arr.qty_datang + '" data-qty-sisa="' + arr.qty_sisa + '" title="Edit Stok"><i class="fas fa-edit"></i></button>' +
-                            '<button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" title="Hapus Stok"><i class="fas fa-trash"></i></button>' +
-                            '</div>' +
-                            '</td>' +
-                            '</tr>';
-                            
-                        $('#tableOpenArrivals tbody').append(newRow);
+                        var $existingRow = $('#arrivalRow_' + arr.id);
+                        if ($existingRow.length > 0) {
+                            $existingRow.find('td:nth-child(4)').text(qtyDatangFmt + ' pcs');
+                            $existingRow.find('td:nth-child(5)').text(qtySisaFmt + ' pcs');
+                            var $editBtn = $existingRow.find('.btn-edit-arrival');
+                            $editBtn.attr('data-qty-datang', arr.qty_datang);
+                            $editBtn.attr('data-qty-sisa', arr.qty_sisa);
+                            $editBtn.attr('data-tgl', tglClean);
+                            $editBtn.attr('data-shift', arr.shift_datang);
+                        } else {
+                            var newRow = '<tr style="border-bottom: 1px solid #f1f5f9;" id="arrivalRow_' + arr.id + '">' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">1</td>' +
+                                '<td class="align-middle text-left font-weight-bold" style="border-right: 1px solid #f1f5f9;">' + itemName + '<br><small class="text-muted">' + partNo + '</small></td>' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="font-weight-bold text-dark">' + tglFmt + '</span><br><small class="text-muted">Shift ' + arr.shift_datang + '</small></td>' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;">' + qtyDatangFmt + ' pcs</td>' +
+                                '<td class="align-middle font-weight-bold text-dark" style="border-right: 1px solid #f1f5f9;">' + qtySisaFmt + ' pcs</td>' +
+                                '<td class="align-middle" style="border-right: 1px solid #f1f5f9;"><span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">OPEN</span></td>' +
+                                '<td class="align-middle text-center text-nowrap" style="white-space: nowrap;">' +
+                                '<div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">' +
+                                '<button type="button" class="btn btn-xs btn-outline-warning btn-edit-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" data-tgl="' + tglClean + '" data-shift="' + arr.shift_datang + '" data-qty-datang="' + arr.qty_datang + '" data-qty-sisa="' + arr.qty_sisa + '" title="Edit Stok"><i class="fas fa-edit"></i></button>' +
+                                '<button type="button" class="btn btn-xs btn-outline-danger btn-delete-arrival" data-id="' + arr.id + '" data-item-name="' + itemName + '" title="Hapus Stok"><i class="fas fa-trash"></i></button>' +
+                                '</div>' +
+                                '</td>' +
+                                '</tr>';
+                                
+                            $('#tableOpenArrivals tbody').append(newRow);
+                        }
+
                         $('#tableOpenArrivals tbody tr').each(function(idx) {
                             $(this).find('td:first').text(idx + 1);
                         });
@@ -2377,6 +2394,145 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // --- Log Activity & Riwayat Stok Kedatangan ---
+    window.currentArrivalLogPage = 1;
+
+    function fetchArrivalLogs(page) {
+        var $tbody = $('#arrivalLogTableBody');
+        if (!$tbody.length) return;
+        
+        page = page || window.currentArrivalLogPage || 1;
+        window.currentArrivalLogPage = page;
+
+        $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i><br>Memuat log data stok...</td></tr>');
+
+        var params = {
+            search: $('#arrivalLogSearch').val() || '',
+            action_type: $('#arrivalLogFilterAction').val() || '',
+            page: page,
+            per_page: 10
+        };
+
+        var logUrl = (window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.arrivalLogsUrl) 
+            ? window.INCOMING_PART_CONFIG.arrivalLogsUrl 
+            : '/checksheet/incoming-part/arrival-logs';
+
+        $.ajax({
+            url: logUrl,
+            type: 'GET',
+            data: params,
+            dataType: 'json',
+            success: function(res) {
+                if (res.success && res.logs && res.logs.length > 0) {
+                    var html = '';
+                    var fromNum = res.from || 1;
+                    $.each(res.logs, function(idx, log) {
+                        var badgeClass = 'badge-secondary';
+                        var badgeIcon = 'fa-info-circle';
+                        var actionLabel = log.action_type;
+
+                        if (log.action_type === 'IN') {
+                            badgeClass = 'badge-success';
+                            badgeIcon = 'fa-arrow-down';
+                            actionLabel = 'STOK MASUK (IN)';
+                        } else if (log.action_type === 'OUT') {
+                            badgeClass = 'badge-danger';
+                            badgeIcon = 'fa-arrow-up';
+                            actionLabel = 'STOK KELUAR (OUT)';
+                        } else if (log.action_type === 'UPDATE') {
+                            badgeClass = 'badge-warning text-dark';
+                            badgeIcon = 'fa-edit';
+                            actionLabel = 'UPDATE DATA';
+                        } else if (log.action_type === 'DELETE') {
+                            badgeClass = 'badge-dark';
+                            badgeIcon = 'fa-trash';
+                            actionLabel = 'HAPUS DATA';
+                        }
+
+                        var changeColor = log.qty_change_raw > 0 ? 'text-success font-weight-bold' : (log.qty_change_raw < 0 ? 'text-danger font-weight-bold' : 'text-muted');
+
+                        html += '<tr>';
+                        html += '<td class="align-middle text-center">' + (fromNum + idx) + '</td>';
+                        html += '<td class="align-middle text-center font-weight-bold text-dark" style="font-size:0.75rem;">' + log.created_at + '</td>';
+                        html += '<td class="align-middle text-center"><span class="badge badge-light border text-dark font-weight-bold px-2 py-1"><i class="fas fa-user mr-1 text-primary"></i>' + log.user_name + '</span></td>';
+                        html += '<td class="align-middle text-left font-weight-bold">' + log.item_name + '<br><small class="text-muted">' + log.part_number + '</small></td>';
+                        html += '<td class="align-middle text-center">' + log.tanggal_datang + '<br><small class="text-muted">Shift ' + log.shift_datang + '</small></td>';
+                        html += '<td class="align-middle text-center"><span class="badge ' + badgeClass + ' px-2 py-1" style="font-size:0.68rem;"><i class="fas ' + badgeIcon + ' mr-1"></i>' + actionLabel + '</span></td>';
+                        html += '<td class="align-middle text-center" style="font-size:0.78rem;">' +
+                                '<span class="text-muted">' + log.qty_before + '</span> &rarr; ' +
+                                '<span class="' + changeColor + '">' + log.qty_change + '</span> &rarr; ' +
+                                '<span class="font-weight-bold text-dark">' + log.qty_after + ' pcs</span>' +
+                                '</td>';
+                        html += '<td class="align-middle text-left text-muted small">' + log.description + '</td>';
+                        html += '</tr>';
+                    });
+                    $tbody.html(html);
+
+                    $('#arrivalLogPaginationInfo').text('Menampilkan ' + res.from + ' - ' + res.to + ' dari ' + res.total + ' log data');
+                    renderArrivalLogPagination(res.current_page, res.last_page);
+                } else {
+                    $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-history fa-2x mb-2 d-block text-gray-400"></i>Belum ada log data stok kedatangan recorded.</td></tr>');
+                    $('#arrivalLogPaginationInfo').text('Menampilkan 0 log data');
+                    $('#arrivalLogPaginationNav').empty();
+                }
+            },
+            error: function(err) {
+                $tbody.html('<tr><td colspan="8" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Gagal memuat log data stok.</td></tr>');
+                $('#arrivalLogPaginationInfo').text('Gagal memuat');
+                $('#arrivalLogPaginationNav').empty();
+            }
+        });
+    }
+
+    function renderArrivalLogPagination(currentPage, lastPage) {
+        var $nav = $('#arrivalLogPaginationNav');
+        $nav.empty();
+        if (!lastPage || lastPage <= 1) return;
+
+        var prevDisabled = currentPage === 1 ? ' disabled' : '';
+        $nav.append('<li class="page-item' + prevDisabled + '"><a class="page-link arrival-log-page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>');
+
+        var startPage = Math.max(1, currentPage - 2);
+        var endPage = Math.min(lastPage, currentPage + 2);
+
+        for (var p = startPage; p <= endPage; p++) {
+            var activeClass = p === currentPage ? ' active' : '';
+            $nav.append('<li class="page-item' + activeClass + '"><a class="page-link arrival-log-page-link" href="#" data-page="' + p + '">' + p + '</a></li>');
+        }
+
+        var nextDisabled = currentPage === lastPage ? ' disabled' : '';
+        $nav.append('<li class="page-item' + nextDisabled + '"><a class="page-link arrival-log-page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>');
+    }
+
+    $(document).on('click', '.arrival-log-page-link', function(e) {
+        if (e) e.preventDefault();
+        var targetPage = parseInt($(this).attr('data-page'));
+        if (targetPage && !$(this).parent().hasClass('disabled') && !$(this).parent().hasClass('active')) {
+            fetchArrivalLogs(targetPage);
+        }
+    });
+
+    $(document).on('click', '#btnOpenArrivalLogModal', function(e) {
+        if (e) e.preventDefault();
+        $('#modalArrivalLog').modal('show');
+        fetchArrivalLogs(1);
+    });
+
+    $(document).on('click', '#btnRefreshArrivalLogs', function(e) {
+        if (e) e.preventDefault();
+        fetchArrivalLogs(1);
+    });
+
+    var logSearchTimer;
+    $(document).on('keyup', '#arrivalLogSearch', function() {
+        clearTimeout(logSearchTimer);
+        logSearchTimer = setTimeout(function() {
+            fetchArrivalLogs(1);
+        }, 300);
+    });
+
+    $(document).on('change', '#arrivalLogFilterAction', function() {
+        fetchArrivalLogs(1);
+    });
+
 });
-
-

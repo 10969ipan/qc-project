@@ -17,14 +17,21 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
     }
 
-    /* Target tableOpenArrivals headers to override global admin blue thead th style */
+    /* Target tableOpenArrivals & tableArrivalLogs headers to override global admin blue thead th style */
     #tableOpenArrivals,
     #tableOpenArrivals > thead > tr > th,
     #tableOpenArrivals > thead > tr > td,
     #tableOpenArrivals th,
     #tableOpenArrivals tr:first-child th,
     #modalAddArrival table thead th,
-    #modalAddArrival table tr:first-child th {
+    #modalAddArrival table tr:first-child th,
+    #tableArrivalLogs,
+    #tableArrivalLogs > thead > tr > th,
+    #tableArrivalLogs > thead > tr > td,
+    #tableArrivalLogs th,
+    #tableArrivalLogs tr:first-child th,
+    #modalArrivalLog table thead th,
+    #modalArrivalLog table tr:first-child th {
         background-color: #f8fafc !important;
         color: #475569 !important;
         font-weight: 700 !important;
@@ -33,9 +40,17 @@
         letter-spacing: 0.3px !important;
         border-bottom: 2px solid #cbd5e1 !important;
         border-right: 1px solid #e2e8f0 !important;
-        border-left: none !important;
+        border-left: 1px solid #e2e8f0 !important;
         border-top: 1px solid #e2e8f0 !important;
         box-shadow: none !important;
+    }
+    #tableArrivalLogs > tbody > tr > td,
+    #tableArrivalLogs td {
+        border: 1px solid #e2e8f0 !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.8rem !important;
+        padding: 8px 10px !important;
     }
     #tempQueueCard .card-header {
         background-color: #f8fafc !important;
@@ -99,53 +114,43 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="flex-grow-1 mr-3">
-                    <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
-                        <tr>
-                            <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                                <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                            </td>
-                            <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                                <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                                    CHECK SHEET INCOMING PART
-                                </h1>
-                            </td>
-                            <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                                <table style="border-collapse:collapse; font-size:0.68rem;">
-                                    <tr>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                        <td style="padding:1px 2px;">:</td>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                        <td style="padding:1px 2px;">:</td>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                        <td style="padding:1px 2px;">:</td>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                        <td style="padding:1px 2px;">:</td>
-                                        <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="d-flex align-items-center" style="gap: 8px;">
-                    <button type="button" class="btn btn-primary btn-sm font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
-                        <i class="fas fa-boxes mr-1"></i> INPUT STOK KEDATANGAN AWAL
-                    </button>
-                    <span class="badge badge-primary px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px;">
-                        <i class="fas fa-industry mr-1"></i> PLANT: {{ strtoupper($plantCode) }}
-                    </span>
-                </div>
+            <div class="mb-3">
+                <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                    <tr>
+                        <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                            <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                        </td>
+                        <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                            <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                                CHECK SHEET INCOMING PART
+                            </h1>
+                        </td>
+                        <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
+                            <table style="border-collapse:collapse; font-size:0.68rem;">
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
+                                    <td style="padding:1px 2px;">:</td>
+                                    <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <form action="{{ route('incoming.parts.store') }}" method="POST" id="checksheetForm" novalidate>
                 @csrf
@@ -314,16 +319,23 @@
                 </div>
 
                 <div class="row mt-4">
-                    <div class="col-md-12 text-right d-flex justify-content-end align-items-center">
-                        <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
-                        <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
+                    <div class="col-md-12 d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="button" class="btn btn-primary font-weight-bold shadow-sm px-3 py-2" style="font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 6px;" data-toggle="modal" data-target="#modalAddArrival">
+                                INPUT STOK KEDATANGAN AWAL
+                            </button>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <h5 class="mr-3 mb-0 font-weight-bold text-gray-800" id="timerDisplay">00:00:00</h5>
+                            <input type="hidden" name="cycle_time" id="cycleTimeInput" value="0">
 
-                        <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
-                            <i class="fas fa-play"></i> Start
-                        </button>
-                        <button type="submit" class="btn btn-primary px-5" id="saveBtn" disabled>
-                            <i class="fas fa-save mr-1"></i> SIMPAN DATA
-                        </button>
+                            <button type="button" class="btn btn-success mr-3" id="startTimerBtn">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button type="submit" class="btn btn-primary px-5" id="saveBtn" disabled>
+                                <i class="fas fa-save mr-1"></i> SIMPAN DATA
+                            </button>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -578,9 +590,14 @@
                             <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
                                 Daftar Tanggal &amp; Shift Kedatangan (Stok Open)
                             </h6>
-                            <span class="badge badge-info px-2 py-1 font-weight-bold" id="openArrivalCountBadge">
-                                {{ count($openArrivals ?? []) }} Lot Open
-                            </span>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-xs btn-outline-primary font-weight-bold mr-2 px-2 py-1 shadow-sm" id="btnOpenArrivalLogModal" title="Lihat Log Riwayat Stok">
+                                    <i class="fas fa-history mr-1"></i> Log Data Stok
+                                </button>
+                                <span class="badge badge-info px-2 py-1 font-weight-bold" id="openArrivalCountBadge">
+                                    {{ count($openArrivals ?? []) }} Lot Open
+                                </span>
+                            </div>
                         </div>
                         <div class="card-body p-0 bg-white">
                             <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
@@ -651,11 +668,112 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Log Riwayat Data Stok Kedatangan -->
+    <div class="modal fade" id="modalArrivalLog" tabindex="-1" role="dialog" aria-labelledby="modalArrivalLogTitle" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background-color: #ffffff; overflow: hidden;">
+                <div class="modal-header bg-white py-3 px-4" style="border-bottom: 2px solid #f1f5f9;">
+                    <h5 class="modal-title font-weight-bold text-gray-800 mb-0" id="modalArrivalLogTitle" style="font-size: 0.95rem;">
+                        Log Activity &amp; Riwayat Stok Kedatangan (IN / OUT / UPDATE / DELETE)
+                    </h5>
+                    <button type="button" class="close text-secondary opacity-100" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4 text-left" style="background-color: #ffffff;">
+                    <!-- Filter bar -->
+                    <div class="card border-0 shadow-sm mb-4" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Filter Data Log Stok
+                            </h6>
+                        </div>
+                        <div class="card-body p-3 bg-white">
+                            <div class="form-row align-items-center">
+                                <div class="col-md-5 mb-2 mb-md-0">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-light border-right-0"><i class="fas fa-search text-muted"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm border-left-0" id="arrivalLogSearch" placeholder="Cari Nama Part, Part No, User, Keterangan..." autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2 mb-md-0">
+                                    <select class="form-control form-control-sm" id="arrivalLogFilterAction">
+                                        <option value="">-- Semua Jenis Aksi --</option>
+                                        <option value="IN">IN (Stok Masuk / Kedatangan Baru)</option>
+                                        <option value="OUT">OUT (Stok Keluar / Checksheet QC)</option>
+                                        <option value="UPDATE">UPDATE (Perubahan Data)</option>
+                                        <option value="DELETE">DELETE (Penghapusan Stok)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 text-right">
+                                    <button type="button" class="btn btn-sm btn-primary font-weight-bold btn-block shadow-sm" id="btnRefreshArrivalLogs">
+                                        <i class="fas fa-sync-alt mr-1"></i> Refresh Log
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Table -->
+                    <div class="card border-0 shadow-sm" style="border: 1px solid #e2e8f0 !important; border-radius: 10px;">
+                        <div class="card-header bg-light py-2 border-bottom" style="border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="m-0 font-weight-bold text-gray-800" style="font-size: 0.85rem;">
+                                Tabel Riwayat Perubahan Stok
+                            </h6>
+                        </div>
+                        <div class="card-body p-0 bg-white">
+                            <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                                <table class="table table-hover table-sm text-center mb-0" id="tableArrivalLogs" style="font-size: 0.78rem;">
+                                    <thead style="background-color: #f8fafc !important; color: #475569 !important; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #cbd5e1 !important;">
+                                        <tr>
+                                            <th class="py-2 text-center" style="width: 45px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">No</th>
+                                            <th class="py-2 text-center" style="width: 140px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Waktu Log</th>
+                                            <th class="py-2 text-center" style="width: 130px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Diubah Oleh (User)</th>
+                                            <th class="py-2 text-left" style="min-width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Nama Part / Part No</th>
+                                            <th class="py-2 text-center" style="width: 120px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Tgl &amp; Shift Datang</th>
+                                            <th class="py-2 text-center" style="width: 110px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Aksi</th>
+                                            <th class="py-2 text-center" style="width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; border-right: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #475569 !important;">Detail Stok (Awal &rarr; Ubah &rarr; Sisa)</th>
+                                            <th class="py-2 text-left" style="min-width: 180px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.3px; background-color: #f8fafc !important; color: #475569 !important;">Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="arrivalLogTableBody" style="color: #334155;">
+                                        <tr>
+                                            <td colspan="8" class="text-center py-4 text-muted">
+                                                <i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i>
+                                                Memuat log data stok...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light py-2 px-3 border-top d-flex justify-content-between align-items-center" style="border-top: 1px solid #e2e8f0 !important;" id="arrivalLogPaginationCardFooter">
+                            <small class="text-muted font-weight-bold" id="arrivalLogPaginationInfo">
+                                Menampilkan 0 - 0 dari 0 log data
+                            </small>
+                            <nav aria-label="Navigasi Halaman Log">
+                                <ul class="pagination pagination-sm m-0" id="arrivalLogPaginationNav">
+                                    <!-- Dynamic pagination links -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white py-2 px-4" style="border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-sm btn-secondary font-weight-bold px-4" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         window.INCOMING_PART_CONFIG = {
+            arrivalLogsUrl: "{{ route('incoming.parts.arrival_logs') }}",
             arrivalsUrl: "{{ route('incoming.parts.arrivals') }}",
             updateArrivalBaseUrl: "{{ url('/checksheet/incoming-part/arrival') }}",
             checkFirstTimeUrl: "{{ route('incoming.parts.check_first_time') }}",

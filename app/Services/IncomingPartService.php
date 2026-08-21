@@ -147,16 +147,63 @@ class IncomingPartService extends BaseService
     public function createArrival(array $data): IncomingPartArrival
     {
         $plantId = \App\Models\Plant::resolveId($data['plant_id'] ?? auth()->user()->plant_id);
+        $tglDatang = $data['tanggal_datang'];
+        $shiftDatang = (string)($data['shift_datang'] ?? '1');
+        $addQty = (int)$data['qty_datang'];
 
-        return IncomingPartArrival::create([
+        // Cari stok kedatangan OPEN yang sudah ada untuk item, plant, tanggal & shift yang sama
+        $existingArrival = IncomingPartArrival::where('plant_id', $plantId)
+            ->where('item_id', $data['item_id'])
+            ->where('tanggal_datang', $tglDatang)
+            ->where('shift_datang', $shiftDatang)
+            ->where('status', 'OPEN')
+            ->first();
+
+        if ($existingArrival) {
+            $qtyBefore = $existingArrival->qty_sisa;
+            $existingArrival->qty_datang += $addQty;
+            $existingArrival->qty_sisa += $addQty;
+            $existingArrival->status = ($existingArrival->qty_sisa <= 0) ? 'COMPLETED' : 'OPEN';
+            $existingArrival->save();
+
+            // Sync latest checksheet's qty_balance_sisa if linked
+            $latestChecksheet = IncomingPart::where('arrival_id', $existingArrival->id)->latest('id')->first();
+            if ($latestChecksheet) {
+                $latestChecksheet->update(['qty_balance_sisa' => $existingArrival->qty_sisa]);
+            }
+
+            \App\Models\IncomingPartArrivalLog::record(
+                $existingArrival->load('item'),
+                'IN',
+                $qtyBefore,
+                $addQty,
+                $existingArrival->qty_sisa,
+                'Penambahan stok kedatangan pada lot yang sama (+' . number_format($addQty) . ' pcs)'
+            );
+
+            return $existingArrival;
+        }
+
+        $arrival = IncomingPartArrival::create([
             'plant_id'       => $plantId,
             'item_id'        => $data['item_id'],
-            'tanggal_datang' => $data['tanggal_datang'],
-            'shift_datang'   => $data['shift_datang'] ?? '1',
-            'qty_datang'     => (int)$data['qty_datang'],
-            'qty_sisa'       => (int)$data['qty_datang'],
+            'tanggal_datang' => $tglDatang,
+            'shift_datang'   => $shiftDatang,
+            'qty_datang'     => $addQty,
+            'qty_sisa'       => $addQty,
             'status'         => 'OPEN',
         ]);
+
+        \App\Models\IncomingPartArrivalLog::record(
+            $arrival->load('item'),
+            'IN',
+            0,
+            $arrival->qty_datang,
+            $arrival->qty_sisa,
+            'Input Stok Kedatangan Awal baru'
+        );
+
+        return $arrival;
     }
 
     public function isFirstTimeArrival($itemId)
@@ -245,6 +292,15 @@ class IncomingPartService extends BaseService
                         'qty_sisa'       => (int)$data['qty_datang'],
                         'status'         => 'OPEN',
                     ]);
+
+                    \App\Models\IncomingPartArrivalLog::record(
+                        $arrival->load('item'),
+                        'IN',
+                        0,
+                        $arrival->qty_datang,
+                        $arrival->qty_sisa,
+                        'Auto Input Stok Kedatangan Awal dari Checksheet'
+                    );
                 }
             }
 
@@ -253,10 +309,20 @@ class IncomingPartService extends BaseService
             $historicalSisaSnapshot = 0;
 
             if ($arrival) {
-                $historicalSisaSnapshot = max(0, $arrival->qty_sisa - $checkQty);
+                $qtyBefore = $arrival->qty_sisa;
+                $historicalSisaSnapshot = max(0, $qtyBefore - $checkQty);
                 $arrival->qty_sisa = $historicalSisaSnapshot;
                 $arrival->status = ($historicalSisaSnapshot <= 0) ? 'COMPLETED' : 'OPEN';
                 $arrival->save();
+
+                \App\Models\IncomingPartArrivalLog::record(
+                    $arrival->load('item'),
+                    'OUT',
+                    $qtyBefore,
+                    -$checkQty,
+                    $historicalSisaSnapshot,
+                    "Pengurangan stok oleh Checksheet (Check Qty: {$checkQty} pcs)"
+                );
             } else {
                 $initialStock = (int)($data['qty_balance'] ?? $data['lot_qty'] ?? 0);
                 $historicalSisaSnapshot = max(0, $initialStock - $checkQty);
