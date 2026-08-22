@@ -13,14 +13,14 @@ class SyncIncomingScanStock extends Command
      *
      * @var string
      */
-    protected $signature = 'qc:sync-scan-stock';
+    protected $signature = 'qc:sync-scan-stock {--since=2026-08-21 22:52:00 : Tanggal & waktu batas awal sinkronisasi}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Sinkronisasi ulang stok kedatangan (mengembalikan pemotongan stok dari transaksi scan QR Code)';
+    protected $description = 'Sinkronisasi stok kedatangan khusus transaksi sejak tanggal 21/08/2026 22:52';
 
     /**
      * Execute the console command.
@@ -29,11 +29,17 @@ class SyncIncomingScanStock extends Command
      */
     public function handle()
     {
-        $this->info('Memulai sinkronisasi stok kedatangan...');
+        $since = $this->option('since') ?: '2026-08-21 22:52:00';
+        $this->info("Memulai sinkronisasi stok kedatangan (khusus transaksi sejak: {$since})...");
         $startTime = microtime(true);
 
-        $arrivals = IncomingPartArrival::all();
+        $arrivals = IncomingPartArrival::where('created_at', '>=', $since)->get();
         $updatedCount = 0;
+
+        if ($arrivals->isEmpty()) {
+            $this->info("Tidak ada lot kedatangan baru sejak {$since} yang perlu diproses.");
+            return 0;
+        }
 
         foreach ($arrivals as $arrival) {
             // Hitung akumulasi total_check dari transaksi MANUAL saja
