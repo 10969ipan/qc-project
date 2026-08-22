@@ -175,12 +175,18 @@
                     <td>{{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs</td>
                     <td>
                         @php
-                            if ($cs->arrival && $cs->arrival->status === 'OPEN') {
-                                $printSisa = $cs->arrival->qty_sisa;
+                            if ($cs->arrival) {
+                                if ($cs->arrival->status === 'COMPLETED' || $cs->arrival->qty_sisa <= 0) {
+                                    $printSisa = 0;
+                                    $printStatus = 'COMPLETED';
+                                } else {
+                                    $printSisa = $cs->arrival->qty_sisa;
+                                    $printStatus = 'OPEN';
+                                }
                             } else {
-                                $printSisa = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                $printSisa = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0;
+                                $printStatus = ($printSisa <= 0) ? 'COMPLETED' : 'OPEN';
                             }
-                            $printStatus = ($printSisa <= 0) ? 'COMPLETED' : 'OPEN';
                         @endphp
                         {{ number_format($printSisa) }} pcs ({{ $printStatus }})
                     </td>

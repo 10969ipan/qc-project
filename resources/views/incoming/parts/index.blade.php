@@ -454,12 +454,18 @@
                                     {{-- Qty Balance Sisa --}}
                                     <td class="align-middle text-nowrap">
                                         @php
-                                            if ($cs->arrival && $cs->arrival->status === 'OPEN') {
-                                                $sisaDisplay = $cs->arrival->qty_sisa;
+                                            if ($cs->arrival) {
+                                                if ($cs->arrival->status === 'COMPLETED' || $cs->arrival->qty_sisa <= 0) {
+                                                    $sisaDisplay = 0;
+                                                    $statusDisplay = 'COMPLETED';
+                                                } else {
+                                                    $sisaDisplay = $cs->arrival->qty_sisa;
+                                                    $statusDisplay = 'OPEN';
+                                                }
                                             } else {
-                                                $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : ($cs->arrival ? $cs->arrival->qty_sisa : 0);
+                                                $sisaDisplay = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0;
+                                                $statusDisplay = ($sisaDisplay <= 0) ? 'COMPLETED' : 'OPEN';
                                             }
-                                            $statusDisplay = ($sisaDisplay <= 0) ? 'COMPLETED' : 'OPEN';
                                         @endphp
                                         <span>{{ number_format($sisaDisplay) }} pcs</span>
                                         <br>
