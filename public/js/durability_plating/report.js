@@ -388,12 +388,11 @@ $(document).ready(function () {
         }
 
         // Tgl/Jam Masuk & Keluar Chamber
-        let tglM = item.tgl_masuk || item.tanggal_cek || '';
-        form.find('[name="tgl_masuk"]').val(tglM);
-        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
-        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
-        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
-        form.find('[name="tanggal_test"]').val(tglM);
+        let hasCorr = item.actual_corrodkote_waktu && item.actual_corrodkote_waktu !== '-';
+        form.find('[name="tgl_masuk"]').val(hasCorr ? (item.tgl_masuk || '') : '');
+        form.find('[name="jam_masuk"]').val(hasCorr ? (item.jam_masuk || '') : '');
+        form.find('[name="tgl_keluar"]').val(hasCorr ? (item.tgl_keluar || '') : '');
+        form.find('[name="jam_keluar"]').val(hasCorr ? (item.jam_keluar || '') : '');
 
         // Data 1 Fields
         form.find('[name="actual_corrodkote_waktu"]').val(item.actual_corrodkote_waktu && item.actual_corrodkote_waktu !== '-' ? item.actual_corrodkote_waktu : '');
@@ -444,12 +443,11 @@ $(document).ready(function () {
         }
 
         // Tgl/Jam Masuk & Keluar Chamber
-        let tglM = item.tgl_masuk || item.tanggal_cek || '';
-        form.find('[name="tgl_masuk"]').val(tglM);
-        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
-        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
-        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
-        form.find('[name="tanggal_test"]').val(tglM);
+        let hasCass = item.actual_cass_waktu && item.actual_cass_waktu !== '-';
+        form.find('[name="tgl_masuk"]').val(hasCass ? (item.tgl_masuk || '') : '');
+        form.find('[name="jam_masuk"]').val(hasCass ? (item.jam_masuk || '') : '');
+        form.find('[name="tgl_keluar"]').val(hasCass ? (item.tgl_keluar || '') : '');
+        form.find('[name="jam_keluar"]').val(hasCass ? (item.jam_keluar || '') : '');
 
         // Data 1 Fields
         form.find('[name="actual_cass_waktu"]').val(item.actual_cass_waktu && item.actual_cass_waktu !== '-' ? item.actual_cass_waktu : '');
@@ -500,12 +498,11 @@ $(document).ready(function () {
         }
 
         // Tgl/Jam Masuk & Keluar Chamber
-        let tglM = item.tgl_masuk || item.tanggal_cek || '';
-        form.find('[name="tgl_masuk"]').val(tglM);
-        form.find('[name="jam_masuk"]').val(item.jam_masuk || '');
-        form.find('[name="tgl_keluar"]').val(item.tgl_keluar || '');
-        form.find('[name="jam_keluar"]').val(item.jam_keluar || '');
-        form.find('[name="tanggal_test"]').val(tglM);
+        let hasSalt = item.actual_salt_spray_waktu && item.actual_salt_spray_waktu !== '-';
+        form.find('[name="tgl_masuk"]').val(hasSalt ? (item.tgl_masuk || '') : '');
+        form.find('[name="jam_masuk"]').val(hasSalt ? (item.jam_masuk || '') : '');
+        form.find('[name="tgl_keluar"]').val(hasSalt ? (item.tgl_keluar || '') : '');
+        form.find('[name="jam_keluar"]').val(hasSalt ? (item.jam_keluar || '') : '');
 
         // Data 1 Fields
         form.find('[name="actual_salt_spray_waktu"]').val(item.actual_salt_spray_waktu && item.actual_salt_spray_waktu !== '-' ? item.actual_salt_spray_waktu : '');
@@ -553,7 +550,11 @@ $(document).ready(function () {
             $('#porecount_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
-        form.find('[name="tanggal_test"]').val(item.tanggal_cek || '');
+        let poreDate = item.tanggal_cek || '';
+        if (poreDate && item.tgl_masuk && poreDate === item.tgl_masuk) {
+            poreDate = '';
+        }
+        form.find('[name="tanggal_test"]').val(poreDate || new Date().toISOString().slice(0, 10));
 
         // Data 1 Fields
         form.find('[name="actual_porecount"]').val(item.actual_porecount && item.actual_porecount !== '-' ? item.actual_porecount : '');
@@ -949,10 +950,7 @@ $(document).ready(function () {
         }
     });
 
-    $(document).on('change input', 'input[name="tgl_masuk"]', function () {
-        var $form = $(this).closest('form');
-        $form.find('input[name="tanggal_test"]').val($(this).val());
-    });
+
 
     // ponytail: Dynamic body-append positioning for action dropdown menu.
     // Fixes table container clipping, z-index sticky header coverage, and ensures fixed compact width (200px).

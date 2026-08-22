@@ -576,7 +576,9 @@ class StandardPerformanceTestController extends Controller
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
                 'updatedBy',
             ])
-            ->orderBy('created_at', 'desc');
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         if ($request->filled('report_id')) {
             // Direct link: fetch specific report ID directly regardless of filters or empty values
@@ -993,9 +995,11 @@ class StandardPerformanceTestController extends Controller
 
     public function updateThickness(Request $request, $id)
     {
-        // ponytail: tanggal_test is sent by input modals (Corrodkote/Cass/Salt/Porecount)
-        // but the DB column is tanggal_cek. Map it here.
-        if ($request->has('tanggal_test') && !$request->has('tanggal_cek')) {
+        $testType = $request->input('test_type', $request->query('type', 'thickness'));
+
+        // ponytail: tanggal_test is sent by input modals (e.g. Thickness)
+        // but the DB column for thickness check date is tanggal_cek. Map it ONLY when testType is thickness.
+        if ($testType === 'thickness' && $request->has('tanggal_test') && !$request->has('tanggal_cek')) {
             $request->merge(['tanggal_cek' => $request->tanggal_test]);
         }
 
@@ -1066,13 +1070,17 @@ class StandardPerformanceTestController extends Controller
             'description', 'description_corrodkote', 'description_cass', 'description_salt_spray', 'description_porecount'
         ];
 
-        $testType = $request->input('test_type', $request->query('type', 'thickness'));
-
         foreach ($fields as $field) {
             if ($request->has($field)) {
-                // Protect Thickness-only measurement values from being altered by non-thickness test inputs
+                // Protect Thickness-only measurement values and check date from being altered by non-thickness test inputs
                 if ($testType !== 'thickness' && in_array($field, [
-                    'actual_cu', 'actual_ni', 'actual_cr',
+                    'actual_cu', 'actual_ni', 'actual_cr', 'tanggal_cek', 'result_judgment', 'description',
+                ])) {
+                    continue;
+                }
+                // Protect Chamber-only date/time fields from being altered by non-chamber test inputs (e.g. thickness, porecount)
+                if (!in_array($testType, ['corrodkote', 'cass', 'salt_spray']) && in_array($field, [
+                    'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar',
                 ])) {
                     continue;
                 }
@@ -1122,16 +1130,20 @@ class StandardPerformanceTestController extends Controller
             }
 
             $trialData = [
-                'tanggal_cek' => $report->tanggal_cek,
                 'production_date' => $report->production_date,
                 'shift' => $report->shift,
                 'lot_no' => $report->lot_no,
-                'tgl_masuk' => $report->tgl_masuk,
-                'jam_masuk' => $report->jam_masuk,
-                'tgl_keluar' => $report->tgl_keluar,
-                'jam_keluar' => $report->jam_keluar,
                 'updated_by' => auth()->id(),
             ];
+            if (in_array($testType, ['corrodkote', 'cass', 'salt_spray'])) {
+                $trialData['tgl_masuk'] = $report->tgl_masuk;
+                $trialData['jam_masuk'] = $report->jam_masuk;
+                $trialData['tgl_keluar'] = $report->tgl_keluar;
+                $trialData['jam_keluar'] = $report->jam_keluar;
+            }
+            if ($testType === 'thickness') {
+                $trialData['tanggal_cek'] = $report->tanggal_cek;
+            }
             if ($analisColumn) {
                 $trialData[$analisColumn] = auth()->id();
             }
@@ -1285,20 +1297,46 @@ class StandardPerformanceTestController extends Controller
             $report->actual_cu = null;
             $report->actual_ni = null;
             $report->actual_cr = null;
+            $report->result_judgment = null;
+            $report->description = null;
+            $report->tanggal_cek = null;
         } elseif ($type === 'corrodkote') {
             $report->actual_corrodkote_waktu = null;
             $report->standar_jam_corrodkote = null;
             $report->aktual_corrosion = null;
+            $report->result_judgment_corrodkote = null;
+            $report->description_corrodkote = null;
+            $report->analis_corrodkote_id = null;
         } elseif ($type === 'cass') {
             $report->actual_cass_waktu = null;
             $report->standar_jam_cass = null;
+            $report->aktual_rn = null;
+            $report->result_judgment_cass = null;
+            $report->description_cass = null;
+            $report->analis_cass_id = null;
         } elseif ($type === 'salt_spray') {
             $report->actual_salt_spray_waktu = null;
             $report->standar_jam_salt_spray = null;
+            $report->result_judgment_salt_spray = null;
+            $report->description_salt_spray = null;
+            $report->analis_salt_spray_id = null;
         } elseif ($type === 'porecount') {
             $report->actual_porecount = null;
+            $report->result_judgment_porecount = null;
+            $report->description_porecount = null;
+            $report->analis_porecount_id = null;
         }
         
+        // Clear chamber dates if no chamber tests remain
+        if ($this->isFieldEmpty($report->actual_corrodkote_waktu) &&
+            $this->isFieldEmpty($report->actual_cass_waktu) &&
+            $this->isFieldEmpty($report->actual_salt_spray_waktu)) {
+            $report->tgl_masuk = null;
+            $report->jam_masuk = null;
+            $report->tgl_keluar = null;
+            $report->jam_keluar = null;
+        }
+
         $allEmpty = $this->isFieldEmpty($report->actual_cu) && $this->isFieldEmpty($report->actual_ni) && $this->isFieldEmpty($report->actual_cr)
             && $this->isFieldEmpty($report->actual_corrodkote_waktu) && $this->isFieldEmpty($report->standar_jam_corrodkote)
             && $this->isFieldEmpty($report->actual_cass_waktu) && $this->isFieldEmpty($report->standar_jam_cass)

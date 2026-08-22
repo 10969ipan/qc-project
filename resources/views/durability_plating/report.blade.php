@@ -526,7 +526,7 @@
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray')
                                 <td class="text-center text-nowrap">
                                     @php
-                                        $tglM = $report->tgl_masuk ? \Carbon\Carbon::parse($report->tgl_masuk)->format('d/m/Y') : ($report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-');
+                                        $tglM = $report->tgl_masuk ? \Carbon\Carbon::parse($report->tgl_masuk)->format('d/m/Y') : '-';
                                         $jamM = $report->jam_masuk ? \Carbon\Carbon::parse($report->jam_masuk)->format('H:i') : '';
                                     @endphp
                                     {{ $tglM }}
@@ -1496,7 +1496,6 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                                    <input type="hidden" name="tanggal_test" id="corrodkote_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="corrodkote_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="corrodkote" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
@@ -1776,7 +1775,6 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                                    <input type="hidden" name="tanggal_test" id="cass_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="cass_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="cass" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
@@ -2056,7 +2054,6 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-0">
                                     <label class="small font-weight-bold text-gray-700">Tgl Masuk Chamber</label>
-                                    <input type="hidden" name="tanggal_test" id="salt_tanggal_test">
                                     <input type="date" name="tgl_masuk" id="salt_tgl_masuk" class="form-control form-control-sm border-0 shadow-sm auto-calc-trigger" data-target="salt" required>
                                 </div>
                                 <div class="col-md-3 form-group mb-0">
