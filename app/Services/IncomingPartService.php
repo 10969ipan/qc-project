@@ -139,6 +139,7 @@ class IncomingPartService extends BaseService
         return IncomingPartArrival::where('item_id', $itemId)
             ->where('status', 'OPEN')
             ->where('qty_sisa', '>', 0)
+            ->where('tanggal_datang', '>=', '2026-08-21')
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->get();
