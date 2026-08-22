@@ -13,14 +13,14 @@ class SyncIncomingScanStock extends Command
      *
      * @var string
      */
-    protected $signature = 'qc:sync-scan-stock {--since=2026-08-21 22:52:00 : Tanggal & waktu batas awal sinkronisasi}';
+    protected $signature = 'qc:sync-scan-stock {--since=2026-08-21 00:43:00 : Tanggal & waktu batas awal sinkronisasi}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Sinkronisasi stok kedatangan khusus transaksi sejak tanggal 21/08/2026 22:52';
+    protected $description = 'Sinkronisasi stok kedatangan khusus transaksi sejak tanggal 21/08/2026 00:43';
 
     /**
      * Execute the console command.
@@ -29,7 +29,7 @@ class SyncIncomingScanStock extends Command
      */
     public function handle()
     {
-        $since = $this->option('since') ?: '2026-08-21 22:52:00';
+        $since = $this->option('since') ?: '2026-08-21 00:43:00';
         $this->info("Memulai sinkronisasi stok kedatangan (khusus transaksi sejak: {$since})...");
         $startTime = microtime(true);
 
