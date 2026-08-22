@@ -308,24 +308,33 @@ class IncomingPartService extends BaseService
             $checkQty = (int)($data['total_check'] ?? 0);
             $historicalSisaSnapshot = 0;
 
+            $scanMethod = strtolower($data['scan_method'] ?? 'manual');
+            $isManualInput = empty($scanMethod) || $scanMethod === 'manual';
+
             if ($arrival) {
                 $qtyBefore = $arrival->qty_sisa;
-                $historicalSisaSnapshot = max(0, $qtyBefore - $checkQty);
-                $arrival->qty_sisa = $historicalSisaSnapshot;
-                $arrival->status = ($historicalSisaSnapshot <= 0) ? 'COMPLETED' : 'OPEN';
-                $arrival->save();
+                if ($isManualInput) {
+                    // Hanya kurangi Qty Sisa Stok jika input dilakukan secara MANUAL
+                    $historicalSisaSnapshot = max(0, $qtyBefore - $checkQty);
+                    $arrival->qty_sisa = $historicalSisaSnapshot;
+                    $arrival->status = ($historicalSisaSnapshot <= 0) ? 'COMPLETED' : 'OPEN';
+                    $arrival->save();
 
-                \App\Models\IncomingPartArrivalLog::record(
-                    $arrival->load('item'),
-                    'OUT',
-                    $qtyBefore,
-                    -$checkQty,
-                    $historicalSisaSnapshot,
-                    "Pengurangan stok oleh Checksheet (Check Qty: {$checkQty} pcs)"
-                );
+                    \App\Models\IncomingPartArrivalLog::record(
+                        $arrival->load('item'),
+                        'OUT',
+                        $qtyBefore,
+                        -$checkQty,
+                        $historicalSisaSnapshot,
+                        "Pengurangan stok oleh Checksheet Manual (Check Qty: {$checkQty} pcs)"
+                    );
+                } else {
+                    // Jika input via Scan QR Code (camera / hardware), Qty Sisa Stok TIDAK dikurangi
+                    $historicalSisaSnapshot = $qtyBefore;
+                }
             } else {
                 $initialStock = (int)($data['qty_balance'] ?? $data['lot_qty'] ?? 0);
-                $historicalSisaSnapshot = max(0, $initialStock - $checkQty);
+                $historicalSisaSnapshot = $isManualInput ? max(0, $initialStock - $checkQty) : $initialStock;
             }
 
             $checksheet = IncomingPart::create([
@@ -484,12 +493,15 @@ class IncomingPartService extends BaseService
                     if ($arrival->checksheets()->count() === 0) {
                         $arrival->delete();
                     } else {
-                        $newQtySisa = $arrival->qty_sisa + (int) $checksheet->total_check;
-                        $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
-                        if ($arrival->qty_sisa > 0) {
-                            $arrival->status = 'OPEN';
+                        $csScanMethod = strtolower($checksheet->scan_method ?? 'manual');
+                        if (empty($csScanMethod) || $csScanMethod === 'manual') {
+                            $newQtySisa = $arrival->qty_sisa + (int) $checksheet->total_check;
+                            $arrival->qty_sisa = min($arrival->qty_datang, $newQtySisa);
+                            if ($arrival->qty_sisa > 0) {
+                                $arrival->status = 'OPEN';
+                            }
+                            $arrival->save();
                         }
-                        $arrival->save();
                     }
                 }
             }
@@ -518,7 +530,10 @@ class IncomingPartService extends BaseService
             $affectedArrivalIds = [];
             foreach ($checksheets as $cs) {
                 if ($cs->arrival_id) {
-                    $arrivalAdjustments[$cs->arrival_id] = ($arrivalAdjustments[$cs->arrival_id] ?? 0) + (int) $cs->total_check;
+                    $csScanMethod = strtolower($cs->scan_method ?? 'manual');
+                    if (empty($csScanMethod) || $csScanMethod === 'manual') {
+                        $arrivalAdjustments[$cs->arrival_id] = ($arrivalAdjustments[$cs->arrival_id] ?? 0) + (int) $cs->total_check;
+                    }
                     $affectedArrivalIds[] = $cs->arrival_id;
                 }
             }

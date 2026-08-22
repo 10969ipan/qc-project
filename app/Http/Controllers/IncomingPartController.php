@@ -268,8 +268,12 @@ class IncomingPartController extends Controller
             $inputQtyDatang = (int)$validated['qty_datang'];
             $inputQtySisa   = (int)$validated['qty_sisa'];
 
-            // Hitung akumulasi Total Check yang sudah dilakukan untuk lot ini
-            $totalChecked = (int)IncomingPart::where('arrival_id', $arrival->id)->sum('total_check');
+            // Hitung akumulasi Total Check MANUAL yang mengurangi lot ini
+            $totalChecked = (int)IncomingPart::where('arrival_id', $arrival->id)
+                ->where(function ($q) {
+                    $q->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                })
+                ->sum('total_check');
 
             if ($inputQtySisa !== $qtyBefore) {
                 // Jika user mengubah Qty Sisa Stok, sesuaikan Qty Datang Awal agar sinkron dengan Total Check
