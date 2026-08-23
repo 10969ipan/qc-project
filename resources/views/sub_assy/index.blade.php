@@ -313,10 +313,6 @@
                         </a>
                     @endif
                     @if($canExport)
-                    <a href="{{ route('admin.checksheets.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('admin.checksheets.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
                         style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
@@ -356,22 +352,20 @@
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Tanggal</th>
-                            <th rowspan="2" class="align-middle">Jam (Before)</th>
-                            <th rowspan="2" class="align-middle">Jam (After)</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
-                            <th rowspan="2" class="align-middle">No. Meja</th>
-                            <th rowspan="2" class="align-middle">Shift</th>
+                            <th rowspan="2" class="align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
+                            @if(auth()->user()->role === 'admin')
+                                <th rowspan="2" class="align-middle">No. Meja</th>
+                            @endif
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inspector</th>
 
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="2" class="align-middle">Approval Status</th>
@@ -383,7 +377,7 @@
                         </tr>
                         <tr class="text-center">
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
-                            <th style="min-width: 150px;">Jenis NG</th>
+                            <th style="white-space: nowrap;">Jenis NG</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
@@ -416,23 +410,30 @@
                                 </td>
                                 @endif
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
+                                    {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ strtoupper($checksheet->injection_initials ?? '-') }}
                                 </td>
-                                <td class="align-middle">
-                                    {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
-                                <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->line ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->shift }}</td>
+                                @php
+                                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
+                                <td class="align-middle text-nowrap">
+                                    {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                </td>
+                                @if(auth()->user()->role === 'admin')
+                                    <td class="align-middle">{{ $checksheet->line ?? '-' }}</td>
+                                @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->total_qty }}</td>
-                                <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
+                                <td class="align-middle text-nowrap">
+                                    <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span>
+                                </td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 
@@ -457,14 +458,14 @@
 
                                 <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
                                     @if(count($pcsLines) > 0)
-                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: fixed;">
+                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: auto;">
                                             <tbody>
                                                 @foreach($pcsLines as $index => $qty)
                                                     <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
                                                         <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $qty }}</small>
                                                         </td>
-                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
+                                                        <td style="border: none !important; padding: 4px 8px !important; vertical-align: middle !important; background: transparent !important; white-space: nowrap;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
                                                         </td>
                                                     </tr>
@@ -481,7 +482,6 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle text-uppercase">{{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}</td>
 
                                 @if(request('view_mode') !== 'verifikasi')
                                 {{-- Kashift QC --}}
@@ -692,10 +692,10 @@
 
                                                 @if($showDel)
                                                     @if($showEdit) <div class="dropdown-divider"></div> @endif
-                                                    <form action="{{ route('admin.checksheets.destroy', array_merge(request()->query(), ['checksheet' => $checksheet->id])) }}" method="POST" class="d-inline w-100">
+                                                    <form action="{{ route('admin.checksheets.destroy', array_merge(request()->query(), ['checksheet' => $checksheet->id])) }}" method="POST" class="d-inline w-100 ajax-delete-form">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                        <button type="button" class="dropdown-item text-danger btn-delete-ajax w-100 text-left font-weight-bold">
                                                             <i class="fas fa-trash fa-fw mr-2"></i> Hapus
                                                         </button>
                                                     </form>
@@ -718,17 +718,17 @@
 
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
-                <div class="modal-header bg-white border-bottom py-3 px-4" style="border-radius: 12px 12px 0 0;">
-                    <h5 class="modal-title font-weight-bold text-primary" id="editModalLabel" style="font-size: 1.1rem;">
-                        <i class="fas fa-edit mr-2"></i>Edit Checksheet Sub Assy
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 0; max-height: 92vh; display: flex; flex-direction: column;">
+                <div class="modal-header bg-white border-bottom py-2 px-4" style="border-radius: 12px 12px 0 0;">
+                    <h5 class="modal-title font-weight-bold text-primary" id="editModalLabel" style="font-size: 1.05rem;">
+                        <i class="fas fa-edit mr-2"></i> Edit Checksheet Sub Assy
                     </h5>
                     <button type="button" class="close text-gray-500 hover:text-gray-800" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
                         <span aria-hidden="true" style="font-size: 1.5rem;">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body bg-light px-4 py-4" id="editModalBody" style="max-height: 65vh; overflow-y: auto;">
+                <div class="modal-body bg-light px-3 py-3" id="editModalBody" style="overflow-x: hidden; overflow-y: auto; flex: 1 1 auto;">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
@@ -908,10 +908,9 @@
 
             var form = document.getElementById('filterFormSubAssy');
             if (form) {
-                // Link Synchronization (Sync Print/Export links with current filter selections)
+                // Link Synchronization (Sync Print link with current filter selections)
                 function syncExportLinks() {
                     var baseUrlPrint = "{{ route('admin.checksheets.print') }}";
-                    var baseUrlPdf = "{{ route('admin.checksheets.export_pdf') }}";
                     
                     var params = new URLSearchParams();
                     var formData = new FormData(form);
@@ -922,10 +921,7 @@
                     var queryString = params.toString();
                     
                     var printBtn = form.querySelector('a[title="Print"]');
-                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
-                    
                     if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
-                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
                 }
 
                 $(form).find('input, select').on('change', syncExportLinks);
@@ -971,6 +967,59 @@
                 iframe.src = printUrl;
 
                 document.body.appendChild(iframe);
+            });
+
+            // Instant AJAX Delete Without Page Reload
+            $(document).on('click', '.btn-delete-ajax', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var form = btn.closest('form');
+                var row = btn.closest('tr');
+
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: 'Apakah Anda yakin ingin menghapus data checksheet Sub Assy ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74a3b',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        btn.prop('disabled', true);
+                        $.ajax({
+                            url: form.attr('action'),
+                            type: 'POST',
+                            data: form.serialize(),
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    row.fadeOut(300, function() {
+                                        row.remove();
+                                    });
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Terhapus!',
+                                        text: response.message || 'Data berhasil dihapus.',
+                                        timer: 1500,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    btn.prop('disabled', false);
+                                    Swal.fire('Gagal!', response.message || 'Terjadi kesalahan.', 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                btn.prop('disabled', false);
+                                var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal menghapus data.';
+                                Swal.fire('Error!', errMsg, 'error');
+                            }
+                        });
+                    }
+                });
             });
 
             // Restore scroll position

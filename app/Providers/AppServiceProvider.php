@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-        // Share unread rejection alerts with all views for inspectors
-        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+        // Share unread rejection alerts with layout views for inspectors (cached 30 detik)
+        \Illuminate\Support\Facades\View::composer(['layouts.admin', 'layouts.dashboard', 'layouts.app'], function ($view) {
             $isInputRoute = request()->routeIs(
                 'checksheet.sub_assy', 'plating.create', 'double_tape.create',
                 'in_process.create', 'first_piece_approval.create',
@@ -32,18 +32,22 @@ class AppServiceProvider extends ServiceProvider
             );
 
             if ($isInputRoute && auth()->check() && auth()->user()->role === 'inspector') {
-                $rejectionAlerts = \App\Models\Notification::where('user_id', auth()->id())
-                    ->where('type', 'rejection_alert')
-                    ->where('is_read', false)
-                    ->get()
-                    ->map(function ($n) {
-                        return [
-                            'id' => $n->id,
-                            'title' => $n->title,
-                            'message' => $n->message,
-                            'url' => $n->data['url'] ?? '#',
-                        ];
-                    });
+                $userId = auth()->id();
+                $rejectionAlerts = \Illuminate\Support\Facades\Cache::remember("unread_rejections_{$userId}", 30, function () use ($userId) {
+                    return \App\Models\Notification::where('user_id', $userId)
+                        ->where('type', 'rejection_alert')
+                        ->where('is_read', false)
+                        ->where('created_at', '>=', now()->subDays(7))
+                        ->get()
+                        ->map(function ($n) {
+                            return [
+                                'id' => $n->id,
+                                'title' => $n->title,
+                                'message' => $n->message,
+                                'url' => $n->data['url'] ?? '#',
+                            ];
+                        });
+                });
                 $view->with('unreadRejections', $rejectionAlerts);
             }
         });
@@ -136,8 +140,8 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Share dynamic Next Process options with all views (cached 30 menit)
-        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+        // Share dynamic Next Process options with main layouts (cached 30 menit)
+        \Illuminate\Support\Facades\View::composer(['layouts.admin', 'layouts.dashboard', 'layouts.app'], function ($view) {
             $view->with('nextProcessesGlobal', \Illuminate\Support\Facades\Cache::remember(
                 'next_processes_active',
                 now()->addMinutes(30),

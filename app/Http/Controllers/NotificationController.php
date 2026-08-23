@@ -12,28 +12,31 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        // Release session lock immediately for read-only AJAX endpoint to prevent request blocking / 11s pending
+        if (session()->status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
 
+        $user = auth()->user();
+        $sevenDaysAgo = now()->subDays(7);
+
+        // Utilize composite index (user_id, is_read, type) first
         $query = Notification::where(function ($q) use ($user) {
-            // Personal notifications
-            $q->where('user_id', $user->id)
-                // Or global notifications
-                ->orWhereNull('user_id');
-        });
+                $q->where('user_id', $user->id)
+                    ->orWhereNull('user_id');
+            })
+            ->unread()
+            ->where('created_at', '>=', $sevenDaysAgo);
 
         // Filter by plant for non-admin users
         if ($user->role !== 'admin') {
             $query->where(function ($q) use ($user) {
-                // Only show notifications for user's plant
-                // Check if data->plant_id exists and matches user's plant
                 $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
-                    // Or notifications without plant_id (old notifications or global)
                     ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
             });
         }
 
-        $notifications = $query->unread()
-            ->orderBy('created_at', 'desc')
+        $notifications = $query->orderBy('created_at', 'desc')
             ->limit(20)
             ->get();
 
@@ -116,9 +119,11 @@ class NotificationController extends Controller
         });
 
         $unreadCountQuery = Notification::where(function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-                ->orWhereNull('user_id');
-        });
+                $q->where('user_id', $user->id)
+                    ->orWhereNull('user_id');
+            })
+            ->unread()
+            ->where('created_at', '>=', $sevenDaysAgo);
 
         // Apply same plant filter for unread count
         if ($user->role !== 'admin') {
@@ -128,7 +133,7 @@ class NotificationController extends Controller
             });
         }
 
-        $unreadCount = $unreadCountQuery->unread()->count();
+        $unreadCount = $unreadCountQuery->count();
 
         return response()->json([
             'notifications' => $notifications,

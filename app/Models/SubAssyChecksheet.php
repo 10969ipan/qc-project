@@ -15,6 +15,9 @@ class SubAssyChecksheet extends Model
         'plant_id',
         'user_id',
         'item_id',
+        'injection_date',
+        'injection_shift',
+        'injection_initials',
         'qrcode',
         'part_code',
         'supplier_id',
@@ -47,6 +50,7 @@ class SubAssyChecksheet extends Model
     protected $casts = [
         'defects' => 'array',
         'date' => 'date',
+        'injection_date' => 'date',
     ];
 
     public function item()

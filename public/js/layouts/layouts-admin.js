@@ -152,23 +152,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Auto Uppercase for all text inputs and textareas
+    // Optimized Auto Uppercase for text inputs and textareas (prevents layout thrashing on every keypress)
     $(document).on('input', 'input[type="text"]:not(.no-autoupper), textarea:not(.no-autoupper)', function () {
-        let start = this.selectionStart;
-        let end = this.selectionEnd;
-        this.value = this.value.toUpperCase();
-        this.setSelectionRange(start, end);
+        const val = this.value;
+        const upperVal = val.toUpperCase();
+        if (val !== upperVal) {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = upperVal;
+            if (start !== null && end !== null) {
+                this.setSelectionRange(start, end);
+            }
+        }
     });
 
-
-    // Global 419 Handler for Fetch API
+    // Global 419 Handler for Fetch API (Clean & no unresolved promise memory leak)
     const originalFetch = window.fetch;
     window.fetch = function () {
         return originalFetch.apply(this, arguments)
-            .then(async response => {
+            .then(response => {
                 if (response.status === 419) {
                     window.location.reload();
-                    return new Promise(() => { });
                 }
                 return response;
             });

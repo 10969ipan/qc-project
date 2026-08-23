@@ -45,6 +45,9 @@ class UpdateSubAssyChecksheetRequest extends FormRequest
     {
         return [
             'item_id' => 'required|exists:items,id',
+            'injection_date' => 'nullable|date',
+            'injection_shift' => 'nullable|string',
+            'injection_initials' => 'nullable|string',
             'qrcode' => 'nullable|string',
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',

@@ -123,43 +123,34 @@ class SubAssyChecksheetController extends Controller
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        // Data for filters (Standardized with Cross-Cut)
+        // Data for filters (Cached per plant to avoid 4x subquery scans over 44,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('sub_assy_checksheets')->where('plant_id', $plantId);
-        })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
-        $customers = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('sub_assy_checksheets')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->whereNotNull('customer')->where('customer', '!=', '')->distinct()->pluck('customer')->sort();
+        });
 
-        $initialsQuery = SubAssyChecksheet::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials');
+        $initials = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return SubAssyChecksheet::where('plant_id', $plantId)
+                ->where('date', '>=', now()->subDays(90))
+                ->whereNotNull('operator_initials')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort();
+        });
 
-        if (!empty($filters['start_date'])) {
-            $initialsQuery->whereDate('date', '>=', $filters['start_date']);
-        }
-        if (!empty($filters['end_date'])) {
-            $initialsQuery->whereDate('date', '<=', $filters['end_date']);
-        }
-        if (!empty($filters['shift'])) {
-            $initialsQuery->where('shift', $filters['shift']);
-        }
-
-        $initials = $initialsQuery->distinct()
-            ->pluck('operator_initials')
-            ->sort();
-
-        $lines = collect();
-        if (auth()->check() && auth()->user()->role === 'admin') {
-            $lines = SubAssyChecksheet::where('plant_id', $plantId)
+        $lines = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_lines_{$plantId}", 3600, function () use ($plantId) {
+            return SubAssyChecksheet::where('plant_id', $plantId)
                 ->whereNotNull('line')
                 ->distinct()
                 ->pluck('line')
                 ->sort(SORT_NUMERIC)
                 ->values();
-        }
+        });
 
         return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials', 'lines'));
     }
@@ -344,6 +335,9 @@ class SubAssyChecksheetController extends Controller
     public function destroy(Request $request, $id)
     {
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
+            }
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
         $checksheet = SubAssyChecksheet::find($id);
@@ -351,8 +345,12 @@ class SubAssyChecksheetController extends Controller
         $this->checksheetService->deleteChecksheet($id);
         \App\Helpers\ActivityLogger::log('deleted', null, "Menghapus checksheet Sub Assy: {$itemName}");
 
-        // Preserve all query parameters when redirecting back
-        $redirectParams = $request->query();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Checksheet berhasil dihapus.'
+            ]);
+        }
 
         return redirect()->route('admin.checksheets.index', $request->query())
             ->with('success', 'Data Checksheet berhasil dihapus.');

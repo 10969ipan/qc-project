@@ -20,28 +20,18 @@
     <input type="hidden" name="cycle_time" value="{{ $checksheet->cycle_time }}">
 
     <!-- 1. Header: Penelusuran (Traceability) -->
-    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">INFORMASI TRACEABILITY (QR CODE)</div>
-    <div class="bg-white p-3 mb-4 shadow-sm border" style="border-radius: 8px;">
-        <div class="row align-items-center">
-            <div class="col-md-9">
-                <div class="small font-weight-bold text-gray-700 mb-1">
-                    <i class="fas fa-barcode mr-1"></i> Data QR Tag
-                </div>
-                <div class="small text-dark mb-1" title="{{ $checksheet->qrcode }}">
-                    <span class="font-weight-bold text-gray-700">Raw QR:</span> {{ \Illuminate\Support\Str::limit($checksheet->qrcode, 80) }}
-                </div>
-                <div class="d-flex flex-wrap" style="gap: 15px;">
-                    <span class="small"><span class="font-weight-bold text-gray-700">Part Code:</span> <span class="text-dark">{{ $checksheet->part_code }}</span></span>
-                    <span class="small"><span class="font-weight-bold text-gray-700">Supplier:</span> <span class="text-dark">{{ $checksheet->supplier_id }}</span></span>
-                    <span class="small"><span class="font-weight-bold text-gray-700">Qty QR:</span> <span class="text-dark">{{ $checksheet->quantity }}</span></span>
-                    <span class="small"><span class="font-weight-bold text-gray-700">Unique ID:</span> <span class="text-danger font-weight-bold">{{ $checksheet->unique_code_id }}</span></span>
-                    <span class="small"><span class="font-weight-bold text-gray-700">SAP Code:</span> <span class="text-dark">{{ $checksheet->sap_code }}</span></span>
-                </div>
+    <div class="bg-white p-2 mb-2 shadow-sm border rounded">
+        <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 10px; font-size: 0.78rem;">
+            <div>
+                <span class="font-weight-bold text-primary"><i class="fas fa-barcode mr-1"></i> QR:</span>
+                <span class="text-dark mr-3" title="{{ $checksheet->qrcode }}">{{ \Illuminate\Support\Str::limit($checksheet->qrcode, 50) }}</span>
+                <span class="font-weight-bold text-gray-700">Part:</span> <span class="text-dark mr-2">{{ $checksheet->part_code ?: '-' }}</span>
+                <span class="font-weight-bold text-gray-700">Supplier:</span> <span class="text-dark mr-2">{{ $checksheet->supplier_id ?: '-' }}</span>
+                <span class="font-weight-bold text-gray-700">Unique ID:</span> <span class="text-danger font-weight-bold mr-2">{{ $checksheet->unique_code_id ?: '-' }}</span>
+                <span class="font-weight-bold text-gray-700">SAP:</span> <span class="text-dark">{{ $checksheet->sap_code ?: '-' }}</span>
             </div>
-            <div class="col-md-3 text-right">
-                <span class="badge badge-info p-2 px-3 shadow-sm" style="font-size: 0.8rem;">
-                    ID: {{ $checksheet->id }}
-                </span>
+            <div>
+                <span class="badge badge-info px-2 py-1" style="font-size: 0.75rem;">ID: {{ $checksheet->id }}</span>
             </div>
         </div>
     </div>
@@ -200,7 +190,7 @@
                 </button>
             </div>
             
-            <div id="editDefectContainer" class="mb-3">
+            <div id="editDefectContainer" class="mb-2" style="max-height: 110px; overflow-y: auto;">
                 @if(count($defects) > 0)
                     @foreach($defects as $index => $defect)
                         <div class="row no-gutters mb-2 defect-row align-items-center p-1 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
@@ -251,7 +241,7 @@
         </div>
     </div>
 
-    <div class="bg-white border-top py-3 px-4 d-flex justify-content-end align-items-center" style="margin: 1.5rem -1.5rem -1.5rem -1.5rem; border-radius: 0 0 12px 12px;">
+    <div class="bg-white border-top py-2 px-3 d-flex justify-content-end align-items-center mt-2" style="margin: 0.5rem -1rem -1rem -1rem; border-radius: 0 0 12px 12px;">
         <button type="button" class="btn btn-light border px-4 font-weight-bold mr-2" data-dismiss="modal">Batal</button>
         <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm"><i class="fas fa-save mr-1"></i> Simpan Perubahan</button>
     </div>

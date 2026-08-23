@@ -331,8 +331,8 @@ class DashboardService extends BaseService
         // Build a single aggregated query for all columns to ensure atomicity and performance
         $selects = [];
         foreach ($columns as $column) {
-            $selects[] = "SUM(CASE WHEN UPPER($column) = 'REJECTED' THEN 1 ELSE 0 END) as {$column}_rejected";
-            $selects[] = "SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND UPPER($column) != 'REJECTED' THEN 1 ELSE 0 END) as {$column}_approved";
+            $selects[] = "SUM(CASE WHEN $column = 'REJECTED' THEN 1 ELSE 0 END) as {$column}_rejected";
+            $selects[] = "SUM(CASE WHEN $column IS NOT NULL AND $column != '' AND $column != 'REJECTED' THEN 1 ELSE 0 END) as {$column}_approved";
             $selects[] = "SUM(CASE WHEN ($column IS NULL OR $column = '') THEN 1 ELSE 0 END) as {$column}_pending";
             $selects[] = "SUM(CASE WHEN ($column IS NULL OR $column = '') AND created_at < '{$lateThreshold}' THEN 1 ELSE 0 END) as {$column}_pending_late";
         }
@@ -449,7 +449,7 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        return $query->get()
+        return $query->limit(30)->get()
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
@@ -467,7 +467,7 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        return $query->get()
+        return $query->limit(30)->get()
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
@@ -485,7 +485,7 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        return $query->get()
+        return $query->limit(30)->get()
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
@@ -503,7 +503,7 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        return $query->get()
+        return $query->limit(30)->get()
             ->unique('line')
             ->mapWithKeys(fn($item) => [(int) $item->line => $item]);
     }
@@ -522,7 +522,7 @@ class DashboardService extends BaseService
             $query->where('plant_id', $plantId);
         }
 
-        $subAssyItems = $query->get();
+        $subAssyItems = $query->limit(50)->get();
 
         $sortirQuery = SortirChecksheet::withoutGlobalScope('plant')
             ->with('item:id,name,part_number')
@@ -536,7 +536,7 @@ class DashboardService extends BaseService
             $sortirQuery->where('plant_id', $plantId);
         }
 
-        $sortirItems = $sortirQuery->get();
+        $sortirItems = $sortirQuery->limit(50)->get();
 
         return $subAssyItems->concat($sortirItems)
             ->sortByDesc('created_at')
@@ -571,8 +571,8 @@ class DashboardService extends BaseService
             $fpaQuery->where('plant_id', $plantId);
         }
 
-        return $inProcessQuery->get()
-            ->concat($fpaQuery->get())
+        return $inProcessQuery->limit(50)->get()
+            ->concat($fpaQuery->limit(50)->get())
             ->sortByDesc('created_at')
             ->unique('code_machine')
             ->mapWithKeys(fn($item) => [(int) $item->code_machine => $item]);

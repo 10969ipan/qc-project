@@ -11,6 +11,22 @@
     .form-control-sm.text-center { font-weight: bold; border-color: #d1d3e2; }
     .form-control-sm.text-center:focus { border-color: #4e73df; box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25); }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    #totalQtyInput::-webkit-outer-spin-button,
+    #totalQtyInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    #totalQtyInput { -moz-appearance: textfield; }
+    /* Custom Segmented Control */
+    .seg-control { display: inline-flex; background: #f0f0f0; border-radius: 8px; padding: 3px; gap: 2px; }
+    .seg-control input[type="radio"] { display: none; }
+    .seg-control label {
+        cursor: pointer; padding: 4px 14px; border-radius: 6px; font-size: 0.78rem;
+        font-weight: 600; color: #6c757d; transition: all 0.18s ease; white-space: nowrap; user-select: none;
+    }
+    .seg-control input[type="radio"]:checked + label {
+        background: #fff; color: #333;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+    #checkTypeSampling:checked + label { color: #0d6efd; }
+    #checkTypeFullcheck:checked + label { color: #198754; }
 </style>
 @endpush
 
@@ -167,24 +183,13 @@
 
             {{-- Pilihan Tipe Pengecekan - Hanya untuk Plant Jakarta --}}
             @if($isJakarta)
-                <div class="alert alert-info mb-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-3">
-                            <label class="font-weight-bold mb-0"><i class="fas fa-clipboard-check"></i> Tipe Pengecekan:</label>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-outline-primary active" id="labelSampling">
-                                    <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling"
-                                        checked>
-                                    <i class="fas fa-chart-pie"></i> Sampling (AQL 0.65)
-                                </label>
-                                <label class="btn btn-outline-success" id="labelFullcheck">
-                                    <input type="radio" name="check_type_option" id="checkTypeFullcheck" value="fullcheck">
-                                    <i class="fas fa-check-double"></i> Fullcheck (Export) - 100%
-                                </label>
-                            </div>
-                        </div>
+                <div class="d-flex align-items-center mb-3" style="gap: 10px;">
+                    <span class="text-muted small font-weight-bold text-uppercase" style="letter-spacing: 0.5px; white-space: nowrap;">Tipe Cek:</span>
+                    <div class="seg-control">
+                        <input type="radio" name="check_type_option" id="checkTypeSampling" value="sampling" checked>
+                        <label for="checkTypeSampling">Sampling (AQL 0.65)</label>
+                        <input type="radio" name="check_type_option" id="checkTypeFullcheck" value="fullcheck">
+                        <label for="checkTypeFullcheck">Fullcheck 100%</label>
                     </div>
                 </div>
             @endif
@@ -205,13 +210,12 @@
                         <thead>
                             <tr class="text-center">
                                 <th rowspan="2" class="align-middle">Item Part</th>
-                                <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                                <th rowspan="2" class="align-middle">Total Qty</th>
-                                <th rowspan="2" class="align-middle">Sampling Qty</th>
+                                <th rowspan="2" class="align-middle" id="thLotId">Lot ID<br>(Tgl / Shift / Meja / Inisial)</th>
+                                <th rowspan="2" class="align-middle">CHECKED<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
                                 <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
                                 <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                                 <th rowspan="2" class="align-middle">Judgment</th>
-                                <th rowspan="2" class="align-middle">Inisial QC</th>
                                 <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             </tr>
                             <tr></tr>
@@ -266,17 +270,36 @@
                                     </div>
                                 </td>
 
-                                <!-- Tanggal / Shift -->
+                                <!-- Lot ID (Tgl / Shift / Meja / Inisial) -->
+                                <td class="align-middle" id="tdLotId">
+                                    <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
+                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" data-field-name="Tanggal Lot ID" data-scan-optional="1">
+                                    <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" data-field-name="Shift Lot ID" data-scan-optional="1">
+                                        <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1</option>
+                                        <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2</option>
+                                        <option value="3" {{ ($defaultShift ?? 1) == 3 ? 'selected' : '' }}>Shift 3</option>
+                                    </select>
+                                    <select name="line" id="line" class="form-control form-control-sm mb-1" style="min-width: 80px;"
+                                        required>
+                                        <option value="">Pilih Meja</option>
+                                        @foreach ($tableOptions as $i)
+                                            <option value="{{ $i }}">Meja {{ $i }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="text" class="form-control form-control-sm text-left" name="injection_initials" id="injectionInitialsInput"
+                                        placeholder="Inisial" data-field-name="Inisial Lot ID" required>
+                                </td>
+
+                                <!-- CHECKED (Tgl / Shift / Inisial) -->
                                 <td class="align-middle">
-                                    <div class="form-group mb-2">
+                                    <div class="form-group mb-1">
                                         <label class="sr-only">Tanggal</label>
-                                        <input type="date" class="form-control" style="min-width: 110px;" name="date"
+                                        <input type="date" class="form-control form-control-sm" style="min-width: 110px;" name="date"
                                             value="{{ $defaultDate }}" required>
                                     </div>
-                                    <div class="form-group mb-2">
+                                    <div class="form-group mb-1">
                                         <label class="sr-only">Shift</label>
-
-                                        <select class="form-control" style="min-width: 80px;" name="shift" required>
+                                        <select class="form-control form-control-sm" style="min-width: 80px;" name="shift" required>
                                             <option value="1" {{ ($defaultShift ?? 1) == 1 ? 'selected' : '' }}>Shift 1
                                             </option>
                                             <option value="2" {{ ($defaultShift ?? 1) == 2 ? 'selected' : '' }}>Shift 2
@@ -286,50 +309,32 @@
                                         </select>
                                     </div>
                                     <div class="form-group mb-0">
-                                        <label class="sr-only">Meja</label>
-                                        <select name="line" id="line" class="form-control" style="min-width: 80px;"
-                                            required>
-                                            <option value="">Pilih Meja</option>
-                                            @foreach ($tableOptions as $i)
-                                                <option value="{{ $i }}">Meja {{ $i }}</option>
-                                            @endforeach
-                                        </select>
+                                        <label class="sr-only">Inisial</label>
+                                        <input type="text" class="form-control form-control-sm text-left bg-light text-uppercase" style="min-width: 80px;"
+                                            name="operator_initials" placeholder="Inisial"
+                                            value="{{ strtoupper(auth()->user()->initials ?? '') }}" readonly required>
                                     </div>
                                 </td>
 
-                                <!-- Total Kuantitas (Total Kuantitas yang diproduksi) -->
-                                <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
-                                        name="total_qty" placeholder="0" min="0" required>
-                                </td>
-
-                                <!-- Sampling Qty -->
-                                <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 80px;"
-                                        name="sampling_qty" placeholder="0" min="1" required readonly>
+                                <!-- Qty (Total / Sampling) -->
+                                <td class="align-middle" style="min-width: 120px; max-width: 160px;">
+                                    <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 32px; gap: 2px;">
+                                        <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0" name="total_qty" id="totalQtyInput" placeholder="-" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 40px; font-size: 0.85rem; outline: none; padding: 0;">
+                                        <span class="font-weight-bold text-dark text-nowrap" id="samplingDisplay" style="user-select: none; font-size: 0.85rem; white-space: nowrap;">/ -</span>
+                                    </div>
+                                    <input type="hidden" name="sampling_qty" id="samplingQtyInput" value="0">
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
-                                    <div id="defectContainer">
-                                        <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
-                                                <select class="form-control defect-select font-weight-bold"
-                                                    name="defect_types[]" id="defectSelect">
-                                                    <option value="">-- Pilih Defect --</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-3 pr-1">
-                                                <input type="number" class="form-control defect-qty text-center font-weight-bold"
-                                                    name="defect_quantities[]" placeholder="Qty" min="1">
-                                            </div>
-                                            <div class="col-1 text-center"></div>
-                                        </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="font-weight-bold text-dark mb-0">Defect List (NG):</label>
+                                        <button type="button" id="resetDefectsBtn" class="btn btn-xs btn-outline-danger" title="Reset Semua Defect" style="display: none;">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                        style="display: none;">
-                                        <i class="fas fa-plus"></i> Tambah Jenis
-                                    </button>
+                                    <div id="defectContainer">
+                                        <span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>
+                                    </div>
                                 </td>
 
                                 <!-- Total OK / NG -->
@@ -367,12 +372,7 @@
                                     </div>
                                 </td>
 
-                                <!-- Inisial Operator -->
-                                <td class="align-middle">
-                                    <input type="text" class="form-control text-center bg-light font-weight-bold" style="min-width: 60px; text-transform: uppercase;"
-                                        name="operator_initials" placeholder="Inisial"
-                                        value="{{ auth()->user()->initials ?? '' }}" readonly required>
-                                </td>
+
 
                                 <!-- Keterangan -->
                                 <td class="align-middle" style="min-width: 320px;">

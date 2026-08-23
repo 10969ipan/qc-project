@@ -65,106 +65,26 @@ class DashboardController extends Controller
     }
 
     /**
-     * TV Signage Dashboard
+     * TV Signage Dashboard (Menonaktifkan sementara)
      */
     public function tvIndex(Request $request)
     {
-        // Force Karawang for TV Dashboard unless explicitly overridden by URL
-        if (!$request->has('plant')) {
-            $request->merge(['plant' => 'karawang']);
-        }
-
-        $data = $this->dashboardService->getDashboardData();
-
-        if ($request->ajax()) {
-            return response()->json($data);
-        }
-
-        return view('dashboard.tv', $data);
+        abort(404, 'Dashboard TV sedang dinonaktifkan.');
     }
 
     /**
-     * TV Dashboard: Lightweight real-time JSON polling endpoint
-     * Returns only the minimal data needed to update station cards (no full page render)
+     * TV Dashboard: Lightweight real-time JSON polling endpoint (Disabled)
      */
     public function tvLiveData(Request $request)
     {
-        if (!$request->has('plant')) {
-            $request->merge(['plant' => 'karawang']);
-        }
-
-        $data = $this->dashboardService->getLiveDashboardData();
-
-        return response()->json($data)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        return response()->json(['status' => 'disabled', 'message' => 'Dashboard TV sedang dinonaktifkan.'], 404);
     }
 
     /**
-     * TV Signage: NG Defect aggregation for Slide 3 panel
+     * TV Signage: NG Defect aggregation for Slide 3 panel (Disabled)
      */
     public function tvDefects()
     {
-        return cache()->remember('tv_defects_karawang', 300, function () {
-            $karawangId = \App\Models\Plant::resolveId('karawang');
-            $startDate  = now()->subDays(30)->toDateString();
-
-            $tables = [
-                'sub_assy'   => 'sub_assy_checksheets',
-                'in_process' => 'in_process_checksheets',
-            ];
-
-            $result = [];
-
-            foreach ($tables as $key => $table) {
-                $rows = \Illuminate\Support\Facades\DB::table($table)
-                    ->where('plant_id', $karawangId)
-                    ->where('date', '>=', $startDate)
-                    ->whereNotNull('defects')
-                    ->whereRaw("defects != '[]' AND defects != 'null' AND defects != '\"[]\"'")
-                    ->select('defects')
-                    ->get();
-
-                if ($key === 'sub_assy') {
-                    $sortirRows = \Illuminate\Support\Facades\DB::table('sortir_checksheets')
-                        ->where('plant_id', $karawangId)
-                        ->where('source_type', 'sub_assy')
-                        ->where('date', '>=', $startDate)
-                        ->whereNotNull('defects')
-                        ->whereRaw("defects != '[]' AND defects != 'null' AND defects != '\"[]\"'")
-                        ->select('defects')
-                        ->get();
-                    $rows = $rows->concat($sortirRows);
-                }
-
-                $totals = [];
-                $grandTotal = 0;
-
-                foreach ($rows as $row) {
-                    $raw = $row->defects;
-                    $defects = is_string($raw) ? json_decode($raw, true) : $raw;
-                    if (!is_array($defects)) continue;
-                    foreach ($defects as $d) {
-                        $type = strtoupper(trim($d['type'] ?? 'UNKNOWN'));
-                        $qty  = (int) ($d['qty'] ?? 0);
-                        if ($qty <= 0) continue;
-                        $totals[$type] = ($totals[$type] ?? 0) + $qty;
-                        $grandTotal += $qty;
-                    }
-                }
-
-                arsort($totals);
-                $top = array_slice($totals, 0, 8, true);
-
-                $result[$key] = [
-                    'total' => $grandTotal,
-                    'items' => array_map(fn($type, $qty) => [
-                        'type' => $type,
-                        'qty'  => $qty,
-                        'pct'  => $grandTotal > 0 ? round($qty / $grandTotal * 100, 1) : 0,
-                    ], array_keys($top), array_values($top)),
-                ];
-            }
-
-            return response()->json($result);
-        });
+        return response()->json(['status' => 'disabled', 'message' => 'Dashboard TV sedang dinonaktifkan.'], 404);
     }
 }

@@ -51,6 +51,9 @@ class StoreSubAssyChecksheetRequest extends FormRequest
                     }
                 },
             ],
+            'injection_date' => 'nullable|date',
+            'injection_shift' => 'nullable|string',
+            'injection_initials' => 'required|string',
             'qrcode' => 'nullable|string',
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',

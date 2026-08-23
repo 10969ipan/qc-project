@@ -101,9 +101,15 @@ class SubAssyChecksheetService extends BaseService
             $query->where('id', $filters['id']);
         }
 
-        // QR Raw filter
+        // QR Raw filter (Prioritize B-Tree index lookup for exact QR/Unique/SAP code scans)
         if (!empty($filters['qr_raw'])) {
-            $query->where('sub_assy_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+            $qr = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qr) {
+                $q->where('sub_assy_checksheets.qrcode', $qr)
+                  ->orWhere('sub_assy_checksheets.unique_code_id', $qr)
+                  ->orWhere('sub_assy_checksheets.sap_code', $qr)
+                  ->orWhere('sub_assy_checksheets.qrcode', 'like', "%{$qr}%");
+            });
         }
 
         // Entry Method filter (Verification vs Regular)
@@ -166,6 +172,9 @@ class SubAssyChecksheetService extends BaseService
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
+                'injection_date' => $data['injection_date'] ?? null,
+                'injection_shift' => $data['injection_shift'] ?? null,
+                'injection_initials' => $data['injection_initials'] ?? null,
                 'qrcode' => !empty($data['qrcode']) ? $data['qrcode'] : null,
                 'part_code' => !empty($data['part_code']) ? $data['part_code'] : null,
                 'supplier_id' => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
@@ -183,7 +192,7 @@ class SubAssyChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'next_proses' => $data['next_proses'] ?? ($data['judgment'] === 'NG' ? 'SORTIR' : null),
-                'cycle_time' => $data['cycle_time'] ?? $checksheet->cycle_time,
+                'cycle_time' => $data['cycle_time'] ?? null,
                 'defects' => $defects,
             ]);
 
@@ -201,13 +210,9 @@ class SubAssyChecksheetService extends BaseService
                 ]
             );
 
-            DB::commit();
-
-            Log::info('Checksheet Sub Assy berhasil dibuat', [
-                'user_id' => auth()->id(),
-                'checksheet_id' => $checksheet->id,
-                'plant_id' => $checksheet->plant_id
-            ]);
+            // Clear filter cache for this plant so dropdowns refresh immediately
+            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_init_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_lines_{$checksheet->plant_id}");
 
             // Notifications
             if ($checksheet->total_ng > 0) {
@@ -260,6 +265,9 @@ class SubAssyChecksheetService extends BaseService
 
             $updateData = [
                 'item_id' => $data['item_id'],
+                'injection_date' => $data['injection_date'] ?? $checksheet->injection_date,
+                'injection_shift' => $data['injection_shift'] ?? $checksheet->injection_shift,
+                'injection_initials' => $data['injection_initials'] ?? $checksheet->injection_initials,
                 'qrcode' => $data['qrcode'] ?? $checksheet->qrcode,
                 'part_code' => $data['part_code'] ?? $checksheet->part_code,
                 'supplier_id' => $data['supplier_id'] ?? $checksheet->supplier_id,
