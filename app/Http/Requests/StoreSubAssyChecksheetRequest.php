@@ -22,12 +22,14 @@ class StoreSubAssyChecksheetRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
+        $isHardware = $this->input('scan_method') === 'hardware';
+
         $this->merge([
-            'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
-            'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
-            'part_code' => !empty($this->part_code) ? $this->part_code : null,
-            'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
-            'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
+            'unique_code_id' => $isHardware && !empty($this->unique_code_id) ? $this->unique_code_id : null,
+            'qrcode' => $isHardware && !empty($this->qrcode) ? $this->qrcode : null,
+            'part_code' => $isHardware && !empty($this->part_code) ? $this->part_code : null,
+            'supplier_id' => $isHardware && !empty($this->supplier_id) ? $this->supplier_id : null,
+            'sap_code' => $isHardware && !empty($this->sap_code) ? $this->sap_code : null,
         ]);
     }
 
@@ -53,11 +55,12 @@ class StoreSubAssyChecksheetRequest extends FormRequest
             ],
             'injection_date' => 'nullable|date',
             'injection_shift' => 'nullable|string',
-            'injection_initials' => 'required|string',
+            'injection_initials' => ($this->input('scan_method') === 'hardware' || $this->filled('qrcode') || $this->filled('unique_code_id')) ? 'nullable|string' : 'required|string',
             'qrcode' => 'nullable|string',
             'part_code' => 'nullable|string',
             'supplier_id' => 'nullable|string',
             'quantity' => 'nullable|integer',
+            'scan_method' => 'nullable|string',
             'unique_code_id' => [
                 'nullable',
                 'string',

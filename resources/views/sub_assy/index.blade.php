@@ -352,7 +352,9 @@
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th rowspan="2" class="align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
                             @if(auth()->user()->role === 'admin')
@@ -409,9 +411,11 @@
                                     </button>
                                 </td>
                                 @endif
+                                @if(request('view_mode') !== 'verifikasi')
                                 <td class="align-middle text-nowrap">
                                     {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ strtoupper($checksheet->injection_initials ?? '-') }}
                                 </td>
+                                @endif
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                                 </td>

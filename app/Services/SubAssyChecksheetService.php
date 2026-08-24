@@ -234,6 +234,8 @@ class SubAssyChecksheetService extends BaseService
             }
             */
 
+            DB::commit();
+
             return [
                 'checksheet' => $checksheet,
                 'google_sheets_success' => $googleSheetsSuccess,

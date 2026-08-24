@@ -1414,32 +1414,43 @@ class SubAssyCreate {
         // ─── Auto-fill Meja berdasarkan data item hari ini ───
         if (itemId && this.config.lastLineUrl) {
             const $lineSelect = $("#line");
-            const dateVal = $('input[name="date"]').val() || new Date().toISOString().split("T")[0];
-            const plantVal = $('input[name="plant"]').val();
 
-            // Reset sementara sambil loading
-            $lineSelect.removeClass("is-valid is-invalid");
+            // Jika meja sudah terpilih (baik manual atau restore persistence), jangan reset/overwrite
+            if ($lineSelect.val()) {
+                this.lastLinePromise = null;
+            } else {
+                const dateVal = $('input[name="date"]').val() || new Date().toISOString().split("T")[0];
+                const plantVal = $('input[name="plant"]').val();
 
-            // Simpan promise agar processFillQR bisa menunggu hasilnya sebelum auto-submit
-            this.lastLinePromise = $.get(this.config.lastLineUrl, { item_id: itemId, date: dateVal, plant: plantVal })
-                .done((res) => {
-                    if (res.found && res.line) {
-                        // Ada data hari ini → auto-fill meja
-                        $lineSelect.val(res.line).trigger("change");
-                        $lineSelect.addClass("is-valid");
-                        setTimeout(() => $lineSelect.removeClass("is-valid"), 2500);
-                    } else {
-                        // Belum ada data hari ini → wajib pilih manual
-                        $lineSelect.val("");
-                        $lineSelect.addClass("is-invalid");
-                        setTimeout(() => $lineSelect.removeClass("is-invalid"), 3000);
-                    }
-                })
-                .fail(() => {
-                    // Jika API gagal, biarkan user pilih manual
-                    $lineSelect.val("");
-                    this.lastLinePromise = null;
-                });
+                // Reset sementara sambil loading
+                $lineSelect.removeClass("is-valid is-invalid");
+
+                // Simpan promise agar processFillQR bisa menunggu hasilnya sebelum auto-submit
+                this.lastLinePromise = $.get(this.config.lastLineUrl, { item_id: itemId, date: dateVal, plant: plantVal })
+                    .done((res) => {
+                        // Jika meja terpilih di tengah jalan, jangan timpa
+                        if ($lineSelect.val()) return;
+
+                        if (res.found && res.line) {
+                            // Ada data hari ini → auto-fill meja
+                            $lineSelect.val(res.line).trigger("change");
+                            $lineSelect.addClass("is-valid");
+                            setTimeout(() => $lineSelect.removeClass("is-valid"), 2500);
+                        } else {
+                            // Belum ada data hari ini → wajib pilih manual
+                            $lineSelect.val("");
+                            $lineSelect.addClass("is-invalid");
+                            setTimeout(() => $lineSelect.removeClass("is-invalid"), 3000);
+                        }
+                    })
+                    .fail(() => {
+                        // Jika API gagal, biarkan user pilih manual
+                        if (!$lineSelect.val()) {
+                            $lineSelect.val("");
+                        }
+                        this.lastLinePromise = null;
+                    });
+            }
         } else {
             this.lastLinePromise = null;
         }
@@ -2003,17 +2014,19 @@ class SubAssyCreate {
             return false;
         }
 
-        // 6.1 Validasi: Inisial Lot ID
-        const injectionInitials = $('#injectionInitialsInput').val() || $('input[name="injection_initials"]').val();
-        if (!injectionInitials || !injectionInitials.trim()) {
-            Swal.fire({
-                icon: "warning",
-                title: "Inisial Lot ID Wajib Diisi",
-                text: "Silahkan isi Inisial Lot ID terlebih dahulu."
-            });
-            $("#injectionInitialsInput").addClass("is-invalid").focus();
-            setTimeout(() => $("#injectionInitialsInput").removeClass("is-invalid"), 3000);
-            return false;
+        // 6.1 Validasi: Inisial Lot ID (Hanya untuk input manual)
+        if (!isHardwareScan) {
+            const injectionInitials = $('#injectionInitialsInput').val() || $('input[name="injection_initials"]').val();
+            if (!injectionInitials || !injectionInitials.trim()) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Inisial Lot ID Wajib Diisi",
+                    text: "Silahkan isi Inisial Lot ID terlebih dahulu."
+                });
+                $("#injectionInitialsInput").addClass("is-invalid").focus();
+                setTimeout(() => $("#injectionInitialsInput").removeClass("is-invalid"), 3000);
+                return false;
+            }
         }
 
         // 7. Validasi: Integritas Baris Defect (NG) & Cleanup
