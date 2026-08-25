@@ -666,6 +666,7 @@
                                                                                 }
                                                                             }
                                                                         }
+                                                                        if ($isNG) $anyNGInRow = true;
                                                                     @endphp
                                                                     <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG)
                                                                     style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
