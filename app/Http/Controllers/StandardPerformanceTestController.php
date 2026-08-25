@@ -1634,6 +1634,25 @@ class StandardPerformanceTestController extends Controller
             $query = DurabilityThicknessReport::query();
             $query->where('is_trial', $isTrial);
 
+            // Filter only rows that have actual data for this testType
+            $query->where(function ($q) use ($testType) {
+                if ($testType === 'thickness') {
+                    $q->where(function($sub) {
+                        $sub->whereNotNull('actual_cu')->where('actual_cu', '!=', '')->where('actual_cu', '!=', '-')
+                            ->orWhereNotNull('actual_ni')->where('actual_ni', '!=', '')->where('actual_ni', '!=', '-')
+                            ->orWhereNotNull('actual_cr')->where('actual_cr', '!=', '')->where('actual_cr', '!=', '-');
+                    });
+                } elseif ($testType === 'corrodkote') {
+                    $q->whereNotNull('standar_jam_corrodkote')->where('standar_jam_corrodkote', '!=', '')->where('standar_jam_corrodkote', '!=', '-');
+                } elseif ($testType === 'cass') {
+                    $q->whereNotNull('standar_jam_cass')->where('standar_jam_cass', '!=', '')->where('standar_jam_cass', '!=', '-');
+                } elseif ($testType === 'salt_spray') {
+                    $q->whereNotNull('standar_jam_salt_spray')->where('standar_jam_salt_spray', '!=', '')->where('standar_jam_salt_spray', '!=', '-');
+                } elseif ($testType === 'porecount') {
+                    $q->whereNotNull('actual_porecount')->where('actual_porecount', '!=', '')->where('actual_porecount', '!=', '-');
+                }
+            });
+
             if ($request->filled('start_date')) {
                 if ($testType === 'porecount') {
                     $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)'), '>=', $request->start_date);
