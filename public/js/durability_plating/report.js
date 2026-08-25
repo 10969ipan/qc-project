@@ -15,7 +15,8 @@ $(document).ready(function () {
         $('#formEditThickness').attr('action', url);
 
         $('#edit_thickness_part_name').val(partName);
-        $('#edit_tanggal_cek').val(item.tanggal_cek);
+        let checkDate = (config.testType === 'porecount') ? (item.tanggal_cek_porecount || item.tanggal_cek) : item.tanggal_cek;
+        $('#edit_tanggal_cek').val(checkDate);
         $('#edit_production_date').val(item.production_date);
         $('#edit_shift').val(item.shift);
         $('#edit_lot_no').val(item.lot_no);

@@ -1003,7 +1003,7 @@
                             <div class="row">
                                 <div class="col-md-3 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Tanggal Test</label>
-                                    <input type="date" name="tanggal_cek" id="edit_tanggal_cek" class="form-control form-control-sm border-0 shadow-sm">
+                                    <input type="date" name="{{ $testType === 'porecount' ? 'tanggal_cek_porecount' : 'tanggal_cek' }}" id="edit_tanggal_cek" class="form-control form-control-sm border-0 shadow-sm">
                                 </div>
                                 <div class="col-md-3 form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">Tgl Produksi</label>
@@ -1295,10 +1295,6 @@
                                 <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
                             </div>
                             @elseif($testType == 'porecount')
-                            <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700">Tanggal Test Porecount</label>
-                                <input type="date" name="tanggal_cek_porecount" id="edit_tanggal_cek_porecount" class="form-control form-control-sm border-0 shadow-sm">
-                            </div>
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Aktual</label>
                                 <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm">

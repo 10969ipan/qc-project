@@ -1012,8 +1012,13 @@ class StandardPerformanceTestController extends Controller
         if ($testType === 'thickness' && $request->has('tanggal_test') && !$request->has('tanggal_cek')) {
             $request->merge(['tanggal_cek' => $request->tanggal_test]);
         }
-        if ($testType === 'porecount' && $request->has('tanggal_test') && !$request->has('tanggal_cek_porecount')) {
-            $request->merge(['tanggal_cek_porecount' => $request->tanggal_test]);
+        if ($testType === 'porecount') {
+            if ($request->has('tanggal_test') && !$request->has('tanggal_cek_porecount')) {
+                $request->merge(['tanggal_cek_porecount' => $request->tanggal_test]);
+            }
+            if ($request->has('tanggal_cek') && !$request->has('tanggal_cek_porecount')) {
+                $request->merge(['tanggal_cek_porecount' => $request->tanggal_cek]);
+            }
         }
 
         $request->validate([
