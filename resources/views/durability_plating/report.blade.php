@@ -648,7 +648,7 @@
                                          $targetRoute = $isTrial ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report';
                                          $validVal = fn($v) => !is_null($v) && trim((string)$v) !== '' && trim((string)$v) !== '-';
                                          $hasThicknessData = $validVal($report->actual_cu) || $validVal($report->actual_ni) || $validVal($report->actual_cr);
-                                         $targetReportId = ($isTrial && !empty($report->data1_ref_id)) ? $report->data1_ref_id : $report->id;
+                                         $targetReportId = $report->id;
                                      @endphp
                                      @if($hasThicknessData)
                                          <a href="{{ route($targetRoute, ['report_id' => $targetReportId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Thickness">
@@ -665,7 +665,7 @@
                                          $targetPoreRoute = $isTrial ? 'standard-performance-tests-trial.report.porecount' : 'standard-performance-tests.report.porecount';
                                          $validVal = fn($v) => !is_null($v) && trim((string)$v) !== '' && trim((string)$v) !== '-';
                                          $hasPoreData = $validVal($report->actual_porecount) || $validVal($report->actual_porecount_trial);
-                                         $targetPoreReportId = ($isTrial && !empty($report->data1_ref_id)) ? $report->data1_ref_id : $report->id;
+                                         $targetPoreReportId = $report->id;
                                      @endphp
                                      @if($hasPoreData)
                                          <a href="{{ route($targetPoreRoute, ['report_id' => $targetPoreReportId]) }}" class="text-primary" style="font-size: 0.8rem; text-decoration: underline;" title="Lihat Data Porecount">
