@@ -442,6 +442,7 @@ class StandardPerformanceTestController extends Controller
                 'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
                 'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
                 'actual_porecount' => $request->actual_porecount ?? '-',
+                'tanggal_cek_porecount' => $request->filled('actual_porecount') && $request->actual_porecount !== '-' ? now()->toDateString() : null,
                 'result_judgment' => $request->result_judgment ?? '-',
                 'tgl_masuk' => $request->tgl_masuk,
                 'jam_masuk' => $request->jam_masuk,
@@ -481,6 +482,7 @@ class StandardPerformanceTestController extends Controller
             'actual_salt_spray_waktu' => $request->actual_salt_spray_waktu ?? '-',
             'standar_jam_salt_spray' => $request->standar_jam_salt_spray ?? '-',
             'actual_porecount' => $request->actual_porecount ?? '-',
+            'tanggal_cek_porecount' => $request->filled('actual_porecount') && $request->actual_porecount !== '-' ? now()->toDateString() : null,
             'result_judgment' => $request->result_judgment ?? '-',
             'result_judgment_corrodkote' => $request->result_judgment_corrodkote ?? ($request->filled('standar_jam_corrodkote') && $request->standar_jam_corrodkote !== '-' ? ($request->result_judgment ?? '-') : null),
             'result_judgment_cass' => $request->result_judgment_cass ?? ($request->filled('standar_jam_cass') && $request->standar_jam_cass !== '-' ? ($request->result_judgment ?? '-') : null),
@@ -1046,6 +1048,7 @@ class StandardPerformanceTestController extends Controller
             'tgl_keluar' => 'nullable|date',
             'jam_keluar' => 'nullable|date_format:H:i',
             'tanggal_cek' => 'nullable|date',
+            'tanggal_cek_porecount' => 'nullable|date',
             'description' => 'nullable|string',
             'description_corrodkote' => 'nullable|string',
             'description_cass' => 'nullable|string',
@@ -1066,7 +1069,7 @@ class StandardPerformanceTestController extends Controller
             'actual_corrodkote_waktu', 'standar_jam_corrodkote', 'aktual_corrosion', 'actual_cass_waktu', 'standar_jam_cass', 'aktual_rn',
             'actual_salt_spray_waktu', 'standar_jam_salt_spray', 'actual_porecount',
             'result_judgment', 'result_judgment_corrodkote', 'result_judgment_cass', 'result_judgment_salt_spray', 'result_judgment_porecount',
-            'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek',
+            'tgl_masuk', 'jam_masuk', 'tgl_keluar', 'jam_keluar', 'tanggal_cek', 'tanggal_cek_porecount',
             'description', 'description_corrodkote', 'description_cass', 'description_salt_spray', 'description_porecount'
         ];
 
@@ -1076,6 +1079,10 @@ class StandardPerformanceTestController extends Controller
                 if ($testType !== 'thickness' && in_array($field, [
                     'actual_cu', 'actual_ni', 'actual_cr', 'tanggal_cek', 'result_judgment', 'description',
                 ])) {
+                    continue;
+                }
+                // Protect porecount check date from being overwritten by non-porecount inputs
+                if ($testType !== 'porecount' && $field === 'tanggal_cek_porecount') {
                     continue;
                 }
                 // Protect Chamber-only date/time fields from being altered by non-chamber test inputs (e.g. thickness, porecount)
@@ -1143,6 +1150,9 @@ class StandardPerformanceTestController extends Controller
             }
             if ($testType === 'thickness') {
                 $trialData['tanggal_cek'] = $report->tanggal_cek;
+            }
+            if ($testType === 'porecount') {
+                $trialData['tanggal_cek_porecount'] = $report->tanggal_cek_porecount;
             }
             if ($analisColumn) {
                 $trialData[$analisColumn] = auth()->id();

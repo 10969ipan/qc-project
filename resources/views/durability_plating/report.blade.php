@@ -541,7 +541,13 @@
                                     @if($jamK) <br><small class="text-muted">{{ $jamK }}</small> @endif
                                 </td>
                             @else
-                                <td class="text-center text-nowrap">{{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}</td>
+                            <td class="text-center text-nowrap">
+                                @if($testType === 'porecount')
+                                    {{ $report->tanggal_cek_porecount ? \Carbon\Carbon::parse($report->tanggal_cek_porecount)->format('d/m/Y') : '-' }}
+                                @else
+                                    {{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}
+                                @endif
+                            </td>
                             @endif
                             <td class="text-center">{{ $report->lot_no ?? '-' }}</td>
                             @if($testType == 'corrodkote')
@@ -1286,6 +1292,10 @@
                                 <input type="text" name="standar_jam_salt_spray" id="edit_standar_jam_salt_spray" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam" data-target="edit">
                             </div>
                             @elseif($testType == 'porecount')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Tanggal Test Porecount</label>
+                                <input type="date" name="tanggal_cek_porecount" id="edit_tanggal_cek_porecount" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Aktual</label>
                                 <input type="text" name="actual_porecount" id="edit_actual_porecount" class="form-control form-control-sm border-0 shadow-sm">

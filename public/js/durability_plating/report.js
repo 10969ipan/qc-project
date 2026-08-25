@@ -36,6 +36,7 @@ $(document).ready(function () {
         $('#edit_standar_jam_salt_spray').val(item.standar_jam_salt_spray);
 
         $('#edit_actual_porecount').val(item.actual_porecount);
+        $('#edit_tanggal_cek_porecount').val(item.tanggal_cek_porecount ?? '');
 
         let rj = item.result_judgment;
         let rjTrial = item.result_judgment_trial;
