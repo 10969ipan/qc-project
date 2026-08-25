@@ -629,10 +629,18 @@ class StandardPerformanceTestController extends Controller
                 });
             }
             if ($request->filled('start_date')) {
-                $query->whereDate('tanggal_cek', '>=', $request->start_date);
+                if ($testType === 'porecount') {
+                    $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)'), '>=', $request->start_date);
+                } else {
+                    $query->whereDate('tanggal_cek', '>=', $request->start_date);
+                }
             }
             if ($request->filled('end_date')) {
-                $query->whereDate('tanggal_cek', '<=', $request->end_date);
+                if ($testType === 'porecount') {
+                    $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)'), '<=', $request->end_date);
+                } else {
+                    $query->whereDate('tanggal_cek', '<=', $request->end_date);
+                }
             }
             if ($request->filled('result_judgment')) {
                 $this->applyResultJudgmentFilter($query, $testType, $request->result_judgment);
@@ -1622,10 +1630,18 @@ class StandardPerformanceTestController extends Controller
             $query->where('is_trial', $isTrial);
 
             if ($request->filled('start_date')) {
-                $query->whereDate('tanggal_cek', '>=', $request->start_date);
+                if ($testType === 'porecount') {
+                    $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)'), '>=', $request->start_date);
+                } else {
+                    $query->whereDate('tanggal_cek', '>=', $request->start_date);
+                }
             }
             if ($request->filled('end_date')) {
-                $query->whereDate('tanggal_cek', '<=', $request->end_date);
+                if ($testType === 'porecount') {
+                    $query->whereDate(\Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)'), '<=', $request->end_date);
+                } else {
+                    $query->whereDate('tanggal_cek', '<=', $request->end_date);
+                }
             }
             if ($request->filled('result_judgment')) {
                 $this->applyResultJudgmentFilter($query, $testType, $request->result_judgment);
