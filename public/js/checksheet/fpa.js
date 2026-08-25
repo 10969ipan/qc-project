@@ -1394,6 +1394,7 @@ class FpaCreate {
             }
 
             // 5. Validasi: NG harus pilih Next Proses (Kecuali jika defect HANYA Dimensi)
+            const isDimensiType = (t) => !!t && /dimensi|dimension/i.test(t.trim());
             let isOnlyDimensi = true;
             let hasAnyDefect = false;
             $(".defect-row").each(function () {
@@ -1401,7 +1402,7 @@ class FpaCreate {
                 const qty = parseInt($(this).find(".defect-qty").val()) || 0;
                 if (qty > 0) {
                     hasAnyDefect = true;
-                    if (type !== 'dimension') {
+                    if (!isDimensiType(type)) {
                         isOnlyDimensi = false;
                     }
                 }
@@ -2155,6 +2156,7 @@ class FpaEdit {
             }
 
             // 5. Validasi: NG harus pilih Next Proses (Kecuali jika defect HANYA Dimensi)
+            const isDimensiType = (t) => !!t && /dimensi|dimension/i.test(t.trim());
             let isOnlyDimensi = true;
             let hasAnyDefect = false;
             $(".defect-row").each(function () {
@@ -2162,7 +2164,7 @@ class FpaEdit {
                 const qty = parseInt($(this).find(".defect-qty").val()) || 0;
                 if (qty > 0) {
                     hasAnyDefect = true;
-                    if (type !== 'dimension') {
+                    if (!isDimensiType(type)) {
                         isOnlyDimensi = false;
                     }
                 }
