@@ -72,7 +72,30 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',
-            'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'next_proses' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if ($this->judgment !== 'NG') return;
+                    $types = array_filter((array) $this->defect_types, fn($t) => !empty($t));
+                    $quantities = (array) $this->defect_quantities;
+                    $hasNonDimensiDefect = false;
+                    $hasAnyDefect = false;
+                    foreach ($types as $i => $type) {
+                        $qty = (int) ($quantities[$i] ?? 0);
+                        if ($qty > 0) {
+                            $hasAnyDefect = true;
+                            if (!preg_match('/dimensi|dimension/i', trim($type))) {
+                                $hasNonDimensiDefect = true;
+                            }
+                        }
+                    }
+                    $isOnlyDimensi = $hasAnyDefect && !$hasNonDimensiDefect;
+                    if (!$isOnlyDimensi && empty($value)) {
+                        $fail('Untuk hasil NG, Next Proses wajib dipilih.');
+                    }
+                },
+            ],
             'defect_types' => 'nullable|array',
             'defect_types.*' => 'nullable|string',
             'defect_quantities' => 'nullable|array',
@@ -90,7 +113,6 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'code_machine.required' => 'Kode mesin wajib diisi.',
             'judgment.in' => 'Judgment harus OK atau NG.',
             'unique_code_id.unique' => 'QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.',
-            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }
