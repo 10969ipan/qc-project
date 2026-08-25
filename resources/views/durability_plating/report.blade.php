@@ -543,7 +543,10 @@
                             @else
                             <td class="text-center text-nowrap">
                                 @if($testType === 'porecount')
-                                    {{ $report->tanggal_cek_porecount ? \Carbon\Carbon::parse($report->tanggal_cek_porecount)->format('d/m/Y') : '-' }}
+                                    @php
+                                        $pDate = $report->tanggal_cek_porecount ?? $report->tanggal_cek;
+                                    @endphp
+                                    {{ $pDate ? \Carbon\Carbon::parse($pDate)->format('d/m/Y') : '-' }}
                                 @else
                                     {{ $report->tanggal_cek ? \Carbon\Carbon::parse($report->tanggal_cek)->format('d/m/Y') : '-' }}
                                 @endif
@@ -562,10 +565,10 @@
                             <td class="text-center">
                                 @php
                                     $rjRaw = match($testType) {
-                                        'corrodkote' => $report->result_judgment_corrodkote ?? '-',
-                                        'cass' => $report->result_judgment_cass ?? '-',
-                                        'salt_spray' => $report->result_judgment_salt_spray ?? '-',
-                                        'porecount' => $report->result_judgment_porecount ?? '-',
+                                        'corrodkote' => (!empty($report->result_judgment_corrodkote) && $report->result_judgment_corrodkote !== '-') ? $report->result_judgment_corrodkote : ($report->result_judgment ?? '-'),
+                                        'cass' => (!empty($report->result_judgment_cass) && $report->result_judgment_cass !== '-') ? $report->result_judgment_cass : ($report->result_judgment ?? '-'),
+                                        'salt_spray' => (!empty($report->result_judgment_salt_spray) && $report->result_judgment_salt_spray !== '-') ? $report->result_judgment_salt_spray : ($report->result_judgment ?? '-'),
+                                        'porecount' => (!empty($report->result_judgment_porecount) && $report->result_judgment_porecount !== '-') ? $report->result_judgment_porecount : ($report->result_judgment ?? '-'),
                                         default => $report->result_judgment ?? '-'
                                     };
                                 @endphp
@@ -1304,7 +1307,7 @@
 
                             <div class="form-group mb-3">
                                 <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
-                                <select name="result_judgment" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                <select name="{{ $testType == 'corrodkote' ? 'result_judgment_corrodkote' : ($testType == 'cass' ? 'result_judgment_cass' : ($testType == 'salt_spray' ? 'result_judgment_salt_spray' : ($testType == 'porecount' ? 'result_judgment_porecount' : 'result_judgment'))) }}" id="edit_result_judgment" class="form-control form-control-sm border-0 shadow-sm">
                                     <option value="-">-</option>
                                     <option value="OK">OK</option>
                                     @if($testType == 'salt_spray')
