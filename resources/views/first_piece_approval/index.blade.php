@@ -844,7 +844,24 @@
                                         </div>
                                         <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
                                     @else
-                                        @if($checksheet->next_proses)
+                                        @php
+                                            // Cek apakah SEMUA defect yang ada adalah tipe dimensi
+                                            $defectTypes = (array) ($checksheet->defect_types ?? []);
+                                            $defectQtys  = (array) ($checksheet->defect_quantities ?? []);
+                                            $hasNonDimensiDefect = false;
+                                            $hasAnyQtyDefect = false;
+                                            foreach ($defectTypes as $dIdx => $dType) {
+                                                $dQty = (int) ($defectQtys[$dIdx] ?? 1);
+                                                if ($dQty > 0 && !empty($dType)) {
+                                                    $hasAnyQtyDefect = true;
+                                                    if (!preg_match('/dimensi|dimension/i', trim($dType))) {
+                                                        $hasNonDimensiDefect = true;
+                                                    }
+                                                }
+                                            }
+                                            $isOnlyDimensiDefect = $hasAnyQtyDefect && !$hasNonDimensiDefect;
+                                        @endphp
+                                        @if($checksheet->next_proses && !$isOnlyDimensiDefect)
                                             <div class="mb-1">
                                                 <span class="badge badge-danger px-2 py-1">
                                                     <i class="fas fa-exclamation-circle"></i>
