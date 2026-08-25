@@ -845,13 +845,13 @@
                                         <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
                                     @else
                                         @php
-                                            // Cek apakah SEMUA defect yang ada adalah tipe dimensi
-                                            $defectTypes = (array) ($checksheet->defect_types ?? []);
-                                            $defectQtys  = (array) ($checksheet->defect_quantities ?? []);
+                                            // defects disimpan sebagai [['type'=>'Dimensi','qty'=>1], ...]
+                                            $defectsArr = (array) ($checksheet->defects ?? []);
                                             $hasNonDimensiDefect = false;
                                             $hasAnyQtyDefect = false;
-                                            foreach ($defectTypes as $dIdx => $dType) {
-                                                $dQty = (int) ($defectQtys[$dIdx] ?? 1);
+                                            foreach ($defectsArr as $d) {
+                                                $dType = is_array($d) ? ($d['type'] ?? '') : (string) $d;
+                                                $dQty  = is_array($d) ? (int) ($d['qty'] ?? 1) : 1;
                                                 if ($dQty > 0 && !empty($dType)) {
                                                     $hasAnyQtyDefect = true;
                                                     if (!preg_match('/dimensi|dimension/i', trim($dType))) {
