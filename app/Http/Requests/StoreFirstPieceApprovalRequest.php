@@ -44,7 +44,30 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',
-            'next_proses' => 'required_if:judgment,NG|nullable|string',
+            'next_proses' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if ($this->judgment !== 'NG') return;
+                    $types = array_filter((array) $this->defect_types, fn($t) => !empty($t));
+                    $quantities = (array) $this->defect_quantities;
+                    $hasNonDimensiDefect = false;
+                    $hasAnyDefect = false;
+                    foreach ($types as $i => $type) {
+                        $qty = (int) ($quantities[$i] ?? 0);
+                        if ($qty > 0) {
+                            $hasAnyDefect = true;
+                            if (!preg_match('/dimensi|dimension/i', trim($type))) {
+                                $hasNonDimensiDefect = true;
+                            }
+                        }
+                    }
+                    $isOnlyDimensi = $hasAnyDefect && !$hasNonDimensiDefect;
+                    if (!$isOnlyDimensi && empty($value)) {
+                        $fail('Untuk hasil NG, Next Proses wajib dipilih.');
+                    }
+                },
+            ],
             'sap_code' => 'nullable|string',
             'user_id' => 'nullable|integer',
         ];
@@ -59,7 +82,6 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'code_machine.required' => 'Kode mesin wajib diisi.',
             'category.required' => 'Kategori wajib dipilih.',
             'judgment.in' => 'Judgment harus OK atau NG.',
-            'next_proses.required_if' => 'Untuk hasil NG, Next Proses wajib dipilih.',
         ];
     }
 }
