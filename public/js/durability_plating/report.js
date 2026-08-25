@@ -551,7 +551,7 @@ $(document).ready(function () {
             $('#porecount_lot').val('').prop('readonly', false).removeClass('bg-light');
         }
 
-        let poreDate = item.tanggal_cek || '';
+        let poreDate = item.tanggal_cek_porecount || item.tanggal_cek || '';
         if (poreDate && item.tgl_masuk && poreDate === item.tgl_masuk) {
             poreDate = '';
         }
