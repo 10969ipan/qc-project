@@ -564,6 +564,10 @@ class FirstPieceApprovalService extends BaseService
 
             DB::commit();
 
+            // Clear filter cache for this plant so dropdowns refresh immediately
+            \Illuminate\Support\Facades\Cache::forget("fpa_filter_init_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("fpa_filter_mach_{$checksheet->plant_id}");
+
             Log::info("First Piece Approval berhasil dibuat", [
                 "user_id" => auth()->id(),
                 "checksheet_id" => $checksheet->id,

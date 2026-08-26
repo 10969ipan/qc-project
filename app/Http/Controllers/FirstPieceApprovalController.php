@@ -118,34 +118,43 @@ class FirstPieceApprovalController extends Controller
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);
-        $partDimensionStandards = $this->getConsolidatedStandards();
+        $partDimensionStandards = \Illuminate\Support\Facades\Cache::remember("fpa_standards", 43200, function () {
+            return $this->getConsolidatedStandards();
+        });
 
-        // Data for filters (Standardized with Cross-Cut)
+        // Data for filters (Cached per plant to avoid 4x subquery scans on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('first_piece_approvals')->where('plant_id', $plantId);
-        })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("fpa_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
-        $customers = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('first_piece_approvals')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("fpa_filter_cust_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)
+                ->whereNotNull('customer')
+                ->where('customer', '!=', '')
+                ->distinct()
+                ->pluck('customer')
+                ->sort();
+        });
 
-        $initials = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials')
-            ->distinct()
-            ->pluck('operator_initials')
-            ->sort();
+        $initials = \Illuminate\Support\Facades\Cache::remember("fpa_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+                ->where('date', '>=', now()->subDays(90))
+                ->whereNotNull('operator_initials')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort();
+        });
 
-        $machines = collect();
-        if (auth()->check() && auth()->user()->role === 'admin') {
-            $machines = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+        $machines = \Illuminate\Support\Facades\Cache::remember("fpa_filter_mach_{$plantId}", 3600, function () use ($plantId) {
+            return \App\Models\FirstPieceApproval::where('plant_id', $plantId)
                 ->whereNotNull('code_machine')
                 ->distinct()
                 ->pluck('code_machine')
                 ->sort(SORT_NUMERIC)
                 ->values();
-        }
+        });
 
         return view('first_piece_approval.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines'));
     }
