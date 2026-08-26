@@ -370,7 +370,7 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
 
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="2" class="align-middle">Approval Status</th>
+                                <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
@@ -383,6 +383,8 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
@@ -545,6 +547,64 @@
                                         </span>
                                     @endif
                                 </td>
+
+                                {{-- Asst Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    @if($checksheet->asst_manager_qc === 'REJECTED')
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->asst_manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @elseif($checksheet->asst_manager_qc)
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->asst_manager_qc }}</div>
+                                            @if($checksheet->asst_manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    @if($checksheet->manager_qc === 'REJECTED')
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @elseif($checksheet->manager_qc)
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->manager_qc }}</div>
+                                            @if($checksheet->manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                </td>
                                 @endif {{-- end view_mode !== verifikasi --}}
 
                                 <td class="align-middle">
@@ -583,6 +643,8 @@
 
                                             $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED');
+                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED');
 
                                             $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
                                             $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
@@ -627,6 +689,36 @@
                                                     </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'asst_manager' && $canApproveAsst)
+                                                <form action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager)">
+                                                        <i class="fas fa-check"></i> Approve AM
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'manager' && $canApproveManager)
+                                                <form action="{{ route('admin.checksheets.approve', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager)">
+                                                        <i class="fas fa-check"></i> Approve MGR
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @endif
