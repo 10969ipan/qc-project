@@ -120,11 +120,19 @@
             </td>
             <td class="title">LAPORAN CHECK SHEET IN-PROCESS</td>
             <td class="doc-info">
+                @php
+                    $docHeader = \App\Models\GeneralSetting::getDocHeader('in_process', $plantCode, [
+                        'no_dokumen' => $plantCode === 'jakarta' ? 'QC-JKT-F-032/0' : 'QC-KRW-F-0201',
+                        'tgl_terbit' => $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015',
+                        'revisi'     => $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025',
+                        'halaman'    => '1/1'
+                    ]);
+                @endphp
                 <table>
-                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-032/0' : 'QC-KRW-F-0168' }}</td></tr>
-                    <tr><td>Tgl. Terbit</td><td>: {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}</td></tr>
-                    <tr><td>Revisi / Tgl</td><td>: {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}</td></tr>
-                    <tr><td>Halaman</td><td>: 1/1</td></tr>
+                    <tr><td>No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] ?? '-' }}</td></tr>
+                    <tr><td>Tgl. Terbit</td><td>: {{ $docHeader['tgl_terbit'] ?? '-' }}</td></tr>
+                    <tr><td>Revisi / Tgl</td><td>: {{ $docHeader['revisi'] ?? '-' }}</td></tr>
+                    <tr><td>Halaman</td><td>: {{ $docHeader['halaman'] ?? '1/1' }}</td></tr>
                 </table>
             </td>
         </tr>
