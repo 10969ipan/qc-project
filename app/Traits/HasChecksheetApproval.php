@@ -342,6 +342,20 @@ trait HasChecksheetApproval
                     }
                 }
 
+                if (Schema::hasColumn($table, 'entry_method')) {
+                    $viewMode = $request->input('view_mode');
+                    if ($viewMode === 'verifikasi') {
+                        $query->where("{$table}.entry_method", 'verifikasi');
+                    } elseif ($request->filled('entry_method')) {
+                        $query->where("{$table}.entry_method", $request->input('entry_method'));
+                    } else {
+                        $query->where(function($q) use ($table) {
+                            $q->where("{$table}.entry_method", 'regular')
+                              ->orWhereNull("{$table}.entry_method");
+                        });
+                    }
+                }
+
                 $cust = $request->input('customer', $request->input('customer_name'));
                 if (!empty($cust)) {
                     if (Schema::hasColumn($table, 'customer')) {

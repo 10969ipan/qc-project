@@ -132,6 +132,8 @@
                         shift: shift || '',
                         operator_initials: operatorInitials || '',
                         item_id: itemId || '',
+                        view_mode: '{{ request("view_mode", "") }}',
+                        entry_method: '{{ request("entry_method", "") }}',
                         test_type: '{{ $testType ?? "thickness" }}',
                         is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                     },
