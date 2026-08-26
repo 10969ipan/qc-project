@@ -372,10 +372,6 @@
                         <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap Harian
                     </a>
                     @if($canExport)
-                    <a href="{{ route('in_process.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('in_process.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
                         style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
