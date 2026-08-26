@@ -342,17 +342,46 @@ trait HasChecksheetApproval
                     }
                 }
 
-                if (Schema::hasColumn($table, 'entry_method')) {
-                    $viewMode = $request->input('view_mode');
-                    if ($viewMode === 'verifikasi') {
+                $viewMode = $request->input('view_mode', $request->input('entry_method'));
+                if ($viewMode === 'verifikasi' || $viewMode === 'verification' || $viewMode === 'qr') {
+                    if (Schema::hasColumn($table, 'entry_method')) {
                         $query->where("{$table}.entry_method", 'verifikasi');
-                    } elseif ($request->filled('entry_method')) {
-                        $query->where("{$table}.entry_method", $request->input('entry_method'));
                     } else {
+                        $query->where(function ($q) use ($table) {
+                            $hasCol = false;
+                            if (Schema::hasColumn($table, 'qrcode')) {
+                                $q->whereNotNull("{$table}.qrcode")->where("{$table}.qrcode", '!=', '');
+                                $hasCol = true;
+                            }
+                            if (Schema::hasColumn($table, 'unique_code_id')) {
+                                if ($hasCol) {
+                                    $q->orWhere(function ($sub) use ($table) {
+                                        $sub->whereNotNull("{$table}.unique_code_id")->where("{$table}.unique_code_id", '!=', '');
+                                    });
+                                } else {
+                                    $q->whereNotNull("{$table}.unique_code_id")->where("{$table}.unique_code_id", '!=', '');
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Default on manual input page: only approve regular (manual input) entries!
+                    if (Schema::hasColumn($table, 'entry_method')) {
                         $query->where(function($q) use ($table) {
                             $q->where("{$table}.entry_method", 'regular')
                               ->orWhereNull("{$table}.entry_method");
                         });
+                    } else {
+                        if (Schema::hasColumn($table, 'qrcode')) {
+                            $query->where(function ($sub) use ($table) {
+                                $sub->whereNull("{$table}.qrcode")->orWhere("{$table}.qrcode", '');
+                            });
+                        }
+                        if (Schema::hasColumn($table, 'unique_code_id')) {
+                            $query->where(function ($sub) use ($table) {
+                                $sub->whereNull("{$table}.unique_code_id")->orWhere("{$table}.unique_code_id", '');
+                            });
+                        }
                     }
                 }
 
