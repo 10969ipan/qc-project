@@ -914,6 +914,50 @@
                                          <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
                                      @endif
                                  </td>
+
+                                 {{-- Asst Manager QC --}}
+                                 <td class="align-middle text-center text-nowrap" style="min-width: 120px;">
+                                     @if($checksheet->asst_manager_qc === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                     @elseif($checksheet->asst_manager_qc)
+                                         <span class="badge badge-success px-2 py-1">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
+                                     @else
+                                         <span class="badge badge-warning text-dark px-2 py-1">
+                                             <i class="fas fa-clock mr-1"></i> PENDING
+                                         </span>
+                                     @endif
+                                     @if($checksheet->asst_manager_approved_at)
+                                         <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
+                                     @endif
+                                 </td>
+
+                                 {{-- Manager QC --}}
+                                 <td class="align-middle text-center text-nowrap" style="min-width: 120px;">
+                                     @if($checksheet->manager_qc === 'REJECTED')
+                                         <span class="badge badge-danger px-2 py-1">
+                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                         </span>
+                                         <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                     @elseif($checksheet->manager_qc)
+                                         <span class="badge badge-success px-2 py-1">
+                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                         </span>
+                                         <br><small class="text-muted">oleh {{ $checksheet->manager_qc }}</small>
+                                     @else
+                                         <span class="badge badge-warning text-dark px-2 py-1">
+                                             <i class="fas fa-clock mr-1"></i> PENDING
+                                         </span>
+                                     @endif
+                                     @if($checksheet->manager_approved_at)
+                                         <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</small>
+                                     @endif
+                                 </td>
                                  @endif {{-- end view_mode !== verifikasi --}}
 
                                 <td class="align-middle">
