@@ -489,12 +489,27 @@ class FirstPieceApprovalController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'shift']);
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'customer' => $request->customer,
+            'next_proses' => $request->next_proses,
+            'id' => $request->id,
+            'shift' => $request->shift,
+            'code_machine' => $request->code_machine,
+            'search' => $request->search,
+            'part_no' => $request->part_no,
+        ];
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['part_no']) && 
+            empty($filters['search'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -517,12 +532,9 @@ class FirstPieceApprovalController extends Controller
             $plantName = $user->plant->name;
         }
 
-        // For display labels: use provided dates or default to 'Today' for the label only
-        $dispStart = ($filters['start_date'] ?? null) ?: now()->toDateString();
-        $dispEnd = ($filters['end_date'] ?? null) ?: now()->toDateString();
-
-        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
+        // For display labels: use provided dates or show 'Semua'
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         return view('first_piece_approval.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }
