@@ -180,9 +180,15 @@ class InProcessChecksheetService extends BaseService
             $query->where('id', $filters['id']);
         }
 
-        // QR Raw filter
+        // QR Raw filter (Prioritize B-Tree index lookup for exact QR/Unique/SAP code scans)
         if (!empty($filters['qr_raw'])) {
-            $query->where('in_process_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+            $qr = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qr) {
+                $q->where('in_process_checksheets.qrcode', $qr)
+                  ->orWhere('in_process_checksheets.unique_code_id', $qr)
+                  ->orWhere('in_process_checksheets.sap_code', $qr)
+                  ->orWhere('in_process_checksheets.qrcode', 'like', "%{$qr}%");
+            });
         }
 
         if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
@@ -478,6 +484,10 @@ class InProcessChecksheetService extends BaseService
             );
 
             DB::commit();
+
+            // Clear filter cache for this plant so dropdowns refresh immediately
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$checksheet->plant_id}");
 
             Log::info('Checksheet In Process berhasil dibuat', [
                 'user_id' => auth()->id(),

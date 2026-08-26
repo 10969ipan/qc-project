@@ -131,46 +131,43 @@ class InProcessChecksheetController extends Controller
 
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
 
-        $partDimensionStandards = $this->getConsolidatedStandards();
+        $partDimensionStandards = \Illuminate\Support\Facades\Cache::remember("in_proc_standards", 43200, function () {
+            return $this->getConsolidatedStandards();
+        });
 
-        // Data for filters (Standardized with Cross-Cut)
-        // Adjust to fetch only from available data in current table (excluding those filtered out by plant if possible)
+        // Data for filters (Cached per plant to avoid 4x subquery scans over 28,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('in_process_checksheets')->where('plant_id', $plantId);
-        })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
-        $customers = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('in_process_checksheets')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)
+                ->whereNotNull('customer')
+                ->where('customer', '!=', '')
+                ->distinct()
+                ->pluck('customer')
+                ->sort();
+        });
 
-        $initialsQuery = InProcessChecksheet::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials');
+        $initials = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return InProcessChecksheet::where('plant_id', $plantId)
+                ->where('date', '>=', now()->subDays(90))
+                ->whereNotNull('operator_initials')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort();
+        });
 
-        if (!empty($filters['start_date'])) {
-            $initialsQuery->whereDate('date', '>=', $filters['start_date']);
-        }
-        if (!empty($filters['end_date'])) {
-            $initialsQuery->whereDate('date', '<=', $filters['end_date']);
-        }
-        if (!empty($filters['shift'])) {
-            $initialsQuery->where('shift', $filters['shift']);
-        }
-
-        $initials = $initialsQuery->distinct()
-            ->pluck('operator_initials')
-            ->sort();
-
-        $machines = collect();
-        if (auth()->check() && auth()->user()->role === 'admin') {
-            $machines = InProcessChecksheet::where('plant_id', $plantId)
+        $machines = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_mach_{$plantId}", 3600, function () use ($plantId) {
+            return InProcessChecksheet::where('plant_id', $plantId)
                 ->whereNotNull('code_machine')
                 ->distinct()
                 ->pluck('code_machine')
                 ->sort(SORT_NUMERIC)
                 ->values();
-        }
+        });
 
         return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines'));
     }
