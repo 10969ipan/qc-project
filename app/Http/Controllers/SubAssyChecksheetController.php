@@ -486,7 +486,24 @@ class SubAssyChecksheetController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift', 'entry_method', 'operator_initials', 'customer', 'view_mode']);
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'customer' => $request->customer,
+            'search' => $request->search,
+            'shift' => $request->shift,
+            'entry_method' => $request->entry_method,
+            'view_mode' => $request->get('view_mode'),
+        ];
+
+        // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
+        if ($request->get('view_mode') !== 'verifikasi') {
+            $filters['entry_method'] = 'regular';
+        }
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();

@@ -566,7 +566,29 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method', 'shift', 'view_mode']);
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'customer' => $request->customer,
+            'next_proses' => $request->next_proses,
+            'id' => $request->id,
+            'qr_raw' => $request->qr_raw,
+            'entry_method' => $request->entry_method,
+            'shift' => $request->shift,
+            'tujuan' => $request->tujuan,
+            'view_mode' => $request->get('view_mode'),
+            'code_machine' => $request->code_machine,
+            'search' => $request->search,
+        ];
+
+        // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
+        if ($request->get('view_mode') !== 'verifikasi') {
+            $filters['entry_method'] = 'regular';
+        }
 
         if (empty($filters['start_date']) && empty($filters['end_date']) && 
             empty($filters['item_id']) && empty($filters['operator_initials']) && 

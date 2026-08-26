@@ -205,7 +205,8 @@ class InProcessChecksheetService extends BaseService
                         ->where('in_process_checksheets.unique_code_id', '!=', '');
                 })->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera']);
             });
-        } elseif ($viewMode === 'regular' || $viewMode === 'manual' || $entryMethod === 'regular' || $entryMethod === 'manual' || (isset($filters['view_mode']) && $filters['view_mode'] !== 'verifikasi')) {
+        } else {
+            // Default: strict regular manual input entries only (excludes verification scan data)
             $query->where(function ($q) {
                 $q->where(function ($sub) {
                     $sub->whereNull('in_process_checksheets.qrcode')
