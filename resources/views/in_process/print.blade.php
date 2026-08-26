@@ -121,7 +121,7 @@
             <td class="title">LAPORAN CHECK SHEET IN-PROCESS</td>
             <td class="doc-info">
                 <table>
-                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-032/0' : 'QC-KRW-F-0212' }}</td></tr>
+                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-032/0' : 'QC-KRW-F-0168' }}</td></tr>
                     <tr><td>Tgl. Terbit</td><td>: {{ $plantCode === 'jakarta' ? '21.02.2023' : '25/03/2015' }}</td></tr>
                     <tr><td>Revisi / Tgl</td><td>: {{ $plantCode === 'jakarta' ? '1 / 14.06.2023' : '3 / 22/12/2025' }}</td></tr>
                     <tr><td>Halaman</td><td>: 1/1</td></tr>
