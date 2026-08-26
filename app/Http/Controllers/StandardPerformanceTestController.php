@@ -607,7 +607,9 @@ class StandardPerformanceTestController extends Controller
                 }
             });
             
-            if ($request->filled('search')) {
+            if ($request->filled('item_id')) {
+                $query->where('standard_performance_test_id', $request->item_id);
+            } elseif ($request->filled('search')) {
                 $search = $request->search;
                 $query->whereHas('standard', function($q) use ($search) {
                     $q->where('part_name', 'like', "%$search%")
@@ -1670,7 +1672,9 @@ class StandardPerformanceTestController extends Controller
             if ($request->filled('result_judgment')) {
                 $this->applyResultJudgmentFilter($query, $testType, $request->result_judgment);
             }
-            if ($request->filled('search')) {
+            if ($request->filled('item_id')) {
+                $query->where('standard_performance_test_id', $request->item_id);
+            } elseif ($request->filled('search')) {
                 $search = $request->search;
                 $query->whereHas('standard', function($q) use ($search) {
                     $q->where('part_name', 'like', "%$search%")

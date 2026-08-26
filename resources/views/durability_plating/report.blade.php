@@ -192,10 +192,10 @@
             <div class="d-flex align-items-center">
                 <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
                 <div style="width: 200px;" class="custom-filter-wrapper">
-                    <select name="search" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
+                    <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                         <option value="">Semua Part / Customer...</option>
                         @foreach($items as $item)
-                            <option value="{{ $item->part_name }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ request('search') == $item->part_name ? 'selected' : '' }}>
+                            <option value="{{ $item->id }}" data-name="{{ $item->part_name }}" data-part-number="{{ $item->part_number }}" data-customer="{{ $item->customer_name }}" data-detail="{{ $item->customer_standard }}" {{ (request('item_id') == $item->id || request('search') == $item->part_name) ? 'selected' : '' }}>
                                 {{ $item->part_name }} - {{ $item->customer_name }}
                             </option>
                         @endforeach
