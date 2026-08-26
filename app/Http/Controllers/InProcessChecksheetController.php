@@ -566,7 +566,7 @@ class InProcessChecksheetController extends Controller
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method', 'shift']);
+        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'search', 'plant', 'entry_method', 'shift', 'view_mode']);
 
         if (empty($filters['start_date']) && empty($filters['end_date']) && 
             empty($filters['item_id']) && empty($filters['operator_initials']) && 

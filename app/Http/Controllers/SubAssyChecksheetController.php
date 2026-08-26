@@ -486,7 +486,7 @@ class SubAssyChecksheetController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift', 'entry_method', 'operator_initials', 'customer']);
+        $filters = $request->only(['plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'shift', 'entry_method', 'operator_initials', 'customer', 'view_mode']);
 
         if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();

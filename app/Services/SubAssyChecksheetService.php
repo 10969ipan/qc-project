@@ -112,29 +112,30 @@ class SubAssyChecksheetService extends BaseService
             });
         }
 
-        // Entry Method filter (Verification vs Regular)
-        if (!empty($filters['entry_method'])) {
-            if ($filters['entry_method'] === 'verification' || $filters['entry_method'] === 'qr') {
-                $query->where(function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->whereNotNull('sub_assy_checksheets.qrcode')
-                            ->where('sub_assy_checksheets.qrcode', '!=', '');
-                    })->orWhere(function ($sub) {
-                        $sub->whereNotNull('sub_assy_checksheets.unique_code_id')
-                            ->where('sub_assy_checksheets.unique_code_id', '!=', '');
-                    });
+        // Entry Method / View Mode filter (Verification vs Regular)
+        $viewMode = $filters['view_mode'] ?? null;
+        $entryMethod = $filters['entry_method'] ?? null;
+
+        if ($viewMode === 'verifikasi' || $entryMethod === 'verification' || $entryMethod === 'qr') {
+            $query->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNotNull('sub_assy_checksheets.qrcode')
+                        ->where('sub_assy_checksheets.qrcode', '!=', '');
+                })->orWhere(function ($sub) {
+                    $sub->whereNotNull('sub_assy_checksheets.unique_code_id')
+                        ->where('sub_assy_checksheets.unique_code_id', '!=', '');
                 });
-            } elseif ($filters['entry_method'] === 'regular' || $filters['entry_method'] === 'manual') {
-                $query->where(function ($q) {
-                    $q->where(function ($sub) {
-                        $sub->whereNull('sub_assy_checksheets.qrcode')
-                            ->orWhere('sub_assy_checksheets.qrcode', '');
-                    })->where(function ($sub) {
-                        $sub->whereNull('sub_assy_checksheets.unique_code_id')
-                            ->orWhere('sub_assy_checksheets.unique_code_id', '');
-                    });
+            });
+        } elseif ($viewMode === 'regular' || $viewMode === 'manual' || $entryMethod === 'regular' || $entryMethod === 'manual' || (isset($filters['view_mode']) && $filters['view_mode'] !== 'verifikasi')) {
+            $query->where(function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereNull('sub_assy_checksheets.qrcode')
+                        ->orWhere('sub_assy_checksheets.qrcode', '');
+                })->where(function ($sub) {
+                    $sub->whereNull('sub_assy_checksheets.unique_code_id')
+                        ->orWhere('sub_assy_checksheets.unique_code_id', '');
                 });
-            }
+            });
         }
 
         if (!empty($filters['shift'])) {
