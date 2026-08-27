@@ -2,9 +2,9 @@
     @php
         $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
         $docHeader = \App\Models\GeneralSetting::getDocHeader('customer_claim', $headerPlantCode, [
-            'no_dokumen' => '-',
-            'tgl_terbit' => '-',
-            'revisi' => '-',
+            'no_dokumen' => 'QC-KRW-F-0215',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '0',
             'halaman' => '- / -'
         ]);
     @endphp

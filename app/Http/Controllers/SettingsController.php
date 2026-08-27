@@ -76,6 +76,7 @@ class SettingsController extends Controller
             'double_tape' => 'Double Tape',
             'cross_cut' => 'Cross-Cut',
             'cross_cut_painting' => 'Cross-Cut Painting',
+            'customer_claim' => 'List Claim Customer',
             'master_standard_performance_test' => 'Master Standar Plating',
             'thickness' => 'Thickness Test',
             'corrodkote' => 'Corrodkote Test',
