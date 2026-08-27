@@ -1180,6 +1180,7 @@ class FpaCreate {
 
     updateJudgment() {
         const sampling = parseInt($("#sampling_qty").val()) || 0;
+        $("#samplingDisplay").text("/ " + (sampling > 0 ? sampling : "-"));
         const ng = parseInt($("#total_ng").val()) || 0;
         const isDimensiInvalid = $(".dimension-input.is-invalid").length > 0;
 
@@ -1626,6 +1627,7 @@ class FpaEdit {
 
     updateJudgment() {
         const sampling = parseInt($("#sampling_qty").val()) || 0;
+        $("#samplingDisplay").text("/ " + (sampling > 0 ? sampling : "-"));
         const ng = parseInt($("#total_ng").val()) || 0;
         const isDimensiInvalid =
             $(".edit-dimension-input.is-invalid").length > 0;

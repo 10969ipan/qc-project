@@ -283,8 +283,7 @@
                             <tr class="text-center">
                                 <th rowspan="2" class="align-middle">Item Part</th>
                                 <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                                <th rowspan="2" class="align-middle">Total Qty</th>
-                                <th rowspan="2" class="align-middle">Sampling Qty</th>
+                                <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
                                 <th rowspan="2" class="align-middle">Check Dimensi</th>
                                 <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 280px;">
                                     Berat Part</th>
@@ -380,16 +379,13 @@
                                     </div>
                                 </td>
 
-                                <!-- Total Kualitas (Total Kuantitas diproduksi) -->
-                                <td class="align-middle">
-                                    <input type="number" id="total_qty" class="form-control text-center" style="min-width: 60px;"
-                                        name="total_qty" placeholder="0" min="0">
-                                </td>
-
-                                <!-- Sampling Qty -->
-                                <td class="align-middle">
-                                    <input type="number" id="sampling_qty" class="form-control text-center" style="min-width: 60px;"
-                                        name="sampling_qty" placeholder="0" min="0">
+                                <!-- Qty (Total / Sampling) -->
+                                <td class="align-middle" style="min-width: 120px; max-width: 160px;">
+                                    <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 38px; gap: 2px;">
+                                        <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0" name="total_qty" id="total_qty" placeholder="-" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 40px; font-size: 0.85rem; outline: none; padding: 0;">
+                                        <span class="font-weight-bold text-dark text-nowrap" id="samplingDisplay" style="user-select: none; font-size: 0.85rem; white-space: nowrap;">/ -</span>
+                                    </div>
+                                    <input type="hidden" name="sampling_qty" id="sampling_qty" value="0">
                                 </td>
 
                                 <!-- Check Dimensi (Cavity & Points) -->
