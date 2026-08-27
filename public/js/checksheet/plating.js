@@ -1851,64 +1851,16 @@ class PlatingCreate {
 
             // 4. Validasi: Pilihan Defect (NG)
             const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
-            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+            const hasAnyDefectSelected = (_this.defectItems && _this.defectItems.some(item => item.count > 0)) ||
+                $('input[name="defect_quantities[]"]').toArray().some(input => (parseInt($(input).val()) || 0) > 0);
 
-            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
-                let defectMissing = false;
-                let hasAtLeastOneValidDefect = false;
-
-                $(".defect-row").each(function () {
-                    const type = $(this).find(".defect-select").val();
-                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
-
-                    if (qty > 0) {
-                        if (!type) {
-                            defectMissing = true;
-                            $(this).find(".defect-select").addClass("is-invalid");
-                        } else {
-                            hasAtLeastOneValidDefect = true;
-                        }
-                    }
+            if ((judgment === "NG" || ngCount > 0) && !hasAnyDefectSelected) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Defect Belum Dipilih",
+                    text: "Silahkan klik tombol jenis defect yang terjadi."
                 });
-
-                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Defect Belum Dipilih",
-                    });
-                    return false;
-                }
-
-                if (defectMissing) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Jenis Defect Belum Dipilih",
-                    });
-                    return false;
-                }
-
-                // 8. Validasi: Qty Defect Dimensi Wajib Diisi (jika terpilih)
-                let dimensionDefectSelected = false;
-                let dimensionQtyEmpty = false;
-                $(".defect-select").each(function () {
-                    const text = $(this).find("option:selected").text().toLowerCase();
-                    if ($(this).val() === "dimension" || text === "dimensi") {
-                        dimensionDefectSelected = true;
-                        const qtyInput = $(this).closest(".defect-row").find(".defect-qty");
-                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                            dimensionQtyEmpty = true;
-                            qtyInput.addClass("is-invalid");
-                        } else qtyInput.removeClass("is-invalid");
-                    }
-                });
-
-                if (dimensionDefectSelected && dimensionQtyEmpty) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Qty Defect Dimensi Wajib Diisi",
-                    });
-                    return false;
-                }
+                return false;
             }
 
             // 4. Validasi: NG harus pilih Next Proses

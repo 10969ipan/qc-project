@@ -1382,16 +1382,16 @@ class FpaCreate {
             const isDimensiType = (t) => !!t && /dimensi|dimension/i.test(t.trim());
             let isOnlyDimensi = true;
             let hasAnyDefect = false;
-            $(".defect-row").each(function () {
-                const type = $(this).find(".defect-select").val();
-                const qty = parseInt($(this).find(".defect-qty").val()) || 0;
-                if (qty > 0) {
-                    hasAnyDefect = true;
-                    if (!isDimensiType(type)) {
-                        isOnlyDimensi = false;
+            if (_this.defectItems) {
+                _this.defectItems.forEach((d) => {
+                    if (d.count > 0) {
+                        hasAnyDefect = true;
+                        if (!isDimensiType(d.name || d.key)) {
+                            isOnlyDimensi = false;
+                        }
                     }
-                }
-            });
+                });
+            }
 
             if (judgment === 'NG' && !nextProses && !(hasAnyDefect && isOnlyDimensi)) {
                 Swal.fire({
@@ -1417,80 +1417,25 @@ class FpaCreate {
 
             // 7. Validasi: Pilihan Defect (NG)
             const ngCount = parseInt($("#total_ng").val()) || 0;
-            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+            const hasAnyDefectSelected = (_this.defectItems && _this.defectItems.some(item => item.count > 0)) ||
+                $('input[name="defect_quantities[]"]').toArray().some(input => (parseInt($(input).val()) || 0) > 0);
 
-            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
-                let defectMissing = false;
-                let hasAtLeastOneValidDefect = false;
-
-                $(".defect-row").each(function () {
-                    const type = $(this).find(".defect-select").val();
-                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
-
-                    if (qty > 0) {
-                        if (!type) {
-                            defectMissing = true;
-                            $(this).find(".defect-select").addClass("is-invalid");
-                        } else {
-                            hasAtLeastOneValidDefect = true;
-                        }
-                    }
+            if ((judgment === "NG" || ngCount > 0) && !hasAnyDefectSelected) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Defect Belum Dipilih",
+                    text: "Silahkan klik tombol jenis defect yang terjadi."
                 });
-
-                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Defect Belum Dipilih",
-                    });
-                    return false;
-                }
-
-                if (defectMissing) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Jenis Defect Belum Dipilih",
-                    });
-                    return false;
-                }
+                return false;
             }
 
             if (!_this.checkMandatoryDimensions()) return false;
-
-
-            let dimensionDefectSelected = false, dimensionQtyEmpty = false;
-            $(".defect-select").each(function () {
-                const text = $(this).find("option:selected").text().toLowerCase();
-                if ($(this).val() === 'dimension' || text === 'dimensi') {
-                    dimensionDefectSelected = true;
-                    const qtyInput = $(this).closest(".defect-row").find(".defect-qty");
-                    if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                        dimensionQtyEmpty = true;
-                        qtyInput.addClass("is-invalid");
-                    } else qtyInput.removeClass("is-invalid");
-                }
-            });
-            if (dimensionDefectSelected && dimensionQtyEmpty) {
-                Swal.fire({ icon: 'warning', title: 'Qty Defect Dimensi Wajib Diisi' });
-                return false;
-            }
 
             if (_this.timer && _this.timer.isRunning) {
                 clearInterval(_this.timer.interval);
                 _this.timer.isRunning = false;
                 $("#cycleTimeInput").val(_this.timer.elapsed);
             }
-
-            $(".defect-row").each(function () {
-                const typeInput = $(this).find('select[name="defect_types[]"], input[name="defect_types[]"]');
-                const qtyInput = $(this).find('input[name="defect_quantities[]"]');
-                const type = typeInput.val();
-                const text = $(this).find("option:selected").text().toLowerCase();
-                const qty = parseInt(qtyInput.val()) || 0;
-                if (type && qty === 0 && type !== 'dimension' && text !== 'dimensi') {
-                    typeInput.val('');
-                    qtyInput.val('');
-                }
-            });
 
             const $saveBtn = $("#saveBtn");
             const originalHtml = $saveBtn.html();
