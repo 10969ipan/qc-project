@@ -320,8 +320,8 @@
                     <tbody>
                         @foreach($records as $record)
                             <tr>
-                                <td class="text-center align-middle">{{ $loop->iteration }}</td>
-                                <td class="text-nowrap align-middle text-center">
+                                <td class="text-center align-middle"></td>
+                                <td class="text-nowrap align-middle text-center" data-order="{{ $record->tanggal_claim ? $record->tanggal_claim->format('Y-m-d') : '' }}">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
                                 <td class="align-middle font-weight-bold">{{ $record->customer }}</td>
@@ -479,7 +479,7 @@
                 "autoWidth": false,
                 "deferRender": true,
                 "columnDefs": [
-                    { "orderable": false, "targets": [20, 23] } // Evidential, Aksi
+                    { "orderable": false, "targets": [0, 23, 26] } // Disable ordering on No, Evidential, Action columns
                 ],
                 language: {
                     emptyTable: "Belum ada data claim",
@@ -535,6 +535,14 @@
                         });
                     });
                 }
+            });
+
+            // Dynamically update the 'No' column (Column 0) sequentially (1, 2, 3...) based on sorted/filtered order
+            table.on('order.dt search.dt draw.dt', function () {
+                var PageInfo = table.page.info();
+                table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    cell.innerHTML = i + 1 + PageInfo.start;
+                });
             });
 
             // Prevent form submit on Enter key press on search input

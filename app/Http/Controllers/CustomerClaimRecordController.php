@@ -18,7 +18,9 @@ class CustomerClaimRecordController extends Controller
     public function index(Request $request)
     {
         $query = CustomerClaimRecord::with(['plant', 'creator'])
-            ->orderBy('tanggal_claim', 'desc');
+            ->orderBy('tanggal_claim', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
 
         // Filter by plant
         if ($request->filled('plant')) {
