@@ -1074,33 +1074,9 @@ class PlatingCreate {
     initItemSelection() {
         $("#itemSelect").change(() => {
             const selected = $("#itemSelect option:selected");
-            const defectSelect = $("#defectSelect");
-            defectSelect.html('<option value="">-- Pilih Defect --</option>');
-
             let defectList = selected.data("defects") || selected.attr("data-defects");
-            if (typeof defectList === "string") {
-                try {
-                    defectList = JSON.parse(defectList);
-                } catch (e) {
-                    defectList = null;
-                }
-            }
-
-            if (Array.isArray(defectList) && defectList.length > 0) {
-                defectList.forEach((d) =>
-                    defectSelect.append(`<option value="${d}">${d}</option>`),
-                );
-            } else {
-                ["BARET", "SILVER", "FLOW", "FLASH", "KOTOR", "DENYUT"].forEach(
-                    (d) =>
-                        defectSelect.append(
-                            `<option value="${d}">${d}</option>`,
-                        ),
-                );
-            }
-
+            this.updateDefectDropdown(defectList);
             this.updatePdfViews(selected);
-            $("#addDefectBtn").show();
         });
     }
 
@@ -1523,40 +1499,153 @@ class PlatingCreate {
         });
     }
 
-    initDefectManagement() {
-        $("#addDefectBtn").click(() => {
-            const firstSelect = $("#defectSelect");
-            const clone = $(
-                '<div class="row no-gutters mb-2 defect-row align-items-center">' +
-                '<div class="col-7 pr-1">' +
-                '<select class="form-control defect-select font-weight-bold" name="defect_types[]">' +
-                firstSelect.html() +
-                "</select>" +
-                '</div>' +
-                '<div class="col-4 pr-1">' +
-                '<input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
-                '</div>' +
-                '<div class="col-1 text-center">' +
-                '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row"><i class="fas fa-times-circle"></i></button>' +
-                '</div>' +
-                "</div>",
-            );
-            $("#defectContainer").append(clone);
-        });
+    updateDefectDropdown(defects) {
+        let defectsData = defects;
+        if (typeof defectsData === "string") {
+            try {
+                defectsData = JSON.parse(defectsData);
+            } catch (e) {
+                defectsData = [];
+            }
+        }
 
-        $(document).on("click", ".btn-remove-row", (e) => {
-            $(e.currentTarget).closest(".defect-row").remove();
+        const defaults = [
+            { v: "BARET", t: "BARET" },
+            { v: "SILVER", t: "SILVER" },
+            { v: "FLOW", t: "FLOW" },
+            { v: "FLASH", t: "FLASH" },
+            { v: "KOTOR", t: "KOTOR" },
+            { v: "DENYUT", t: "DENYUT" },
+        ];
+
+        this.defectItems = [];
+
+        if (Array.isArray(defectsData) && defectsData.length > 0) {
+            defectsData.forEach((d) => {
+                const name = typeof d === "object" ? (d.name || d.t || d.v) : d;
+                const key = typeof d === "object" ? (d.v || d.name) : d;
+                this.defectItems.push({ key: key, name: name, count: 0 });
+            });
+        } else {
+            defaults.forEach((d) => {
+                this.defectItems.push({ key: d.v, name: d.t, count: 0 });
+            });
+        }
+
+        this.renderDefectButtons();
+        this.calculateTotalNG();
+    }
+
+    renderDefectButtons() {
+        if (!this.defectItems) return;
+        const sorted = [...this.defectItems].sort((a, b) => b.count - a.count);
+
+        const $container = $("#defectContainer");
+        $container.empty();
+
+        if (sorted.length === 0) {
+            $container.html('<span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>');
+            return;
+        }
+
+        let html = '<div class="d-flex flex-wrap align-items-center" style="gap: 6px;">';
+        let totalNgCount = 0;
+
+        sorted.forEach((item) => {
+            totalNgCount += item.count;
+            const hasCount = item.count > 0;
+            const btnClass = hasCount ? 'btn-danger shadow-sm' : 'btn-outline-secondary';
+            const badgeClass = hasCount ? 'badge-light text-danger font-weight-bold' : 'badge-secondary';
+
+            html += `
+                <div class="defect-btn-wrapper d-inline-flex align-items-center mb-1">
+                    <button type="button" class="btn btn-sm ${btnClass} defect-btn-click py-1 px-2" data-key="${item.key}">
+                        <span>${item.name}</span>
+                        <span class="badge ${badgeClass} ml-1" style="font-size: 0.85rem;">${item.count}</span>
+                    </button>
+                    ${hasCount ? `
+                        <button type="button" class="btn btn-sm btn-outline-danger defect-btn-minus py-1 px-2 ml-1" data-key="${item.key}" title="Kurangi 1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += '<div id="defectHiddenInputs"></div>';
+
+        $container.html(html);
+
+        if (totalNgCount > 0) {
+            $("#resetDefectsBtn").show();
+        } else {
+            $("#resetDefectsBtn").hide();
+        }
+
+        this.updateHiddenDefectInputs(sorted);
+    }
+
+    updateHiddenDefectInputs(sortedDefects) {
+        const $hiddenContainer = $("#defectHiddenInputs");
+        $hiddenContainer.empty();
+
+        sortedDefects.forEach((item) => {
+            if (item.count > 0) {
+                $hiddenContainer.append(
+                    `<input type="hidden" name="defect_types[]" value="${item.name}">` +
+                    `<input type="hidden" name="defect_quantities[]" value="${item.count}">`
+                );
+            }
+        });
+    }
+
+    handleDefectClick(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item) {
+            item.count++;
+            this.renderDefectButtons();
             this.calculateTotalNG();
-        });
+        }
+    }
 
-        $(document).on("input", ".defect-qty", () => this.calculateTotalNG());
+    handleDefectMinus(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item && item.count > 0) {
+            item.count--;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
+        }
+    }
+
+    resetAllDefects() {
+        if (this.defectItems) {
+            this.defectItems.forEach((d) => (d.count = 0));
+        }
+        this.renderDefectButtons();
+        this.calculateTotalNG();
+    }
+
+    initDefectManagement() {
+        $(document).on("click", ".defect-btn-click", (e) => this.handleDefectClick(e));
+        $(document).on("click", ".defect-btn-minus", (e) => this.handleDefectMinus(e));
+        $(document).on("click", "#resetDefectsBtn", () => this.resetAllDefects());
     }
 
     calculateTotalNG() {
         let total = 0;
-        $(".defect-qty").each(function () {
-            total += parseInt($(this).val()) || 0;
-        });
+        if (this.defectItems && this.defectItems.length > 0) {
+            this.defectItems.forEach((d) => {
+                total += (parseInt(d.count) || 0);
+            });
+        } else {
+            $(".defect-qty").each(function () {
+                total += parseInt($(this).val()) || 0;
+            });
+        }
         $("#totalNG").val(total).trigger("input");
     }
 
@@ -1919,7 +2008,7 @@ class PlatingCreate {
 
         this.lockInputs(true);
         $("#checksheetForm")[0].reset();
-        $("#defectContainer").find(".defect-row").not(":first").remove();
+        this.resetAllDefects();
         $("#imageContainer").html(
             '<div style="width:100px; height:100px; background-color:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; margin:0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>',
         );

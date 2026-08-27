@@ -811,58 +811,145 @@ class FpaCreate {
             this.config.partDimensionStandards[this.config.itemPartNumber] || {};
 
         // ── Defect List ───────────────────────────────────────────────────────
-        this.updateDefectList($opt.data("defects"));
+        this.updateDefectDropdown($opt.data("defects"));
         this.validateDimensions();
         this.calculateTotalNG();
     }
 
-    updateDefectList(defectsData) {
-        // Reset container dengan 1 row kosong menggunakan Bootstrap grid
-        $("#defectContainer").html(
-            `<div class="row no-gutters mb-2 defect-row align-items-center">
-                <div class="col-8 pr-1">
-                    <select class="form-control defect-select font-weight-bold" name="defect_types[]" id="defectSelect">
-                        <option value="">-- Pilih Defect --</option>
-                    </select>
-                </div>
-                <div class="col-3 pr-1">
-                    <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
-                </div>
-                <div class="col-1 text-center"></div>
-            </div>`
-        );
-        const $select = $("#defectSelect");
-
-        if (typeof defectsData === 'string') {
-            try { defectsData = JSON.parse(defectsData); } catch (e) { defectsData = []; }
+    updateDefectDropdown(defects) {
+        let defectsData = defects;
+        if (typeof defectsData === "string") {
+            try {
+                defectsData = JSON.parse(defectsData);
+            } catch (e) {
+                defectsData = [];
+            }
         }
+
+        const defaults = [
+            { v: "BARET", t: "BARET" },
+            { v: "SILVER", t: "SILVER" },
+            { v: "FLOW", t: "FLOW" },
+            { v: "FLASH", t: "FLASH" },
+            { v: "SHOOT MOLD", t: "SHOOT MOLD" },
+            { v: "BENDING", t: "BENDING" },
+            { v: "SINKMARK", t: "SINKMARK" },
+            { v: "DIMENSI", t: "Dimensi" },
+        ];
+
+        this.defectItems = [];
 
         if (Array.isArray(defectsData) && defectsData.length > 0) {
-            $.each(defectsData, (i, v) =>
-                $select.append(`<option value="${v}">${v}</option>`)
-            );
+            defectsData.forEach((d) => {
+                const name = typeof d === "object" ? (d.name || d.t || d.v) : d;
+                const key = typeof d === "object" ? (d.v || d.name) : d;
+                this.defectItems.push({ key: key, name: name, count: 0 });
+            });
         } else {
-            // Default defects (sesuai in-process.js)
-            const defaultDefects = [
-                { v: 'scratch', t: 'BARET' },
-                { v: 'silver', t: 'SILVER' },
-                { v: 'flow', t: 'FLOW' },
-                { v: 'flash', t: 'FLASH' },
-                { v: 'shoot_mold', t: 'SHOOT MOLD' },
-                { v: 'bending', t: 'BENDING' },
-                { v: 'sinkmark', t: 'SINKMARK' },
-                { v: 'dimension', t: 'Dimensi' },
-            ];
-            $.each(defaultDefects, (i, d) =>
-                $select.append(`<option value="${d.v}">${d.t}</option>`)
-            );
+            defaults.forEach((d) => {
+                this.defectItems.push({ key: d.v, name: d.t, count: 0 });
+            });
         }
 
-        // Pastikan opsi Dimensi selalu ada
-        if (!$select.find('option[value="dimension"]').length &&
-            !$select.find('option:contains("Dimensi")').length) {
-            $select.append('<option value="dimension">Dimensi</option>');
+        if (!this.defectItems.some(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && d.name.toLowerCase() === 'dimensi'))) {
+            this.defectItems.push({ key: 'DIMENSI', name: 'Dimensi', count: 0 });
         }
+
+        this.renderDefectButtons();
+        this.calculateTotalNG();
+    }
+
+    renderDefectButtons() {
+        if (!this.defectItems) return;
+        const sorted = [...this.defectItems].sort((a, b) => b.count - a.count);
+
+        const $container = $("#defectContainer");
+        $container.empty();
+
+        if (sorted.length === 0) {
+            $container.html('<span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>');
+            return;
+        }
+
+        let html = '<div class="d-flex flex-wrap align-items-center" style="gap: 6px;">';
+        let totalNgCount = 0;
+
+        sorted.forEach((item) => {
+            totalNgCount += item.count;
+            const hasCount = item.count > 0;
+            const btnClass = hasCount ? 'btn-danger shadow-sm' : 'btn-outline-secondary';
+            const badgeClass = hasCount ? 'badge-light text-danger font-weight-bold' : 'badge-secondary';
+
+            html += `
+                <div class="defect-btn-wrapper d-inline-flex align-items-center mb-1">
+                    <button type="button" class="btn btn-sm ${btnClass} defect-btn-click py-1 px-2" data-key="${item.key}">
+                        <span>${item.name}</span>
+                        <span class="badge ${badgeClass} ml-1" style="font-size: 0.85rem;">${item.count}</span>
+                    </button>
+                    ${hasCount ? `
+                        <button type="button" class="btn btn-sm btn-outline-danger defect-btn-minus py-1 px-2 ml-1" data-key="${item.key}" title="Kurangi 1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += '<div id="defectHiddenInputs"></div>';
+
+        $container.html(html);
+
+        if (totalNgCount > 0) {
+            $("#resetDefectsBtn").show();
+        } else {
+            $("#resetDefectsBtn").hide();
+        }
+
+        this.updateHiddenDefectInputs(sorted);
+    }
+
+    updateHiddenDefectInputs(sortedDefects) {
+        const $hiddenContainer = $("#defectHiddenInputs");
+        $hiddenContainer.empty();
+
+        sortedDefects.forEach((item) => {
+            if (item.count > 0) {
+                $hiddenContainer.append(
+                    `<input type="hidden" name="defect_types[]" value="${item.name}">` +
+                    `<input type="hidden" name="defect_quantities[]" value="${item.count}">`
+                );
+            }
+        });
+    }
+
+    handleDefectClick(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item) {
+            item.count++;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
+        }
+    }
+
+    handleDefectMinus(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item && item.count > 0) {
+            item.count--;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
+        }
+    }
+
+    resetAllDefects() {
+        if (this.defectItems) {
+            this.defectItems.forEach((d) => (d.count = 0));
+        }
+        this.renderDefectButtons();
+        this.calculateTotalNG();
     }
 
     normalizeStandardValue(val) {
@@ -1172,148 +1259,46 @@ class FpaCreate {
     }
 
     autoAddDimensionDefect() {
-        let foundRow = null;
-        $(".defect-select").each(function () {
-            const val = $(this).val();
-            const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi" || text === "ng dimensi") {
-                foundRow = $(this).closest(".defect-row");
-                return false;
-            }
-        });
-
-        if (foundRow) {
-            const qtyInput = foundRow.find(".defect-qty");
-            if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                qtyInput.val(1).trigger("input");
-            }
-            return;
+        if (!this.defectItems) return;
+        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && d.name.toLowerCase() === 'dimensi'));
+        if (!item) {
+            item = { key: 'DIMENSI', name: 'Dimensi', count: 0 };
+            this.defectItems.push(item);
         }
-
-        let targetSelect = null;
-        $(".defect-select").each(function () {
-            if ($(this).val() === "") {
-                targetSelect = $(this);
-                return false;
-            }
-        });
-
-        if (!targetSelect) {
-            $("#addDefectBtn").trigger("click");
-            targetSelect = $(".defect-select").last();
-        }
-
-        if (targetSelect) {
-            let foundVal = "";
-            targetSelect.find("option").each(function () {
-                if (
-                    $(this).val() === "dimension" ||
-                    $(this).text().toLowerCase() === "dimensi"
-                ) {
-                    foundVal = $(this).val();
-                    return false;
-                }
-            });
-            if (!foundVal) {
-                targetSelect.append(
-                    '<option value="dimension">Dimensi</option>',
-                );
-                foundVal = "dimension";
-            }
-            targetSelect.val(foundVal).trigger("change");
-            targetSelect
-                .closest(".defect-row")
-                .find(".defect-qty")
-                .val(1)
-                .trigger("input");
+        if (item.count <= 0) {
+            item.count = 1;
+            this.renderDefectButtons();
             this.calculateTotalNG();
         }
     }
 
     autoRemoveDimensionDefect() {
-        $(".defect-select").each(function () {
-            const val = $(this).val();
-            const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi") {
-                const row = $(this).closest(".defect-row");
-                if ($(".defect-row").length > 1) {
-                    row.remove();
-                } else {
-                    row.find(".defect-select").val("");
-                    row.find(".defect-qty").val("");
-                }
-                return false;
-            }
-        });
-        this.calculateTotalNG();
+        if (!this.defectItems) return;
+        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && d.name.toLowerCase() === 'dimensi'));
+        if (item && item.count > 0) {
+            item.count = 0;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
+        }
     }
 
     initDefectManagement() {
-        const _this = this;
-        $("#addDefectBtn").on("click", function () {
-            const rowCount = $(".defect-row").length;
-            if (rowCount < 4) {
-                const firstSelect = $("#defectSelect");
-                const newRow = $(
-                    `<div class="row no-gutters mb-2 defect-row align-items-center">
-                        <div class="col-8 pr-1">
-                            <select class="form-control defect-select font-weight-bold" name="defect_types[]">${firstSelect.html()}</select>
-                        </div>
-                        <div class="col-3 pr-1">
-                            <input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">
-                        </div>
-                        <div class="col-1 text-center">
-                            <button class="btn btn-link text-danger p-0 remove-defect-btn" type="button"><i class="fas fa-times-circle"></i></button>
-                        </div>
-                    </div>`
-                );
-                $("#defectContainer").append(newRow);
-                _this.config.hasDefects = true;
-                _this.updateJudgment();
-            }
-            if ($(".defect-row").length >= 4) {
-                $(this).hide();
-            }
-        });
-
-        $(document).on("click", ".remove-defect-btn, .remove-defect", function () {
-            $(this).closest(".defect-row").remove();
-            _this.config.hasDefects =
-                $(".defect-row").length > 1 || $(".defect-select").val() !== "";
-            _this.calculateTotalNG();
-            
-            const ngCount = parseInt($("#total_ng").val()) || 0;
-            if ($(".defect-row").length < 4 && ngCount >= 1) {
-                $("#addDefectBtn").show();
-            } else {
-                $("#addDefectBtn").hide();
-            }
-        });
-
-        $(document).on("change input", ".defect-select, .defect-qty", () => {
-            let hasAny = false;
-            $(".defect-row").each(function () {
-                if ($(this).find(".defect-select").val() !== "") hasAny = true;
-            });
-            this.config.hasDefects = hasAny;
-            this.calculateTotalNG();
-        });
-
-        $("#total_ng").on("input", function () {
-            const ng = parseInt($(this).val()) || 0;
-            if (ng >= 1 && $(".defect-row").length < 4) {
-                $("#addDefectBtn").show();
-            } else {
-                $("#addDefectBtn").hide();
-            }
-        });
+        $(document).on("click", ".defect-btn-click", (e) => this.handleDefectClick(e));
+        $(document).on("click", ".defect-btn-minus", (e) => this.handleDefectMinus(e));
+        $(document).on("click", "#resetDefectsBtn", () => this.resetAllDefects());
     }
 
     calculateTotalNG() {
         let total = 0;
-        $(".defect-qty").each(function () {
-            total += parseInt($(this).val()) || 0;
-        });
+        if (this.defectItems && this.defectItems.length > 0) {
+            this.defectItems.forEach((d) => {
+                total += (parseInt(d.count) || 0);
+            });
+        } else {
+            $(".defect-qty").each(function () {
+                total += parseInt($(this).val()) || 0;
+            });
+        }
         $("#total_ng").val(total).trigger("input");
     }
 
@@ -1560,8 +1545,7 @@ class FpaCreate {
 
         this.lockInputs();
         $("#saveBtn").prop('disabled', true);
-        $("#addDefectBtn").hide();
-        $(".defect-row").not(":first").remove();
+        this.resetAllDefects();
 
         // Clear standard and similar PDF canvases and reset display
         $("#standardPdfCanvas, #similarPdfCanvas").addClass('d-none').css('display', '');
