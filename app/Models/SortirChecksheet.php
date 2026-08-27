@@ -67,8 +67,6 @@ class SortirChecksheet extends Model
             return $this->belongsTo(\App\Models\SubAssyChecksheet::class, 'source_id');
         } elseif ($this->source_type === 'in_process') {
             return $this->belongsTo(\App\Models\InProcessChecksheet::class, 'source_id');
-        } elseif ($this->source_type === 'cross_cut') {
-            return $this->belongsTo(\App\Models\CrossCutChecksheet::class, 'source_id');
         }
         return null;
     }

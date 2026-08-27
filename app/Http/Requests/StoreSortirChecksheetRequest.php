@@ -26,7 +26,7 @@ class StoreSortirChecksheetRequest extends FormRequest
                     }
                 },
             ],
-            'source_type' => 'required|in:sub_assy,in_process,cross_cut',
+            'source_type' => 'required|in:sub_assy,in_process',
             'plant' => 'required',
             'source_id' => 'required|integer',
             'date' => 'required|date',

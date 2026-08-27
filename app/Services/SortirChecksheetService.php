@@ -149,22 +149,9 @@ class SortirChecksheetService extends BaseService
                 ->map(fn($c) => $this->mapNgItemWithQty($c, 'in_process', $sortedQtyBySource))
                 ->filter(fn($item) => $item['remaining_qty'] > 0);
 
-            // Cross Cut - Include active NG items from past 30 days
-            $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
-                ->where('qc_datetime', '>=', $cutoffDate)
-                ->whereNotNull('next_proses')
-                ->with('item:id,name,part_number,sap_code,file_path,file_paths,defects');
-            if ($shouldFilterByPlant) {
-                $queryCrossCut->withoutGlobalScope('plant')->where('plant_id', $plantId);
-            }
-            $ngCrossCut = $queryCrossCut->get()
-                ->map(fn($c) => $this->mapNgItemWithQty($c, 'cross_cut', $sortedQtyBySource))
-                ->filter(fn($item) => $item['remaining_qty'] > 0);
-
             return collect(array_merge(
                 $ngSubAssy->toArray(),
-                $ngInProcess->toArray(),
-                $ngCrossCut->toArray()
+                $ngInProcess->toArray()
             ));
         });
     }
@@ -354,8 +341,6 @@ class SortirChecksheetService extends BaseService
             $source = SubAssyChecksheet::find($sourceId);
         } elseif ($sourceType === 'in_process') {
             $source = InProcessChecksheet::find($sourceId);
-        } elseif ($sourceType === 'cross_cut') {
-            $source = CrossCutChecksheet::find($sourceId);
         } elseif ($sourceType === 'double_tape') {
             $source = DoubleTapeChecksheet::find($sourceId);
         }
@@ -375,7 +360,7 @@ class SortirChecksheetService extends BaseService
         // Only close if all qty has been sorted
         if ($sortedQty >= $totalQty) {
             $statusMsg = '[SORTIR_CLOSED]';
-            $remarksField = ($sourceType === 'cross_cut') ? 'keterangan' : 'remarks';
+            $remarksField = 'remarks';
 
             if (!str_contains($source->$remarksField ?? '', $statusMsg)) {
                 $source->$remarksField = trim(($source->$remarksField ?? '') . ' ' . $statusMsg);

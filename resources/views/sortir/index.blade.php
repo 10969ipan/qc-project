@@ -177,7 +177,6 @@
                             <option value="">Semua</option>
                             <option value="sub_assy" {{ request('source_type') == 'sub_assy' ? 'selected' : '' }}>Sub Assy</option>
                             <option value="in_process" {{ request('source_type') == 'in_process' ? 'selected' : '' }}>In Process</option>
-                            <option value="cross_cut" {{ request('source_type') == 'cross_cut' ? 'selected' : '' }}>Cross Cut</option>
                         </select>
                     </div>
                 </div>
@@ -312,9 +311,6 @@
                                         } elseif ($checksheet->source_type == 'in_process') {
                                             $sourceRoute = route('in_process.index', ['id' => $checksheet->source_id]);
                                             $badgeClass = 'info';
-                                        } elseif ($checksheet->source_type == 'cross_cut') {
-                                            $sourceRoute = route('cross_cut.index', ['id' => $checksheet->source_id]);
-                                            $badgeClass = 'primary';
                                         }
                                     @endphp
                                     <a href="{{ $sourceRoute }}" class="badge badge-{{ $badgeClass }} p-2"
