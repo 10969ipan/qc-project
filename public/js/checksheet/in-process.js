@@ -1942,6 +1942,11 @@ class InProcessCreate {
             });
         }
 
+        const hasDim = this.defectItems.some(d => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
+        if (!hasDim) {
+            this.defectItems.push({ key: "DIMENSI", name: "Dimensi", count: 0 });
+        }
+
         this.renderDefectButtons();
         this.calculateTotalNG();
     }
@@ -2165,16 +2170,18 @@ class InProcessCreate {
     }
 
     autoAddDimensionDefect() {
-        if (this.defectItems && this.defectItems.length > 0) {
-            const item = this.defectItems.find((d) => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
-            if (item) {
-                if (item.count <= 0) {
-                    item.count = 1;
-                    this.renderDefectButtons();
-                    this.calculateTotalNG();
-                }
-                return;
-            }
+        if (!this.defectItems) {
+            this.defectItems = [];
+        }
+        let item = this.defectItems.find((d) => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
+        if (!item) {
+            item = { key: "DIMENSI", name: "Dimensi", count: 0 };
+            this.defectItems.push(item);
+        }
+        if (item.count <= 0) {
+            item.count = 1;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
         }
     }
 
@@ -2279,8 +2286,8 @@ class InProcessCreate {
             const isDimensiType = (t) => !!t && /dimensi|dimension/i.test(t.trim());
             let isOnlyDimensi = true;
             let hasAnyDefect = false;
-            if (this.defectItems && this.defectItems.length > 0) {
-                this.defectItems.forEach((d) => {
+            if (_this.defectItems && _this.defectItems.length > 0) {
+                _this.defectItems.forEach((d) => {
                     if (d.count > 0) {
                         hasAnyDefect = true;
                         if (!isDimensiType(d.name) && !isDimensiType(d.key)) {
@@ -2327,26 +2334,24 @@ class InProcessCreate {
 
             // 7. Validasi: Pilihan Defect (NG)
             const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
-            const hasAnyNgInput = (this.defectItems && this.defectItems.length > 0)
-                ? this.defectItems.some(d => d.count > 0)
-                : $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+            const hasAnyNgInput = (_this.defectItems && _this.defectItems.length > 0)
+                ? _this.defectItems.some(d => d.count > 0)
+                : $('input[name="defect_quantities[]"]').toArray().some(input => (parseInt($(input).val()) || 0) > 0);
 
-            if (judgment === "NG" || ngCount > 0) {
-                if (!hasAnyNgInput) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Defect Belum Dipilih",
-                    });
-                    return false;
-                }
+            if ((judgment === "NG" || ngCount > 0) && !hasAnyNgInput) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Defect Belum Dipilih",
+                });
+                return false;
             }
 
             if (!_this.checkMandatoryDimensions()) return false;
 
             let dimensionDefectSelected = false;
             let dimensionQtyEmpty = false;
-            if (this.defectItems && this.defectItems.length > 0) {
-                const dimItem = this.defectItems.find((d) => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
+            if (_this.defectItems && _this.defectItems.length > 0) {
+                const dimItem = _this.defectItems.find((d) => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
                 if (dimItem && dimItem.count > 0) {
                     dimensionDefectSelected = true;
                 }
