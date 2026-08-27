@@ -64,6 +64,10 @@
         padding: 0.25rem 0.5rem !important;
     }
 
+    #totalQtyInput::-webkit-outer-spin-button,
+    #totalQtyInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    #totalQtyInput { -moz-appearance: textfield; }
+
     /* ─── Inner Dimension Table ─── */
     #dimensionTable,
     #checksheetTable .table-sm {
@@ -334,8 +338,7 @@
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
                             <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
                             <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
@@ -427,16 +430,13 @@
                                     </div>
                                 </td>
 
-                                <!-- Total Kuantitas (Total Kuantitas yang diproduksi) -->
-                                <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
-                                        name="total_qty" placeholder="0" min="0" required>
-                                </td>
-
-                                <!-- Jumlah Pengecekan Sampel -->
-                                <td class="align-middle">
-                                    <input type="number" class="form-control text-center" style="min-width: 60px;"
-                                        name="sampling_qty" placeholder="0" min="0" required>
+                                <!-- Qty (Total / Sampling) -->
+                                <td class="align-middle" style="min-width: 120px; max-width: 160px;">
+                                    <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 32px; gap: 2px;">
+                                        <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0" name="total_qty" id="totalQtyInput" placeholder="-" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 40px; font-size: 0.85rem; outline: none; padding: 0;">
+                                        <span class="font-weight-bold text-dark text-nowrap" id="samplingDisplay" style="user-select: none; font-size: 0.85rem; white-space: nowrap;">/ -</span>
+                                    </div>
+                                    <input type="hidden" name="sampling_qty" id="samplingQtyInput" value="0">
                                 </td>
 
                                 <!-- Cek Dimensi (Cavity & Titik) -->
@@ -519,27 +519,15 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-                                    <hr class="my-2">
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
-                                    <div id="defectContainer">
-                                        <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
-                                                <select class="form-control defect-select font-weight-bold"
-                                                    name="defect_types[]" id="defectSelect">
-                                                    <option value="">-- Pilih Defect --</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-3 pr-1">
-                                                <input type="number" class="form-control defect-qty text-center font-weight-bold"
-                                                    name="defect_quantities[]" placeholder="Qty" min="1">
-                                            </div>
-                                            <div class="col-1 text-center"></div>
-                                        </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="font-weight-bold text-dark mb-0">Defect List (NG):</label>
+                                        <button type="button" id="resetDefectsBtn" class="btn btn-xs btn-outline-danger" title="Reset Semua Defect" style="display: none;">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                        style="display: none;">
-                                        <i class="fas fa-plus"></i> Tambah Jenis
-                                    </button>
+                                    <div id="defectContainer">
+                                        <span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>
+                                    </div>
                                 </td>
 
                                 <!-- Total OK / NG -->
