@@ -115,6 +115,7 @@ class FirstPieceApprovalController extends Controller
             'id' => $request->id,
             'shift' => $request->shift,
             'code_machine' => $request->code_machine,
+            'search' => $request->search,
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);
@@ -901,8 +902,8 @@ class FirstPieceApprovalController extends Controller
         $totalNg = (int) ($checksheet->total_ng ?? 0);
         $checksheet->total_ok = max(0, $samplingQty - $totalNg);
         
-        // Re-evaluate judgment if needed
-        $checksheet->judgment = ($checksheet->total_ng > 0) ? 'NG' : 'OK';
+        // Re-evaluate judgment if needed (if total_ng > 0 then NG, otherwise keep newJudgment or OK)
+        $checksheet->judgment = ($checksheet->total_ng > 0) ? 'NG' : ($newJudgment === 'NG' ? 'NG' : 'OK');
 
         $checksheet->defects = $defects; // Cast handled by model
         return $checksheet;

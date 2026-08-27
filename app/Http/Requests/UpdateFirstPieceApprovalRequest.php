@@ -32,6 +32,13 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
                 'defect_quantities' => $quantities,
             ]);
         }
+
+        if ($this->has('part_weight') && is_array($this->part_weight)) {
+            $weights = array_map(function ($w) {
+                return ($w === '' || $w === null) ? null : (is_numeric($w) ? (float)$w : null);
+            }, $this->part_weight);
+            $this->merge(['part_weight' => array_values(array_filter($weights, fn($v) => $v !== null))]);
+        }
     }
 
     public function rules(): array
@@ -41,7 +48,7 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
             'date' => 'required|date',
             'shift' => 'required|string',
             'code_machine' => 'required|string',
-            'category' => 'required|string',
+            'category' => 'nullable|string',
             'total_qty' => 'required|integer|min:0',
             'sampling_qty' => 'required|integer|min:0',
             'total_ok' => 'required|integer|min:0',

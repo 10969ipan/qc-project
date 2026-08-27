@@ -6,9 +6,12 @@
     @php
         $defectsArr = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
     @endphp
-    {{-- Preserve all filter and pagination parameters --}}
+    {{-- Preserve filter parameters (scalar only, excluding form fields) --}}
+    @php
+        $formFields = ['item_id', 'date', 'shift', 'code_machine', 'category', 'total_qty', 'sampling_qty', 'total_ok', 'total_ng', 'judgment', 'operator_initials', 'part_weight', 'remarks', 'next_proses', 'dimensions', 'defect_types', 'defect_quantities', '_token', '_method', 'id'];
+    @endphp
     @foreach(request()->all() as $key => $value)
-        @if(!in_array($key, ['_token', '_method', 'id']))
+        @if(!in_array($key, $formFields) && is_scalar($value))
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
         @endif
     @endforeach
@@ -261,7 +264,7 @@
                         @foreach($nextProcesses as $opt)
                             <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
                         @endforeach
-                        @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                        @if($checksheet->next_proses && !$nextProcesses->pluck('name')->contains($checksheet->next_proses))
                             <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                         @endif
                     </select>
