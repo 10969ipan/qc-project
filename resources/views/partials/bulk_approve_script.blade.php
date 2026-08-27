@@ -19,8 +19,6 @@
                 var operatorInitials = '{{ request("operator_initials", "") }}';
                 var itemId = '{{ request("item_id", "") }}';
                 var userRole = '{{ auth()->user()->role }}';
-                // Determine view_mode strictly from the current page context (manual vs verifikasi)
-                var currentViewMode = '{{ request("view_mode") === "verifikasi" ? "verifikasi" : "manual" }}';
 
                 var approvalType = userRole;
                 // Admin needs to pick a type
@@ -134,7 +132,6 @@
                         shift: shift || '',
                         operator_initials: operatorInitials || '',
                         item_id: itemId || '',
-                        view_mode: currentViewMode,
                         test_type: '{{ $testType ?? "thickness" }}',
                         is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                     },

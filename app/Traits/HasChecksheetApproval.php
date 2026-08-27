@@ -342,46 +342,22 @@ trait HasChecksheetApproval
                     }
                 }
 
-                $viewMode = $request->input('view_mode', 'manual');
-                if ($viewMode === 'verifikasi' || $viewMode === 'verification' || $viewMode === 'qr') {
-                    if (Schema::hasColumn($table, 'entry_method')) {
-                        $query->where("{$table}.entry_method", 'verifikasi');
-                    } else {
-                        $query->where(function ($q) use ($table) {
-                            $hasCol = false;
-                            if (Schema::hasColumn($table, 'qrcode')) {
-                                $q->whereNotNull("{$table}.qrcode")->where("{$table}.qrcode", '!=', '');
-                                $hasCol = true;
-                            }
-                            if (Schema::hasColumn($table, 'unique_code_id')) {
-                                if ($hasCol) {
-                                    $q->orWhere(function ($sub) use ($table) {
-                                        $sub->whereNotNull("{$table}.unique_code_id")->where("{$table}.unique_code_id", '!=', '');
-                                    });
-                                } else {
-                                    $q->whereNotNull("{$table}.unique_code_id")->where("{$table}.unique_code_id", '!=', '');
-                                }
-                            }
+                // Bulk approval is ONLY for manual input data. Verification data is never approved via bulk approve.
+                if (Schema::hasColumn($table, 'entry_method')) {
+                    $query->where(function ($q) use ($table) {
+                        $q->where("{$table}.entry_method", 'regular')
+                          ->orWhereNull("{$table}.entry_method");
+                    });
+                } else {
+                    if (Schema::hasColumn($table, 'qrcode')) {
+                        $query->where(function ($sub) use ($table) {
+                            $sub->whereNull("{$table}.qrcode")->orWhere("{$table}.qrcode", '');
                         });
                     }
-                } else {
-                    // Default on manual input page: only approve regular (manual input) entries!
-                    if (Schema::hasColumn($table, 'entry_method')) {
-                        $query->where(function($q) use ($table) {
-                            $q->where("{$table}.entry_method", 'regular')
-                              ->orWhereNull("{$table}.entry_method");
+                    if (Schema::hasColumn($table, 'unique_code_id')) {
+                        $query->where(function ($sub) use ($table) {
+                            $sub->whereNull("{$table}.unique_code_id")->orWhere("{$table}.unique_code_id", '');
                         });
-                    } else {
-                        if (Schema::hasColumn($table, 'qrcode')) {
-                            $query->where(function ($sub) use ($table) {
-                                $sub->whereNull("{$table}.qrcode")->orWhere("{$table}.qrcode", '');
-                            });
-                        }
-                        if (Schema::hasColumn($table, 'unique_code_id')) {
-                            $query->where(function ($sub) use ($table) {
-                                $sub->whereNull("{$table}.unique_code_id")->orWhere("{$table}.unique_code_id", '');
-                            });
-                        }
                     }
                 }
 
