@@ -129,10 +129,8 @@
                 <th rowspan="2" class="col-compact">No</th>
                 <th rowspan="2" class="col-compact">Injection<br>(Tgl / Shift / Inisial)</th>
                 <th rowspan="2" class="col-compact">Plating<br>(Tgl / Shift / Lot)</th>
-                <th rowspan="2" class="col-compact">Quality<br>(Tgl / Shift)</th>
-                <th rowspan="2" class="col-compact">Jam (Before)</th>
-                <th rowspan="2" class="col-compact">Jam (After)</th>
-                <th rowspan="2" class="col-compact">Cycle</th>
+                <th rowspan="2" class="col-compact">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2" class="col-compact">Waktu Check<br>(Start - Finish / Cycle)</th>
                 <th rowspan="2" class="w-barang">Barang</th>
                 <th rowspan="2" class="w-part-no">Part No</th>
                 <th rowspan="2" class="w-cust">Customer</th>
@@ -141,7 +139,6 @@
                 <th rowspan="2" class="col-compact">NG</th>
                 <th colspan="2" class="col-compact">Detail NG</th>
                 <th rowspan="2" class="col-compact">Judgment</th>
-                <th rowspan="2" class="col-compact">Inisial</th>
                 <th rowspan="2" class="w-ket">Ket</th>
             </tr>
             <tr>
@@ -177,12 +174,16 @@
                     <td class="col-compact">
                         {{ $checksheet->plating_date ? $checksheet->plating_date->format('d/m/y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
                     </td>
+                    @php
+                        $sec = (int) ($checksheet->cycle_time ?? 0);
+                        $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                    @endphp
                     <td class="col-compact">
-                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }}
+                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                     </td>
-                    <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
-                    <td class="col-compact">{{ $checksheet->created_at->format('H:i') }}</td>
-                    <td class="col-compact">{{ $checksheet->cycle_time ?? '-' }}</td>
+                    <td class="col-compact">
+                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} ({{ $ctStr }})
+                    </td>
                     <td style="text-align:left;">{{ $checksheet->item->name ?? '-' }}</td>
                     <td style="text-align:left;">{{ $checksheet->item->part_number ?? '-' }}</td>
                     <td style="text-align:left;">{{ $checksheet->item->customer ?? '-' }}</td>
@@ -214,7 +215,6 @@
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
-                    <td class="col-compact text-uppercase">{{ $checksheet->operator_initials }}</td>
                     <td style="text-align:left;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
