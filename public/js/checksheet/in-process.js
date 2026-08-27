@@ -2345,22 +2345,29 @@ class InProcessCreate {
 
             let dimensionDefectSelected = false;
             let dimensionQtyEmpty = false;
-            $(".defect-select").each(function () {
-                const text = $(this)
-                    .find("option:selected")
-                    .text()
-                    .toLowerCase();
-                if ($(this).val() === "dimension" || text === "dimensi") {
+            if (this.defectItems && this.defectItems.length > 0) {
+                const dimItem = this.defectItems.find((d) => d.key === "DIMENSI" || d.key === "dimension" || (d.name && d.name.toLowerCase() === "dimensi"));
+                if (dimItem && dimItem.count > 0) {
                     dimensionDefectSelected = true;
-                    const qtyInput = $(this)
-                        .closest(".defect-row")
-                        .find(".defect-qty");
-                    if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                        dimensionQtyEmpty = true;
-                        qtyInput.addClass("is-invalid");
-                    } else qtyInput.removeClass("is-invalid");
                 }
-            });
+            } else {
+                $(".defect-select").each(function () {
+                    const text = $(this)
+                        .find("option:selected")
+                        .text()
+                        .toLowerCase();
+                    if ($(this).val() === "dimension" || text === "dimensi") {
+                        dimensionDefectSelected = true;
+                        const qtyInput = $(this)
+                            .closest(".defect-row")
+                            .find(".defect-qty");
+                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
+                            dimensionQtyEmpty = true;
+                            qtyInput.addClass("is-invalid");
+                        } else qtyInput.removeClass("is-invalid");
+                    }
+                });
+            }
 
             if (dimensionDefectSelected && dimensionQtyEmpty) {
                 Swal.fire({
