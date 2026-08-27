@@ -320,7 +320,7 @@
                     <tbody>
                         @foreach($records as $record)
                             <tr>
-                                <td class="text-center align-middle"></td>
+                                <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                 <td class="text-nowrap align-middle text-center" data-order="{{ $record->tanggal_claim ? $record->tanggal_claim->format('Y-m-d') : '' }}">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
@@ -499,8 +499,15 @@
                     });
                 },
                 drawCallback: function(settings) {
-                    // ponytail: Highlight search keywords safely using TreeWalker
                     var api = this.api();
+
+                    // Dynamically update the 'No' column (Column 0) sequentially (1, 2, 3...) based on sorted/filtered order
+                    var pageInfo = api.page.info();
+                    api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                        cell.innerHTML = i + 1 + pageInfo.start;
+                    });
+
+                    // ponytail: Highlight search keywords safely using TreeWalker
                     var tbody = api.table().body();
                     
                     $(tbody).find('mark.hlt').each(function() {
@@ -535,14 +542,6 @@
                         });
                     });
                 }
-            });
-
-            // Dynamically update the 'No' column (Column 0) sequentially (1, 2, 3...) based on sorted/filtered order
-            table.on('order.dt search.dt draw.dt', function () {
-                var PageInfo = table.page.info();
-                table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
-                    cell.innerHTML = i + 1 + PageInfo.start;
-                });
             });
 
             // Prevent form submit on Enter key press on search input
