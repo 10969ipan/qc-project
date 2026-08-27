@@ -77,7 +77,13 @@ class PlatingChecksheetService extends BaseService
         }
 
         if (!empty($filters['qr_raw'])) {
-            $query->where('plating_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+            $qr = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qr) {
+                $q->where('plating_checksheets.qrcode', $qr)
+                  ->orWhere('plating_checksheets.unique_code_id', $qr)
+                  ->orWhere('plating_checksheets.sap_code', $qr)
+                  ->orWhere('plating_checksheets.qrcode', 'like', "%{$qr}%");
+            });
         }
 
         if (!empty($filters['entry_method'])) {
@@ -139,6 +145,8 @@ class PlatingChecksheetService extends BaseService
             ]);
 
             DB::commit();
+
+            $this->clearFilterCache($checksheet->plant_id);
 
             Log::info('Checksheet Plating berhasil dibuat', [
                 'user_id' => auth()->id(),
@@ -205,6 +213,7 @@ class PlatingChecksheetService extends BaseService
             $checksheet->update($updateData);
 
             DB::commit();
+            $this->clearFilterCache($checksheet->plant_id);
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -216,9 +225,23 @@ class PlatingChecksheetService extends BaseService
     {
         try {
             $checksheet = PlatingChecksheet::findOrFail($id);
-            return $checksheet->delete();
+            $plantId = $checksheet->plant_id;
+            $res = $checksheet->delete();
+            if ($res) {
+                $this->clearFilterCache($plantId);
+            }
+            return $res;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    protected function clearFilterCache($plantId)
+    {
+        if ($plantId) {
+            \Illuminate\Support\Facades\Cache::forget("plating_filter_init_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("plating_filter_items_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("plating_filter_cust_{$plantId}");
         }
     }
 
