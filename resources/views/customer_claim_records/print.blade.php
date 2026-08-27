@@ -117,7 +117,7 @@
             <td class="title">LAPORAN DATA CLAIM CUSTOMER</td>
             <td class="doc-info">
                 <table>
-                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-045/0' : 'QC-KRW-F-0210' }}</td></tr>
+                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-045/0' : 'QC-KRW-F-0178' }}</td></tr>
                     <tr><td>Tgl. Terbit</td><td>: {{ $plantCode === 'jakarta' ? '15.01.2023' : '20/05/2015' }}</td></tr>
                     <tr><td>Revisi / Tgl</td><td>: {{ $plantCode === 'jakarta' ? '0 / 15.01.2023' : '2 / 10/11/2024' }}</td></tr>
                     <tr><td>Hal</td><td>: 1/1</td></tr>
