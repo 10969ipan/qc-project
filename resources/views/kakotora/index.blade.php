@@ -1533,14 +1533,19 @@
                 e.preventDefault();
             });
 
-            // Instant smart search
+            // Instant smart search with Debounce (300ms delay to prevent lag on fast typing)
+            let searchDebounceTimer;
             $('input[name="search"]').on('keyup input', function () {
-                // ponytail: Smart NLP Search - Remove Indonesian stop words so conversational queries like 
-                // "tolong keluarkan problem bintik di proses plating" become "bintik plating".
-                let input = $(this).val().toLowerCase();
-                let stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'kakotora', 'database', 'dari', 'ke', 'untuk'];
-                let keywords = input.split(/[\s,.]+/).filter(w => w && !stops.includes(w));
-                table.search(keywords.length ? keywords.join(' ') : input).draw();
+                let $inputEl = $(this);
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(function () {
+                    // ponytail: Smart NLP Search - Remove Indonesian stop words so conversational queries like 
+                    // "tolong keluarkan problem bintik di proses plating" become "bintik plating".
+                    let input = $inputEl.val().toLowerCase();
+                    let stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'kakotora', 'database', 'dari', 'ke', 'untuk'];
+                    let keywords = input.split(/[\s,.]+/).filter(w => w && !stops.includes(w));
+                    table.search(keywords.length ? keywords.join(' ') : input).draw();
+                }, 300);
             });
 
             // Instant claim filter (Column index 8)
@@ -1557,6 +1562,7 @@
 
             // Reset filters client-side
             $('#btnResetFilter').on('click', function () {
+                clearTimeout(searchDebounceTimer);
                 $('input[name="search"]').val('');
                 $('select[name="category_claim"]').val('');
                 $('select[name="status"]').val('');
