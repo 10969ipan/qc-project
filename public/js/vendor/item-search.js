@@ -225,6 +225,7 @@
         window.addEventListener('resize', closeDropdown);
 
         function selectOption(opt) {
+            opt.selected = true;
             selectEl.value = opt.value;
             // Display part name and part number in search box
             var partNo = opt.dataset.partNumber || opt.dataset.part_number;

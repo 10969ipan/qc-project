@@ -117,7 +117,7 @@
                                                     data-source-shift="{{ $ngItem['shift'] }}"
                                                     data-remaining-qty="{{ $ngItem['remaining_qty'] }}"
                                                     data-files="{{ json_encode($ngItem['file_paths'] ?? ($ngItem['file_path'] ? [$ngItem['file_path']] : [])) }}"
-                                                    data-defects="{{ $ngItem['defects'] ?? '' }}">
+                                                    data-defects="{{ json_encode($ngItem['defects'] ?? []) }}">
                                                     {{ $ngItem['item_name'] }} ({{ $ngItem['part_number'] }})
                                                     - {{ strtoupper(str_replace('_', ' ', $ngItem['source_type'])) }}
                                                     @if(!empty($ngItem['next_proses']))

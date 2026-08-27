@@ -196,7 +196,7 @@ class SortirChecksheetService extends BaseService
             'remaining_qty' => $remainingQty,
             'file_path' => $c->item->file_path ?? null,
             'file_paths' => $c->item->file_paths ?? ($c->item->file_path ? [$c->item->file_path] : []),
-            'defects' => is_array($c->item->defects) ? implode("\n", $c->item->defects) : ($c->item->defects ?? ''),
+            'defects' => $c->item->defects ?? [],
         ];
     }
 

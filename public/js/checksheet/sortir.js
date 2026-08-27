@@ -69,7 +69,7 @@ class SortirCreate {
         this.timerInterval = null;
         this.totalSeconds = 0;
         this.timerRunning = false;
-        this.formInputs = $('#checksheetForm input:not([type="hidden"]):not(#startTimerBtn), #checksheetForm select, #checksheetForm textarea, #checksheetForm button:not(#startTimerBtn)');
+        this.formInputs = $('#checksheetForm input:not([type="hidden"]), #checksheetForm select, #checksheetForm textarea');
         
         this.currentPdfIndex = 0;
         this.totalPdfFiles = 0;
@@ -85,7 +85,9 @@ class SortirCreate {
         this.setupEventListeners();
         this.setupPdfControls();
         this.setupTimer();
+        this.initDefectManagement();
         this.setupFormSubmission();
+        this.updateDefectDropdown('');
     }
 
     setupHeartbeat() {
@@ -173,7 +175,7 @@ class SortirCreate {
             }
 
             // Update defect select options
-            var defectsRaw = selectedOption.data('defects') || '';
+            var defectsRaw = selectedOption.attr('data-defects') || selectedOption.data('defects') || '';
             this.updateDefectDropdown(defectsRaw);
 
             // Isi otomatis total_qty dengan sisa qty dan atur batas maksimal
@@ -268,28 +270,13 @@ class SortirCreate {
             }
         }
 
-        const defaults = [
-            { v: "BARET", t: "BARET" },
-            { v: "SILVER", t: "SILVER" },
-            { v: "FLOW", t: "FLOW" },
-            { v: "FLASH", t: "FLASH" },
-            { v: "SHOOT MOLD", t: "SHOOT MOLD" },
-            { v: "BENDING", t: "BENDING" },
-            { v: "SINKMARK", t: "SINKMARK" },
-            { v: "DIMENSI", t: "Dimensi" },
-        ];
-
         this.defectItems = [];
 
         if (Array.isArray(defectsData) && defectsData.length > 0) {
             defectsData.forEach((d) => {
                 const name = typeof d === "object" ? (d.name || d.t || d.v) : d;
-                const key = typeof d === "object" ? (d.v || d.name) : d;
-                this.defectItems.push({ key: key, name: name, count: 0 });
-            });
-        } else {
-            defaults.forEach((d) => {
-                this.defectItems.push({ key: d.v, name: d.t, count: 0 });
+                const key = typeof d === "object" ? (d.v || d.name) : String(d);
+                this.defectItems.push({ key: String(key).toUpperCase(), name: name, count: 0 });
             });
         }
 
@@ -305,7 +292,7 @@ class SortirCreate {
         $container.empty();
 
         if (sorted.length === 0) {
-            $container.html('<span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>');
+            $container.html('<span class="text-muted small"><i class="fas fa-info-circle mr-1"></i>Pilih Item Part NG untuk memuat daftar defect</span>');
             return;
         }
 
@@ -388,6 +375,12 @@ class SortirCreate {
         }
         this.renderDefectButtons();
         this.calculateTotalNG();
+    }
+
+    initDefectManagement() {
+        $(document).on("click", ".defect-btn-click", (e) => this.handleDefectClick(e));
+        $(document).on("click", ".defect-btn-minus", (e) => this.handleDefectMinus(e));
+        $(document).on("click", "#resetDefectsBtn", () => this.resetAllDefects());
     }
 
     calculateTotalNG() {
