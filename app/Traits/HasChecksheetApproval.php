@@ -90,6 +90,31 @@ trait HasChecksheetApproval
                 return redirect()->back()->with('error', "Checksheet sudah disetujui oleh {$map['label']}.");
             }
 
+            // Block approval of verification/QR data — only manual input can be approved
+            $table = $checksheet->getTable();
+            if (Schema::hasColumn($table, 'entry_method')) {
+                if (!in_array($checksheet->entry_method, ['regular', null, ''])) {
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
+                    }
+                    return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+                }
+            } else {
+                $isVerification = false;
+                if (Schema::hasColumn($table, 'qrcode') && !empty($checksheet->qrcode)) {
+                    $isVerification = true;
+                }
+                if (Schema::hasColumn($table, 'unique_code_id') && !empty($checksheet->unique_code_id)) {
+                    $isVerification = true;
+                }
+                if ($isVerification) {
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
+                    }
+                    return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+                }
+            }
+
             // Execute Approval
             $checksheet->$field = $user->name;
             $checksheet->$timeField = now();
