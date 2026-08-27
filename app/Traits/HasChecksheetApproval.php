@@ -342,7 +342,7 @@ trait HasChecksheetApproval
                     }
                 }
 
-                $viewMode = $request->input('view_mode', $request->input('entry_method'));
+                $viewMode = $request->input('view_mode', 'manual');
                 if ($viewMode === 'verifikasi' || $viewMode === 'verification' || $viewMode === 'qr') {
                     if (Schema::hasColumn($table, 'entry_method')) {
                         $query->where("{$table}.entry_method", 'verifikasi');
