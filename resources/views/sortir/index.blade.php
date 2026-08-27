@@ -227,10 +227,6 @@
                 <!-- Tombol Ekspor (Paling Kanan) -->
                 <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
-                    <a href="{{ route('sortir.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('sortir.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;" title="Cetak Direct">
                         <i class="fas fa-print fa-sm mr-1"></i> Cetak
@@ -266,19 +262,16 @@
                                 </th>
                             @endif
                             <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Tanggal</th>
-                            <th rowspan="2" class="align-middle">Shift</th>
+                            <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="align-middle">Line</th>
                             <th rowspan="2" class="align-middle">Sumber</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
-                            <th rowspan="2" class="align-middle">Sampling Qty</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
 
                             <th colspan="2" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
@@ -288,7 +281,7 @@
                         </tr>
                         <tr class="text-center">
                             <th style="width: 60px; min-width: 60px;">Pcs</th>
-                            <th style="min-width: 150px;">Jenis NG</th>
+                            <th style="white-space: nowrap;">Jenis NG</th>
                             <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                         </tr>
@@ -306,9 +299,8 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->shift }}</td>
                                 <td class="align-middle">{{ $checksheet->line ?? '-' }}</td>
                                 <td class="align-middle">
                                     @php
@@ -333,11 +325,12 @@
                                 </td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->total_qty }}</td>
-                                <td class="align-middle">{{ $checksheet->sampling_qty }}</td>
+                                <td class="align-middle text-nowrap">
+                                    <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span>
+                                </td>
                                 <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 
@@ -359,14 +352,14 @@
 
                                 <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
                                     @if(count($pcsLines) > 0)
-                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: fixed;">
+                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: auto;">
                                             <tbody>
                                                 @foreach($pcsLines as $index => $qty)
                                                     <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
                                                         <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $qty }}</small>
                                                         </td>
-                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
+                                                        <td style="border: none !important; padding: 4px 8px !important; vertical-align: middle !important; background: transparent !important; white-space: nowrap;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
                                                         </td>
                                                     </tr>
@@ -383,7 +376,6 @@
                                         {{ $checksheet->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center" style="font-size: 0.65rem;">

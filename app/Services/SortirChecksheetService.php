@@ -108,55 +108,65 @@ class SortirChecksheetService extends BaseService
      */
     public function getAvailableNgItems(array $filters = [])
     {
-        // Get sum of sorted qty per source (source_type + source_id)
-        $sortedQtyBySource = SortirChecksheet::selectRaw('source_type, source_id, SUM(total_qty) as sorted_qty')
-            ->groupBy('source_type', 'source_id')
-            ->get()
-            ->groupBy('source_type')
-            ->map(fn($items) => $items->keyBy('source_id')->map(fn($item) => (int) $item->sorted_qty)->toArray())
-            ->toArray();
-
         $plantId = $this->resolvePlantId($filters['plant'] ?? null);
-        $shouldFilterByPlant = !empty($plantId);
+        $cacheKey = "sortir_available_ng_items_" . ($plantId ?? 'all');
 
-        // Sub Assy - Include all NG items with any next_proses value
-        $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
-            ->whereNotNull('next_proses')
-            ->with('item');
-        if ($shouldFilterByPlant) {
-            $querySubAssy->withoutGlobalScope('plant')->where('plant_id', $plantId);
-        }
-        $ngSubAssy = $querySubAssy->get()
-            ->map(fn($c) => $this->mapNgItemWithQty($c, 'sub_assy', $sortedQtyBySource))
-            ->filter(fn($item) => $item['remaining_qty'] > 0);
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($plantId) {
+            // Limit active NG search to past 30 days to prevent full historical table scans
+            $cutoffDate = now()->subDays(30);
 
-        // In Process - Include all NG items with any next_proses value
-        $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
-            ->whereNotNull('next_proses')
-            ->with('item');
-        if ($shouldFilterByPlant) {
-            $queryInProcess->withoutGlobalScope('plant')->where('plant_id', $plantId);
-        }
-        $ngInProcess = $queryInProcess->get()
-            ->map(fn($c) => $this->mapNgItemWithQty($c, 'in_process', $sortedQtyBySource))
-            ->filter(fn($item) => $item['remaining_qty'] > 0);
+            // Get sum of sorted qty per source (source_type + source_id)
+            $sortedQtyBySource = SortirChecksheet::selectRaw('source_type, source_id, SUM(total_qty) as sorted_qty')
+                ->groupBy('source_type', 'source_id')
+                ->get()
+                ->groupBy('source_type')
+                ->map(fn($items) => $items->keyBy('source_id')->map(fn($item) => (int) $item->sorted_qty)->toArray())
+                ->toArray();
 
-        // Cross Cut - Include all NG items with any next_proses value
-        $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
-            ->whereNotNull('next_proses')
-            ->with('item');
-        if ($shouldFilterByPlant) {
-            $queryCrossCut->withoutGlobalScope('plant')->where('plant_id', $plantId);
-        }
-        $ngCrossCut = $queryCrossCut->get()
-            ->map(fn($c) => $this->mapNgItemWithQty($c, 'cross_cut', $sortedQtyBySource))
-            ->filter(fn($item) => $item['remaining_qty'] > 0);
+            $shouldFilterByPlant = !empty($plantId);
 
-        return collect(array_merge(
-            $ngSubAssy->toArray(),
-            $ngInProcess->toArray(),
-            $ngCrossCut->toArray()
-        ));
+            // Sub Assy - Include active NG items from past 30 days
+            $querySubAssy = SubAssyChecksheet::where('judgment', 'NG')
+                ->where('date', '>=', $cutoffDate)
+                ->whereNotNull('next_proses')
+                ->with('item:id,name,part_number,sap_code,file_path,file_paths,defects');
+            if ($shouldFilterByPlant) {
+                $querySubAssy->withoutGlobalScope('plant')->where('plant_id', $plantId);
+            }
+            $ngSubAssy = $querySubAssy->get()
+                ->map(fn($c) => $this->mapNgItemWithQty($c, 'sub_assy', $sortedQtyBySource))
+                ->filter(fn($item) => $item['remaining_qty'] > 0);
+
+            // In Process - Include active NG items from past 30 days
+            $queryInProcess = InProcessChecksheet::where('judgment', 'NG')
+                ->where('date', '>=', $cutoffDate)
+                ->whereNotNull('next_proses')
+                ->with('item:id,name,part_number,sap_code,file_path,file_paths,defects');
+            if ($shouldFilterByPlant) {
+                $queryInProcess->withoutGlobalScope('plant')->where('plant_id', $plantId);
+            }
+            $ngInProcess = $queryInProcess->get()
+                ->map(fn($c) => $this->mapNgItemWithQty($c, 'in_process', $sortedQtyBySource))
+                ->filter(fn($item) => $item['remaining_qty'] > 0);
+
+            // Cross Cut - Include active NG items from past 30 days
+            $queryCrossCut = CrossCutChecksheet::where('position_remark_judgment', 'NG')
+                ->where('qc_datetime', '>=', $cutoffDate)
+                ->whereNotNull('next_proses')
+                ->with('item:id,name,part_number,sap_code,file_path,file_paths,defects');
+            if ($shouldFilterByPlant) {
+                $queryCrossCut->withoutGlobalScope('plant')->where('plant_id', $plantId);
+            }
+            $ngCrossCut = $queryCrossCut->get()
+                ->map(fn($c) => $this->mapNgItemWithQty($c, 'cross_cut', $sortedQtyBySource))
+                ->filter(fn($item) => $item['remaining_qty'] > 0);
+
+            return collect(array_merge(
+                $ngSubAssy->toArray(),
+                $ngInProcess->toArray(),
+                $ngCrossCut->toArray()
+            ));
+        });
     }
 
     /**
@@ -219,6 +229,10 @@ class SortirChecksheetService extends BaseService
                 'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
                 'defects' => $defects
             ]));
+
+            // Invalidate available NG items cache
+            \Illuminate\Support\Facades\Cache::forget("sortir_available_ng_items_" . ($sortir->plant_id ?? 'all'));
+            \Illuminate\Support\Facades\Cache::forget("sortir_available_ng_items_all");
 
             // Check if all qty has been sorted, then close source
             $this->checkAndCloseSource($data['source_type'], $data['source_id']);

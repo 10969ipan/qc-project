@@ -80,7 +80,11 @@ class SortirChecksheetController extends Controller
         $plantFilter = $request->get('plant');
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
         $checksheets = $this->sortirService->getFilteredChecksheets($filters);
-        $items = Item::orderBy('name')->get();
+
+        $plantId = \App\Models\Plant::resolveId($filters['plant'] ?? null);
+        $items = \Illuminate\Support\Facades\Cache::remember("sortir_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
         return view('sortir.index', compact('checksheets', 'items'));
     }
@@ -347,12 +351,24 @@ class SortirChecksheetController extends Controller
             $request->merge(['plant' => $user->plant_id]);
         }
 
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'source_type', 'shift']);
+        $filters = [
+            'plant' => $request->get('plant'),
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'approval_status' => $request->approval_status,
+            'item_id' => $request->item_id,
+            'operator_initials' => $request->operator_initials,
+            'customer' => $request->customer,
+            'id' => $request->id,
+            'shift' => $request->shift,
+            'source_type' => $request->source_type,
+            'search' => $request->search,
+        ];
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['search'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -372,8 +388,9 @@ class SortirChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        // For display labels: use provided dates or show 'Semua'
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         return view('sortir.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

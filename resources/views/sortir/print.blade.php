@@ -81,11 +81,19 @@
             </td>
             <td class="title">LAPORAN DATA HASIL SORTIR</td>
             <td class="doc-info">
+                @php
+                    $docHeader = \App\Models\GeneralSetting::getDocHeader('sortir', $plantCode, [
+                        'no_dokumen' => $plantCode === 'jakarta' ? 'QC-JKT-F-034/0' : 'QC-KRW-F-0208',
+                        'tgl_terbit' => $plantCode === 'jakarta' ? '18.02.2022' : '01/01/2026',
+                        'revisi'     => $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '0',
+                        'halaman'    => '1/1'
+                    ]);
+                @endphp
                 <table>
-                    <tr><td>No. Dokumen</td><td>: {{ $plantCode === 'jakarta' ? 'QC-JKT-F-034/0' : 'QC-KRW-F-0213' }}</td></tr>
-                    <tr><td>Tgl. Terbit</td><td>: {{ $plantCode === 'jakarta' ? '18.02.2022' : '25/03/2015' }}</td></tr>
-                    <tr><td>Revisi / Tgl</td><td>: {{ $plantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025' }}</td></tr>
-                    <tr><td>Halaman</td><td>: 1/1</td></tr>
+                    <tr><td>No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] ?? '-' }}</td></tr>
+                    <tr><td>Tgl. Terbit</td><td>: {{ $docHeader['tgl_terbit'] ?? '-' }}</td></tr>
+                    <tr><td>Revisi / Tgl</td><td>: {{ $docHeader['revisi'] ?? '-' }}</td></tr>
+                    <tr><td>Halaman</td><td>: {{ $docHeader['halaman'] ?? '1/1' }}</td></tr>
                 </table>
             </td>
         </tr>
