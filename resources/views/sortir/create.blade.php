@@ -175,41 +175,30 @@
                                 </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
-
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
-                                    <div id="defectContainer">
-                                        <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-8 pr-1">
-                                                <select class="form-control defect-select font-weight-bold"
-                                                    name="defect_types[]" id="defectSelect">
-                                                    <option value="">-- Pilih Defect --</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-3 pr-1">
-                                                <input type="number" class="form-control text-center font-weight-bold"
-                                                    name="defect_quantities[]" placeholder="Qty" min="1">
-                                            </div>
-                                            <div class="col-1 text-center"></div>
-                                        </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="font-weight-bold text-dark mb-0">Defect List (NG):</label>
+                                        <button type="button" id="resetDefectsBtn" class="btn btn-xs btn-outline-danger" title="Reset Semua Defect" style="display: none;">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info btn-sm mt-1">
-                                        <i class="fas fa-plus"></i> Tambah Defect
-                                    </button>
+                                    <div id="defectContainer">
+                                        <span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>
+                                    </div>
                                 </td>
 
                                 <!-- Total OK / NG -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                <td class="align-middle" style="min-width: 150px;">
+                                    <div class="d-flex align-items-center mb-2" style="gap:0;">
                                         <span class="ok-label">OK</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ok" placeholder="0" min="0" required>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ok" value="0" min="0" required readonly>
                                     </div>
-                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="d-flex align-items-center" style="gap:0;">
                                         <span class="ng-label">NG</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0;" name="total_ng" placeholder="0" min="0" required>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ng" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
