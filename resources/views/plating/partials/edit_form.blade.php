@@ -271,7 +271,7 @@
                                 @foreach($nextProcesses as $opt)
                                     <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
                                 @endforeach
-                                @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                                @if($checksheet->next_proses && !$nextProcesses->pluck('name')->contains($checksheet->next_proses))
                                     <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                                 @endif
                             </select>

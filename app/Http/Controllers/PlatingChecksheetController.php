@@ -157,10 +157,8 @@ class PlatingChecksheetController extends Controller
         $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = 'karawang';
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && empty($filters['id']) && empty($filters['search']) && empty($filters['item_id']) && empty($filters['qr_raw'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -169,11 +167,11 @@ class PlatingChecksheetController extends Controller
         $plantName = 'Karawang';
         $plantCode = 'karawang';
 
-        $dispStart = $filters['start_date'];
-        $dispEnd = $filters['end_date'];
+        $dispStart = $filters['start_date'] ?? null;
+        $dispEnd = $filters['end_date'] ?? null;
 
-        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
+        $startDate = $dispStart ? \Carbon\Carbon::parse($dispStart)->format('d/m/Y') : '-';
+        $endDate   = $dispEnd ? \Carbon\Carbon::parse($dispEnd)->format('d/m/Y') : '-';
 
         return view('plating.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

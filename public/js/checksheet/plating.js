@@ -1702,6 +1702,7 @@ class PlatingCreate {
     }
 
     initFormSubmit() {
+        const _this = this;
         $(document).on("submit", "#checksheetForm", (e) => {
             const $form = $(e.target);
             e.preventDefault();
@@ -1843,9 +1844,9 @@ class PlatingCreate {
                 return false;
             }
 
-            if (this.timer.running) {
-                clearInterval(this.timer.interval);
-                this.timer.running = false;
+            if (_this.timer.running) {
+                clearInterval(_this.timer.interval);
+                _this.timer.running = false;
             }
 
             // Bersihkan defect yang diinput tapi qty = 0 / kosong
@@ -1888,7 +1889,7 @@ class PlatingCreate {
                         }).then((result) => {
                             if (result.isConfirmed)
                                 window.location.href = res.index_url;
-                            else this.resetState();
+                            else _this.resetState();
                         });
                     }
                 },
