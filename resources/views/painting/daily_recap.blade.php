@@ -305,8 +305,8 @@
                             <th>Nama Barang</th>
                             <th>Part Number</th>
                             <th class="text-center">Total Qty</th>
-                            <th class="text-center" style="background-color: #28a745; color: white;">AKT. DURA (MENIT)</th>
-                            <th class="text-center">STD CT (MENIT)</th>
+                            <th class="text-center" style="background-color: #28a745; color: white;">AKTUAL</th>
+                            <th class="text-center">STANDARD CYCLETIME</th>
                             <th class="text-center">Target Pencapaian (pcs)</th>
                             <th class="text-center">Plus / Minus</th>
                         </tr>
@@ -325,7 +325,21 @@
                                     <td class="font-weight">{{ $row->item->name ?? '-' }}</td>
                                     <td class="text-uppercase small font-weight">{{ $row->item->part_number ?? '-' }}</td>
                                     <td class="text-center font-weight">{{ number_format($row->total_qty_sum) }} pcs</td>
-                                    <td class="text-center font-weight">{{ number_format($row->total_act / 60, 1) }}</td>
+                                    <td class="text-center font-weight">
+                                        @php
+                                            $sec = (int) ($row->total_act ?? 0);
+                                            if ($sec <= 0) {
+                                                $actStr = '-';
+                                            } elseif ($sec < 60) {
+                                                $actStr = $sec . 's';
+                                            } else {
+                                                $m = floor($sec / 60);
+                                                $s = $sec % 60;
+                                                $actStr = $m . 'm' . ($s > 0 ? ' ' . $s . 's' : '');
+                                            }
+                                        @endphp
+                                        {{ $actStr }}
+                                    </td>
                                     <td class="text-center small">
                                         @if($row->sct > 0)
                                             {{ number_format($row->sct, 2) }}

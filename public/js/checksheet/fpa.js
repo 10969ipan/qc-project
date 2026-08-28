@@ -1185,13 +1185,26 @@ class FpaCreate {
         const isDimensiInvalid = $(".dimension-input.is-invalid").length > 0;
 
         let hasDimensiDefect = false;
-        $(".defect-select").each(function () {
-            const text = $(this).find("option:selected").text().toLowerCase();
-            if (text === "dimensi" || text === "ng dimensi" || $(this).val() === "dimension") {
+        if (this.defectItems) {
+            const dimItem = this.defectItems.find(
+                (d) =>
+                    d.key === "DIMENSI" ||
+                    d.key === "dimension" ||
+                    (d.name && (d.name.toLowerCase() === "dimensi" || d.name.toLowerCase() === "ng dimensi"))
+            );
+            if (dimItem && dimItem.count > 0) {
                 hasDimensiDefect = true;
-                return false;
             }
-        });
+        } else {
+            $(".defect-select").each(function () {
+                const text = $(this).find("option:selected").text().toLowerCase();
+                const val = ($(this).val() || "").toLowerCase();
+                if (text === "dimensi" || text === "ng dimensi" || val === "dimension" || val === "dimensi") {
+                    hasDimensiDefect = true;
+                    return false;
+                }
+            });
+        }
 
         if (isDimensiInvalid && !hasDimensiDefect) {
             this.autoAddDimensionDefect();
@@ -1261,7 +1274,7 @@ class FpaCreate {
 
     autoAddDimensionDefect() {
         if (!this.defectItems) return;
-        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && d.name.toLowerCase() === 'dimensi'));
+        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && (d.name.toLowerCase() === 'dimensi' || d.name.toLowerCase() === 'ng dimensi')));
         if (!item) {
             item = { key: 'DIMENSI', name: 'Dimensi', count: 0 };
             this.defectItems.push(item);
@@ -1275,7 +1288,7 @@ class FpaCreate {
 
     autoRemoveDimensionDefect() {
         if (!this.defectItems) return;
-        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && d.name.toLowerCase() === 'dimensi'));
+        let item = this.defectItems.find(d => d.key === 'DIMENSI' || d.key === 'dimension' || (d.name && (d.name.toLowerCase() === 'dimensi' || d.name.toLowerCase() === 'ng dimensi')));
         if (item && item.count > 0) {
             item.count = 0;
             this.renderDefectButtons();
@@ -1633,13 +1646,27 @@ class FpaEdit {
             $(".edit-dimension-input.is-invalid").length > 0;
 
         let hasDimensiDefect = false;
-        $(".defect-select").each(function () {
-            const text = $(this).find("option:selected").text().toLowerCase();
-            if (text === "dimensi" || $(this).val() === "dimension") {
+        if (this.defectItems) {
+            const dimItem = this.defectItems.find(
+                (d) =>
+                    d.key === "DIMENSI" ||
+                    d.key === "dimension" ||
+                    (d.name && (d.name.toLowerCase() === "dimensi" || d.name.toLowerCase() === "ng dimensi"))
+            );
+            if (dimItem && dimItem.count > 0) {
                 hasDimensiDefect = true;
-                return false;
             }
-        });
+        }
+        if (!hasDimensiDefect) {
+            $(".defect-select").each(function () {
+                const text = $(this).find("option:selected").text().toLowerCase();
+                const val = ($(this).val() || "").toLowerCase();
+                if (text === "dimensi" || text === "ng dimensi" || val === "dimension" || val === "dimensi") {
+                    hasDimensiDefect = true;
+                    return false;
+                }
+            });
+        }
 
         if (isDimensiInvalid && !hasDimensiDefect) {
             this.autoAddDimensionDefect();

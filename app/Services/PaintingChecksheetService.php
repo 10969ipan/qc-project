@@ -318,12 +318,22 @@ class PaintingChecksheetService extends BaseService
         $query->with('item')->orderBy('painting_checksheets.operator_initials');
 
         return $query->get()->map(function($row) {
-            $act_min = $row->total_act / 60;
-            $sct_min = $row->sct;
+            $act_min = ($row->total_act ?? 0) / 60;
+            $sct_min = (float) ($row->sct ?? 0); // In minutes
+            $total_qty = (float) ($row->total_qty_sum ?? 0);
 
-            $target = $sct_min > 0 ? ($act_min / $sct_min) : 0;
-            $row->target = round($target);
-            $row->plus_minus = $row->total_qty_sum - $row->target;
+            // Target = Actual Duration (Min) / Standard Cycle Time (Min) -- Sama dengan Excel: IFERROR(AKT. DURASI / STD CT, "")
+            // Plus/Minus = ((TOTAL (PCS) * STD CT (MENIT)) - AKT. DURASI (MENIT)) / 5
+            if ($sct_min > 0 && $act_min > 0) {
+                $target = $act_min / $sct_min;
+                $row->target = round($target);
+
+                $plusMinus = (($total_qty * $sct_min) - $act_min) / 5;
+                $row->plus_minus = round($plusMinus);
+            } else {
+                $row->target = 0;
+                $row->plus_minus = 0;
+            }
             
             return $row;
         });

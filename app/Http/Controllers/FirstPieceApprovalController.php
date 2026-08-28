@@ -214,7 +214,8 @@ class FirstPieceApprovalController extends Controller
             $checksheet = $result['checksheet'] ?? null;
             if ($checksheet) {
                 // --- Otomatis kelola defect "Dimensi" (Inisialisasi) ---
-                $this->syncNgDimensiDefect($checksheet, 'OK', $checksheet->judgment, $result['ok_points_count'] ?? null, $result['ng_points_count'] ?? null);
+                $checksheet = $this->syncNgDimensiDefect($checksheet, 'OK', $checksheet->judgment, $result['ok_points_count'] ?? null, $result['ng_points_count'] ?? null);
+                $checksheet->save();
 
                 ActivityLogger::log('created', $checksheet, "Menambahkan checksheet First Piece Approval baru: {$checksheet->item->name}");
             }
