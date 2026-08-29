@@ -143,6 +143,8 @@
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.sub_parts.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0212',
@@ -335,6 +337,8 @@
                                     (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED');
                                 $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc ||
                                     $cs->manager_qc === 'REJECTED');
+                                $showEdit = $canEdit && !in_array($user->role, ['inspector']);
+                                $showDel = $canDelete && !in_array($user->role, ['inspector']);
                             @endphp
                             <tr>
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
@@ -691,75 +695,98 @@
                                         {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($cs->remarks)) !!}
                                     @endif
                                 </td>
-                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 350px;">
-                                    @if($loop->first)
-                                        @include('partials.bulk_approve_button')
-                                    @endif
-                                    @if($canApproveKashift)
-                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)" style="min-width: 110px;">
-                                                <i class="fas fa-check"></i> Approve{{ ($user->role === 'admin') ? ' KS' : (($isSpvJakarta || $isKaruJakarta) ? '' : '') }}
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 110px;">
-                                            <i class="fas fa-times"></i> Reject
+                                <td class="align-middle text-center text-nowrap no-export">
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-light btn-sm border shadow-sm" type="button"
+                                                id="dropdownMenuButton{{ $cs->id }}" data-toggle="dropdown" data-boundary="window" aria-haspopup="true" aria-expanded="false"
+                                                style="width:32px;height:32px;border-radius:8px;padding:0;" title="Opsi Aksi">
+                                            <i class="fas fa-ellipsis-v text-secondary"></i>
                                         </button>
-                                    @endif
-                                    @if($canApproveSupervisor)
-                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)" style="min-width: 110px;">
-                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 110px;">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    @endif
-                                    @if($canApproveAsst)
-                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)" style="min-width: 110px;">
-                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager" style="min-width: 110px;">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    @endif
-                                    @if($canApproveManager)
-                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
-                                            @csrf
-                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)" style="min-width: 110px;">
-                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
-                                            </button>
-                                        </form>
-                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager" style="min-width: 110px;">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    @endif
-
-                                    <div class="btn-group">
-                                        @if(auth()->user()->role === 'admin')
-                                            <a href="{{ route('admin.incoming.sub_parts.edit_approval', $cs->id) }}"
-                                                class="btn btn-info btn-xs mx-1 btn-status-modal" data-id="{{ $cs->id }}" title="Status Approval">
-                                                <i class="fas fa-user-check"></i>
-                                            </a>
-                                        @endif
-                                        @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <a href="{{ route('incoming.sub_parts.edit', $cs->id) }}"
-                                                class="btn btn-warning btn-xs mx-1 btn-edit-modal" data-id="{{ $cs->id }}" title="Edit Checksheet">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('incoming.sub_parts.destroy', $cs->id) }}" method="POST"
-                                                class="d-inline form-delete">
-                                                @csrf @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-xs mx-1 btn-delete">
-                                                    <i class="fas fa-trash"></i>
+                                        <div class="dropdown-menu dropdown-menu-right shadow border-0 animated--fade-in" aria-labelledby="dropdownMenuButton{{ $cs->id }}" style="border-radius:8px;min-width:180px;font-size:0.8rem;">
+                                            
+                                            {{-- Approve & Reject Kashift / KR --}}
+                                            @if($canApproveKashift)
+                                                <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                        <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve {{ $isJakarta ? 'KR' : 'KS' }}
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift">
+                                                    <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $isJakarta ? 'KR' : 'KS' }}
                                                 </button>
-                                            </form>
-                                        @endif
+                                                <div class="dropdown-divider"></div>
+                                            @endif
+
+                                            {{-- Approve & Reject SPV --}}
+                                            @if($canApproveSupervisor)
+                                                <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                        <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve SPV
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor">
+                                                    <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                            @endif
+
+                                            {{-- Approve & Reject AM --}}
+                                            @if($canApproveAsst)
+                                                <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                        <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve AM
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager">
+                                                    <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject AM
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                            @endif
+
+                                            {{-- Approve & Reject MGR --}}
+                                            @if($canApproveManager)
+                                                <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                        <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve MGR
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager">
+                                                    <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject MGR
+                                                </button>
+                                                <div class="dropdown-divider"></div>
+                                            @endif
+
+                                            {{-- Status Approval (Admin Only) --}}
+                                            @if($isAdmin)
+                                                <a href="{{ route('admin.incoming.sub_parts.edit_approval', $cs->id) }}" class="dropdown-item no-loader btn-status-modal">
+                                                    <i class="fas fa-user-check text-info fa-fw mr-2"></i> Status Approval
+                                                </a>
+                                                @if($showEdit || $showDel) <div class="dropdown-divider"></div> @endif
+                                            @endif
+
+                                            {{-- Edit --}}
+                                            @if($showEdit)
+                                                <a href="{{ route('incoming.sub_parts.edit', array_merge(['id' => $cs->id], request()->all())) }}" class="dropdown-item no-loader btn-edit-modal">
+                                                    <i class="fas fa-edit text-warning fa-fw mr-2"></i> Edit
+                                                </a>
+                                            @endif
+
+                                            {{-- Delete --}}
+                                            @if($showDel)
+                                                @if($showEdit) <div class="dropdown-divider"></div> @endif
+                                                <form action="{{ route('incoming.sub_parts.destroy', array_merge(request()->query(), ['id' => $cs->id])) }}" method="POST" class="d-inline w-100 delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger btn-delete w-100 text-left">
+                                                        <i class="fas fa-trash fa-fw mr-2"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -921,11 +948,11 @@
     <script>
         $(document).ready(function() {
             // Edit Modal
-            $('.btn-edit-modal').click(function(e) {
+            $(document).on('click', '.btn-edit-modal', function(e) {
                 e.preventDefault();
                 var url = $(this).attr('href');
                 $('#editModal').modal('show');
-                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+                $('#editModalBody').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2 text-muted small">Memuat data checksheet...</p></div>');
                 
                 $.get(url, function(data) {
                     $('#editModalBody').html(data);
@@ -935,7 +962,7 @@
             });
 
             // Status Approval Modal
-            $('.btn-status-modal').click(function(e) {
+            $(document).on('click', '.btn-status-modal', function(e) {
                 e.preventDefault();
                 var url = $(this).attr('href');
                 $('#statusModal').modal('show');
@@ -956,7 +983,7 @@
                 
                 Swal.fire({
                     title: 'Apakah Anda yakin?',
-                    text: "Data checksheet Incoming Sub Part akan dihapus!",
+                    text: "Data checksheet Incoming Sub-Part akan dihapus!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e74a3b',
@@ -966,10 +993,72 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         if (form.length && form[0]) {
-                            form[0].submit();
+                            form.off('submit').submit();
                         }
                     }
                 });
+            });
+
+            // Prevent dropdown menu from being clipped inside .table-responsive
+            $(document).on('show.bs.dropdown', '.table-responsive .dropdown', function () {
+                var $dropdown = $(this);
+                var $menu = $dropdown.children('.dropdown-menu');
+                if (!$menu.length) return;
+
+                $menu.data('parent', $dropdown);
+                $('body').append($menu);
+
+                $menu.css({
+                    'display': 'block',
+                    'min-width': '180px',
+                    'position': 'absolute',
+                    'z-index': '1095',
+                    'margin': '0'
+                });
+
+                var eOffset = $dropdown.offset();
+                var btnWidth = $dropdown.outerWidth();
+                var btnHeight = $dropdown.outerHeight();
+                var menuWidth = $menu.outerWidth() || 180;
+                var menuHeight = $menu.outerHeight() || 250;
+
+                var windowScrollTop = $(window).scrollTop();
+                var windowHeight = $(window).height();
+                var windowBottom = windowScrollTop + windowHeight;
+
+                var top = eOffset.top + btnHeight + 2;
+                var left = eOffset.left + btnWidth - menuWidth;
+
+                if (top + menuHeight > windowBottom - 10 && eOffset.top - menuHeight > windowScrollTop + 10) {
+                    top = eOffset.top - menuHeight - 2;
+                }
+
+                if (left < 10) left = 10;
+
+                $menu.css({
+                    'top': top + 'px',
+                    'left': left + 'px'
+                });
+            });
+
+            $(document).on('hide.bs.dropdown', '.table-responsive .dropdown', function () {
+                var $dropdown = $(this);
+                var $menu = $('body').children('.dropdown-menu').filter(function () {
+                    return $(this).data('parent') && $(this).data('parent').is($dropdown);
+                });
+
+                if ($menu.length) {
+                    $menu.css({
+                        'display': '',
+                        'min-width': '',
+                        'position': '',
+                        'z-index': '',
+                        'top': '',
+                        'left': '',
+                        'margin': ''
+                    });
+                    $dropdown.append($menu);
+                }
             });
         });
     </script>

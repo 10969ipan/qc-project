@@ -177,9 +177,6 @@ class IncomingSubPartService extends BaseService
 
     private function resolveCheckDimensi(array $data): string
     {
-        if (!empty($data['check_dimensi'])) {
-            return $data['check_dimensi'];
-        }
         if (!empty($data['dimensions']) && is_array($data['dimensions'])) {
             $hasData = false;
             foreach ($data['dimensions'] as $k => $v) {
@@ -198,6 +195,9 @@ class IncomingSubPartService extends BaseService
             if ($hasData) {
                 return json_encode($data['dimensions']);
             }
+        }
+        if (!empty($data['check_dimensi'])) {
+            return $data['check_dimensi'];
         }
         return 'OK';
     }
