@@ -174,10 +174,22 @@ class IncomingSubPartController extends Controller
     public function destroy(Request $request, $id)
     {
         $checksheet = IncomingSubPart::find($id);
-        $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
+        $itemName = $checksheet ? ($checksheet->item->name ?? 'Unknown') : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
         ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Sub-Part: {$itemName}");
-        return redirect()->route('incoming.sub_parts.index', $request->query())->with('success', 'Incoming Sub-Part berhasil dihapus.');
+
+        $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'item_id', 'entry_method', 'view_mode'];
+        $redirectParams = $request->only($preservationKeys);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Incoming Sub-Part berhasil dihapus.',
+                'redirect' => route('incoming.sub_parts.index', $redirectParams)
+            ]);
+        }
+
+        return redirect()->route('incoming.sub_parts.index', $redirectParams)->with('success', 'Incoming Sub-Part berhasil dihapus.');
     }
 
     public function exportPdf(Request $request)

@@ -976,7 +976,7 @@
                 });
             });
 
-            // Delete Confirm
+            // Delete Confirm via AJAX
             $(document).on('click', '.btn-delete', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -994,7 +994,37 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         if (form.length && form[0]) {
-                            form.off('submit').submit();
+                            Swal.fire({
+                                title: 'Menghapus...',
+                                text: 'Mohon tunggu sebentar',
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+
+                            $.ajax({
+                                url: form.attr('action'),
+                                type: 'POST',
+                                data: form.serialize(),
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                                success: function(response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Berhasil!',
+                                            text: response.message || 'Data berhasil dihapus.',
+                                            timer: 1200,
+                                            showConfirmButton: false
+                                        }).then(() => {
+                                            window.location.href = response.redirect || window.location.href;
+                                        });
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                },
+                                error: function(xhr) {
+                                    Swal.fire('Gagal!', 'Terjadi kesalahan saat menghapus data.', 'error');
+                                }
+                            });
                         }
                     }
                 });
