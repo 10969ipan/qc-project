@@ -11,64 +11,42 @@ trait HasDeleteNotification
     {
         static::deleted(function ($model) {
             try {
-                // Determine checksheet type based on the class basename
                 $className = class_basename($model);
                 
-                // Map model class name to notification checksheet type if needed
-                $type = null;
-                switch ($className) {
-                    case 'InProcessChecksheet':
-                        $type = 'In Process';
-                        break;
-                    case 'CrossCutChecksheet':
-                        $type = 'Cross Cut';
-                        break;
-                    case 'CrossCutPaintingChecksheet':
-                        $type = 'Cross Cut Painting';
-                        break;
-                    case 'SortirChecksheet':
-                        $type = 'Sortir';
-                        break;
-                    case 'SubAssyChecksheet':
-                        $type = 'Sub Assy';
-                        break;
-                    case 'PlatingChecksheet':
-                        $type = 'Plating';
-                        break;
-                    case 'PaintingChecksheet':
-                        $type = 'Painting';
-                        break;
-                    case 'DoubleTapeChecksheet':
-                        $type = 'Double Tape';
-                        break;
-                    case 'FirstPieceApproval':
-                        $type = 'First Piece Approval';
-                        break;
-                    case 'IncomingSubPart':
-                        $type = 'Incoming Sub-Part';
-                        break;
-                    case 'IncomingPart':
-                        $type = 'Incoming Part';
-                        break;
-                    case 'IncomingMaterial':
-                        $type = 'Incoming Material';
-                        break;
-                    case 'IncomingExport':
-                        $type = 'Incoming Export';
-                        break;
-                    case 'IncomingChemical':
-                        $type = 'Incoming Chemical';
-                        break;
-                }
+                $type = match ($className) {
+                    'InProcessChecksheet' => 'In Process',
+                    'CrossCutChecksheet' => 'Cross Cut',
+                    'CrossCutPaintingChecksheet' => 'Cross Cut Painting',
+                    'SortirChecksheet' => 'Sortir',
+                    'SubAssyChecksheet' => 'Sub Assy',
+                    'PlatingChecksheet' => 'Plating',
+                    'PaintingChecksheet' => 'Painting',
+                    'DoubleTapeChecksheet' => 'Double Tape',
+                    'FirstPieceApproval' => 'First Piece Approval',
+                    'IncomingSubPart' => 'Incoming Sub-Part',
+                    'IncomingPart' => 'Incoming Part',
+                    'IncomingMaterial' => 'Incoming Material',
+                    'IncomingExport' => 'Incoming Export',
+                    'IncomingChemical' => 'Incoming Chemical',
+                    default => null,
+                };
 
-                if ($type) {
-                    $deleted = Notification::whereIn('type', ['ng_finding', 'rejection_alert'])
-                        ->where(function ($query) use ($model) {
-                            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.checksheet_id')) = ?", [(string) $model->id])
-                                  ->orWhereRaw("JSON_EXTRACT(data, '$.checksheet_id') = ?", [$model->id]);
-                        })
-                        ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(data, '$.checksheet_type')) = ?", [$type])
-                        ->delete();
+                if ($type && $model->id) {
+                    $query = Notification::whereIn('type', ['ng_finding', 'rejection_alert']);
+
+                    if (isset($model->created_at) && $model->created_at) {
+                        $query->where('created_at', '>=', $model->created_at->copy()->subMinutes(5));
+                    }
+
+                    $deleted = $query->where(function ($q) use ($model, $type) {
+                        $q->where(function ($sub) use ($model, $type) {
+                            $sub->where('data->checksheet_id', $model->id)
+                                ->where('data->checksheet_type', $type);
+                        })->orWhere(function ($sub) use ($model, $type) {
+                            $sub->where('data->checksheet_id', (string) $model->id)
+                                ->where('data->checksheet_type', $type);
+                        });
+                    })->delete();
                     
                     Log::info("Deleted {$deleted} notifications for deleted checksheet: ID={$model->id}, Type={$type}");
                 }
