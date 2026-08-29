@@ -88,11 +88,50 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
     
-    /* Robust fix for rowspan headers to match sum of row heights */
-    #checksheetTable > thead > tr:nth-child(1) > th[rowspan="2"] {
-        top: 0 !important;
-        height: 86px !important; /* 48 + 38 */
-        z-index: 106 !important;
+    /* Minimalist Dimension Table Styles (matched to In-Process) */
+    #checksheetTable .table-dimension-minimalist,
+    #checksheetTable td .table-dimension-minimalist,
+    #checksheetTable table.table-dimension-minimalist {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        border: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td,
+    #checksheetTable .table-dimension-minimalist th {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 2px !important;
+        text-align: center !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-header {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.55rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        line-height: 1 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data {
+        font-size: 0.60rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        color: #1e293b !important;
+        line-height: 1.1 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
+        border-bottom: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .text-std-header { 
+        color: #64748b !important; 
+        font-weight: 600 !important; 
+        background-color: #f1f5f9 !important; 
     }
 </style>
     @php
@@ -262,7 +301,7 @@
                             <th rowspan="2">Tgl Datang</th>
                             <th rowspan="2">Lot/Batch</th>
                             <th colspan="2">Qty (Pcs)</th>
-                            <th rowspan="2">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 170px;">Check Dimensi</th>
                             <th rowspan="2">Result</th>
                             <th colspan="2">Detail NG</th>
                             <th rowspan="2">QC</th>
@@ -308,7 +347,239 @@
                                 <td class="align-middle">{{ $cs->lot_batch_number }}</td>
                                 <td class="align-middle font-weight-bold">{{ (float) $cs->quantity }}</td>
                                 <td class="align-middle">{{ (float) $cs->sampling_size_pcs }}</td>
-                                <td class="align-middle font-weight-bold text-primary">{{ $cs->check_dimensi ?? '-' }}</td>
+                                {{-- Detail Cek Dimensi (Point Only) --}}
+                                <td class="align-middle p-0 text-nowrap" style="min-width: 170px; white-space: nowrap;">
+                                    @php
+                                        $dimData = is_array($cs->check_dimensi) ? $cs->check_dimensi : json_decode($cs->check_dimensi, true);
+                                        $dimData = $dimData ?: [];
+
+                                        // Flatten point inputs from 1D array or nested cavity array
+                                        $hasUserInputs = false;
+                                        $flatPoints = [];
+                                        if (is_array($dimData)) {
+                                            foreach ($dimData as $k => $v) {
+                                                if (is_array($v)) {
+                                                    foreach ($v as $pIdx => $pVal) {
+                                                        if ($pVal !== null && $pVal !== '' && $pVal !== '-') {
+                                                            $hasUserInputs = true;
+                                                            $flatPoints[$pIdx] = $pVal;
+                                                        }
+                                                    }
+                                                } else {
+                                                    if ($v !== null && $v !== '' && $v !== '-') {
+                                                        $hasUserInputs = true;
+                                                        $pIdx = is_numeric($k) ? (int) $k : $k;
+                                                        $flatPoints[$pIdx] = $v;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $cs->item->part_number ?? ''));
+                                        $itemPartNumber = strtoupper($itemPartNumber);
+                                        $standards = ($partDimensionStandards ?? [])[$itemPartNumber] ?? [];
+
+                                        // Active point indexes
+                                        $activePoints = [];
+                                        foreach ($flatPoints as $pKey => $pVal) {
+                                            $activePoints[$pKey] = true;
+                                        }
+                                        foreach ($standards as $pKey => $std) {
+                                            $activePoints[$pKey] = true;
+                                        }
+                                        $activePoints = array_keys($activePoints);
+                                        sort($activePoints);
+
+                                        if (empty($activePoints) && $hasUserInputs) {
+                                            $activePoints = range(1, count($flatPoints));
+                                        }
+                                    @endphp
+                                    @if($hasUserInputs && !empty($activePoints))
+                                        <div style="max-height: 200px; overflow-y: auto;">
+                                            <table class="table-dimension-minimalist">
+                                                <thead class="text-center">
+                                                    {{-- Baris Standar --}}
+                                                    @php
+                                                        $hasStdData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-')) {
+                                                                $hasStdData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasStdData)
+                                                        <tr>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header text-std-header">
+                                                                    {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
+                                                                </td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Baris Min (Optional) --}}
+                                                    @php
+                                                        $hasMinData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null && ($standards[$j]['min'] ?? null) !== '' && ($standards[$j]['min'] ?? null) !== '-') {
+                                                                $hasMinData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasMinData)
+                                                        <tr>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header text-std-header">
+                                                                    Min: {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
+                                                                </td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Baris Max (Optional) --}}
+                                                    @php
+                                                        $hasMaxData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null && ($standards[$j]['max'] ?? null) !== '' && ($standards[$j]['max'] ?? null) !== '-') {
+                                                                $hasMaxData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasMaxData)
+                                                        <tr>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header text-std-header">
+                                                                    Max: {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
+                                                                </td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Baris Toleransi --}}
+                                                    @php
+                                                        $hasTolData = false;
+                                                        foreach ($activePoints as $j) {
+                                                            if (isset($standards[$j]) && ($standards[$j]['tolerance'] ?? null) !== null && ($standards[$j]['tolerance'] ?? null) !== '' && ($standards[$j]['tolerance'] ?? null) !== '-') {
+                                                                $hasTolData = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    @endphp
+                                                    @if($hasTolData)
+                                                        <tr>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header text-std-header">
+                                                                    {{ isset($standards[$j]) ? '±' . ($standards[$j]['tolerance'] ?? '-') : '-' }}
+                                                                </td>
+                                                            @endforeach
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Baris Header Utama Point --}}
+                                                    <tr>
+                                                        @foreach ($activePoints as $j)
+                                                            <td class="dim-header">Ø{{ $j }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {{-- Pengukuran Aktual (Satu Baris per Sub-Part) --}}
+                                                    <tr>
+                                                        @foreach ($activePoints as $j)
+                                                            @php
+                                                                $val = $flatPoints[$j] ?? '-';
+                                                                $isNG = false;
+
+                                                                $std = null;
+                                                                if (!empty($standards)) {
+                                                                    if (isset($standards[$j])) {
+                                                                        $std = $standards[$j];
+                                                                    } elseif (isset($standards[(string)$j])) {
+                                                                        $std = $standards[(string)$j];
+                                                                    } elseif (isset($standards[$j - 1])) {
+                                                                        $std = $standards[$j - 1];
+                                                                    } else {
+                                                                        foreach ($standards as $itemStd) {
+                                                                            if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
+                                                                                $std = $itemStd;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                $cleanValStr = trim((string)$val);
+                                                                $numStr = str_replace(',', '.', $cleanValStr);
+                                                                if ($std && $cleanValStr !== '-' && $cleanValStr !== '' && is_numeric($numStr)) {
+                                                                    $fVal = (float)$numStr;
+                                                                    $epsilon = 0.00001;
+
+                                                                    // 1. Min / Max
+                                                                    if (($std['min'] ?? null) !== null && $std['min'] !== '' && $std['min'] !== '-') {
+                                                                        $minBound = (float)str_replace(',', '.', (string)$std['min']);
+                                                                        if ($fVal < ($minBound - $epsilon)) $isNG = true;
+                                                                    }
+                                                                    if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '' && $std['max'] !== '-') {
+                                                                        $maxBound = (float)str_replace(',', '.', (string)$std['max']);
+                                                                        if ($fVal > ($maxBound + $epsilon)) $isNG = true;
+                                                                    }
+
+                                                                    // 2. Size +/- Tolerance
+                                                                    if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '' && $std['size'] !== '-' && $std['tolerance'] !== '-') {
+                                                                        $szStr = trim((string)$std['size']);
+                                                                        if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                                                            $base = (float)str_replace(',', '.', $szStr);
+                                                                            $tol = trim((string)$std['tolerance']);
+                                                                            $tol = str_replace(['±', ' '], '', $tol);
+                                                                            $lb = $base; $ub = $base;
+                                                                            
+                                                                            if (str_contains($tol, '/')) {
+                                                                                $parts = explode('/', $tol);
+                                                                                foreach ($parts as $p) {
+                                                                                    $p = trim(str_replace(',', '.', $p));
+                                                                                    $fv = (float)$p;
+                                                                                    if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                                                                    elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                                                                                }
+                                                                            } elseif (str_starts_with($tol, '+')) {
+                                                                                $ub = $base + (float)substr($tol, 1);
+                                                                            } elseif (str_starts_with($tol, '-')) {
+                                                                                $lb = $base + (float)$tol;
+                                                                            } else {
+                                                                                $tv = (float)str_replace(',', '.', $tol);
+                                                                                $lb = $base - $tv; $ub = $base + $tv;
+                                                                            }
+                                                                            
+                                                                            if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) $isNG = true;
+                                                                        }
+                                                                    }
+
+                                                                    // 3. Signed Size (+17 or -17)
+                                                                    if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '' && $std['size'] !== '-') {
+                                                                        $szStr = trim((string)$std['size']);
+                                                                        if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                                                            $op = $szStr[0];
+                                                                            $bound = (float)substr($szStr, 1);
+                                                                            if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
+                                                                            elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG) style="color: #dc3545 !important; font-weight: bold !important;" @endif>
+                                                                {{ $val }}
+                                                            </td>
+                                                        @endforeach
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">{{ is_string($cs->check_dimensi) && $cs->check_dimensi ? $cs->check_dimensi : '-' }}</span>
+                                    @endif
+                                </td>
                                 <td class="align-middle">
                                     <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
                                         {{ $cs->judgment }}

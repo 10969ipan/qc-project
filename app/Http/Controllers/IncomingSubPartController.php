@@ -74,8 +74,9 @@ class IncomingSubPartController extends Controller
         }
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Sub-Part')->orderBy('name')->get();
+        $partDimensionStandards = app(\App\Services\InProcessChecksheetService::class)->getConsolidatedStandards();
 
-        return view('incoming.sub_parts.index', compact('checksheets', 'items'));
+        return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards'));
     }
 
     public function create(Request $request)
@@ -93,8 +94,9 @@ class IncomingSubPartController extends Controller
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
+        $partDimensionStandards = json_encode(app(\App\Services\InProcessChecksheetService::class)->getConsolidatedStandards());
 
-        return view('incoming.sub_parts.create', compact('items', 'defaultDate', 'defaultShift'));
+        return view('incoming.sub_parts.create', compact('items', 'defaultDate', 'defaultShift', 'partDimensionStandards'));
     }
 
     public function store(StoreIncomingSubPartRequest $request)

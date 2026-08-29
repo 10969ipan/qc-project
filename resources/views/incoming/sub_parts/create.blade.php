@@ -10,11 +10,52 @@
     .ng-label { background-color: #dc3545; color: white; padding: 4px 8px; font-weight: bold; font-size: 0.7rem; border-radius: 4px 0 0 4px; min-width: 35px; text-align: center; display: inline-block; }
     #judgmentBadge { min-width: 80px; min-height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
-    /* Dimension styling */
-    #dimensionTable th { background-color: #f1f5f9; color: #475569; font-size: 0.65rem; padding: 6px; }
-    #dimensionTable td { padding: 4px; }
-    .dimension-input { font-size: 0.85rem; border: 1.5px solid #cbd5e1; background: #fff; text-align: center; border-radius: 4px; width: 100%; min-width: 50px; padding: 6px 8px; height: 38px; }
-    .dimension-input:focus { border-color: #4e73df; outline: none; box-shadow: 0 0 0 0.15rem rgba(78, 115, 223, 0.25); }
+    /* ─── Inner Dimension Table (selaras dengan in-process) ─── */
+    #dimensionTable,
+    #checksheetTable .table-sm {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    #dimensionTable td,
+    #dimensionTable th {
+        background-color: transparent !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 4px 6px !important;
+        text-align: center !important;
+        font-size: 0.68rem !important;
+    }
+    #dimensionTable thead th {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.58rem !important;
+        border-bottom: 2px solid #cbd5e1 !important;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    #dimensionTable tbody td {
+        color: #1e293b !important;
+        font-size: 0.65rem !important;
+    }
+    #dimensionTable .dimension-input {
+        font-size: 0.68rem !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+        background: #f8fafc !important;
+        text-align: center;
+        padding: 2px 4px !important;
+        min-width: 55px;
+    }
+    #dimensionTable .dimension-input:focus {
+        border-color: #6366f1 !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.1) !important;
+    }
 
     /* Form Inputs Overrides - "Besar & Pas" */
     #checksheetForm .form-control,
@@ -223,34 +264,38 @@
                                             </div>
                                         </td>
 
-                                        <!-- 5. Check Dimensi -->
-                                        <td class="align-middle">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <label class="font-weight-bold mb-0">Dimensi:</label>
-                                                <button type="button" class="btn btn-xs btn-success shadow-sm" id="addPointRowBtn" title="Tambah Point">
-                                                    <i class="fas fa-plus"></i> Point
-                                                </button>
+                                        <!-- 5. Check Dimensi (Point Only) -->
+                                        <td class="align-middle" style="min-width: 220px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="font-weight-bold mb-0 small text-dark">Dimensi (Point):</label>
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-info btn-xs" id="addPointBtn"
+                                                        title="Tambah Point">
+                                                        <i class="fas fa-plus"></i> Point
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger btn-xs"
+                                                        id="deletePointBtn" title="Hapus Point Terakhir">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div class="table-responsive" style="max-height: 150px; overflow-y: auto;">
-                                                <table class="table table-bordered table-sm mb-0 bg-white" id="dimensionTable">
+                                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                                <table class="table table-sm table-bordered mb-0 bg-white" id="dimensionTable">
                                                     <thead class="bg-light text-dark small text-center sticky-top">
                                                         <tr>
-                                                            <th style="background-color: #f1f5f9 !important;">Point</th>
+                                                            <th style="width: 70px; background-color: #f1f5f9 !important;">Point</th>
                                                             <th style="background-color: #f1f5f9 !important;">Hasil Ukur</th>
-                                                            <th style="width: 25px; background-color: #f1f5f9 !important;"></th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="dimensionBody">
                                                         @for ($j = 1; $j <= 1; $j++)
-                                                            <tr class="point-row">
+                                                            <tr class="point-row" data-point="{{ $j }}">
                                                                 <td class="text-center font-weight-bold bg-light align-middle point-label" style="font-size:0.7rem;">P{{ $j }}</td>
                                                                 <td class="point-cell p-1">
-                                                                    <input type="text" class="dimension-input form-control border-0 shadow-sm w-100 text-center" name="dimensions[]" placeholder="...">
-                                                                </td>
-                                                                <td class="text-center align-middle p-1">
-                                                                    <button type="button" class="btn btn-xs btn-danger shadow-sm delete-point-row" title="Hapus Point">
-                                                                        <i class="fas fa-trash-alt"></i>
-                                                                    </button>
+                                                                    <input type="text"
+                                                                        class="form-control form-control-sm dimension-input text-center"
+                                                                        style="min-width: 60px;" name="dimensions[{{ $j }}]"
+                                                                        placeholder="P{{ $j }}">
                                                                 </td>
                                                             </tr>
                                                         @endfor
@@ -438,6 +483,7 @@
     <script>
         window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
         window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
+        window.partDimensionStandards = {!! $partDimensionStandards ?? '{}' !!};
     </script>
     <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
 @endpush

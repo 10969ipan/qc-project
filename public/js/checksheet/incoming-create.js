@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const defects = selected.data('defects');
         updateDefectOptions(defects);
         fetchOutstandingArrivals($(this).val());
+        updateDimensionTableForSelectedItem();
         
         if ($(this).val()) {
             $('#addDefectBtn').show();
@@ -292,8 +293,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let hasDimensiDefect = false;
         $(".defect-select").each(function () {
+            const val = ($(this).val() || "").toLowerCase();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (text === "dimensi" || $(this).val() === "dimension") {
+            if (val.includes("dimens") || text.includes("dimens")) {
                 hasDimensiDefect = true;
                 return false;
             }
@@ -349,9 +351,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function autoAddDimensionDefect() {
         let foundRow = null;
         $(".defect-select").each(function () {
-            const val = $(this).val();
+            const val = ($(this).val() || "").toLowerCase();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi") {
+            if (val.includes("dimens") || text.includes("dimens")) {
                 foundRow = $(this).closest(".defect-row");
                 return false;
             }
@@ -390,14 +392,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (targetSelect) {
             let foundVal = "";
             targetSelect.find("option").each(function () {
-                if ($(this).val() === "dimension" || $(this).text().toLowerCase() === "dimensi") {
-                    foundVal = $(this).val();
+                const optVal = $(this).val();
+                const optTxt = $(this).text();
+                if (optVal && (optVal.toLowerCase().includes("dimens") || optTxt.toLowerCase().includes("dimens"))) {
+                    foundVal = optVal;
                     return false;
                 }
             });
             if (!foundVal) {
-                targetSelect.append('<option value="dimension">Dimensi</option>');
-                foundVal = "dimension";
+                targetSelect.append('<option value="Dimensi">Dimensi</option>');
+                foundVal = "Dimensi";
             }
             targetSelect.val(foundVal).trigger("change");
             targetSelect.closest(".defect-row").find(".defect-qty").val(1).trigger("input");
@@ -406,9 +410,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function autoRemoveDimensionDefect() {
         $(".defect-select").each(function () {
-            const val = $(this).val();
+            const val = ($(this).val() || "").toLowerCase();
             const text = $(this).find("option:selected").text().toLowerCase();
-            if (val === "dimension" || text === "dimensi") {
+            if (val.includes("dimens") || text.includes("dimens")) {
                 const row = $(this).closest(".defect-row");
                 if ($(".defect-row").length === 1) {
                     $(this).val("").trigger("change");
@@ -1086,51 +1090,98 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // --- Dimension Table Logic (Point Only - Vertical) ---
-    const maxPoints = 50; // Increased max points since it's vertical
+    // --- Dimension Table Logic (Point Only) ---
+    let currentPoints = 1;
+    const maxPoints = 50;
 
-    $('#addPointRowBtn').click(function () {
-        const tbody = $('#dimensionBody');
-        let currentPoints = tbody.find('tr.point-row').length;
-        
-        if (currentPoints < maxPoints) {
-            currentPoints++;
-            const newRow = `
-                <tr class="point-row">
-                    <td class="text-center font-weight-bold bg-light align-middle point-label" style="font-size:0.7rem;">P${currentPoints}</td>
+    function updateDimensionTableForSelectedItem() {
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const partNumberRaw = selectedOption.data("part-number") || "";
+        const itemPartNumber = normalizePartNumber(partNumberRaw);
+
+        let dimensionStandards = selectedOption.data("dimension-standards");
+        if (typeof dimensionStandards === "string") {
+            try {
+                dimensionStandards = JSON.parse(dimensionStandards);
+            } catch (e) {
+                dimensionStandards = null;
+            }
+        }
+        if (!dimensionStandards && window.partDimensionStandards) {
+            dimensionStandards = window.partDimensionStandards[itemPartNumber];
+        }
+
+        let maxPointFromStandards = 0;
+        if (Array.isArray(dimensionStandards)) {
+            dimensionStandards.forEach(s => {
+                if (s && s.point != null) {
+                    const p = parseInt(s.point);
+                    if (!isNaN(p) && p > maxPointFromStandards) maxPointFromStandards = p;
+                }
+            });
+            if (maxPointFromStandards === 0) {
+                maxPointFromStandards = dimensionStandards.length;
+            }
+        } else if (typeof dimensionStandards === 'object' && dimensionStandards !== null) {
+            Object.keys(dimensionStandards).forEach(k => {
+                const p = parseInt(k);
+                if (!isNaN(p) && p > maxPointFromStandards) maxPointFromStandards = p;
+            });
+            if (maxPointFromStandards === 0) {
+                maxPointFromStandards = Object.keys(dimensionStandards).length;
+            }
+        }
+
+        let pointCount = maxPointFromStandards > 0 ? maxPointFromStandards : 1;
+        currentPoints = pointCount;
+
+        let newBodyHtml = '';
+        for (let j = 1; j <= currentPoints; j++) {
+            newBodyHtml += `
+                <tr class="point-row" data-point="${j}">
+                    <td class="text-center font-weight-bold bg-light align-middle point-label" style="font-size:0.7rem;">P${j}</td>
                     <td class="point-cell p-1">
-                        <input type="text" class="dimension-input form-control-sm border-0 shadow-sm w-100 text-center" name="dimensions[]" placeholder="...">
-                    </td>
-                    <td class="text-center align-middle p-1">
-                        <button type="button" class="btn btn-xs btn-danger shadow-sm delete-point-row" title="Hapus Point">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <input type="text" class="form-control form-control-sm dimension-input text-center" style="min-width: 60px;" name="dimensions[${j}]" placeholder="P${j}">
                     </td>
                 </tr>
             `;
-            tbody.append(newRow);
-            updatePointLabels();
+        }
+        $('#dimensionBody').html(newBodyHtml);
+        validateDimensions();
+    }
+
+    if ($('#itemSelect').length > 0 && $('#itemSelect').val()) {
+        updateDimensionTableForSelectedItem();
+    }
+
+    $('#addPointBtn').click(function () {
+        if (currentPoints < maxPoints) {
+            currentPoints++;
+            const newRow = `
+                <tr class="point-row" data-point="${currentPoints}">
+                    <td class="text-center font-weight-bold bg-light align-middle point-label" style="font-size:0.7rem;">P${currentPoints}</td>
+                    <td class="point-cell p-1">
+                        <input type="text" class="form-control form-control-sm dimension-input text-center" style="min-width: 60px;" name="dimensions[${currentPoints}]" placeholder="P${currentPoints}">
+                    </td>
+                </tr>
+            `;
+            $('#dimensionBody').append(newRow);
+            validateDimensions();
         } else {
             Swal.fire({ icon: 'warning', title: 'Batas Maksimum', text: 'Maksimal ' + maxPoints + ' point.' });
         }
     });
 
-    $(document).on('click', '.delete-point-row', function () {
-        const tbody = $('#dimensionBody');
-        if (tbody.find('tr.point-row').length > 1) {
-            $(this).closest('tr.point-row').remove();
-            updatePointLabels();
+    $('#deletePointBtn').click(function () {
+        const rows = $('#dimensionBody tr.point-row');
+        if (rows.length > 1) {
+            rows.last().remove();
+            currentPoints = $('#dimensionBody tr.point-row').length;
+            validateDimensions();
         } else {
             Swal.fire({ icon: 'warning', title: 'Minimal 1 Point', text: 'Tidak bisa menghapus semua point.' });
         }
     });
-
-    function updatePointLabels() {
-        $('#dimensionBody tr.point-row').each(function(index) {
-            $(this).find('.point-label').text('P' + (index + 1));
-        });
-        validateDimensions();
-    }
 
     $(document).on("input", ".dimension-input", function () {
         let val = $(this).val();
@@ -1140,17 +1191,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function validateDimensions() {
         const selectedOption = $("#itemSelect").find("option:selected");
-        const dimensionStandardsJson = selectedOption.data("dimension-standards");
-        let dimensionStandards = null;
-        if (dimensionStandardsJson) {
-            dimensionStandards = typeof dimensionStandardsJson === 'string' ? JSON.parse(dimensionStandardsJson) : dimensionStandardsJson;
+        const partNumberRaw = selectedOption.data("part-number") || "";
+        const itemPartNumber = normalizePartNumber(partNumberRaw);
+
+        let dimensionStandards = selectedOption.data("dimension-standards");
+        if (typeof dimensionStandards === "string") {
+            try {
+                dimensionStandards = JSON.parse(dimensionStandards);
+            } catch (e) {
+                dimensionStandards = null;
+            }
+        }
+        if (!dimensionStandards && window.partDimensionStandards) {
+            dimensionStandards = window.partDimensionStandards[itemPartNumber];
         }
 
         let hasInvalidDimension = false;
 
         $('input[name^="dimensions"]').each(function () {
-            const row = $(this).closest('tr.point-row');
-            const pointIndex = row.index() + 1;
+            const name = $(this).attr("name");
+            const match = name ? name.match(/\[(\d+)\]/) : null;
+            const pointIndex = match ? match[1] : ($(this).closest('tr').index() + 1);
 
             let standard = null;
             if (dimensionStandards) {
@@ -1207,6 +1268,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
 
+                if (!isInvalid && standard.size != null && standard.size !== "") {
+                    const sz = String(standard.size);
+                    if (sz.startsWith("+") || sz.startsWith("-")) {
+                        const op = sz.charAt(0);
+                        const bound = parseFloat(sz.substring(1));
+                        if (!isNaN(bound)) {
+                            if (op === "+" && value < bound - epsilon) isInvalid = true;
+                            else if (op === "-" && value > bound + epsilon) isInvalid = true;
+                        }
+                    }
+                }
+
                 if (isInvalid) {
                     $(this).addClass("is-invalid text-danger");
                     hasInvalidDimension = true;
@@ -1228,17 +1301,27 @@ document.addEventListener('DOMContentLoaded', function () {
     function checkMandatoryDimensions() {
         const result = { isValid: true, missingPoints: [], firstEmpty: null };
         const selectedOption = $("#itemSelect").find("option:selected");
-        const dimensionStandardsJson = selectedOption.data("dimension-standards");
-        let dimensionStandards = null;
-        if (dimensionStandardsJson) {
-            dimensionStandards = typeof dimensionStandardsJson === 'string' ? JSON.parse(dimensionStandardsJson) : dimensionStandardsJson;
+        const partNumberRaw = selectedOption.data("part-number") || "";
+        const itemPartNumber = normalizePartNumber(partNumberRaw);
+
+        let dimensionStandards = selectedOption.data("dimension-standards");
+        if (typeof dimensionStandards === "string") {
+            try {
+                dimensionStandards = JSON.parse(dimensionStandards);
+            } catch (e) {
+                dimensionStandards = null;
+            }
+        }
+        if (!dimensionStandards && window.partDimensionStandards) {
+            dimensionStandards = window.partDimensionStandards[itemPartNumber];
         }
 
         if (!dimensionStandards) return result;
 
         $(".dimension-input").each(function () {
-            const row = $(this).closest('tr.point-row');
-            const pointIndex = row.index() + 1;
+            const name = $(this).attr("name");
+            const match = name ? name.match(/\[(\d+)\]/) : null;
+            const pointIndex = match ? match[1] : ($(this).closest('tr').index() + 1);
             
             let standard = null;
             if (Array.isArray(dimensionStandards)) {
@@ -1249,7 +1332,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (standard && $(this).val().trim() === "") {
                 result.isValid = false;
-                result.missingPoints.push('P' + pointIndex);
+                result.missingPoints.push(`P${pointIndex}`);
                 $(this).addClass("is-invalid text-danger");
                 if (!result.firstEmpty) result.firstEmpty = $(this);
             }
@@ -1799,7 +1882,18 @@ document.addEventListener('DOMContentLoaded', function () {
             defect_types: defect_types,
             defect_quantities: defect_quantities,
             itemNameDisplay: $("#itemSelect option:selected").text().trim(),
-            dimensions: $('input[name^="dimensions"]').map(function() { return $(this).val(); }).get()
+            dimensions: (() => {
+                const dims = {};
+                $('.dimension-input').each(function () {
+                    const name = $(this).attr('name');
+                    const match = name ? name.match(/\[(\d+)\]/) : null;
+                    if (match) {
+                        const pt = match[1];
+                        dims[pt] = $(this).val();
+                    }
+                });
+                return dims;
+            })()
         };
 
         const queue = JSON.parse(localStorage.getItem('incoming_part_queue') || '[]');
@@ -2109,6 +2203,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#defectContainer .defect-row').not(':first').remove();
         $('#defectSelect').val('');
         $('.defect-qty').val('');
+        updateDimensionTableForSelectedItem();
         $('#judgmentSelect').val('OK').trigger('change');
         // ponytail: sisa karakter scanner gun ditangani oleh isProcessingHardwareScan cooldown, bukan setTimeout cascade
     }

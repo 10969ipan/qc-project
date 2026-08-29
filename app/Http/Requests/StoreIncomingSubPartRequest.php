@@ -23,7 +23,7 @@ class StoreIncomingSubPartRequest extends FormRequest
             'sampling_size_pcs' => 'required|integer',
             'check_dimensi' => 'nullable|string',
             'dimensions' => 'nullable|array',
-            'dimensions.*' => 'nullable|string',
+            'dimensions.*' => 'nullable',
             'judgment' => 'required|in:OK,NG',
             'total_ng' => 'nullable|integer',
             'remarks' => 'nullable|string',

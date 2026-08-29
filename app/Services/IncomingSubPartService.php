@@ -181,9 +181,22 @@ class IncomingSubPartService extends BaseService
             return $data['check_dimensi'];
         }
         if (!empty($data['dimensions']) && is_array($data['dimensions'])) {
-            $filtered = array_filter($data['dimensions'], fn($v) => $v !== null && trim((string)$v) !== '');
-            if (!empty($filtered)) {
-                return implode(', ', $filtered);
+            $hasData = false;
+            foreach ($data['dimensions'] as $k => $v) {
+                if (is_array($v)) {
+                    foreach ($v as $sub) {
+                        if ($sub !== null && trim((string)$sub) !== '' && trim((string)$sub) !== '-') {
+                            $hasData = true;
+                            break 2;
+                        }
+                    }
+                } elseif ($v !== null && trim((string)$v) !== '' && trim((string)$v) !== '-') {
+                    $hasData = true;
+                    break;
+                }
+            }
+            if ($hasData) {
+                return json_encode($data['dimensions']);
             }
         }
         return 'OK';
