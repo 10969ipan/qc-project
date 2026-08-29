@@ -858,14 +858,16 @@
     </div>
 
     <!-- Rejection Modal for each checksheet and type -->
+    @php
+        $user = auth()->user();
+        $isAdmin = $user->role === 'admin';
+        $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+        $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+        $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+    @endphp
     @foreach($checksheets as $cs)
         @foreach(['kashift', 'supervisor'] as $rejectType)
             @php
-                $user = auth()->user();
-                $isAdmin = $user->role === 'admin';
-                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
                 $canReject = false;
                 if (
                     $rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&

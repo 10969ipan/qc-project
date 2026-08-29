@@ -24,7 +24,7 @@ class IncomingSubPartService extends BaseService
 
     public function buildFilteredQuery(array $filters)
     {
-        $query = IncomingSubPart::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = IncomingSubPart::with(['item', 'plant'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if (isset($filters['plant'])) {
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));

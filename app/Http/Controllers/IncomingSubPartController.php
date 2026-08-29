@@ -74,7 +74,7 @@ class IncomingSubPartController extends Controller
         }
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         $items = Item::byCategory('Incoming Sub-Part')->orderBy('name')->get();
-        $partDimensionStandards = app(\App\Services\InProcessChecksheetService::class)->getConsolidatedStandards();
+        $partDimensionStandards = $this->getSubPartDimensionStandards($items);
 
         return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards'));
     }
@@ -94,9 +94,31 @@ class IncomingSubPartController extends Controller
         $now = now();
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
-        $partDimensionStandards = json_encode(app(\App\Services\InProcessChecksheetService::class)->getConsolidatedStandards());
+        $partDimensionStandards = json_encode($this->getSubPartDimensionStandards($items));
 
         return view('incoming.sub_parts.create', compact('items', 'defaultDate', 'defaultShift', 'partDimensionStandards'));
+    }
+
+    private function getSubPartDimensionStandards($items): array
+    {
+        $partDimensionStandards = [];
+        foreach ($items as $item) {
+            $pNum = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $item->part_number ?? ''));
+            $pNum = strtoupper($pNum);
+            if ($pNum !== '') {
+                $stds = is_array($item->dimension_standards)
+                    ? $item->dimension_standards
+                    : (json_decode($item->dimension_standards, true) ?? []);
+                
+                $itemStds = [];
+                foreach ($stds as $idx => $std) {
+                    $ptKey = isset($std['point']) ? (string)$std['point'] : (string)($idx + 1);
+                    $itemStds[$ptKey] = $std;
+                }
+                $partDimensionStandards[$pNum] = $itemStds;
+            }
+        }
+        return $partDimensionStandards;
     }
 
     public function store(StoreIncomingSubPartRequest $request)
