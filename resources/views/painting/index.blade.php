@@ -349,12 +349,12 @@
                             <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
-                                <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
+                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift)</th>
                                 <th rowspan="2" class="align-middle">Jam</th>
                             @else
                                 <th rowspan="2" class="bg-light align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="bg-light align-middle">Painting<br>(Tgl / Shift / Lot)</th>
-                                <th rowspan="2" class="bg-light align-middle">Quality<br>(Tgl / Shift)</th>
+                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift)</th>
                                 <th rowspan="2" class="align-middle">Jam (Before)</th>
                                 <th rowspan="2" class="align-middle">Jam (After)</th>
                                 <th rowspan="2" class="align-middle">Cycle Time (s)</th>
@@ -362,7 +362,7 @@
                             <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
+                            <th rowspan="2" class="align-middle">Qty<br>(Total / Check)</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
@@ -466,7 +466,7 @@
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
@@ -492,16 +492,16 @@
                                     }
                                 @endphp
 
-                                <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
+                                <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important; white-space: nowrap;">
                                     @if(count($pcsLines) > 0)
-                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: fixed;">
+                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: auto;">
                                             <tbody>
                                                 @foreach($pcsLines as $index => $qty)
                                                     <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
                                                         <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $qty }}</small>
                                                         </td>
-                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
+                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important; white-space: nowrap;" class="text-center">
                                                             <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
                                                         </td>
                                                     </tr>

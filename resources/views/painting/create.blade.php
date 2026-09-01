@@ -87,7 +87,7 @@
                                 <th rowspan="2" style="vertical-align: middle;">Item Part</th>
                                 <th rowspan="2" style="vertical-align: middle;" id="thLotId">Lot ID<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" style="vertical-align: middle;" id="thPainting">Painting<br>(Tgl / Shift / Lot)</th>
-                                <th colspan="2" style="vertical-align: middle;">Quality</th>
+                                <th style="vertical-align: middle;">Quality</th>
                                 <th rowspan="2" style="vertical-align: middle;">Total Qty (Lot)</th>
                                 <th rowspan="2" style="vertical-align: middle; min-width: 150px;">Jenis (OK/NG) &amp; Detail NG
                                 </th>
@@ -97,8 +97,7 @@
                                 <th rowspan="2" style="vertical-align: middle;">DESCRIPTION</th>
                             </tr>
                             <tr class="text-center">
-                                <th class="small py-1" style="vertical-align: middle;">Tanggal / Shift</th>
-                                <th class="small py-1" style="vertical-align: middle;">Meja</th>
+                                <th class="small py-1" style="vertical-align: middle;">Tanggal / Shift / Meja</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -111,7 +110,7 @@
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Silahkan Scan" autocomplete="off" value="">
+                                                placeholder="Masukkan Kode SAP" autocomplete="off" value="">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
@@ -148,14 +147,15 @@
                                 <!-- Lot ID (Injection) -->
                                 <td class="align-middle" id="tdLotId">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
-                                        name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" data-field-name="Tanggal Lot ID" data-scan-optional="1">
+                                        name="injection_date" id="injectionDateInput" value="" data-field-name="Tanggal Lot ID" data-scan-optional="1">
                                     <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" data-field-name="Shift Lot ID" data-scan-optional="1">
-                                        <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
-                                        <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
-                                        <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
+                                        <option value="" selected>Shift</option>
+                                        <option value="1">Shift 1</option>
+                                        <option value="2">Shift 2</option>
+                                        <option value="3">Shift 3</option>
                                     </select>
-                                    <input type="text" class="form-control form-control-sm text-center" name="injection_initials" id="injectionInitialsInput"
-                                        placeholder="Inisial" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" data-field-name="Inisial Lot ID" data-scan-optional="1">
+                                    <input type="text" class="form-control form-control-sm text-left font-weight-normal" name="injection_initials" id="injectionInitialsInput"
+                                        placeholder="Inisial" style="min-width: 80px; font-weight: normal !important;" data-field-name="Inisial Lot ID" data-scan-optional="1">
                                 </td>
 
                                 <!-- Painting -->
@@ -171,17 +171,15 @@
                                         placeholder="No Lot..." autocomplete="off" data-scan-optional="1">
                                 </td>
 
-                                <!-- Kualitas (Tanggal/Shift/Meja yang Ada) -->
+                                <!-- Kualitas (Tanggal / Shift / Meja) -->
                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 110px;"
                                         name="date" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm" name="shift" id="shiftInput" required>
+                                    <select class="form-control form-control-sm mb-1" name="shift" id="shiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
-                                </td>
-                                <td class="align-middle">
                                     <select name="line" id="lineSelect" class="form-control form-control-sm" style="min-width: 85px;"
                                         required>
                                         <option value="">Meja</option>
@@ -197,44 +195,31 @@
                                         name="total_qty" id="totalQty" placeholder="0" min="0" required>
                                 </td>
 
-                                <td class="align-middle" style="min-width: 240px;">
-                                    <label class="font-weight-bold text-dark d-block mb-1">Defect List (NG):</label>
-                                    <div id="defectContainer">
-                                        <div class="row no-gutters mb-2 defect-row align-items-center">
-                                            <div class="col-7 pr-1">
-                                                <select class="form-control defect-select font-weight-bold"
-                                                    name="defect_types[]" id="defectSelect">
-                                                    <option value="">-- Pilih Defect --</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-4 pr-1">
-                                                <input type="number" class="form-control defect-qty text-center font-weight-bold"
-                                                    name="defect_quantities[]" placeholder="Qty" min="1">
-                                            </div>
-                                            <div class="col-1 text-center"></div>
-                                        </div>
+                                <td class="align-middle" style="min-width: 280px;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="font-weight-bold text-dark mb-0">Defect List (NG):</label>
+                                        <button type="button" id="resetDefectsBtn" class="btn btn-xs btn-outline-danger" title="Reset Semua Defect" style="display: none;">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </button>
                                     </div>
-                                    <button type="button" id="addDefectBtn" class="btn btn-info mt-1"
-                                        style="display: none;">
-                                        <i class="fas fa-plus"></i> Tambah Jenis
-                                    </button>
+                                    <div id="defectContainer">
+                                        <span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>
+                                    </div>
                                 </td>
 
                                 <!-- Total OK / NG -->
-                                <td class="align-middle" style="min-width: 120px;">
-                                    <div class="d-flex align-items-center mb-1" style="gap:4px;">
+                                <td class="align-middle" style="min-width: 150px;">
+                                    <div class="d-flex align-items-center mb-2" style="gap:0;">
                                         <span class="ok-label">OK</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0; background:#f0fdf4;"
-                                            name="total_ok" value="0" min="0" required readonly>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ok" value="0" min="0" required readonly>
                                     </div>
-                                    <div class="d-flex align-items-center" style="gap:4px;">
+                                    <div class="d-flex align-items-center" style="gap:0;">
                                         <span class="ng-label">NG</span>
                                         <input type="number"
                                             class="form-control form-control-sm text-center flex-fill"
-                                            style="border-radius:0 4px 4px 0; background:#fef2f2;"
-                                            name="total_ng" id="totalNG" value="0" min="0" required readonly>
+                                            style="border-radius:0 4px 4px 0; font-size: 1.1rem; height: 38px;" name="total_ng" id="totalNG" value="0" min="0" required readonly>
                                     </div>
                                 </td>
 
@@ -592,10 +577,7 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.success) {
-                            if (data.injection_date) injectionDateInput.value = data.injection_date;
-                            if (data.injection_shift) injectionShiftInput.value = data.injection_shift;
-                            if (data.injection_initials && injectionInitialsInput) injectionInitialsInput.value = data.injection_initials;
-                            if (data.line) lineSelect.value = data.line;
+                            // Meja tidak otomatis terpilih
                         }
                     })
                     .catch(e => console.error('Error fetching last data:', e));

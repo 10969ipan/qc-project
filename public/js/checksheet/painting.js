@@ -817,8 +817,9 @@ class PaintingCreate {
     }
 
     handleQRScanned(decodedText) {
-        this.stopScanner();
-        $("#qrScannerModal").modal("hide");
+        if (this.isProcessingScan) return;
+        this.isProcessingScan = true;
+
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
                 this.playSuccessFeedback();
@@ -827,7 +828,11 @@ class PaintingCreate {
                 this.setScanMode(true);
                 setTimeout(() => {
                     $("#checksheetForm").submit();
-                }, 1200);
+                }, 800);
+            } else {
+                setTimeout(() => {
+                    this.isProcessingScan = false;
+                }, 2000);
             }
         });
     }
@@ -1076,33 +1081,9 @@ class PaintingCreate {
     initItemSelection() {
         $("#itemSelect").change(() => {
             const selected = $("#itemSelect option:selected");
-            const defectSelect = $("#defectSelect");
-            defectSelect.html('<option value="">-- Pilih Defect --</option>');
-
             let defectList = selected.data("defects") || selected.attr("data-defects");
-            if (typeof defectList === "string") {
-                try {
-                    defectList = JSON.parse(defectList);
-                } catch (e) {
-                    defectList = null;
-                }
-            }
-
-            if (Array.isArray(defectList) && defectList.length > 0) {
-                defectList.forEach((d) =>
-                    defectSelect.append(`<option value="${d}">${d}</option>`),
-                );
-            } else {
-                ["BARET", "SILVER", "FLOW", "FLASH", "KOTOR", "DENYUT"].forEach(
-                    (d) =>
-                        defectSelect.append(
-                            `<option value="${d}">${d}</option>`,
-                        ),
-                );
-            }
-
+            this.updateDefectDropdown(defectList);
             this.updatePdfViews(selected);
-            $("#addDefectBtn").show();
         });
     }
 
@@ -1525,40 +1506,153 @@ class PaintingCreate {
         });
     }
 
-    initDefectManagement() {
-        $("#addDefectBtn").click(() => {
-            const firstSelect = $("#defectSelect");
-            const clone = $(
-                '<div class="row no-gutters mb-2 defect-row align-items-center">' +
-                '<div class="col-7 pr-1">' +
-                '<select class="form-control defect-select font-weight-bold" name="defect_types[]">' +
-                firstSelect.html() +
-                "</select>" +
-                '</div>' +
-                '<div class="col-4 pr-1">' +
-                '<input type="number" class="form-control defect-qty text-center font-weight-bold" name="defect_quantities[]" placeholder="Qty" min="1">' +
-                '</div>' +
-                '<div class="col-1 text-center">' +
-                '<button type="button" class="btn btn-link text-danger p-0 btn-remove-row"><i class="fas fa-times-circle"></i></button>' +
-                '</div>' +
-                "</div>",
-            );
-            $("#defectContainer").append(clone);
-        });
+    updateDefectDropdown(defects) {
+        let defectsData = defects;
+        if (typeof defectsData === "string") {
+            try {
+                defectsData = JSON.parse(defectsData);
+            } catch (e) {
+                defectsData = [];
+            }
+        }
 
-        $(document).on("click", ".btn-remove-row", (e) => {
-            $(e.currentTarget).closest(".defect-row").remove();
+        const defaults = [
+            { v: "BARET", t: "BARET" },
+            { v: "SILVER", t: "SILVER" },
+            { v: "FLOW", t: "FLOW" },
+            { v: "FLASH", t: "FLASH" },
+            { v: "KOTOR", t: "KOTOR" },
+            { v: "DENYUT", t: "DENYUT" },
+        ];
+
+        this.defectItems = [];
+
+        if (Array.isArray(defectsData) && defectsData.length > 0) {
+            defectsData.forEach((d) => {
+                const name = typeof d === "object" ? (d.name || d.t || d.v) : d;
+                const key = typeof d === "object" ? (d.v || d.name) : d;
+                this.defectItems.push({ key: key, name: name, count: 0 });
+            });
+        } else {
+            defaults.forEach((d) => {
+                this.defectItems.push({ key: d.v, name: d.t, count: 0 });
+            });
+        }
+
+        this.renderDefectButtons();
+        this.calculateTotalNG();
+    }
+
+    renderDefectButtons() {
+        if (!this.defectItems) return;
+        const sorted = [...this.defectItems].sort((a, b) => b.count - a.count);
+
+        const $container = $("#defectContainer");
+        $container.empty();
+
+        if (sorted.length === 0) {
+            $container.html('<span class="text-muted small">Pilih Item Part untuk memuat daftar defect</span>');
+            return;
+        }
+
+        let html = '<div class="d-flex flex-wrap align-items-center" style="gap: 6px;">';
+        let totalNgCount = 0;
+
+        sorted.forEach((item) => {
+            totalNgCount += item.count;
+            const hasCount = item.count > 0;
+            const btnClass = hasCount ? 'btn-danger shadow-sm' : 'btn-outline-secondary';
+            const badgeClass = hasCount ? 'badge-light text-danger font-weight-bold' : 'badge-secondary';
+
+            html += `
+                <div class="defect-btn-wrapper d-inline-flex align-items-center mb-1">
+                    <button type="button" class="btn btn-sm ${btnClass} defect-btn-click py-1 px-2" data-key="${item.key}">
+                        <span>${item.name}</span>
+                        <span class="badge ${badgeClass} ml-1" style="font-size: 0.85rem;">${item.count}</span>
+                    </button>
+                    ${hasCount ? `
+                        <button type="button" class="btn btn-sm btn-outline-danger defect-btn-minus py-1 px-2 ml-1" data-key="${item.key}" title="Kurangi 1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += '<div id="defectHiddenInputs"></div>';
+
+        $container.html(html);
+
+        if (totalNgCount > 0) {
+            $("#resetDefectsBtn").show();
+        } else {
+            $("#resetDefectsBtn").hide();
+        }
+
+        this.updateHiddenDefectInputs(sorted);
+    }
+
+    updateHiddenDefectInputs(sortedDefects) {
+        const $hiddenContainer = $("#defectHiddenInputs");
+        $hiddenContainer.empty();
+
+        sortedDefects.forEach((item) => {
+            if (item.count > 0) {
+                $hiddenContainer.append(
+                    `<input type="hidden" name="defect_types[]" value="${item.name}">` +
+                    `<input type="hidden" name="defect_quantities[]" value="${item.count}">`
+                );
+            }
+        });
+    }
+
+    handleDefectClick(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item) {
+            item.count++;
+            this.renderDefectButtons();
             this.calculateTotalNG();
-        });
+        }
+    }
 
-        $(document).on("input", ".defect-qty", () => this.calculateTotalNG());
+    handleDefectMinus(e) {
+        e.preventDefault();
+        const key = $(e.currentTarget).data("key");
+        const item = this.defectItems ? this.defectItems.find((d) => d.key === key || d.name === key) : null;
+        if (item && item.count > 0) {
+            item.count--;
+            this.renderDefectButtons();
+            this.calculateTotalNG();
+        }
+    }
+
+    resetAllDefects() {
+        if (this.defectItems) {
+            this.defectItems.forEach((d) => (d.count = 0));
+        }
+        this.renderDefectButtons();
+        this.calculateTotalNG();
+    }
+
+    initDefectManagement() {
+        $(document).on("click", ".defect-btn-click", (e) => this.handleDefectClick(e));
+        $(document).on("click", ".defect-btn-minus", (e) => this.handleDefectMinus(e));
+        $(document).on("click", "#resetDefectsBtn", () => this.resetAllDefects());
     }
 
     calculateTotalNG() {
         let total = 0;
-        $(".defect-qty").each(function () {
-            total += parseInt($(this).val()) || 0;
-        });
+        if (this.defectItems && this.defectItems.length > 0) {
+            this.defectItems.forEach((d) => {
+                total += (parseInt(d.count) || 0);
+            });
+        } else {
+            $(".defect-qty").each(function () {
+                total += parseInt($(this).val()) || 0;
+            });
+        }
         $("#totalNG").val(total).trigger("input");
     }
 
@@ -1728,6 +1822,31 @@ class PaintingCreate {
                 return false;
             }
 
+            // 1b. Validasi: Lot ID (Injection) jika tidak dalam mode scan
+            const isScanned = $("#isScannedInput").val() === "1";
+            if (!isScanned) {
+                const injDate = $("#injectionDateInput").val();
+                const injShift = $("#injectionShiftInput").val();
+                const injInitials = $("#injectionInitialsInput").val();
+
+                if (!injDate || !injShift || !injInitials) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Lot ID Belum Lengkap",
+                        text: "Silahkan isi Tanggal, Shift, dan Inisial Lot ID terlebih dahulu.",
+                        confirmButtonText: "Perbaiki Input",
+                        confirmButtonColor: "#e74a3b"
+                    });
+                    if (!injDate) $("#injectionDateInput").addClass("is-invalid").focus();
+                    else if (!injShift) $("#injectionShiftInput").addClass("is-invalid").focus();
+                    else if (!injInitials) $("#injectionInitialsInput").addClass("is-invalid").focus();
+                    setTimeout(() => {
+                        $("#injectionDateInput, #injectionShiftInput, #injectionInitialsInput").removeClass("is-invalid");
+                    }, 3000);
+                    return false;
+                }
+            }
+
             // 2. Validasi: Meja harus dipilih
             if (!line) {
                 Swal.fire({
@@ -1763,64 +1882,16 @@ class PaintingCreate {
 
             // 4. Validasi: Pilihan Defect (NG)
             const ngCount = parseInt($('input[name="total_ng"]').val()) || 0;
-            const hasAnyNgInput = $(".defect-qty").toArray().some(input => (parseInt($(input).val()) || 0) > 0);
+            const hasAnyDefectSelected = (this.defectItems && this.defectItems.some(item => item.count > 0)) ||
+                $('input[name="defect_quantities[]"]').toArray().some(input => (parseInt($(input).val()) || 0) > 0);
 
-            if (judgment === "NG" || ngCount > 0 || hasAnyNgInput) {
-                let defectMissing = false;
-                let hasAtLeastOneValidDefect = false;
-
-                $(".defect-row").each(function () {
-                    const type = $(this).find(".defect-select").val();
-                    const qty = parseInt($(this).find(".defect-qty").val()) || 0;
-
-                    if (qty > 0) {
-                        if (!type) {
-                            defectMissing = true;
-                            $(this).find(".defect-select").addClass("is-invalid");
-                        } else {
-                            hasAtLeastOneValidDefect = true;
-                        }
-                    }
+            if ((judgment === "NG" || ngCount > 0) && !hasAnyDefectSelected) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Defect Belum Dipilih",
+                    text: "Silahkan klik tombol jenis defect yang terjadi."
                 });
-
-                if ((judgment === "NG" || ngCount > 0) && !hasAtLeastOneValidDefect) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Defect Belum Dipilih",
-                    });
-                    return false;
-                }
-
-                if (defectMissing) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Jenis Defect Belum Dipilih",
-                    });
-                    return false;
-                }
-
-                // 8. Validasi: Qty Defect Dimensi Wajib Diisi (jika terpilih)
-                let dimensionDefectSelected = false;
-                let dimensionQtyEmpty = false;
-                $(".defect-select").each(function () {
-                    const text = $(this).find("option:selected").text().toLowerCase();
-                    if ($(this).val() === "dimension" || text === "dimensi") {
-                        dimensionDefectSelected = true;
-                        const qtyInput = $(this).closest(".defect-row").find(".defect-qty");
-                        if (!qtyInput.val() || parseInt(qtyInput.val()) <= 0) {
-                            dimensionQtyEmpty = true;
-                            qtyInput.addClass("is-invalid");
-                        } else qtyInput.removeClass("is-invalid");
-                    }
-                });
-
-                if (dimensionDefectSelected && dimensionQtyEmpty) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Qty Defect Dimensi Wajib Diisi",
-                    });
-                    return false;
-                }
+                return false;
             }
 
             // 4. Validasi: NG harus pilih Next Proses
@@ -1881,20 +1952,39 @@ class PaintingCreate {
                 contentType: false,
                 success: (res) => {
                     if (res.success) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Berhasil",
-                            text: "Data Berhasil Disimpan",
-                            showCancelButton: true,
-                            confirmButtonText: "Lihat Data",
-                        }).then((result) => {
-                            if (result.isConfirmed)
-                                window.location.href = res.index_url;
-                            else this.resetState();
-                        });
+                        const isModalOpen = $("#qrScannerModal").is(":visible");
+                        if (isModalOpen) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Data Berhasil Disimpan",
+                                text: "Silahkan scan QR berikutnya...",
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            this.resetState();
+                            this.setScanMode(true);
+                            setTimeout(() => {
+                                this.isProcessingScan = false;
+                            }, 1500);
+                        } else {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Berhasil",
+                                text: "Data Berhasil Disimpan",
+                                showCancelButton: true,
+                                confirmButtonText: "Lihat Data",
+                            }).then((result) => {
+                                if (result.isConfirmed)
+                                    window.location.href = res.index_url;
+                                else this.resetState();
+                            });
+                        }
                     }
                 },
                 error: (xhr) => {
+                    this.isProcessingScan = false;
                     Swal.fire({
                         icon: "error",
                         title: "Error",
@@ -1918,7 +2008,12 @@ class PaintingCreate {
             .prop("disabled", false)
             .html('<i class="fas fa-play"></i> Start');
 
-        this.lockInputs(true);
+        const isModalOpen = $("#qrScannerModal").is(":visible");
+        if (!isModalOpen) {
+            this.lockInputs(true);
+        } else {
+            this.lockInputs(false);
+        }
         $("#checksheetForm")[0].reset();
         $("#defectContainer").find(".defect-row").not(":first").remove();
         $("#imageContainer").html(

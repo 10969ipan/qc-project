@@ -77,7 +77,13 @@ class PaintingChecksheetService extends BaseService
         }
 
         if (!empty($filters['qr_raw'])) {
-            $query->where('painting_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+            $qr = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qr) {
+                $q->where('painting_checksheets.qrcode', $qr)
+                  ->orWhere('painting_checksheets.unique_code_id', $qr)
+                  ->orWhere('painting_checksheets.sap_code', $qr)
+                  ->orWhere('painting_checksheets.qrcode', 'like', "%{$qr}%");
+            });
         }
 
         if (!empty($filters['entry_method'])) {
@@ -139,6 +145,9 @@ class PaintingChecksheetService extends BaseService
             ]);
 
             DB::commit();
+
+            // Clear filter cache so dropdown options refresh immediately
+            \Illuminate\Support\Facades\Cache::forget("painting_filter_init_{$checksheet->plant_id}");
 
             Log::info('Checksheet Painting berhasil dibuat', [
                 'user_id' => auth()->id(),

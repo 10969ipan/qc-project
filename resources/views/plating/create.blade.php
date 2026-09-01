@@ -87,7 +87,7 @@
                                 <th rowspan="2" style="vertical-align: middle;">Item Part</th>
                                 <th rowspan="2" style="vertical-align: middle;" id="thInjection">Injection<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" style="vertical-align: middle;" id="thPlating">Plating<br>(Tgl / Shift / Lot)</th>
-                                <th colspan="2" style="vertical-align: middle;">Quality</th>
+                                <th style="vertical-align: middle;">Quality</th>
                                 <th rowspan="2" style="vertical-align: middle;">Total Qty (Lot)</th>
                                 <th rowspan="2" style="vertical-align: middle; min-width: 150px;">Jenis (OK/NG) &amp; Detail NG
                                 </th>
@@ -97,8 +97,7 @@
                                 <th rowspan="2" style="vertical-align: middle;">DESCRIPTION</th>
                             </tr>
                             <tr class="text-center">
-                                <th class="small py-1" style="vertical-align: middle;">Tanggal / Shift</th>
-                                <th class="small py-1" style="vertical-align: middle;">Meja</th>
+                                <th class="small py-1" style="vertical-align: middle;">Tanggal / Shift / Meja</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -154,9 +153,8 @@
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
-                                    <input type="text" class="form-control form-control-sm text-center" name="injection_initials" id="injectionInitialsInput"
-                                        style="min-width: 80px; text-transform: uppercase;"
-                                        oninput="this.value = this.value.toUpperCase()" placeholder="Inisial" data-scan-optional="1">
+                                    <input type="text" class="form-control form-control-sm text-left font-weight-normal" name="injection_initials" id="injectionInitialsInput"
+                                        style="min-width: 80px; font-weight: normal !important;" placeholder="Inisial" data-scan-optional="1">
                                 </td>
 
                                 <!-- Plating -->
@@ -172,17 +170,15 @@
                                         placeholder="No Lot..." autocomplete="off" data-scan-optional="1">
                                 </td>
 
-                                <!-- Kualitas (Tanggal/Shift/Meja yang Ada) -->
+                                <!-- Kualitas (Tanggal / Shift / Meja) -->
                                 <td class="align-middle">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 110px;"
                                         name="date" value="{{ $defaultDate }}" required>
-                                    <select class="form-control form-control-sm" name="shift" id="shiftInput" required>
+                                    <select class="form-control form-control-sm mb-1" name="shift" id="shiftInput" required>
                                         <option value="1" {{ $defaultShift == 1 ? 'selected' : '' }}>Shift 1</option>
                                         <option value="2" {{ $defaultShift == 2 ? 'selected' : '' }}>Shift 2</option>
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
-                                </td>
-                                <td class="align-middle">
                                     <select name="line" id="lineSelect" class="form-control form-control-sm" style="min-width: 85px;"
                                         required>
                                         <option value="">Meja</option>
@@ -583,7 +579,7 @@
                             if (data.injection_date) injectionDateInput.value = data.injection_date;
                             if (data.injection_shift) injectionShiftInput.value = data.injection_shift;
                             if (data.injection_initials && injectionInitialsInput) injectionInitialsInput.value = data.injection_initials;
-                            if (data.line) lineSelect.value = data.line;
+                            // Meja tidak otomatis terpilih
                         }
                     })
                     .catch(e => console.error('Error fetching last data:', e));

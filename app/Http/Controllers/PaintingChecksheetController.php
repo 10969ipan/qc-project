@@ -113,19 +113,28 @@ class PaintingChecksheetController extends Controller
         
         $plantId = \App\Models\Plant::resolveId($plantCode);
         
-        $items = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('painting_checksheets')->where('plant_id', $plantId);
-        })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("painting_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
-        $customers = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('painting_checksheets')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("painting_filter_cust_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)
+                ->whereNotNull('customer')
+                ->where('customer', '!=', '')
+                ->distinct()
+                ->pluck('customer')
+                ->sort();
+        });
 
-        $initials = PaintingChecksheet::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials')
-            ->distinct()
-            ->pluck('operator_initials')
-            ->sort();
+        $initials = \Illuminate\Support\Facades\Cache::remember("painting_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return PaintingChecksheet::where('plant_id', $plantId)
+                ->where('date', '>=', now()->subDays(90))
+                ->whereNotNull('operator_initials')
+                ->where('operator_initials', '!=', '')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort();
+        });
 
         $canExport = \App\Helpers\AppMenu::checkPermission('painting.index', 'export');
         $canEdit = \App\Helpers\AppMenu::checkPermission('painting.index', 'edit');

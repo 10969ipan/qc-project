@@ -815,8 +815,9 @@ class PlatingCreate {
     }
 
     handleQRScanned(decodedText) {
-        this.stopScanner();
-        $("#qrScannerModal").modal("hide");
+        if (this.isProcessingScan) return;
+        this.isProcessingScan = true;
+
         this.parseAndFillQR(decodedText, (success) => {
             if (success) {
                 this.playSuccessFeedback();
@@ -825,7 +826,11 @@ class PlatingCreate {
                 this.setScanMode(true);
                 setTimeout(() => {
                     $("#checksheetForm").submit();
-                }, 1200);
+                }, 800);
+            } else {
+                setTimeout(() => {
+                    this.isProcessingScan = false;
+                }, 2000);
             }
         });
     }
@@ -1816,6 +1821,31 @@ class PlatingCreate {
                 return false;
             }
 
+            // 1b. Validasi: Lot ID (Injection) jika tidak dalam mode scan
+            const isScanned = $("#isScannedInput").val() === "1";
+            if (!isScanned) {
+                const injDate = $("#injectionDateInput").val();
+                const injShift = $("#injectionShiftInput").val();
+                const injInitials = $("#injectionInitialsInput").val();
+
+                if (!injDate || !injShift || !injInitials) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Lot ID Belum Lengkap",
+                        text: "Silahkan isi Tanggal, Shift, dan Inisial Lot ID terlebih dahulu.",
+                        confirmButtonText: "Perbaiki Input",
+                        confirmButtonColor: "#e74a3b"
+                    });
+                    if (!injDate) $("#injectionDateInput").addClass("is-invalid").focus();
+                    else if (!injShift) $("#injectionShiftInput").addClass("is-invalid").focus();
+                    else if (!injInitials) $("#injectionInitialsInput").addClass("is-invalid").focus();
+                    setTimeout(() => {
+                        $("#injectionDateInput, #injectionShiftInput, #injectionInitialsInput").removeClass("is-invalid");
+                    }, 3000);
+                    return false;
+                }
+            }
+
             // 2. Validasi: Meja harus dipilih
             if (!line) {
                 Swal.fire({
@@ -1921,20 +1951,39 @@ class PlatingCreate {
                 contentType: false,
                 success: (res) => {
                     if (res.success) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Berhasil",
-                            text: "Data Berhasil Disimpan",
-                            showCancelButton: true,
-                            confirmButtonText: "Lihat Data",
-                        }).then((result) => {
-                            if (result.isConfirmed)
-                                window.location.href = res.index_url;
-                            else _this.resetState();
-                        });
+                        const isModalOpen = $("#qrScannerModal").is(":visible");
+                        if (isModalOpen) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Data Berhasil Disimpan",
+                                text: "Silahkan scan QR berikutnya...",
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            _this.resetState();
+                            _this.setScanMode(true);
+                            setTimeout(() => {
+                                _this.isProcessingScan = false;
+                            }, 1500);
+                        } else {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Berhasil",
+                                text: "Data Berhasil Disimpan",
+                                showCancelButton: true,
+                                confirmButtonText: "Lihat Data",
+                            }).then((result) => {
+                                if (result.isConfirmed)
+                                    window.location.href = res.index_url;
+                                else _this.resetState();
+                            });
+                        }
                     }
                 },
                 error: (xhr) => {
+                    _this.isProcessingScan = false;
                     Swal.fire({
                         icon: "error",
                         title: "Error",
@@ -1958,7 +2007,12 @@ class PlatingCreate {
             .prop("disabled", false)
             .html('<i class="fas fa-play"></i> Start');
 
-        this.lockInputs(true);
+        const isModalOpen = $("#qrScannerModal").is(":visible");
+        if (!isModalOpen) {
+            this.lockInputs(true);
+        } else {
+            this.lockInputs(false);
+        }
         $("#checksheetForm")[0].reset();
         this.resetAllDefects();
         $("#imageContainer").html(
