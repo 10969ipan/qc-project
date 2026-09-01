@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FirstPieceApproval extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'first_piece_approvals';
 

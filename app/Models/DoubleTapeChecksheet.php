@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DoubleTapeChecksheet extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'double_tape_checksheets';
 

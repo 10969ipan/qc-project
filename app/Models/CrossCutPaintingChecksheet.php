@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CrossCutPaintingChecksheet extends Model
 {
-    use HasFactory, \App\Traits\HasPlantFilter, \App\Traits\HasDeleteNotification;
+    use HasFactory, \App\Traits\HasPlantFilter;
 
     protected $table = 'cross_cut_painting_checksheets';
 
