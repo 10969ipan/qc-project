@@ -570,12 +570,36 @@ class PaintingCreate {
         this.initQRScanner();
         this.initFormSubmit();
         this.initHardwareScanner();
+        this.initPersistentFields();
 
         // Inisialisasi mode berdasarkan input tersembunyi is_scanned (default: manual mode)
         this.setScanMode(false);
 
         // Inisialisasi awal untuk logic kalkulasi & judgment
         this.updateJudgment();
+    }
+
+    initPersistentFields() {
+        const _this = this;
+        $(document).on("change", 'select[name="line"], #lineSelect', function () {
+            const val = $(this).val();
+            if (val) {
+                _this.selectedLine = val;
+                try { localStorage.setItem("qc_last_line_painting", val); } catch (e) {}
+            }
+        });
+        this.restorePersistentFields();
+    }
+
+    restorePersistentFields() {
+        const $line = $('select[name="line"], #lineSelect');
+        const savedLine = this.selectedLine || (function() {
+            try { return localStorage.getItem("qc_last_line_painting"); } catch (e) { return null; }
+        })();
+        if (savedLine && $line.length) {
+            $line.val(savedLine);
+            this.selectedLine = savedLine;
+        }
     }
 
     /**
@@ -2057,6 +2081,7 @@ class PaintingCreate {
             this.lockInputs(false);
         }
         $("#checksheetForm")[0].reset();
+        this.restorePersistentFields();
         $("#defectContainer").find(".defect-row").not(":first").remove();
         $("#imageContainer").html(
             '<div style="width:100px; height:100px; background-color:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; margin:0 auto;"><i class="fas fa-image fa-2x text-gray-300"></i></div>',

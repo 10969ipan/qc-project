@@ -2116,18 +2116,39 @@ class SubAssyCreate {
         });
     }
 
+    initLinePersistence() {
+        const _this = this;
+        $(document).on("change", "#line", function () {
+            const val = $(this).val();
+            if (val) {
+                _this.selectedLine = val;
+                try { localStorage.setItem("last_subassy_line_selection", val); } catch (e) {}
+            }
+        });
+        $(document).on("change", "#shiftSelect", function () {
+            const val = $(this).val();
+            if (val) {
+                try { localStorage.setItem("last_subassy_shift_selection", val); } catch (e) {}
+            }
+        });
+        this.restorePersistentFields();
+    }
+
     restorePersistentFields() {
         const fields = [
             { id: "line", key: "last_subassy_line_selection" },
             { id: "shiftSelect", key: "last_subassy_shift_selection" }
         ];
         fields.forEach(field => {
-            const $el = field.id
-                ? $("#" + field.id)
-                : $(`input[name="${field.name}"], select[name="${field.name}"]`);
+            const $el = $("#" + field.id);
             if (!$el.length) return;
-            const savedVal = localStorage.getItem(field.key);
-            if (savedVal) $el.val(savedVal).trigger("change");
+            const savedVal = (field.id === "line" && this.selectedLine) || (function() {
+                try { return localStorage.getItem(field.key); } catch (e) { return null; }
+            })();
+            if (savedVal) {
+                $el.val(savedVal);
+                if (field.id === "line") this.selectedLine = savedVal;
+            }
         });
     }
 
