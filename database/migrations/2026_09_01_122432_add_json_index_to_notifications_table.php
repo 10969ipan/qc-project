@@ -28,13 +28,6 @@ return new class extends Migration
             ALTER TABLE notifications
             ADD INDEX idx_notif_checksheet_lookup (type, notif_checksheet_id, notif_checksheet_type)
         ");
-
-        // 3. Bersihkan notifikasi lama (>90 hari) yang sudah tidak relevan
-        // untuk menjaga performa tabel jangka panjang
-        DB::statement("
-            DELETE FROM notifications
-            WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY)
-        ");
     }
 
     public function down(): void
