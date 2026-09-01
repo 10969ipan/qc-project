@@ -13,7 +13,7 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         // Release session lock immediately for read-only AJAX endpoint to prevent request blocking / 11s pending
-        if (session()->status() === PHP_SESSION_ACTIVE) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
 
