@@ -18,6 +18,12 @@
     <link href="{{ asset('startbootstrap-sb-admin-2-gh-pages/css/sb-admin-2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/custom-responsive.css') }}" rel="stylesheet">
 
+    <!-- Prefetch Dashboard Assets & Route saat user mengetik kredensial login -->
+    <link rel="prefetch" href="{{ route('dashboard') }}" as="document">
+    <link rel="prefetch" href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/jquery/jquery.min.js') }}" as="script">
+    <link rel="prefetch" href="{{ asset('startbootstrap-sb-admin-2-gh-pages/vendor/bootstrap/js/bootstrap.bundle.min.js') }}" as="script">
+    <link rel="prefetch" href="{{ asset('startbootstrap-sb-admin-2-gh-pages/js/sb-admin-2.min.js') }}" as="script">
+
     <style>
         * {
             margin: 0;

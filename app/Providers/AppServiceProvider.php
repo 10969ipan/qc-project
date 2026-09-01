@@ -58,10 +58,11 @@ class AppServiceProvider extends ServiceProvider
                 $role   = auth()->user()->role;
                 $userId = auth()->id();
 
-                // Cache key per user – invalidate when permissions change (10 menit)
-                $cacheKey = "topbar_menus_{$userId}_{$role}";
+                // Cache key per role (24 jam) – jika user tidak memiliki custom permission individual
+                $hasCustomPerms = \App\Models\UserPermission::where('user_id', $userId)->exists();
+                $cacheKey = $hasCustomPerms ? "topbar_menus_user_{$userId}_{$role}" : "topbar_menus_role_{$role}";
 
-                $menus = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(10), function () use ($role, $userId) {
+                $menus = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(24), function () use ($role, $userId) {
                     // Admin bypasses all permission checks
                     if ($role === 'admin') {
                         return \App\Models\AppMenu::whereNull('parent_id')
