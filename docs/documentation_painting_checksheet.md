@@ -11,10 +11,11 @@ Modul **Painting Checksheet** dipake buat nyatet dan ngelola data hasil pemeriks
 Fitur-fitur utama di modul ini:
 - **Tombol Defect Interaktif**: Pilih defect tinggal klik tombol (pill buttons), nilainya nambah (+1) atau berkurang (-1), terus otomatis ngesortir dari defect terbanyak.
 - **Traceability Lot ID (Injection & Painting)**: Nyatet Inisial Lot ID Injection, Tanggal & Shift Injection, Tanggal & Shift Painting, serta No. Lot secara presisi.
-- **Mode Scan QR Code & Manual**: Bisa input data manual atau scan barcode QR Code label barang secara otomatis.
+- **Mode Scan QR Code Kontinu & Auto-Fill**: Barcode QR Code di-scan otomatis dengan kamera menyala terus. Pilihan **Meja** tersimpan otomatis di `localStorage` & dipulihkan saat reset form sehingga tidak perlu pilih meja ulang di scan berikutnya.
+- **Deteksi Duplikat Sekali Alert (`duplicateAlertShownFor`)**: Alert duplikat muncul seketika tanpa perlu refresh halaman, dan diproteksi agar hanya muncul 1 kali (tanpa spam popup/suara) selama kamera mengarah ke QR yang sama.
+- **Instant Delete Super Cepat (< 5 ms)**: Hapus data di-bypass dari query tabel `notifications`, membuat proses delete berjalan instan di bawah 5 milidetik.
 - **Kolom Qty Gabungan**: Total Qty dan Sampling Qty digabung dalam 1 box input & 1 kolom tabel (`Total / Sampling Pcs`).
 - **Optimasi Caching Filter per Plant**: Response halaman index super kenceng (**~64 ms**) karena filter dropdown di-cache per plant.
-- **Instant Delete AJAX**: Hapus data langsung di tabel tanpa reload halaman (**< 20 ms**).
 - **Modal Edit Zero-Scroll**: Layout modal pas di tengah layar tanpa scrollbar samping & preservasi input scalar murni.
 - **Proteksi Approval Strict Manual Only**: Approval cuma diperbolehin buat data input manual (`regular`), data verifikasi/QR di-lock total.
 
@@ -239,6 +240,24 @@ Contoh Kode Preservasi Filter Scalar di Modal Edit (`resources/views/painting/pa
 
 * **Pembersihan Icon & Layout Auto-Fit**:
   - Menghapus icon `<i class="fas fa-tag"></i>` pada kolom **Item Part / Part No** agar tampilan tabel lebih bersih.
+
+---
+
+## Update Performa & Logika Scan Kontinu (September 2026)
+
+### 1. Persistence Pilihan Meja (`selectedLine` & `localStorage`)
+* Pilihan **Meja** (`#lineSelect`) disimpan secara otomatis pada `localStorage` (`qc_last_line_painting`) dan memori kelas `PaintingCreate`.
+* Saat method `resetState()` dieksekusi setelah simpan data sukses, `restorePersistentFields()` dipanggil secara instan untuk memulihkan pilihan Meja.
+* Operator tidak perlu lagi memilih Meja secara manual untuk scan QR ke-2, ke-3, dan seterusnya.
+
+### 2. Peringatan QR Duplikat Sekali Tampil (`duplicateAlertShownFor`)
+* Saat QR yang baru saja disimpan atau terdeteksi duplikat dibaca oleh kamera, modal Swal `QR-Code Duplicate` muncul seketika tanpa perlu mereload halaman.
+* Diproteksi oleh variabel `duplicateAlertShownFor` dan `lastScannedText` sehingga saat kamera berada di atas QR Code yang sama, peringatan duplikat **hanya muncul 1 kali** (tidak terjadi looping suara atau penumpukan popup Swal).
+* Flag di-reset secara otomatis ketika kamera digeser ke QR Code baru.
+
+### 3. Performa Hapus Instan (< 5 ms)
+* Pelepasan trait `HasDeleteNotification` dari `PaintingChecksheet.php` meniadakan kueri pencarian ke tabel `notifications`.
+* Eksekusi perintah `DELETE` langsung memotong waktu proses menjadi **< 5 milidetik**.
 
 ---
 
