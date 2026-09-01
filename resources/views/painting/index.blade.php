@@ -349,15 +349,13 @@
                             <th rowspan="2" class="align-middle" style="width: 50px;">No</th>
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
-                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift)</th>
-                                <th rowspan="2" class="align-middle">Jam</th>
+                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
                             @else
                                 <th rowspan="2" class="bg-light align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="bg-light align-middle">Painting<br>(Tgl / Shift / Lot)</th>
-                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift)</th>
-                                <th rowspan="2" class="align-middle">Jam (Before)</th>
-                                <th rowspan="2" class="align-middle">Jam (After)</th>
-                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
                             @endif
                             <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
@@ -367,10 +365,9 @@
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
                             <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
 
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="2" class="align-middle">Approval Status</th>
+                                <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
@@ -378,11 +375,13 @@
                             @endif
                         </tr>
                         <tr class="text-center">
-                            <th style="width: 60px; min-width: 60px;">Pcs</th>
-                            <th style="min-width: 150px;">Jenis NG</th>
+                            <th style="width: 50px; min-width: 40px; white-space: nowrap;">Pcs</th>
+                            <th style="white-space: nowrap;">Jenis NG</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
@@ -443,10 +442,16 @@
                                         <span class="badge badge-light text-muted small"><i class="fas fa-lock mr-1"></i> No Access</span>
                                         @endif
                                     </td>
+                                    @php
+                                        $sec = (int) ($checksheet->cycle_time ?? 0);
+                                        $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                    @endphp
                                     <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
+                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
-                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                    </td>
                                 @else
                                     <td class="align-middle text-nowrap">
                                         {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
@@ -455,13 +460,15 @@
                                         {{ $checksheet->painting_date ? $checksheet->painting_date->format('d-m-Y') : '-' }} / {{ $checksheet->painting_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
                                     </td>
                                     <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }}
+                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
-                                    <td class="align-middle">
-                                        {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                    @php
+                                        $sec = (int) ($checksheet->cycle_time ?? 0);
+                                        $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                    @endphp
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                     </td>
-                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
-                                    <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 @endif
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
@@ -523,7 +530,6 @@
                                         <span class="text-muted font-weight-bold">-</span>
                                     @endif
                                 </td>
-                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 @if(request('view_mode') !== 'verifikasi')
                                 {{-- Kashift QC --}}
@@ -575,6 +581,64 @@
                                             <div>oleh {{ $checksheet->supervisor_qc }}</div>
                                             @if($checksheet->supervisor_approved_at)
                                                 <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Asst Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    @if($checksheet->asst_manager_qc === 'REJECTED')
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->asst_manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @elseif($checksheet->asst_manager_qc)
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->asst_manager_qc }}</div>
+                                            @if($checksheet->asst_manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    @if($checksheet->manager_qc === 'REJECTED')
+                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                            @if($checksheet->manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
+                                            @endif
+                                        </div>
+                                    @elseif($checksheet->manager_qc)
+                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                        </span>
+                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                            <div>oleh {{ $checksheet->manager_qc }}</div>
+                                            @if($checksheet->manager_approved_at)
+                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
                                             @endif
                                         </div>
                                     @else

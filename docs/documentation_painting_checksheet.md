@@ -224,26 +224,21 @@ Contoh Kode Preservasi Filter Scalar di Modal Edit (`resources/views/painting/pa
 
 ### 2. Tabel Index Painting (`resources/views/painting/index.blade.php`)
 
-* **Standardisasi Header Tabel**:
-  - Mengubah label header dari `Quality (Tgl / Shift)` menjadi **`Checked (Tgl / Shift)`** untuk membedakan antara tanggal pemeriksaan QC dan tanggal lot produksi.
-  - Mengubah label `Total Qty` menjadi **`Qty (Total / Check)`**.
+* **Standardisasi Header & Kolom Tabel Index**:
+  - **Checked (Tgl / Shift / Inisial)**: Menyatukan tanggal, shift, dan inisial QC (`operator_initials`) dalam satu kolom `Checked (Tgl / Shift / Inisial)` serta menghapus kolom `Inisial` terpisah.
+  - **Waktu Check (Start - Finish / Cycle Time)**: Menyatukan jam sebelum, jam sesudah, dan lama pengerjaan (cycle time) dalam satu kolom terpadu `Waktu Check (Start - Finish / Cycle Time)` (contoh: `08:00 - 08:05 / 300s`).
+  - **Auto-Fit Layout Detail NG**: Sub-tabel `Detail NG` merender rincian jumlah pcs dan jenis NG secara otomatis dengan `table-layout: auto` dan `white-space: nowrap;` agar nama defect tidak terpotong.
+  - **Approval Status (4 Level)**: Menampilkan 4 kolom approval secara lengkap: `Kashift QC` / `Kepala Regu`, `Supervisor QC`, `Asst Manager QC`, dan `Manager QC` beserta lencana status (`APPROVED` / `PENDING` / `REJECTED`) dan timestamp persetujuan.
 
   ```html
-  <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift)</th>
-  <th rowspan="2" class="align-middle">Qty<br>(Total / Check)</th>
+  <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+  <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
+  <th colspan="2" class="align-middle">Detail NG</th>
+  <th colspan="4" class="align-middle">Approval Status</th>
   ```
 
-* **Pembersihan Icon & Auto-Fit Layout Detail NG**:
+* **Pembersihan Icon & Layout Auto-Fit**:
   - Menghapus icon `<i class="fas fa-tag"></i>` pada kolom **Item Part / Part No** agar tampilan tabel lebih bersih.
-  - Mengubah `table-layout: fixed` menjadi `table-layout: auto` dan menambahkan `white-space: nowrap;` pada container **Detail NG** (`pcsLines` & `nameLines`) agar rincian nama defect tidak terpotong (wrapping).
-
-  ```html
-  <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important; white-space: nowrap;">
-      <table style="width: 100% !important; border-collapse: collapse !important; border: none !important; table-layout: auto;">
-  ```
-
-* **Dynamic Permission Handling**:
-  - Pengecekan izin fitur `export`, `edit`, dan `delete` yang terintegrasi dengan `AppMenu` dan Role `admin`.
 
 ---
 
