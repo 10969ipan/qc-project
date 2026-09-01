@@ -549,10 +549,9 @@ class PlatingCreate {
         this.pdfCache = {};
         this.qrScanner = null;
         this.isProcessingScan = false;
-        // Track QR terakhir yang berhasil disimpan untuk deteksi duplikat langsung
         this.lastSavedQR = null;
-        this.postSaveCooldown = false;
-        this.postSaveCooldownTimer = null;
+        this.lastScannedText = null;
+        this.duplicateAlertShownFor = null;
         this.init();
     }
 
@@ -844,23 +843,20 @@ class PlatingCreate {
     }
 
     handleQRScanned(decodedText) {
-        if (this.isProcessingScan) return;
+        if (!decodedText) return;
 
-        // Cek apakah QR ini sama dengan yang baru saja disimpan (cooldown post-save)
-        if (this.postSaveCooldown && this.lastSavedQR === decodedText) {
-            window.playAppAudio('duplicate_saved');
-            Swal.fire({
-                icon: "warning",
-                title: "QR Sama Terdeteksi",
-                text: "QR ini baru saja disimpan. Silahkan scan QR berikutnya.",
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 2500,
-            });
+        // Reset flag alert duplikat jika kamera berpindah ke QR yang berbeda
+        if (this.lastScannedText !== decodedText) {
+            this.lastScannedText = decodedText;
+            this.duplicateAlertShownFor = null;
+        }
+
+        // Jika alert duplikat sudah pernah ditampilkan untuk QR ini, jangan tampilkan lagi (cegah spam alert)
+        if (this.duplicateAlertShownFor === decodedText) {
             return;
         }
 
+        if (this.isProcessingScan) return;
         this.isProcessingScan = true;
 
         this.parseAndFillQR(decodedText, (success) => {
@@ -873,10 +869,10 @@ class PlatingCreate {
                     $("#checksheetForm").submit();
                 }, 800);
             } else {
-                // Reset agar bisa scan QR lain (tidak stuck)
+                // Reset flag jika scan tidak diproses lanjut
                 setTimeout(() => {
                     this.isProcessingScan = false;
-                }, 2500);
+                }, 1000);
             }
         });
     }
@@ -941,23 +937,47 @@ class PlatingCreate {
             $("#qrcodeInput").val(decodedText);
             const parts = decodedText.split("|");
             if (parts.length >= 5) {
-                // 1. Validasi QR Duplikat via AJAX
+                // 1. Cek lokal: Jika QR ini baru saja disimpan dalam sesi ini saat kamera belum berpindah
+                if (this.lastSavedQR === decodedText) {
+                    if (this.duplicateAlertShownFor !== decodedText) {
+                        this.duplicateAlertShownFor = decodedText;
+                        window.playAppAudio('duplicate_saved');
+                        Swal.fire({
+                            icon: "error",
+                            title: "QR-Code Duplicate",
+                            html: `QR Code ini sudah pernah diinput (baru saja disimpan dalam sesi ini).<br><small class="text-muted">(${decodedText})</small>`,
+                            confirmButtonText: "Mengerti, Scan QR Lain",
+                        }).then(() => {
+                            this.isProcessingScan = false;
+                        });
+                    } else {
+                        this.isProcessingScan = false;
+                    }
+                    if (callback) callback(false);
+                    return;
+                }
+
+                // 2. Validasi QR Duplikat via AJAX ke server
                 if (this.config.qrUniqueUrl) {
                     $.get(
                         this.config.qrUniqueUrl,
                         { qrcode: decodedText },
                         (res) => {
                             if (res.success && !res.unique) {
-                                window.playAppAudio('duplicate_saved');
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "QR-Code Duplicate",
-                                    html: res.message,
-                                    confirmButtonText: "Mengerti, Scan QR Lain",
-                                }).then(() => {
-                                    // Reset agar bisa scan QR lain setelah user tutup alert
+                                if (this.duplicateAlertShownFor !== decodedText) {
+                                    this.duplicateAlertShownFor = decodedText;
+                                    window.playAppAudio('duplicate_saved');
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "QR-Code Duplicate",
+                                        html: res.message,
+                                        confirmButtonText: "Mengerti, Scan QR Lain",
+                                    }).then(() => {
+                                        this.isProcessingScan = false;
+                                    });
+                                } else {
                                     this.isProcessingScan = false;
-                                });
+                                }
                                 if (callback) callback(false);
                             } else {
                                 const filled = this.processFillQR(decodedText, parts);
@@ -965,7 +985,6 @@ class PlatingCreate {
                             }
                         },
                     ).fail(() => {
-                        // Jika server tidak bisa dicek, tetap lanjutkan proses
                         const filled = this.processFillQR(decodedText, parts);
                         if (callback) callback(filled);
                     });
@@ -987,11 +1006,13 @@ class PlatingCreate {
             }
         } catch (e) {
             console.error("Parse QR Error:", e);
-            Swal.fire(
-                "Error",
-                "Gagal memproses data QR: " + e.message,
-                "error",
-            );
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Gagal memproses data QR: " + e.message,
+            }).then(() => {
+                this.isProcessingScan = false;
+            });
             if (callback) callback(false);
         }
     }
@@ -2020,19 +2041,12 @@ class PlatingCreate {
                             _this.resetState();
                             _this.setScanMode(true);
 
-                            // Simpan QR yang baru disimpan & aktifkan cooldown 5 detik
-                            // agar kamera tidak langsung re-scan QR yang sama
+                            // Simpan QR yang baru disimpan agar jika kamera belum berpindah, langsung terdeteksi duplikat
                             _this.lastSavedQR = savedQR;
-                            _this.postSaveCooldown = true;
-                            clearTimeout(_this.postSaveCooldownTimer);
-                            _this.postSaveCooldownTimer = setTimeout(() => {
-                                _this.postSaveCooldown = false;
-                                _this.lastSavedQR = null;
-                            }, 5000);
 
                             setTimeout(() => {
                                 _this.isProcessingScan = false;
-                            }, 2000);
+                            }, 1000);
                         } else {
                             Swal.fire({
                                 icon: "success",
