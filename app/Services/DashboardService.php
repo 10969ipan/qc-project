@@ -101,9 +101,14 @@ class DashboardService extends BaseService
 
         $authRole = auth()->user()->role;
         $plantId = auth()->user()->plant_id;
-        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_" . request('plant') . "_{$year}_{$month}";
+        $plantReq = request('plant');
+        $plantCode = $plantReq ?: ($plantId ? Plant::where('id', $plantId)->value('code') : 'karawang');
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_{$plantCode}_{$year}_{$month}";
+        self::trackDashboardCacheKey($cacheKey);
         // 1. Ringkasan Statistik Approval (Ter-cache 1 jam)
-        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout) {
+        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout, $plantCode) {
             $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
             $dailyCombinedStats = $this->calculateApprovalStats('all', true);
 
@@ -124,7 +129,7 @@ class DashboardService extends BaseService
                 $dailyStatsJakarta = $this->calculateApprovalStats('jakarta', true);
                 $dailyStatsKarawang = $this->calculateApprovalStats('karawang', true);
 
-                $targetPlant = request('plant') ?: 'karawang';
+                $targetPlant = $plantCode ?: 'karawang';
                 $dailyStatsSubAssy = $this->calculateApprovalStats($targetPlant, true, 'sub_assy');
                 $dailyStatsInProcess = $this->calculateApprovalStats($targetPlant, true, 'in_process');
             } else {
@@ -154,6 +159,7 @@ class DashboardService extends BaseService
         }
 
         $monitoringKey = "dashboard_monitoring_{$authRole}_{$plantId}_" . $targetPlantForMonitoring;
+        self::trackDashboardCacheKey($monitoringKey);
         $monitoringData = Cache::remember($monitoringKey, now()->addMinutes(10), function () use ($isDualView, $targetPlantForMonitoring) {
             $productionJakarta = [];
             $productionKarawang = [];
@@ -321,11 +327,23 @@ class DashboardService extends BaseService
 
         // Filter data H-1 saja (Hari ini tidak termasuk) per user request
         if ($dailyOnly) {
-            $query->whereDate($dateColumn, '=', now()->subDay()->toDateString());
+            $targetDate = now()->subDay()->toDateString();
+            if ($dateColumn === 'production_datetime') {
+                $query->whereBetween($dateColumn, [$targetDate . ' 00:00:00', $targetDate . ' 23:59:59']);
+            } else {
+                $query->where($dateColumn, $targetDate);
+            }
         } elseif ($month && $year) {
-            // Apply Month and Year filtering for main statistics
-            $query->whereMonth($dateColumn, $month)
-                  ->whereYear($dateColumn, $year);
+            // Apply Month and Year filtering using a date range to allow index usage
+            $carbon = \Carbon\Carbon::create($year, $month, 1);
+            if ($dateColumn === 'production_datetime') {
+                $startDate = $carbon->startOfMonth()->toDateTimeString();
+                $endDate = $carbon->endOfMonth()->toDateTimeString();
+            } else {
+                $startDate = $carbon->startOfMonth()->toDateString();
+                $endDate = $carbon->endOfMonth()->toDateString();
+            }
+            $query->whereBetween($dateColumn, [$startDate, $endDate]);
         }
 
         // Build a single aggregated query for all columns to ensure atomicity and performance
@@ -389,12 +407,35 @@ class DashboardService extends BaseService
     }
 
     /**
+     * Track active dashboard cache keys to enable selective flushing.
+     */
+    private static function trackDashboardCacheKey(string $key): void
+    {
+        try {
+            $activeKeys = Cache::get('active_dashboard_cache_keys', []);
+            if (!in_array($key, $activeKeys, true)) {
+                $activeKeys[] = $key;
+                Cache::put('active_dashboard_cache_keys', $activeKeys, now()->addDays(7));
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    /**
      * Clear all cached dashboard statistics and monitoring data on-demand.
      */
     public static function clearDashboardCache(): void
     {
         Cache::forget('dashboard_ng_rate_data_30d');
-        Cache::flush();
+        
+        try {
+            $activeKeys = Cache::get('active_dashboard_cache_keys', []);
+            foreach ($activeKeys as $key) {
+                Cache::forget($key);
+            }
+            Cache::forget('active_dashboard_cache_keys');
+        } catch (\Throwable $e) {
+            Cache::flush();
+        }
     }
 
     /**
@@ -426,7 +467,7 @@ class DashboardService extends BaseService
         }
 
         if ($modelClass === \App\Models\CrossCutChecksheet::class || $modelClass === \App\Models\CrossCutPaintingChecksheet::class) {
-            $query->whereDate('qc_datetime', $date)
+            $query->whereBetween('qc_datetime', [$date . ' 00:00:00', $date . ' 23:59:59'])
                   ->where('qc_shift', $shift);
         } else {
             $query->where('date', $date)
@@ -476,7 +517,7 @@ class DashboardService extends BaseService
     {
         $query = \App\Models\CrossCutChecksheet::withoutGlobalScope('plant')
             ->with('item:id,name,part_number')
-            ->whereDate('qc_datetime', $date)
+            ->whereBetween('qc_datetime', [$date . ' 00:00:00', $date . ' 23:59:59'])
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
@@ -494,7 +535,7 @@ class DashboardService extends BaseService
     {
         $query = \App\Models\CrossCutPaintingChecksheet::withoutGlobalScope('plant')
             ->with('item:id,name,part_number')
-            ->whereDate('qc_datetime', $date)
+            ->whereBetween('qc_datetime', [$date . ' 00:00:00', $date . ' 23:59:59'])
             ->where('qc_shift', $shift)
             ->whereNotNull('line')
             ->orderBy('created_at', 'desc');
