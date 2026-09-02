@@ -2,14 +2,23 @@
 @php
     $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
 
+    $itemsToCheck = isset($checksheets) ? $checksheets : (isset($reports) ? $reports : null);
     $hasPendingApproval = false;
-    if ($hasFilter && isset($checksheets) && count($checksheets) > 0) {
+
+    if ($hasFilter && !empty($itemsToCheck) && count($itemsToCheck) > 0) {
         $user = auth()->user();
         $userRole = $user->role ?? '';
 
-        foreach ($checksheets as $cs) {
+        foreach ($itemsToCheck as $cs) {
             if ($userRole === 'admin') {
-                if (empty($cs->kashift_qc) || empty($cs->supervisor_qc) || empty($cs->asst_manager_qc) || empty($cs->manager_qc)) {
+                $approvalFields = ['kashift_qc', 'supervisor_qc', 'supervisor_plating', 'asst_manager_qc', 'asst_manager_plating', 'manager_qc', 'manager_plating'];
+                foreach ($approvalFields as $af) {
+                    if (isset($cs->$af) && (empty($cs->$af) || $cs->$af === 'REJECTED')) {
+                        $hasPendingApproval = true;
+                        break 2;
+                    }
+                }
+                if (empty($cs->supervisor_qc) || empty($cs->asst_manager_qc) || empty($cs->supervisor_plating) || empty($cs->asst_manager_plating)) {
                     $hasPendingApproval = true;
                     break;
                 }
@@ -19,13 +28,13 @@
                     $hasPendingApproval = true;
                     break;
                 }
-            } elseif (in_array($userRole, ['supervisor', 'supervisor_plating'])) {
+            } elseif (in_array($userRole, ['supervisor', 'supervisor_plating', 'supervisor_qc'])) {
                 $field = isset($cs->supervisor_qc) ? 'supervisor_qc' : (isset($cs->supervisor_plating) ? 'supervisor_plating' : 'supervisor_qc');
                 if (empty($cs->$field) || $cs->$field === 'REJECTED') {
                     $hasPendingApproval = true;
                     break;
                 }
-            } elseif (in_array($userRole, ['asst_manager', 'asst_manager_plating'])) {
+            } elseif (in_array($userRole, ['asst_manager', 'asst_manager_plating', 'asst_manager_qc'])) {
                 $field = isset($cs->asst_manager_qc) ? 'asst_manager_qc' : (isset($cs->asst_manager_plating) ? 'asst_manager_plating' : 'asst_manager_qc');
                 if (empty($cs->$field) || $cs->$field === 'REJECTED') {
                     $hasPendingApproval = true;
