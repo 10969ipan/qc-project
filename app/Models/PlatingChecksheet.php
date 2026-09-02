@@ -89,4 +89,10 @@ class PlatingChecksheet extends Model
     {
         return $this->belongsTo(PlatingCabutSplit::class, 'qrcode', 'generated_qrcode');
     }
+
+    protected static function booted()
+    {
+        static::saved(fn() => \App\Services\DashboardService::clearDashboardCache());
+        static::deleted(fn() => \App\Services\DashboardService::clearDashboardCache());
+    }
 }
