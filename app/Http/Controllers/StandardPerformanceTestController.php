@@ -578,7 +578,6 @@ class StandardPerformanceTestController extends Controller
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
                 'updatedBy',
             ])
-            ->orderBy('updated_at', 'desc')
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
 
