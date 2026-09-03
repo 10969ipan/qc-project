@@ -488,7 +488,7 @@
 
         // Validation Logic
         function normalizePN(p){ return p ? p.toString().replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/\s+/g, '').toUpperCase() : ''; }
-        function normalizeStd(v){ return (v === null || v === undefined || v === '') ? null : v.toString().replace(',', '.').replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/±/g, '').trim(); }
+        function normalizeStd(v){ return (v === null || v === undefined || v === '') ? null : v.toString().replace(',', '.').replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/[Ø⌀ø±\u00B1\u00D8\u00F8\u2300]/g, '').trim(); }
 
         function validateDimensions() {
             const sel = $('#item_id option:selected');

@@ -240,8 +240,12 @@ class FirstPieceApprovalService extends BaseService
             "-",
             $val,
         );
-        // Remove plus-minus signs
-        $val = str_replace(["±", "\u{00B1}"], "", $val);
+        // Remove diameter symbols (Ø, ⌀, ø) and plus-minus signs
+        $val = str_replace(
+            ["Ø", "⌀", "ø", "±", "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"],
+            "",
+            $val,
+        );
         // Trim whitespace
         return trim($val);
     }

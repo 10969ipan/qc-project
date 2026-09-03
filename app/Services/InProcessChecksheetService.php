@@ -295,22 +295,24 @@ class InProcessChecksheetService extends BaseService
             }
             if (!empty($itemStandards)) {
                 $dimensionStandards = $itemStandards;
-            }
+        if ($item && !empty($item->dimension_standards) && is_array($item->dimension_standards)) {
+            $dimensionStandards = $item->dimension_standards;
         }
 
-        if (!$dimensionStandards && $item) {
-            $allStandards = $this->getConsolidatedStandards();
-            $partNum = $this->normalizePartNumber($item->part_number ?? '');
+        if (!$dimensionStandards) {
+            $partNum = $itemPartNumber ? $this->normalizePartNumber($itemPartNumber) : ($item ? $this->normalizePartNumber($item->part_number) : null);
+            $allStandards = config('dimension_standards', []);
             $dimensionStandards = $allStandards[$partNum] ?? null;
         }
 
-        if ($item && !empty($dimensionStandards) && !empty($data['dimensions'])) {
+        if ($item && !empty($dimensionStandards) && !empty($data['dimension_check'])) {
             $isAnyInvalid = false;
             $hasValidDimensions = false;
+            $okPointsCount = 0;
+            $ngPointsCount = 0;
 
-            foreach ($data['dimensions'] as $cavity => $points) {
-                if (!is_array($points))
-                    continue;
+            foreach ($data['dimension_check'] as $cavity => $points) {
+                if (!is_array($points)) continue;
 
                 foreach ($points as $point => $value) {
                     $std = null;
@@ -339,11 +341,11 @@ class InProcessChecksheetService extends BaseService
 
                         // 1. Check Absolute Min/Max
                         if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                            $minBound = (float)$std['min'];
+                            $minBound = (float)$this->normalizeStandardValue($std['min']);
                             if ($floatValue < ($minBound - $epsilon)) $isPointNG = true;
                         }
                         if (!$isPointNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                            $maxBound = (float)$std['max'];
+                            $maxBound = (float)$this->normalizeStandardValue($std['max']);
                             if ($floatValue > ($maxBound + $epsilon)) $isPointNG = true;
                         }
 

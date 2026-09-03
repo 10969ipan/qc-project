@@ -43,7 +43,11 @@ function normalizePartNumber(pn) {
 
 function normalizeStandardValue(val) {
     if (val === null || val === undefined) return "";
-    return String(val).replace(/,/g, ".").trim();
+    return String(val)
+        .replace(/,/g, ".")
+        .replace(/[\u2012\u2013\u2014\u2212]/g, "-")
+        .replace(/[Ø⌀ø±\u00B1\u00D8\u00F8\u2300]/g, "")
+        .trim();
 }
 
 document.addEventListener('DOMContentLoaded', function () {

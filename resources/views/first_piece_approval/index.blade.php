@@ -643,29 +643,36 @@
                                                                         if ($std && is_numeric($cleanValStr)) {
                                                                             $fVal = (float)$cleanValStr;
                                                                             $epsilon = 0.00001;
+                                                                            $normStd = function($v) {
+                                                                                if ($v === null || $v === '') return '';
+                                                                                $s = str_replace(',', '.', (string)$v);
+                                                                                $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
+                                                                                $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
+                                                                                return trim($s);
+                                                                            };
 
                                                                             // 1. Check Absolute Min/Max
                                                                             if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                                                $minBound = (float)str_replace(',', '.', $std['min']);
+                                                                                $minBound = (float)$normStd($std['min']);
                                                                                 if ($fVal < ($minBound - $epsilon)) $isNG = true;
                                                                             }
                                                                             if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                                                $maxBound = (float)str_replace(',', '.', $std['max']);
+                                                                                $maxBound = (float)$normStd($std['max']);
                                                                                 if ($fVal > ($maxBound + $epsilon)) $isNG = true;
                                                                             }
 
                                                                             // 2. Check Size +/- Tolerance
                                                                             if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                                                                                $szStr = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['size']));
+                                                                                $szStr = $normStd($std['size']);
                                                                                 if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
                                                                                     $base = (float)$szStr;
-                                                                                    $tol = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['tolerance']));
+                                                                                    $tol = $normStd($std['tolerance']);
                                                                                     $lb = $base; $ub = $base;
                                                                                     
                                                                                     if (str_contains($tol, '/')) {
                                                                                         $parts = explode('/', $tol);
                                                                                         foreach ($parts as $p) {
-                                                                                            $p = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], $p));
+                                                                                            $p = $normStd($p);
                                                                                             $fv = (float)$p;
                                                                                             if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
                                                                                             elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
@@ -685,10 +692,10 @@
 
                                                                             // 3. Check Special Size (prefix)
                                                                             if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
-                                                                                $szStr = (string)$std['size'];
+                                                                                $szStr = $normStd($std['size']);
                                                                                 if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
                                                                                     $op = $szStr[0];
-                                                                                    $bound = (float)substr(str_replace(',', '.', $szStr), 1);
+                                                                                    $bound = (float)substr($szStr, 1);
                                                                                     if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
                                                                                     elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
                                                                                 }
