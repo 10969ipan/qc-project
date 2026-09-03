@@ -417,10 +417,7 @@ class IncomingPartController extends Controller
         $plantId = Plant::resolveId($plantInput);
 
         $query = \App\Models\IncomingPartArrivalLog::query()
-            ->where(function ($q) use ($plantId) {
-                $q->where('plant_id', $plantId)
-                  ->orWhereNull('plant_id');
-            })
+            ->where('plant_id', $plantId)
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc');
 

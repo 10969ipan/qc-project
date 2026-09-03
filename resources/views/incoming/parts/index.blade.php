@@ -1407,8 +1407,11 @@
             var $tbody = $('#arrivalLogTableBody');
             $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i><br>Memuat log data stok...</td></tr>');
 
+            var urlPlant = new URLSearchParams(window.location.search).get('plant');
+            var currentPlant = urlPlant || '{{ request("plant") ?? auth()->user()->plant_id }}';
+
             var params = {
-                plant: '{{ request("plant") ?? auth()->user()->plant_id }}',
+                plant: currentPlant,
                 search: $('#arrivalLogSearch').val() || '',
                 action_type: $('#arrivalLogFilterAction').val() || ''
             };

@@ -209,7 +209,7 @@
                                                     data-part-number="{{ $item->part_number ?? '' }}"
                                                     data-sap_code="{{ $item->sap_code ?? '' }}"
                                                     data-name="{{ $item->name }}"
-                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-defects='@json($item->defects ?? [])'
                                                     data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                     data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                     data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
@@ -217,7 +217,7 @@
                                                     data-description="{{ $item->description ?? '' }}"
                                                     data-customer="{{ $item->customer ?? '' }}"
                                                     data-weight-standard="{{ $item->weight_standard ?? '' }}"
-                                                    data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
+                                                    data-dimension-standards='@json($item->dimension_standards ?? [])'>
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: '.$item->sap_code : '' }}
                                                 </option>
@@ -773,6 +773,7 @@
 @push('scripts')
     <script>
         window.INCOMING_PART_CONFIG = {
+            plantId: "{{ request('plant') ?? auth()->user()->plant_id }}",
             arrivalLogsUrl: "{{ route('incoming.parts.arrival_logs') }}",
             arrivalsUrl: "{{ route('incoming.parts.arrivals') }}",
             updateArrivalBaseUrl: "{{ url('/checksheet/incoming-part/arrival') }}",

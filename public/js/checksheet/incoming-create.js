@@ -2501,7 +2501,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         $tbody.html('<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block text-primary"></i><br>Memuat log data stok...</td></tr>');
 
+        var currentPlant = (new URLSearchParams(window.location.search).get('plant')) || 
+                           ((window.INCOMING_PART_CONFIG && window.INCOMING_PART_CONFIG.plantId) ? window.INCOMING_PART_CONFIG.plantId : '');
+
         var params = {
+            plant: currentPlant,
             search: $('#arrivalLogSearch').val() || '',
             action_type: $('#arrivalLogFilterAction').val() || '',
             page: page,
