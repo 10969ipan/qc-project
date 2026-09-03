@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-    @php
-        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('double_tape', $headerPlantCode, [
-            'no_dokumen' => '-',
-            'tgl_terbit' => '-',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
-    @endphp
+@php
+    $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+    $docHeader = isset($docHeader) ? $docHeader : \App\Models\GeneralSetting::getDocHeader('double_tape', $headerPlantCode, [
+        'judul'      => 'LAPORAN CHECK SHEET DOUBLE TAPE',
+        'no_dokumen' => 'QC-KRW-F-0213',
+        'tgl_terbit' => '25/03/2015',
+        'revisi'     => '3',
+        'tgl_revisi' => '22/12/2025',
+        'halaman'    => '1/1'
+    ]);
+    $isVerification = request('view_mode') === 'verifikasi';
+@endphp
 <html lang="en">
 
 <head>
@@ -24,9 +27,9 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
-            color: #333;
+            color: #000;
             margin: 0;
-            padding: 10mm 10mm 5mm 10mm;
+            padding: 8mm 8mm 5mm 8mm;
         }
 
         /* ===== HEADER DOKUMEN ===== */
@@ -38,8 +41,9 @@
 
         .header-table td {
             border: 1px solid #000;
-            padding: 5px;
+            padding: 4px;
             vertical-align: middle;
+            color: #000;
         }
 
         .logo {
@@ -49,23 +53,26 @@
 
         .title {
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: #000;
+            text-transform: uppercase;
         }
 
         .doc-info {
-            width: 160px;
-            font-size: 8.5px;
+            width: 170px;
+            font-size: 8px;
+            color: #000;
         }
 
         .doc-info table { width: 100%; border: none; }
-        .doc-info td   { border: none; padding: 1px 2px; }
+        .doc-info td   { border: none; padding: 1px 2px; color: #000; }
 
         /* ===== INFO PERIODE ===== */
         .sub-header {
             margin-bottom: 8px;
-            font-size: 9px;
+            font-size: 8.5px;
+            color: #000;
         }
 
         /* ===== TABEL DATA ===== */
@@ -73,6 +80,7 @@
             width: 100%;
             border-collapse: collapse;
             table-layout: auto;
+            margin-top: 0;
         }
 
         /* Header tabel mengikuti di setiap halaman baru */
@@ -90,56 +98,25 @@
             font-weight: bold;
             text-transform: uppercase;
             font-size: 6px;
+            color: #000;
         }
 
         .table td {
             border: 1px solid #000;
-            padding: 2px 4px; /* Reduced vertical padding */
+            padding: 2px 4px;
             text-align: center;
             vertical-align: middle;
             font-size: 7.5px;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            color: #000;
         }
-
-        /* ===== KOLOM TERSEMBUNYI ===== */
-        .col-hidden { display: none; }
-
-        /* ===== BADGE ===== */
-        .badge {
-            display: inline-block;
-            padding: .2em .35em;
-            font-size: 75%;
-            font-weight: 700;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-            border-radius: .25rem;
-        }
-
-        .badge-success {
-            color: #fff;
-            background-color: #28a745;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        .badge-danger {
-            color: #fff;
-            background-color: #dc3545;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        .text-success   { color: #28a745; }
-        .text-danger    { color: #dc3545; }
-        .text-uppercase { text-transform: uppercase; }
 
         /* ===== FOOTER KUSTOM ===== */
         .print-footer {
-            margin-top: 8mm;
+            margin-top: 6mm;
             font-size: 7.5px;
-            color: #666;
+            color: #000;
             text-align: left;
         }
     </style>
@@ -152,55 +129,65 @@
         <tr>
             <td class="logo">
                 <img src="{{ asset('master item/ipp.jpg') }}"
-                     style="max-width: 75px; max-height: 55px; object-fit: contain;">
+                     style="max-width: 75px; max-height: 50px; object-fit: contain;">
             </td>
-            <td class="title">LAPORAN CHECK SHEET DOUBLE TAPE</td>
+            <td class="title">{{ $docHeader['judul'] }}</td>
             <td class="doc-info">
                 <table>
-                    <tr><td>No. Dokumen</td><td>: QC-KRW-F-0213</td></tr>
-                    <tr><td>Tgl. Terbit</td><td>: 25/03/2015</td></tr>
-                    <tr><td>Revisi Ke</td><td>: 3</td></tr>
-                    <tr><td>Tgl. Revisi</td><td>: 22/12/2025</td></tr>
-                    <tr><td>Hal</td><td>: 1/1</td></tr>
+                    <tr><td style="width: 70px;">No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] }}</td></tr>
+                    <tr><td>Tgl. Terbit</td><td>: {{ $docHeader['tgl_terbit'] }}</td></tr>
+                    <tr><td>Revisi Ke</td><td>: {{ $docHeader['revisi'] }}</td></tr>
+                    <tr><td>Tgl. Revisi</td><td>: {{ $docHeader['tgl_revisi'] ?? '-' }}</td></tr>
+                    <tr><td>Hal</td><td>: {{ $docHeader['halaman'] }}</td></tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    {{-- Sub-header: Periode & Plant --}}
+    {{-- Sub-header: Periode --}}
     <div class="sub-header">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
-        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        @if(isset($selectedItem) && $selectedItem)
+            &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Item Part / Part No:</strong> {{ $selectedItem->name }} ({{ $selectedItem->part_number ?? '-' }})
+        @endif
     </div>
 
     {{-- Tabel Data --}}
     <table class="table">
         <thead>
-            {{-- Spacer row: muncul di setiap halaman (header group repeat) untuk memberi jarak atas --}}
-            <tr class="thead-spacer">
-                <td colspan="18" style="height:4mm; border:none; padding:0; background:#fff;"></td>
-            </tr>
             <tr>
                 <th rowspan="2">No</th>
-                <th rowspan="2" class="col-compact">Lot ID<br>(Tgl / Shift / Inisial)</th>
-                <th rowspan="2" class="col-compact">Checked<br>(Tgl / Shift / Inisial)</th>
-                <th rowspan="2">Jam (Before)</th>
-                <th rowspan="2">Jam (After)</th>
-                <th rowspan="2">Cycle (s)</th>
-                <th rowspan="2" class="col-hidden">Kode SAP</th>
-                <th rowspan="2">Item Part</th>
-                <th rowspan="2">Customer</th>
-                <th rowspan="2">Part No</th>
-                <th rowspan="2">Total</th>
+                @if($isVerification)
+                    <th rowspan="2">QR Code</th>
+                    <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                    <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                @else
+                    <th rowspan="2">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                    <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                    <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                @endif
+                <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
+                <th rowspan="2">Qty<br>(Total / Sampling)</th>
                 <th rowspan="2">OK</th>
                 <th rowspan="2">NG</th>
-                <th colspan="2">Detail NG</th>
+                @if(!$isVerification)
+                    <th colspan="2">Detail NG</th>
+                @endif
                 <th rowspan="2">Judgment</th>
-                <th rowspan="2">Ket</th>
+                @if(!$isVerification)
+                    <th colspan="4">Approval Status</th>
+                @endif
+                <th rowspan="2">Keterangan</th>
             </tr>
             <tr>
-                <th>Pcs</th>
-                <th>Jenis</th>
+                @if(!$isVerification)
+                    <th>Pcs</th>
+                    <th>Jenis</th>
+                    <th style="font-size: 5.5px;">Kashift QC</th>
+                    <th style="font-size: 5.5px;">Supervisor QC</th>
+                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                    <th style="font-size: 5.5px;">Manager QC</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -223,37 +210,106 @@
                             }
                         }
                     }
+
+                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+
+                    if ($checksheet->injection_date || $checksheet->injection_shift || $checksheet->injection_initials) {
+                        $lotIdStr = ($checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-')
+                            . ' / ' . ($checksheet->injection_shift ?? '-')
+                            . ' / ' . ($checksheet->injection_initials ?? '-');
+                    } else {
+                        $lotIdStr = '-';
+                    }
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="col-compact">
-                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d/m/y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
+                    @if($isVerification)
+                        <td style="font-size: 6.5px;">{{ $checksheet->qrcode ?? $checksheet->unique_code_id ?? '-' }}</td>
+                        <td style="white-space: nowrap;">
+                            {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                        </td>
+                        <td style="white-space: nowrap;">
+                            {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} ({{ $ctStr }})
+                        </td>
+                    @else
+                        <td style="white-space: nowrap;">
+                            {{ $lotIdStr }}
+                        </td>
+                        <td style="white-space: nowrap;">
+                            {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                        </td>
+                        <td style="white-space: nowrap;">
+                            {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} ({{ $ctStr }})
+                        </td>
+                    @endif
+
+                    {{-- Item Part / Part No / Customer Combined Column --}}
+                    <td style="text-align: left;">
+                        <div style="font-weight: bold; font-size: 8.5px; color: #000;">{{ $checksheet->item->name ?? '-' }}</div>
+                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->part_number ?? '-' }}</div>
+                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->customer ?? '-' }}</div>
                     </td>
-                    <td class="col-compact">
-                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
+
+                    <td style="white-space: nowrap;">
+                        {{ number_format($checksheet->total_qty) }} / {{ number_format($checksheet->sampling_qty) }} Pcs
                     </td>
-                    <td>{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
-                    <td>{{ $checksheet->created_at->format('H:i') }}</td>
-                    <td>{{ $checksheet->cycle_time ?? '-' }}</td>
-                    <td class="col-hidden">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                    <td>{{ $checksheet->item->name ?? '-' }}</td>
-                    <td>{{ $checksheet->item->customer ?? '-' }}</td>
-                    <td>{{ $checksheet->item->part_number ?? '-' }}</td>
-                    <td>{{ $checksheet->total_qty }}</td>
-                    <td class="text-success">{{ max(0, $checksheet->total_qty - $checksheet->total_ng) }}</td>
-                    <td class="text-danger">{{ $checksheet->total_ng }}</td>
-                    <td class="text-danger" style="font-size: 6.5px;">
-                        {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                    <td style="font-weight: bold; color: #000;">{{ max(0, $checksheet->total_qty - $checksheet->total_ng) }}</td>
+                    <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ng }}</td>
+
+                    @if(!$isVerification)
+                        <td style="font-size: 6.5px; color: #000;">
+                            {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                        </td>
+                        <td style="font-size: 6.5px; color: #000;">
+                            {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                        </td>
+                    @endif
+
+                    {{-- Judgment (Full Black Bold Text) --}}
+                    <td style="font-weight: bold; white-space: nowrap; color: #000;">
+                        <div style="font-size: 7.5px; color: #000;">
+                            OK
+                        </div>
+                        <div style="font-size: 6.5px; color: #000; font-weight: normal;">
+                            {{ $checksheet->check_type === 'fullcheck' ? 'Full Check' : 'Sampling' }}
+                        </div>
                     </td>
-                    <td class="text-danger" style="font-size: 6.5px;">
-                        {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+
+                    @if(!$isVerification)
+                        {{-- 4 Approval Columns: Full Black Bold Text --}}
+                        @foreach(['kashift_qc' => 'kashift_approved_at', 'supervisor_qc' => 'supervisor_approved_at', 'asst_manager_qc' => 'asst_manager_approved_at', 'manager_qc' => 'manager_approved_at'] as $field => $timeField)
+                            <td style="white-space: nowrap; font-size: 6.5px; vertical-align: middle; color: #000;">
+                                @if($checksheet->$field === 'REJECTED')
+                                    <div style="font-weight: bold; font-size: 7px; color: #000;">REJECTED</div>
+                                    <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                        {{ getRejectorName($checksheet->rejection_remarks) }}
+                                        @if($checksheet->$timeField)
+                                            <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                        @endif
+                                    </div>
+                                @elseif($checksheet->$field)
+                                    <div style="font-weight: bold; font-size: 7px; color: #000;">APPROVED</div>
+                                    <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                        {{ $checksheet->$field }}
+                                        @if($checksheet->$timeField)
+                                            <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                        @endif
+                                    </div>
+                                @else
+                                    <div style="font-weight: bold; font-size: 7px; color: #000;">PENDING</div>
+                                @endif
+                            </td>
+                        @endforeach
+                    @endif
+
+                    <td style="text-align:left; font-size:7px; min-width:70px; word-break: break-word; color: #000;">
+                        @if($checksheet->rejection_remarks)
+                            <span>REJECTED: {{ $checksheet->rejection_remarks }}</span>
+                        @else
+                            {{ $checksheet->remarks ?? '-' }}
+                        @endif
                     </td>
-                    <td style="font-weight: bold; white-space: nowrap;">
-                        <span style="color: #1cc88a;">
-                            {!! $checksheet->check_type === 'fullcheck' ? 'OK<br><span style="white-space: nowrap;">Full Check</span>' : 'OK<br>Sampling' !!}
-                        </span>
-                    </td>
-                    <td style="text-align:left; font-size:7px; min-width:80px; word-break: break-word;">{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

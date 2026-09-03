@@ -373,7 +373,7 @@
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
-                            <th rowspan="2" class="align-middle">Total Qty</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             @if(request('view_mode') !== 'verifikasi')
@@ -436,7 +436,7 @@
                                     </td>
                                 @else
                                     <td class="align-middle text-nowrap">
-                                        {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
+                                        {{ ($checksheet->injection_date || $checksheet->injection_shift || $checksheet->injection_initials) ? (($checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-') . ' / ' . ($checksheet->injection_shift ?? '-') . ' / ' . ($checksheet->injection_initials ?? '-')) : '-' }}
                                     </td>
                                     <td class="align-middle text-nowrap">
                                         {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
@@ -451,7 +451,7 @@
                                     <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle">{{ $checksheet->total_qty }}</td>
+                                <td class="align-middle text-nowrap"><span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span></td>
                                 <td class="align-middle text-success font-weight-bold">{{ max(0, $checksheet->total_qty - $checksheet->total_ng) }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 

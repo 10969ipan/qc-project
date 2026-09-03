@@ -335,8 +335,14 @@ class DoubleTapeChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw', 'shift', 'operator_initials', 'customer', 'entry_method']);
         $filters['plant'] = 'karawang';
+
+        if ($request->get('view_mode') === 'verifikasi') {
+            $filters['entry_method'] = 'verification';
+        } else {
+            $filters['entry_method'] = 'regular';
+        }
 
         // Default ke hari ini jika tidak ada filter tanggal
         if (empty($filters['start_date'])) {
@@ -346,14 +352,28 @@ class DoubleTapeChecksheetController extends Controller
             $filters['end_date'] = now()->toDateString();
         }
 
-        $checksheets = $this->checksheetService->getQuery($filters)->latest()->get();
+        $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
         $plantName = 'Karawang';
         $plantCode = 'karawang';
         $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
         $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
 
-        return view('double_tape.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('double_tape', $plantCode, [
+            'judul'      => 'LAPORAN CHECK SHEET DOUBLE TAPE',
+            'no_dokumen' => 'QC-KRW-F-0213',
+            'tgl_terbit' => '25/03/2015',
+            'revisi'     => '3',
+            'tgl_revisi' => '22/12/2025',
+            'halaman'    => '1/1'
+        ]);
+
+        $selectedItem = null;
+        if ($request->filled('item_id')) {
+            $selectedItem = \App\Models\Item::find($request->item_id);
+        }
+
+        return view('double_tape.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate', 'docHeader', 'selectedItem'));
     }
 
     public function editApproval($id)
