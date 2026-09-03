@@ -853,14 +853,19 @@ class FirstPieceApprovalController extends Controller
         }
 
         // Determine if Dimensi defect should exist
+        // Rule: if the saved judgment is OK, NEVER add Dimensi back.
+        // If judgment is NG AND ngPoints > 0 (dimension validation failed), add/keep Dimensi.
         $shouldHaveDimensi = false;
-        if ($ngPoints !== null) {
-            // If we have explicit validation results, trust ngPoints
+        if ($newJudgment === 'OK') {
+            // Judgment is OK — always remove Dimensi defect regardless of ngPoints
+            $shouldHaveDimensi = false;
+        } elseif ($ngPoints !== null) {
+            // Judgment is NG and we have explicit dimension validation results
             $shouldHaveDimensi = ($ngPoints > 0);
         } else {
-            // Fallback for when there is no dimension validation result (e.g. no standards or empty data)
-            // Preserve existing user-submitted state, but if newJudgment is OK, force remove it.
-            $shouldHaveDimensi = ($newJudgment === 'NG') ? $hasExistingDimensi : false;
+            // Judgment is NG but no dimension validation (no standards or empty data)
+            // Preserve existing Dimensi defect if it was already there
+            $shouldHaveDimensi = $hasExistingDimensi;
         }
 
         if ($shouldHaveDimensi) {
