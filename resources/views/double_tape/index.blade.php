@@ -428,14 +428,12 @@
                                     </td>
                                 @else
                                     @php
-                                        $injDateStr = ($checksheet->injection_date && \Carbon\Carbon::canBeCreatedFromFormat($checksheet->injection_date, 'Y-m-d')) 
-                                            ? \Carbon\Carbon::parse($checksheet->injection_date)->format('d-m-Y') 
-                                            : null;
-                                        $hasLotData = $injDateStr || !empty($checksheet->injection_shift) || !empty($checksheet->injection_operator_initials);
+                                        $injDateStr = $checksheet->injection_date ? \Carbon\Carbon::parse($checksheet->injection_date)->format('d-m-Y') : null;
+                                        $hasLotData = !empty($injDateStr) || !empty($checksheet->injection_shift) || !empty($checksheet->injection_initials);
                                     @endphp
                                     <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
                                         @if($hasLotData)
-                                            {{ $injDateStr ?? '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_operator_initials ?? '-' }}
+                                            {{ $injDateStr ?? '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
                                         @else
                                             -
                                         @endif
