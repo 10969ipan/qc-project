@@ -131,6 +131,35 @@
         </div>
     @endif
 
+    {{-- Card Header Dokumen Pengaturan --}}
+    @if(isset($docHeader))
+    <div class="card shadow mb-2">
+        <div class="card-body p-2">
+            <div class="table-responsive" style="max-height: none !important; overflow: visible !important;">
+                <table class="table table-bordered mb-0" style="font-size: 0.75rem;">
+                    <tr>
+                        <td class="text-center align-middle" style="width: 15%;">
+                            <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 80px; max-height: 50px; object-fit: contain;">
+                        </td>
+                        <td class="text-center align-middle font-weight-bold text-uppercase" style="width: 55%; font-size: 1rem;">
+                            {{ $docHeader['judul'] }}
+                        </td>
+                        <td class="align-middle p-0" style="width: 30%;">
+                            <table class="table table-sm table-borderless mb-0" style="font-size: 0.70rem;">
+                                <tr><td class="font-weight-bold py-0" style="width: 45%;">No. Dokumen</td><td class="py-0">: {{ $docHeader['no_dokumen'] }}</td></tr>
+                                <tr><td class="font-weight-bold py-0">Tgl. Terbit</td><td class="py-0">: {{ $docHeader['tgl_terbit'] }}</td></tr>
+                                <tr><td class="font-weight-bold py-0">Revisi Ke</td><td class="py-0">: {{ $docHeader['revisi'] }}</td></tr>
+                                <tr><td class="font-weight-bold py-0">Tgl. Revisi</td><td class="py-0">: {{ $docHeader['tgl_revisi'] ?? '-' }}</td></tr>
+                                <tr><td class="font-weight-bold py-0">Halaman</td><td class="py-0">: {{ $docHeader['halaman'] }}</td></tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="card shadow mb-2">
         <div class="card-header py-2 px-3">
             <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">DATA MASUK CROSS CUT PAINTING</h6>
@@ -228,10 +257,6 @@
                 <!-- Tombol Ekspor (Paling Kanan) -->
                 <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
-                    <a href="{{ route('cross_cut_painting.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('cross_cut_painting.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;" title="Cetak Direct">
                         <i class="fas fa-print fa-sm mr-1"></i> Cetak
@@ -267,20 +292,15 @@
                                 </th>
                             @endif
                             <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Tanggal Produksi</th>
-                            <th rowspan="2" class="align-middle">Shift Produksi</th>
-                            <th rowspan="2" class="align-middle">Tanggal QC</th>
-                            <th rowspan="2" class="align-middle">Shift QC</th>
-                            <th rowspan="2" class="align-middle">Jam Before</th>
-                            <th rowspan="2" class="align-middle">Jam After</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Prod.<br>(Tgl / Shift)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Hasil Cross Cut, Pencil Scratch &amp; Tap Test</th>
                             <th rowspan="2" class="align-middle">Judgement</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th colspan="6" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle" style="min-width: 400px;">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Aksi</th>
@@ -291,6 +311,8 @@
                             <th style="font-size: 10px; min-width: 120px;">Kashift Painting</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Quality</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Painting</th>
+                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Quality</th>
+                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Painting</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -306,22 +328,22 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y') }} / {{ $checksheet->production_shift }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->production_shift }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->qc_shift }}</td>
-                                <td class="align-middle">
-                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                @php
+                                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                 </td>
-                                <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
-                                <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle p-2" style="min-width: 180px;">
@@ -361,7 +383,6 @@
                                 <td class="align-middle font-weight-bold {{ $checksheet->position_remark_judgment === 'OK' ? 'text-success' : 'text-danger' }}">
                                     {{ $checksheet->position_remark_judgment }}
                                 </td>
-                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Unified Approval Columns --}}
                                 @foreach ($approvalOrder as $role)
@@ -371,25 +392,31 @@
                                         $status = $checksheet->$field;
                                         $date = $checksheet->$dateField;
                                     @endphp
-                                    <td class="align-middle text-center" style="min-width: 100px;">
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
                                         @if($status === 'REJECTED')
-                                            <span class="badge badge-danger px-2 py-1" style="font-size: 0.75rem;" data-toggle="tooltip" 
-                                                title="{{ $checksheet->rejection_remarks }}">
-                                                <i class="fas fa-times-circle"></i> REJECTED
+                                            <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $checksheet->rejection_remarks }}">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
-                                            <br><small class="text-muted" style="font-size: 10px;">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                                @if($date)
+                                                    <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                @endif
+                                            </div>
                                         @elseif($status && $status !== 'Pending')
-                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.75rem;">
-                                                <i class="fas fa-check-circle"></i> APPROVED
+                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
                                             </span>
-                                            <br><small class="text-muted" style="font-size: 10px;">oleh {{ $status }}</small>
+                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                <div>oleh {{ $status }}</div>
+                                                @if($date)
+                                                    <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                @endif
+                                            </div>
                                         @else
-                                            <span class="badge badge-warning px-2 py-1" style="font-size: 0.75rem;">
-                                                <i class="fas fa-clock"></i> PENDING
+                                            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-clock mr-1"></i> PENDING
                                             </span>
-                                        @endif
-                                        @if($date)
-                                            <br><small class="text-muted" style="font-size: 9px;">{{ \Carbon\Carbon::parse($date)->format('d/m H:i') }}</small>
                                         @endif
                                     </td>
                                 @endforeach
@@ -420,6 +447,8 @@
                                                 'kashift_plating' => 'Kashift P',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
+                                                'asst_manager' => 'Asst Mgr Q',
+                                                'asst_manager_plating' => 'Asst Mgr P',
                                             ];
                                             $approvalKeys = array_keys($rolesToApprove);
 

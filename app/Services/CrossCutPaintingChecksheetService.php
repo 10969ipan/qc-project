@@ -113,7 +113,7 @@ class CrossCutPaintingChecksheetService extends BaseService
                     \Log::error("Upload failed in CrossCutPaintingChecksheetService. Error: {$errMsg}");
                     throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
                 }
-                $imagePath = $data['image']->store('cross_cut_images', 'public');
+                $imagePath = \App\Helpers\ImageCompressor::compressAndStore($data['image'], 'cross_cut_images');
             }
 
             $checksheet = CrossCutPaintingChecksheet::create([
@@ -134,6 +134,10 @@ class CrossCutPaintingChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'defects' => $data['defects'] ?? null,
             ]);
+
+            \Illuminate\Support\Facades\Cache::forget("crosscut_painting_filter_items_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("crosscut_painting_filter_customers_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("crosscut_painting_filter_init_{$checksheet->plant_id}");
 
             DB::commit();
 

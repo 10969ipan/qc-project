@@ -391,8 +391,8 @@
                         </tr>
                         <tr class="text-center">
                             @if(request('view_mode') !== 'verifikasi')
-                                <th style="width: 60px; min-width: 60px;">Pcs</th>
-                                <th style="min-width: 150px;">Jenis NG</th>
+                                <th style="width: 45px; min-width: 45px;">Pcs</th>
+                                <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
                                 <th style="font-size: 10px; min-width: 120px;">Kashift QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
@@ -401,11 +401,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($checksheets as $checksheet)
-                            @php
-                                $sec = (int) ($checksheet->cycle_time ?? 0);
-                                $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
-                            @endphp
+                        @forelse ($checksheets as $checksheet)
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
@@ -417,41 +413,54 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 @if(request('view_mode') === 'verifikasi')
-                                    <td class="align-middle">
-                                        <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
-                                            data-qr="{{ $checksheet->qrcode }}"
-                                            data-part="{{ $checksheet->part_code ?? '-' }}"
-                                            data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
-                                            data-qty="{{ $checksheet->quantity ?? '-' }}"
-                                            data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
-                                            data-sap="{{ $checksheet->sap_code ?? '-' }}">
-                                            <i class="fas fa-qrcode"></i> View
-                                        </button>
+                                    <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
+                                        <i class="fas fa-qrcode text-purple mr-1"></i>{{ $checksheet->qr_code }}
                                     </td>
-                                    <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
+                                    @php
+                                        $sec = (int) ($checksheet->cycle_time ?? 0);
+                                        $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                    @endphp
                                     <td class="align-middle text-nowrap">
-                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                     </td>
                                 @else
-                                    <td class="align-middle text-nowrap">
-                                        {{ ($checksheet->injection_date || $checksheet->injection_shift || $checksheet->injection_initials) ? (($checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-') . ' / ' . ($checksheet->injection_shift ?? '-') . ' / ' . ($checksheet->injection_initials ?? '-')) : '-' }}
+                                    @php
+                                        $injDateStr = ($checksheet->injection_date && \Carbon\Carbon::canBeCreatedFromFormat($checksheet->injection_date, 'Y-m-d')) 
+                                            ? \Carbon\Carbon::parse($checksheet->injection_date)->format('d-m-Y') 
+                                            : null;
+                                        $hasLotData = $injDateStr || !empty($checksheet->injection_shift) || !empty($checksheet->injection_operator_initials);
+                                    @endphp
+                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                        @if($hasLotData)
+                                            {{ $injDateStr ?? '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_operator_initials ?? '-' }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
-                                    <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
+                                    @php
+                                        $sec = (int) ($checksheet->cycle_time ?? 0);
+                                        $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                    @endphp
                                     <td class="align-middle text-nowrap">
-                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                     </td>
                                 @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
-                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                    <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name }}</span><br>
                                     <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
-                                <td class="align-middle text-nowrap"><span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span></td>
+                                <td class="align-middle text-nowrap" style="font-size: 0.75rem;">
+                                    <span class="font-weight-bold text-dark">{{ $checksheet->total_qty }}</span>
+                                    <span class="text-muted font-weight-normal">/ {{ $checksheet->sampling_qty }} Pcs</span>
+                                </td>
                                 <td class="align-middle text-success font-weight-bold">{{ max(0, $checksheet->total_qty - $checksheet->total_ng) }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 
@@ -475,24 +484,18 @@
                                     }
                                 @endphp
 
-                                <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
+                                <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
                                     @if(count($pcsLines) > 0)
-                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: fixed;">
-                                            <tbody>
-                                                @foreach($pcsLines as $index => $qty)
-                                                    <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
-                                                        <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
-                                                            <small class="text-danger font-weight-bold">{{ $qty }}</small>
-                                                        </td>
-                                                        <td style="border: none !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
-                                                            <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
                                     @else
-                                        <div class="py-1 text-center" style="padding: 4px 6px !important;">-</div>
+                                        -
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                    @if(count($nameLines) > 0)
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                    @else
+                                        -
                                     @endif
                                 </td>
                                 @endif
