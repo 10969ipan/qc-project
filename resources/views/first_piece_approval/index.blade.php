@@ -742,8 +742,44 @@
                                 <td class="align-middle text-nowrap">
                                     <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span>
                                 </td>
-                                <td class="align-middle text-success font-weight-bold">{{ $checksheet->total_ok }}</td>
-                                <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
+                                @php
+                                    // Hitung effective OK/NG:
+                                    // Kalkulasi defect terfilter dilakukan lebih dulu di sini agar
+                                    // nilai OK/NG yang ditampilkan konsisten dengan Detail NG & Judgment
+                                    $defectsDataEarly = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
+                                    $defectsDataEarly = is_array($defectsDataEarly) ? $defectsDataEarly : [];
+                                    $consolidatedEarly = [];
+                                    foreach ($defectsDataEarly as $dEarly) {
+                                        if (is_array($dEarly) && isset($dEarly['type'])) {
+                                            $rType = trim((string)$dEarly['type']);
+                                            $rQty = (int)($dEarly['qty'] ?? 1);
+                                        } elseif (is_string($dEarly) && trim($dEarly) !== '') {
+                                            $rType = trim($dEarly);
+                                            $rQty = 1;
+                                        } else {
+                                            continue;
+                                        }
+                                        $rKey = strtolower($rType);
+                                        // Skip dimensi defect jika tidak ada NG dimensi
+                                        if (in_array($rKey, ['dimension', 'dimensi', 'ng dimensi'])) {
+                                            if (!($anyNGInRow ?? false)) continue;
+                                            $rKey = 'dimensi';
+                                        }
+                                        if (isset($consolidatedEarly[$rKey])) {
+                                            $consolidatedEarly[$rKey] += $rQty;
+                                        } else {
+                                            $consolidatedEarly[$rKey] = $rQty;
+                                        }
+                                    }
+                                    // Tambahkan NG Dimensi dari check jika belum ada
+                                    if (($anyNGInRow ?? false) && !isset($consolidatedEarly['dimensi'])) {
+                                        $consolidatedEarly['dimensi'] = 1;
+                                    }
+                                    $effectiveTotalNg = array_sum($consolidatedEarly);
+                                    $effectiveTotalOk = max(0, (int)$checksheet->sampling_qty - $effectiveTotalNg);
+                                @endphp
+                                <td class="align-middle text-success font-weight-bold">{{ $effectiveTotalOk }}</td>
+                                <td class="align-middle text-danger font-weight-bold">{{ $effectiveTotalNg }}</td>
 
                                 @php
                                     $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
