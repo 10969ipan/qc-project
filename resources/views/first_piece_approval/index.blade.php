@@ -630,6 +630,10 @@
                                                                                 $std = $standards[$j];
                                                                             } elseif (isset($standards["$j"])) {
                                                                                 $std = $standards["$j"];
+                                                                            } elseif (isset($standards[$j - 1])) {
+                                                                                $std = $standards[$j - 1];
+                                                                            } elseif (isset($standards[(string)($j - 1)])) {
+                                                                                $std = $standards[(string)($j - 1)];
                                                                             } else {
                                                                                 foreach ($standards as $itemStd) {
                                                                                     if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
@@ -759,6 +763,9 @@
 
                                         $key = strtolower($rawType);
                                         if (in_array($key, ['dimension', 'dimensi', 'ng dimensi'])) {
+                                            if (!($anyNGInRow ?? false)) {
+                                                continue;
+                                            }
                                             $key = 'dimensi';
                                             $displayType = 'Dimensi';
                                         } else {

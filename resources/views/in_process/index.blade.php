@@ -719,6 +719,12 @@
                                                                         if (!empty($standards)) {
                                                                             if (isset($standards[$j])) {
                                                                                 $std = $standards[$j];
+                                                                            } elseif (isset($standards["$j"])) {
+                                                                                $std = $standards["$j"];
+                                                                            } elseif (isset($standards[$j - 1])) {
+                                                                                $std = $standards[$j - 1];
+                                                                            } elseif (isset($standards[(string)($j - 1)])) {
+                                                                                $std = $standards[(string)($j - 1)];
                                                                             } else {
                                                                                 // Fallback for array structure
                                                                                 foreach ($standards as $itemStd) {
@@ -854,6 +860,9 @@
 
                                         $key = strtolower($rawType);
                                         if (in_array($key, ['dimension', 'dimensi', 'ng dimensi'])) {
+                                            if (!($anyNGInRow ?? false)) {
+                                                continue;
+                                            }
                                             $key = 'dimensi';
                                             $displayType = 'Dimensi';
                                         } else {
