@@ -279,9 +279,24 @@ class InProcessChecksheetService extends BaseService
                     continue;
 
                 foreach ($points as $point => $value) {
-                    if (isset($dimensionStandards[$point]) && $value !== null && $value !== '' && is_numeric($value)) {
-                        $hasValidDimensions = true;
+                    $std = null;
+                    if (isset($dimensionStandards[$point])) {
                         $std = $dimensionStandards[$point];
+                    } elseif (isset($dimensionStandards[(string)$point])) {
+                        $std = $dimensionStandards[(string)$point];
+                    } elseif (isset($dimensionStandards[$point - 1])) {
+                        $std = $dimensionStandards[$point - 1];
+                    } else {
+                        foreach ($dimensionStandards as $itemStd) {
+                            if (is_array($itemStd) && isset($itemStd['point']) && (string)$itemStd['point'] === (string)$point) {
+                                $std = $itemStd;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($std && $value !== null && $value !== '' && is_numeric($value)) {
+                        $hasValidDimensions = true;
                         $floatValue = (float) $value;
                         $isPointNG = false;
                         $epsilon = 0.00001;

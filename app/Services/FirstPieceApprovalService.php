@@ -285,14 +285,29 @@ class FirstPieceApprovalService extends BaseService
                 }
 
                 foreach ($points as $point => $value) {
+                    $std = null;
+                    if (isset($dimensionStandards[$point])) {
+                        $std = $dimensionStandards[$point];
+                    } elseif (isset($dimensionStandards[(string)$point])) {
+                        $std = $dimensionStandards[(string)$point];
+                    } elseif (isset($dimensionStandards[$point - 1])) {
+                        $std = $dimensionStandards[$point - 1];
+                    } else {
+                        foreach ($dimensionStandards as $itemStd) {
+                            if (is_array($itemStd) && isset($itemStd['point']) && (string)$itemStd['point'] === (string)$point) {
+                                $std = $itemStd;
+                                break;
+                            }
+                        }
+                    }
+
                     if (
-                        isset($dimensionStandards[$point]) &&
+                        $std &&
                         $value !== null &&
                         $value !== "" &&
                         is_numeric($value)
                     ) {
                         $hasValidDimensions = true;
-                        $std = $dimensionStandards[$point];
                         $floatValue = (float) $value;
                         $isPointNG = false;
                         $epsilon = 0.00001;

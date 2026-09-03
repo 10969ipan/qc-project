@@ -963,6 +963,7 @@ class FpaCreate {
         return val.toString()
             .replace(',', '.')
             .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
+            .replace(/±/g, '')
             .trim();
     }
 
