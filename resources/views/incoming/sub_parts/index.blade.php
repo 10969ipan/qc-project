@@ -378,9 +378,27 @@
                                                 }
                                             }
                                         }
-                                        $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $cs->item->part_number ?? ''));
-                                        $itemPartNumber = strtoupper($itemPartNumber);
-                                        $standards = ($partDimensionStandards ?? [])[$itemPartNumber] ?? [];
+                                        $itemStandardsRaw = $cs->item->dimension_standards ?? null;
+                                        $standards = [];
+                                        if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+                                            foreach ($itemStandardsRaw as $idx => $std) {
+                                                if (is_array($std)) {
+                                                    $pKey = (string)($std['point'] ?? ($idx + 1));
+                                                    $standards[$pKey] = [
+                                                        'size' => $std['size'] ?? null,
+                                                        'tolerance' => $std['tolerance'] ?? null,
+                                                        'min' => $std['min'] ?? null,
+                                                        'max' => $std['max'] ?? null,
+                                                    ];
+                                                }
+                                            }
+                                        }
+                                        if (empty($standards)) {
+                                            $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $cs->item->part_number ?? ''));
+                                            $itemPartNumber = strtoupper($itemPartNumber);
+                                            $standards = ($partDimensionStandards ?? [])[$itemPartNumber] ?? [];
+                                        }
+
 
                                         // Active point indexes
                                         $activePoints = [];

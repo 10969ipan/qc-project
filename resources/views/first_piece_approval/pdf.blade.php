@@ -268,9 +268,26 @@
                             $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check :
                                 json_decode($checksheet->dimension_check, true);
                             $dimensions = $dimensions ?: [];
-                            $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
-                            $itemPartNumber = strtoupper($itemPartNumber);
-                            $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                            $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
+                            $standards = [];
+                            if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+                                foreach ($itemStandardsRaw as $idx => $std) {
+                                    if (is_array($std)) {
+                                        $pKey = (string)($std['point'] ?? ($idx + 1));
+                                        $standards[$pKey] = [
+                                            'size' => $std['size'] ?? null,
+                                            'tolerance' => $std['tolerance'] ?? null,
+                                            'min' => $std['min'] ?? null,
+                                            'max' => $std['max'] ?? null,
+                                        ];
+                                    }
+                                }
+                            }
+                            if (empty($standards)) {
+                                $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
+                                $itemPartNumber = strtoupper($itemPartNumber);
+                                $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                            }
 
                             // Find active points
                             $activePoints = [];
