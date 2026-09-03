@@ -623,17 +623,13 @@
                                                                         $isNG = false;
                                                                         $cleanValStr = str_replace(',', '.', trim((string)$val));
                                                                         
-                                                                        // Robust lookup for standard in PHP
+                                                                        // Robust lookup for standard in PHP (no cross-point fallback)
                                                                         $std = null;
                                                                         if (!empty($standards)) {
                                                                             if (isset($standards[$j])) {
                                                                                 $std = $standards[$j];
                                                                             } elseif (isset($standards["$j"])) {
                                                                                 $std = $standards["$j"];
-                                                                            } elseif (isset($standards[$j - 1])) {
-                                                                                $std = $standards[$j - 1];
-                                                                            } elseif (isset($standards[(string)($j - 1)])) {
-                                                                                $std = $standards[(string)($j - 1)];
                                                                             } else {
                                                                                 foreach ($standards as $itemStd) {
                                                                                     if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {

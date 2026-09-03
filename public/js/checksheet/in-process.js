@@ -2600,16 +2600,15 @@ class InProcessCreate {
             if (!match) return;
             const point = match[2];
 
-            // Robust lookup for standard
+            // Robust lookup for standard (no cross-point fallback)
             let standard = null;
             if (dimensionStandards) {
                 if (Array.isArray(dimensionStandards)) {
-                    standard =
-                        dimensionStandards.find(
-                            (s) => String(s.point) === String(point),
-                        ) || dimensionStandards[point - 1];
+                    standard = dimensionStandards.find(
+                        (s) => String(s.point) === String(point),
+                    ) || null;
                 } else {
-                    standard = dimensionStandards[point];
+                    standard = dimensionStandards[point] || null;
                 }
             }
             const valStr = $(this).val().trim();

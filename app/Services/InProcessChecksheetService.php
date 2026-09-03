@@ -318,8 +318,6 @@ class InProcessChecksheetService extends BaseService
                         $std = $dimensionStandards[$point];
                     } elseif (isset($dimensionStandards[(string)$point])) {
                         $std = $dimensionStandards[(string)$point];
-                    } elseif (isset($dimensionStandards[$point - 1])) {
-                        $std = $dimensionStandards[$point - 1];
                     } else {
                         foreach ($dimensionStandards as $itemStd) {
                             if (is_array($itemStd) && isset($itemStd['point']) && (string)$itemStd['point'] === (string)$point) {

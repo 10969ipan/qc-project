@@ -513,10 +513,9 @@
                 let standard = null;
                 if (dimensionStandards) {
                     if (Array.isArray(dimensionStandards)) {
-                        standard = dimensionStandards.find(s => String(s.point) === String(point))
-                            || dimensionStandards[point - 1];
+                        standard = dimensionStandards.find(s => String(s.point) === String(point)) || null;
                     } else {
-                        standard = dimensionStandards[point];
+                        standard = dimensionStandards[point] || null;
                     }
                 }
 
