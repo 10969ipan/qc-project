@@ -676,70 +676,61 @@
                                         }
                                     }
                                 @endphp
-                                <td class="p-0 align-middle">
-                                    @if(count($pcsLines) > 0)
-                                        @foreach($pcsLines as $q)
-                                            <div class="border-bottom py-1">{{ $q }}</div>
-                                        @endforeach
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="p-0 align-middle">
-                                    @if(count($nameLines) > 0)
-                                        @foreach($nameLines as $n)
-                                            <div class="border-bottom py-1">{{ $n }}</div>
-                                        @endforeach
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
+                                        @if(count($pcsLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                        @if(count($nameLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                @endif
 
-                                <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
-
-                                {{-- Kashift QC --}}
-                                <td class="align-middle text-center">
-                                    @if($cs->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($cs->rejection_remarks) }}</small>
-                                    @elseif($cs->kashift_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $cs->kashift_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($cs->kashift_approved_at)
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($cs->kashift_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
-
-                                {{-- Supervisor QC --}}
-                                <td class="align-middle text-center">
-                                    @if($cs->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ getRejectorName($cs->rejection_remarks) }}</small>
-                                    @elseif($cs->supervisor_qc)
-                                        <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><small class="text-muted">oleh {{ $cs->supervisor_qc }}</small>
-                                    @else
-                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                    @if($cs->supervisor_approved_at)
-                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($cs->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
-                                    @endif
-                                </td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    {{-- Unified Approval Columns (4 Roles) --}}
+                                    @foreach ($approvalOrder as $role)
+                                        @php
+                                            $field = getApprovalField($role);
+                                            $dateField = getApprovalDateField($role);
+                                            $status = $cs->$field;
+                                            $date = $cs->$dateField;
+                                        @endphp
+                                        <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                            @if($status === 'REJECTED')
+                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $cs->rejection_remarks }}">
+                                                    <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                    @endif
+                                                </div>
+                                            @elseif($status && $status !== 'Pending')
+                                                <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ $status }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-clock mr-1"></i> PENDING
+                                                </span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
 
                                 <td class="align-middle" style="min-width: 200px;">
                                     @if($cs->rejection_remarks)
