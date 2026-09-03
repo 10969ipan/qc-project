@@ -7,6 +7,8 @@
         'revisi'     => '-',
         'halaman'    => '- / -'
     ]);
+    $isVerification = (request('view_mode') === 'verifikasi');
+    $approvalOrder = $approvalOrder ?? ['kashift', 'supervisor', 'asst_manager', 'manager'];
 @endphp
 <html lang="en">
 
@@ -24,20 +26,20 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
-            color: #333;
+            color: #000;
             margin: 0;
             padding: 10mm 10mm 5mm 10mm;
         }
 
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        .header-table td { border: 1px solid #000; padding: 5px; vertical-align: middle; }
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        .header-table td { border: 1px solid #000; padding: 4px; vertical-align: middle; }
         .logo { width: 90px; text-align: center; }
         .title { text-align: center; font-size: 13px; font-weight: bold; color: #000; }
         .doc-info { width: 160px; font-size: 8.5px; }
         .doc-info table { width: 100%; border: none; }
         .doc-info td { border: none; padding: 1px 2px; }
 
-        .sub-header { margin-bottom: 8px; font-size: 9px; }
+        .sub-header { margin-bottom: 6px; font-size: 9px; color: #000; }
 
         .table { width: 100%; border-collapse: collapse; table-layout: auto; }
 
@@ -49,9 +51,8 @@
             padding: 3px 4px;
             text-align: center;
             vertical-align: middle;
-            background-color: #f2f2f2;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background-color: #fff;
+            color: #000;
             font-weight: bold;
             text-transform: uppercase;
             font-size: 6.5px;
@@ -64,7 +65,7 @@
             text-align: center;
             vertical-align: middle;
             font-size: 7.5px;
-            white-space: nowrap;
+            color: #000;
         }
 
         tbody tr {
@@ -72,24 +73,12 @@
             break-inside: avoid;
         }
 
-        .badge {
-            display: inline-block;
-            padding: .2em .35em;
-            font-size: 75%;
-            font-weight: 700;
-            line-height: 1;
-            text-align: center;
-            border-radius: .25rem;
-        }
-        .badge-success { color: #fff; background-color: #28a745; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-danger  { color: #fff; background-color: #dc3545; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-warning { color: #212529; background-color: #ffc107; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .text-left { text-align: left !important; }
+        .text-center { text-align: center !important; }
+        .font-weight-bold { font-weight: bold !important; }
+        .text-nowrap { white-space: nowrap !important; }
 
-        .text-success   { color: #28a745; }
-        .text-danger    { color: #dc3545; }
-        .text-uppercase { text-transform: uppercase; }
-
-        .print-footer { margin-top: 8mm; font-size: 7.5px; color: #666; }
+        .print-footer { margin-top: 6mm; font-size: 7.5px; color: #000; }
     </style>
 </head>
 
@@ -114,31 +103,51 @@
     </table>
 
     <div class="sub-header">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
-        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        @if(!empty($selectedItem))
+            <strong>Item Part / Part No:</strong> {{ $selectedItem->name }} ({{ $selectedItem->part_number ?? '-' }})
+        @else
+            <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        @endif
     </div>
 
     <table class="table">
         <thead>
             <tr>
                 <th rowspan="2">No</th>
-                <th rowspan="2">Tgl & Shift Check</th>
-                <th rowspan="2">Item Part</th>
-                <th rowspan="2">Customer / Supplier</th>
-                <th rowspan="2">Qty Datang Awal</th>
-                <th rowspan="2">Qty Balance Sisa</th>
-                <th rowspan="2">Total Check</th>
-                <th rowspan="2">Tgl & Shift Datang</th>
+                @if($isVerification)
+                    <th rowspan="2">QR-Code</th>
+                @endif
+                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                <th rowspan="2">ITEM PART / PART NO / CUSTOMER</th>
+                @if(!$isVerification)
+                    <th rowspan="2">Tgl &amp; Shift Datang</th>
+                    <th rowspan="2">Qty Datang Awal</th>
+                @endif
+                <th rowspan="2">Qty<br>(Total / Sampling)</th>
+                @if(!$isVerification)
+                    <th rowspan="2">Qty Balance Sisa</th>
+                @endif
                 <th rowspan="2">OK</th>
                 <th rowspan="2">NG</th>
-                <th colspan="2">Detail NG</th>
+                @if(!$isVerification)
+                    <th colspan="2">Detail NG</th>
+                @endif
                 <th rowspan="2">Judgment</th>
-                <th rowspan="2">QC Inisial</th>
-                <th rowspan="2">Remarks</th>
+                @if(!$isVerification)
+                    <th colspan="4">Approval Status</th>
+                @endif
+                <th rowspan="2">Keterangan</th>
             </tr>
             <tr>
-                <th>Pcs</th>
-                <th>Jenis NG</th>
+                @if(!$isVerification)
+                    <th>Pcs</th>
+                    <th>Jenis NG</th>
+                    <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                    <th style="font-size: 5.5px;">Supervisor QC</th>
+                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                    <th style="font-size: 5.5px;">Manager QC</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -160,62 +169,98 @@
                             }
                         }
                     }
+
+                    $sec = (int) ($cs->cycle_time ?? 0);
+                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+
+                    if ($cs->arrival) {
+                        if ($cs->arrival->status === 'COMPLETED' || $cs->arrival->qty_sisa <= 0) {
+                            $printSisa = 0;
+                            $printStatus = 'COMPLETED';
+                        } else {
+                            $printSisa = $cs->arrival->qty_sisa;
+                            $printStatus = 'OPEN';
+                        }
+                    } else {
+                        $printSisa = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0;
+                        $printStatus = ($printSisa <= 0) ? 'COMPLETED' : 'OPEN';
+                    }
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>
-                        {{ date('d/m/Y', strtotime($cs->date)) }}
-                        <br><small style="color:#666;">Shift {{ $cs->shift }}</small>
+                    @if($isVerification)
+                        <td style="font-size: 6.5px;">{{ $cs->qrcode ?? $cs->unique_code_id ?? '-' }}</td>
+                    @endif
+                    <td class="text-nowrap">
+                        {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift }} / {{ $cs->operator_initials ?? '-' }}
                     </td>
-                    <td style="text-align:left;">
-                        <strong>{{ $cs->item->name ?? '-' }}</strong><br>
-                        <small style="color:#666;">{{ $cs->item->part_number ?? '-' }}</small>
+                    <td class="text-nowrap">
+                        {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} ({{ $ctStr }})
                     </td>
-                    <td>{{ $cs->item->customer ?? '-' }}</td>
-                    <td>{{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs</td>
-                    <td>
-                        @php
-                            if ($cs->arrival) {
-                                if ($cs->arrival->status === 'COMPLETED' || $cs->arrival->qty_sisa <= 0) {
-                                    $printSisa = 0;
-                                    $printStatus = 'COMPLETED';
-                                } else {
-                                    $printSisa = $cs->arrival->qty_sisa;
-                                    $printStatus = 'OPEN';
-                                }
-                            } else {
-                                $printSisa = isset($cs->qty_balance_sisa) ? $cs->qty_balance_sisa : 0;
-                                $printStatus = ($printSisa <= 0) ? 'COMPLETED' : 'OPEN';
-                            }
-                        @endphp
-                        {{ number_format($printSisa) }} pcs ({{ $printStatus }})
+                    <td class="text-left" style="line-height: 1.1;">
+                        <strong style="font-size: 8px;">{{ $cs->item->name ?? '-' }}</strong><br>
+                        <span style="font-size: 6.5px;">{{ $cs->item->part_number ?? '-' }}</span><br>
+                        <span style="font-size: 6.5px;">{{ $cs->item->customer ?? '-' }}</span>
                     </td>
-                    <td><strong>{{ number_format($cs->total_check) }} pcs</strong></td>
-                    <td>
-                        @if($cs->tanggal_datang)
-                            {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
-                            @if($cs->arrival && $cs->arrival->shift_datang)
-                                <br><small style="color:#666;">Shift {{ $cs->arrival->shift_datang }}</small>
+                    @if(!$isVerification)
+                        <td class="text-nowrap">
+                            @if($cs->tanggal_datang)
+                                {{ date('d-m-Y', strtotime($cs->tanggal_datang)) }} / {{ $cs->arrival ? $cs->arrival->shift_datang : '-' }}
+                            @else
+                                -
                             @endif
-                        @else
-                            -
-                        @endif
+                        </td>
+                        <td class="text-nowrap">{{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} Pcs</td>
+                    @endif
+                    <td class="text-nowrap">
+                        <strong>{{ number_format($cs->total_check) }}</strong> / {{ number_format($cs->sampling_qty ?? $cs->total_check) }} Pcs
                     </td>
-                    <td class="text-success font-weight-bold">{{ number_format(max(0, $cs->total_check - $cs->total_ng)) }}</td>
-                    <td class="text-danger font-weight-bold">{{ number_format($cs->total_ng) }}</td>
-                    <td class="text-danger" style="font-size:6.5px;">
-                        {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
-                    </td>
-                    <td class="text-danger" style="font-size:6.5px;">
-                        {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
-                    </td>
+                    @if(!$isVerification)
+                        <td class="text-nowrap">
+                            {{ number_format($printSisa) }} Pcs ({{ $printStatus }})
+                        </td>
+                    @endif
+                    <td class="font-weight-bold">{{ number_format(max(0, $cs->total_check - $cs->total_ng)) }}</td>
+                    <td class="font-weight-bold">{{ number_format($cs->total_ng) }}</td>
+                    @if(!$isVerification)
+                        <td style="font-size: 6.5px;">
+                            {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                        </td>
+                        <td style="font-size: 6.5px; text-align: left;">
+                            {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                        </td>
+                    @endif
                     <td>
-                        <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
-                            {{ $cs->judgment }}
-                        </span>
+                        <strong>{{ $cs->judgment }}</strong>
                     </td>
-                    <td class="text-uppercase">{{ $cs->operator_initials ?? '-' }}</td>
-                    <td style="text-align:left; font-size:6.5px;">{{ $cs->remarks ?? '-' }}</td>
+                    @if(!$isVerification)
+                        @foreach ($approvalOrder as $role)
+                            @php
+                                $field = getApprovalField($role);
+                                $dateField = getApprovalDateField($role);
+                                $status = $cs->$field;
+                                $date = $cs->$dateField;
+                            @endphp
+                            <td class="text-center" style="font-size: 6px; line-height: 1.1;">
+                                @if($status === 'REJECTED')
+                                    <strong>REJECTED</strong><br>
+                                    <span>oleh {{ getRejectorName($cs->rejection_remarks) }}</span>
+                                    @if($date)
+                                        <br><span>{{ \Carbon\Carbon::parse($date)->format('d/m/y H:i') }}</span>
+                                    @endif
+                                @elseif($status && $status !== 'Pending')
+                                    <strong>APPROVED</strong><br>
+                                    <span>oleh {{ $status }}</span>
+                                    @if($date)
+                                        <br><span>{{ \Carbon\Carbon::parse($date)->format('d/m/y H:i') }}</span>
+                                    @endif
+                                @else
+                                    <span>PENDING</span>
+                                @endif
+                            </td>
+                        @endforeach
+                    @endif
+                    <td class="text-left" style="font-size: 6.5px; word-break: break-all;">{{ $cs->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

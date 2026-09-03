@@ -365,6 +365,8 @@ class IncomingPartService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_parts_filters_" . md5(json_encode([$plantId, ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess']])));
+            \Illuminate\Support\Facades\Cache::forget("incoming_parts_filters_" . md5(json_encode([$plantId, 'Incoming Part'])));
 
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Part');

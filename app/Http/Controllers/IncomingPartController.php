@@ -34,8 +34,10 @@ class IncomingPartController extends Controller
     protected function getApprovalMapping($type)
     {
         $mapping = [
-            'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Kashift QC / Kepala Regu'],
-            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor QC'],
+            'kashift'      => ['field' => 'kashift_qc',      'time' => 'kashift_approved_at',      'label' => 'Kashift QC / Kepala Regu'],
+            'supervisor'   => ['field' => 'supervisor_qc',   'time' => 'supervisor_approved_at',   'label' => 'Supervisor QC'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
+            'manager'      => ['field' => 'manager_qc',      'time' => 'manager_approved_at',      'label' => 'Manager QC'],
         ];
 
         return $mapping[$type] ?? null;
@@ -44,8 +46,10 @@ class IncomingPartController extends Controller
     protected function applySequentialApprovalFilter($query, $type)
     {
         $sequence = [
-            'kashift' => 'kashift_qc',
-            'supervisor' => 'supervisor_qc',
+            'kashift'      => 'kashift_qc',
+            'supervisor'   => 'supervisor_qc',
+            'asst_manager' => 'asst_manager_qc',
+            'manager'      => 'manager_qc',
         ];
 
         $keys = array_keys($sequence);
@@ -122,23 +126,28 @@ class IncomingPartController extends Controller
         $categories = $isJakarta ? ['Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess'] : 'Incoming Part';
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory($categories)->orderBy('name')->get();
 
-        $customers = Item::whereIn('id', function ($query) use ($plantId) {
-            $query->select('item_id')->from('incoming_parts')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        // Plant-Isolated Query Caching for dropdown filters
+        $cacheKey = "incoming_parts_filters_" . md5(json_encode([$plantId, $categories]));
+        $cachedFilterData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($categories, $plantId) {
+            $items = Item::byCategory($categories)->orderBy('name')->get();
+            $customers = Item::whereIn('id', function ($query) use ($plantId) {
+                $query->select('item_id')->from('incoming_parts')->where('plant_id', $plantId);
+            })->whereNotNull('customer')->distinct()->pluck('customer')->sort()->values();
 
-        $initialsQuery = IncomingPart::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials');
+            $initials = IncomingPart::where('plant_id', $plantId)
+                ->whereNotNull('operator_initials')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort()
+                ->values();
 
-        if (!empty($filters['start_date'])) {
-            $initialsQuery->whereDate('date', '>=', $filters['start_date']);
-        }
-        if (!empty($filters['end_date'])) {
-            $initialsQuery->whereDate('date', '<=', $filters['end_date']);
-        }
+            return compact('items', 'customers', 'initials');
+        });
 
-        $initials = $initialsQuery->distinct()->pluck('operator_initials')->sort();
+        $items = $cachedFilterData['items'];
+        $customers = $cachedFilterData['customers'];
+        $initials = $cachedFilterData['initials'];
 
         $openArrivals = \App\Models\IncomingPartArrival::with('item')
             ->where('plant_id', $plantId)
@@ -150,7 +159,15 @@ class IncomingPartController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        return view('incoming.parts.index', compact('checksheets', 'items', 'customers', 'initials', 'openArrivals'));
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_parts', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0210',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        return view('incoming.parts.index', compact('checksheets', 'items', 'customers', 'initials', 'openArrivals', 'approvalOrder', 'docHeader'));
     }
 
     public function create(Request $request)
@@ -543,11 +560,25 @@ class IncomingPartController extends Controller
             $checksheets = $query->limit(50)->get();
         }
 
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
         $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
         $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
         $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
         $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
-        return view('incoming.parts.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_parts', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0210',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        $selectedItem = null;
+        if (!empty($filters['item_id'])) {
+            $selectedItem = Item::find($filters['item_id']);
+        }
+
+        return view('incoming.parts.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate', 'approvalOrder', 'docHeader', 'selectedItem'));
     }
 }

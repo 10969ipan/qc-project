@@ -298,10 +298,6 @@
                         </a>
                     @endif
                     @if($canExport)
-                    <a href="{{ route('incoming.parts.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('incoming.parts.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Cetak Direct"
                         style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
@@ -328,38 +324,38 @@
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Tgl &amp; Shift Check</th>
-                            <th rowspan="2" class="align-middle">Jam (Before)</th>
-                            <th rowspan="2" class="align-middle">Jam (After)</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
+                            <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer / Supplier</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
                                 <th rowspan="2" class="align-middle">Qty Datang Awal</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Total Check</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Qty Sampling</th>
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
-                            <th colspan="2" class="align-middle">Detail NG</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="2" class="align-middle">Approval Status</th>
+                                <th colspan="2" class="align-middle">Detail NG</th>
+                            @endif
+                            <th rowspan="2" class="align-middle">Judgment</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">Remarks</th>
                             <th rowspan="2" class="align-middle">Action</th>
                         </tr>
-                        <tr>
-                            <th style="width: 60px;">Pcs</th>
-                            <th style="min-width: 140px;">Jenis NG</th>
+                        <tr class="text-center">
                             @if(request('view_mode') !== 'verifikasi')
-                                <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                                <th style="font-size: 10px;">Supervisor QC</th>
+                                <th style="width: 45px; min-width: 45px;">Pcs</th>
+                                <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
+                                <th style="font-size: 10px; min-width: 120px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
@@ -378,48 +374,56 @@
                                 $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
                                     && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED')
                                     && (!empty($cs->kashift_qc) && $cs->kashift_qc !== 'REJECTED');
+
+                                $canApproveAsstManager = (in_array($user->role, ['asst_manager', 'asst_manager_qc']) || $isAdmin) 
+                                    && (empty($cs->asst_manager_qc) || $cs->asst_manager_qc === 'REJECTED')
+                                    && (!empty($cs->supervisor_qc) && $cs->supervisor_qc !== 'REJECTED');
+
+                                $canApproveManager = (in_array($user->role, ['manager', 'manager_qc']) || $isAdmin) 
+                                    && (empty($cs->manager_qc) || $cs->manager_qc === 'REJECTED')
+                                    && (!empty($cs->asst_manager_qc) && $cs->asst_manager_qc !== 'REJECTED');
                             @endphp
-                            <tr>
-                                <td class="align-middle text-center">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input row-checkbox" id="check_{{ $cs->id }}" value="{{ $cs->id }}">
-                                        <label class="custom-control-label" for="check_{{ $cs->id }}" style="cursor:pointer;"></label>
-                                    </div>
-                                </td>
+                            <tr class="text-center">
+                                @if(auth()->user()->role === 'admin')
+                                    <td class="align-middle text-center">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input row-checkbox" id="check_{{ $cs->id }}" value="{{ $cs->id }}">
+                                            <label class="custom-control-label" for="check_{{ $cs->id }}" style="cursor:pointer;"></label>
+                                        </div>
+                                    </td>
+                                @endif
                                 <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 @if(request('view_mode') === 'verifikasi')
-                                    <td class="align-middle text-nowrap">
+                                    <td class="align-middle text-center text-nowrap">
                                         @if(!empty($cs->qrcode) || !empty($cs->unique_code_id) || in_array($cs->scan_method, ['hardware', 'camera']))
-                                            <button type="button" class="btn btn-sm btn-primary shadow-sm btn-qr-detail py-1 px-2" 
+                                            <button type="button" class="btn btn-outline-primary btn-xs btn-qr-detail" 
                                                 data-qr="{{ $cs->qrcode }}"
                                                 data-part="{{ $cs->part_code }}"
                                                 data-supplier="{{ $cs->supplier_id }}"
                                                 data-qty="{{ $cs->quantity }}"
                                                 data-unique="{{ $cs->unique_code_id }}"
-                                                data-sap="{{ $cs->sap_code ?? '-' }}">
-                                                <i class="fas fa-qrcode mr-1"></i> QR-CODE
+                                                data-sap="{{ $cs->sap_code ?? '-' }}"
+                                                style="padding: 0.2rem 0.5rem; font-size: 0.80rem;" title="Lihat Detail QR Code">
+                                                <i class="fas fa-qrcode"></i>
                                             </button>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                 @endif
-                                <td class="align-middle text-nowrap">
-                                    {{ date('d/m/Y', strtotime($cs->date)) }}
-                                    <br><small class="text-muted">Shift {{ $cs->shift }}</small>
+                                <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
+                                    {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift }} / {{ $cs->operator_initials ?? '-' }}
                                 </td>
+                                @php
+                                    $sec = (int) ($cs->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
                                 <td class="align-middle text-nowrap">
-                                    {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') : '-' }}
-                                </td>
-                                <td class="align-middle text-nowrap">
-                                    {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }}
-                                </td>
-                                <td class="align-middle text-nowrap">
-                                    {{ $cs->cycle_time ? $cs->cycle_time . ' s' : '-' }}
+                                    {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} <span class="text-muted">({{ $ctStr }})</span>
                                 </td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $cs->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $cs->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $cs->item->part_number ?? '-' }}</small>
                                 </td>
                                 
                                 {{-- Kolom Customer / Supplier --}}
@@ -429,12 +433,12 @@
                                     {{-- Tgl & Shift Datang --}}
                                     <td class="align-middle text-nowrap">
                                         @if($cs->tanggal_datang)
-                                            {{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}
+                                            {{ date('d-m-Y', strtotime($cs->tanggal_datang)) }}
                                             @php
                                                 $shiftDatangShow = $cs->arrival ? $cs->arrival->shift_datang : null;
                                             @endphp
                                             @if($shiftDatangShow)
-                                                <br><small class="text-muted">Shift {{ $shiftDatangShow }}</small>
+                                                / {{ $shiftDatangShow }}
                                             @endif
                                         @else
                                             -
@@ -443,12 +447,15 @@
 
                                     {{-- Qty Kedatangan Awal --}}
                                     <td class="align-middle text-nowrap">
-                                        {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} pcs
+                                        {{ number_format($cs->arrival ? $cs->arrival->qty_datang : ($cs->lot_qty ?? 0)) }} Pcs
                                     </td>
                                 @endif
 
-                                {{-- Total Check --}}
-                                <td class="align-middle text-nowrap">{{ number_format($cs->total_check) }} pcs</td>
+                                {{-- Qty Total / Sampling --}}
+                                <td class="align-middle text-nowrap" style="font-size: 0.75rem;">
+                                    <span class="font-weight-bold text-dark">{{ number_format($cs->total_check) }}</span>
+                                    <span class="text-muted font-weight-normal">/ {{ number_format($cs->sampling_qty ?? $cs->total_check) }} Pcs</span>
+                                </td>
 
                                 @if(request('view_mode') !== 'verifikasi')
                                     {{-- Qty Balance Sisa --}}
@@ -467,69 +474,84 @@
                                                 $statusDisplay = ($sisaDisplay <= 0) ? 'COMPLETED' : 'OPEN';
                                             }
                                         @endphp
-                                        <span>{{ number_format($sisaDisplay) }} pcs</span>
+                                        <span>{{ number_format($sisaDisplay) }} Pcs</span>
                                         <br>
                                         <small class="text-muted">({{ $statusDisplay }})</small>
                                     </td>
                                 @endif
 
-                                {{-- Qty Sampling --}}
-                                <td class="align-middle text-nowrap text-primary">{{ number_format($cs->sampling_qty ?? $cs->total_check) }} pcs</td>
-
                                 {{-- OK & NG --}}
-                                <td class="align-middle text-nowrap text-success font-weight-bold">{{ number_format($cs->total_check - $cs->total_ng) }}</td>
+                                <td class="align-middle text-nowrap text-success font-weight-bold">{{ number_format(max(0, $cs->total_check - $cs->total_ng)) }}</td>
                                 <td class="align-middle text-nowrap text-danger font-weight-bold">{{ number_format($cs->total_ng) }}</td>
                                 
                                 @php
-                                    $defects = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true);
-                                    $validDefects = array_filter($defects ?? [], function($d) {
-                                        return !empty($d['type']) || (!empty($d['qty']) && $d['qty'] > 0);
-                                    });
+                                    $defectsData = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true);
+                                    $pcsLines = [];
+                                    $nameLines = [];
+
+                                    if (is_array($defectsData)) {
+                                        foreach ($defectsData as $d) {
+                                            if (is_array($d) && isset($d['type'])) {
+                                                $qty = $d['qty'] ?? 1;
+                                                $pcsLines[] = $qty;
+                                                $nameLines[] = $d['type'];
+                                            } elseif (is_string($d)) {
+                                                $pcsLines[] = 1;
+                                                $nameLines[] = $d;
+                                            }
+                                        }
+                                    }
                                 @endphp
-                                <td class="p-0 align-middle text-nowrap">
-                                    @forelse($validDefects as $d)
-                                        <div class="border-bottom py-1">{{ $d['qty'] ?? 0 }}</div>
-                                    @empty
-                                        <span class="text-muted">-</span>
-                                    @endforelse
+
+                                <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
+                                    @if(count($pcsLines) > 0)
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
+                                    @else
+                                        -
+                                    @endif
                                 </td>
-                                <td class="p-0 align-middle text-center text-nowrap">
-                                    @forelse($validDefects as $d)
-                                        <div class="border-bottom py-1">{{ $d['type'] ?? '-' }}</div>
-                                    @empty
-                                        <span class="text-muted">-</span>
-                                    @endforelse
+                                <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                    @if(count($nameLines) > 0)
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                    @else
+                                        -
+                                    @endif
                                 </td>
 
                                 <td class="align-middle text-nowrap">
-                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }} px-2 py-1">
+                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }} px-2 py-1" style="font-size: 0.65rem;">
                                         {{ $cs->judgment }}
                                     </span>
                                 </td>
-                                <td class="align-middle text-nowrap text-uppercase">{{ $cs->operator_initials }}</td>
                                 
                                 @if(request('view_mode') !== 'verifikasi')
-                                    {{-- Approval Columns --}}
-                                    @foreach(['kashift_qc', 'supervisor_qc'] as $lvl)
+                                    {{-- Unified Approval Columns (4 Roles) --}}
+                                    @foreach ($approvalOrder as $role)
+                                        @php
+                                            $field = getApprovalField($role);
+                                            $dateField = getApprovalDateField($role);
+                                            $status = $cs->$field;
+                                            $date = $cs->$dateField;
+                                        @endphp
                                         <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                            @if($cs->$lvl === 'REJECTED')
-                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                            @if($status === 'REJECTED')
+                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $cs->rejection_remarks }}">
                                                     <i class="fas fa-times-circle mr-1"></i> REJECTED
                                                 </span>
                                                 <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
                                                     <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                    @endif
                                                 </div>
-                                            @elseif($cs->$lvl)
+                                            @elseif($status && $status !== 'Pending')
                                                 <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
                                                     <i class="fas fa-check-circle mr-1"></i> APPROVED
                                                 </span>
                                                 <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                    <div>oleh {{ $cs->$lvl }}</div>
-                                                    @php
-                                                        $timeField = str_replace('_qc', '', $lvl) . '_approved_at';
-                                                    @endphp
-                                                    @if(!empty($cs->$timeField))
-                                                        <div>{{ \Carbon\Carbon::parse($cs->$timeField)->format('d/m/Y H:i') }}</div>
+                                                    <div>oleh {{ $status }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
                                                     @endif
                                                 </div>
                                             @else
@@ -568,6 +590,30 @@
                                             </button>
                                         </form>
                                         <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Supervisor QC)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
+                                    @if($canApproveAsstManager)
+                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager QC)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' AM' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager QC)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
+                                    @if($canApproveManager)
+                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' MGR' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager QC)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager" style="min-width: 90px;">
                                             <i class="fas fa-times"></i> Reject
                                         </button>
                                     @endif
@@ -675,7 +721,7 @@
 
     <!-- Modal Penolakan untuk setiap checksheet -->
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor'] as $rejectType)
+        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
                 $user = auth()->user();
                 $isAdmin = $user->role === 'admin';
@@ -686,6 +732,10 @@
                 if ($rejectType == 'kashift' && ((in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED'))) {
+                    $canReject = true;
+                } elseif ($rejectType == 'asst_manager' && ((in_array($user->role, ['asst_manager', 'asst_manager_qc']) || $isAdmin) && (empty($cs->asst_manager_qc) || $cs->asst_manager_qc === 'REJECTED'))) {
+                    $canReject = true;
+                } elseif ($rejectType == 'manager' && ((in_array($user->role, ['manager', 'manager_qc']) || $isAdmin) && (empty($cs->manager_qc) || $cs->manager_qc === 'REJECTED'))) {
                     $canReject = true;
                 }
             @endphp
