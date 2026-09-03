@@ -729,16 +729,16 @@
 
                                                                             // 2. Check Size +/- Tolerance
                                                                             if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                                                                                $szStr = (string)$std['size'];
+                                                                                $szStr = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['size']));
                                                                                 if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
                                                                                     $base = (float)$szStr;
-                                                                                    $tol = (string)$std['tolerance'];
+                                                                                    $tol = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['tolerance']));
                                                                                     $lb = $base; $ub = $base;
                                                                                     
                                                                                     if (str_contains($tol, '/')) {
                                                                                         $parts = explode('/', $tol);
                                                                                         foreach ($parts as $p) {
-                                                                                            $p = trim(str_replace(',', '.', $p));
+                                                                                            $p = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], $p));
                                                                                             $fv = (float)$p;
                                                                                             if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
                                                                                             elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);

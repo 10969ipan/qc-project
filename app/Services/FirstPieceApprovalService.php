@@ -241,6 +241,8 @@ class FirstPieceApprovalService extends BaseService
             "-",
             $val,
         );
+        // Remove plus-minus signs
+        $val = str_replace(["±", "\u{00B1}"], "", $val);
         // Trim whitespace
         return trim($val);
     }

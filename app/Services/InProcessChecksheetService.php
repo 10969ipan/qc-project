@@ -250,6 +250,8 @@ class InProcessChecksheetService extends BaseService
         $val = str_replace(',', '.', $val);
         // Replace non-standard dashes with standard hyphen-minus
         $val = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $val);
+        // Remove plus-minus signs
+        $val = str_replace(["±", "\u{00B1}"], "", $val);
         // Trim whitespace
         return trim($val);
     }

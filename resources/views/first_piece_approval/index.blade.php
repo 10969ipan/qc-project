@@ -656,26 +656,26 @@
 
                                                                             // 2. Check Size +/- Tolerance
                                                                             if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                                                                                $szStr = (string)$std['size'];
+                                                                                $szStr = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['size']));
                                                                                 if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
-                                                                                    $base = (float)str_replace(',', '.', $szStr);
-                                                                                    $tol = (string)$std['tolerance'];
+                                                                                    $base = (float)$szStr;
+                                                                                    $tol = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], (string)$std['tolerance']));
                                                                                     $lb = $base; $ub = $base;
                                                                                     
                                                                                     if (str_contains($tol, '/')) {
                                                                                         $parts = explode('/', $tol);
                                                                                         foreach ($parts as $p) {
-                                                                                            $p = trim(str_replace(',', '.', $p));
+                                                                                            $p = trim(str_replace(['±', "\u{00B1}", ','], ['', '', '.'], $p));
                                                                                             $fv = (float)$p;
                                                                                             if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
                                                                                             elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
                                                                                         }
                                                                                     } elseif (str_starts_with($tol, '+')) {
-                                                                                        $ub = $base + (float)substr(str_replace(',', '.', $tol), 1);
+                                                                                        $ub = $base + (float)substr($tol, 1);
                                                                                     } elseif (str_starts_with($tol, '-')) {
-                                                                                        $lb = $base + (float)str_replace(',', '.', $tol);
+                                                                                        $lb = $base + (float)$tol;
                                                                                     } else {
-                                                                                        $tv = (float)str_replace(',', '.', $tol);
+                                                                                        $tv = (float)$tol;
                                                                                         $lb = $base - $tv; $ub = $base + $tv;
                                                                                     }
                                                                                     
