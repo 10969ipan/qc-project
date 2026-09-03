@@ -335,10 +335,6 @@
                     </a>
 
                     @if($canExport)
-                    <a href="{{ route('double_tape.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('double_tape.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
                         style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
@@ -368,15 +364,11 @@
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
                                 <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" class="align-middle">Jam (Before)</th>
-                                <th rowspan="2" class="align-middle">Jam (After)</th>
-                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                                <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             @else
                                 <th rowspan="2" class="bg-light align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" class="align-middle">Jam (Before)</th>
-                                <th rowspan="2" class="align-middle">Jam (After)</th>
-                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                                <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             @endif
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
@@ -390,7 +382,7 @@
                             <th rowspan="2" class="align-middle">Judgment</th>
 
                             @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="2" class="align-middle">Approval Status</th>
+                                <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
                             <th rowspan="2" class="align-middle">DESCRIPTION</th>
                             @if(request('view_mode') === 'verifikasi' ? auth()->user()->role !== 'inspector' : !in_array(auth()->user()->role, ['inspector']))
@@ -403,11 +395,17 @@
                                 <th style="min-width: 150px;">Jenis NG</th>
                                 <th style="font-size: 10px; min-width: 120px;">Kashift QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
                             @endif
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($checksheets as $checksheet)
+                            @php
+                                $sec = (int) ($checksheet->cycle_time ?? 0);
+                                $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                            @endphp
                             <tr class="text-center">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
@@ -433,11 +431,9 @@
                                     <td class="align-middle text-nowrap">
                                         {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
-                                    <td class="align-middle">
-                                        {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                     </td>
-                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
-                                    <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 @else
                                     <td class="align-middle text-nowrap">
                                         {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
@@ -445,16 +441,14 @@
                                     <td class="align-middle text-nowrap">
                                         {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
-                                    <td class="align-middle">
-                                        {{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                    <td class="align-middle text-nowrap">
+                                        {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                     </td>
-                                    <td class="align-middle">{{ $checksheet->created_at->format('H:i') }}</td>
-                                    <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle">{{ $checksheet->total_qty }}</td>
@@ -514,63 +508,35 @@
                                 </td>
 
                                 @if(request('view_mode') !== 'verifikasi')
-                                {{-- Kashift QC --}}
-                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->kashift_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->kashift_qc }}</div>
-                                            @if($checksheet->kashift_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                </td>
-
-                                {{-- Supervisor QC --}}
-                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->supervisor_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->supervisor_qc }}</div>
-                                            @if($checksheet->supervisor_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
-                                </td>
+                                @foreach(['kashift_qc' => 'kashift_approved_at', 'supervisor_qc' => 'supervisor_approved_at', 'asst_manager_qc' => 'asst_manager_approved_at', 'manager_qc' => 'manager_approved_at'] as $field => $timeField)
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                        @if($checksheet->$field === 'REJECTED')
+                                            <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
+                                                @if($checksheet->$timeField)
+                                                    <div>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/Y H:i') }}</div>
+                                                @endif
+                                            </div>
+                                        @elseif($checksheet->$field)
+                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                <div>oleh {{ $checksheet->$field }}</div>
+                                                @if($checksheet->$timeField)
+                                                    <div>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/Y H:i') }}</div>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-clock mr-1"></i> PENDING
+                                            </span>
+                                        @endif
+                                    </td>
+                                @endforeach
                                 @endif {{-- end view_mode !== verifikasi --}}
 
                                 <td class="align-middle">
@@ -599,7 +565,9 @@
                                             $isAdmin = $user->role === 'admin';
 
                                             $canApproveKashift = ($user->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
-                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED');
+                                            $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
+                                            $canApproveAsstManager = ($user->role === 'asst_manager' || $user->role === 'asst_manager_qc' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') && ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED');
+                                            $canApproveManager = ($user->role === 'manager' || $user->role === 'manager_qc' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED') && ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED');
 
                                             $showEdit = (request('view_mode') === 'verifikasi' || $canEdit);
                                             $showDel = (request('view_mode') === 'verifikasi' || $canDelete);
@@ -640,6 +608,36 @@
                                                     </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif(($user->role === 'asst_manager' || $user->role === 'asst_manager_qc') && $canApproveAsstManager)
+                                                <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager)">
+                                                        <i class="fas fa-check"></i> Approve AM
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif(($user->role === 'manager' || $user->role === 'manager_qc') && $canApproveManager)
+                                                <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager)">
+                                                        <i class="fas fa-check"></i> Approve MGR
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @endif
@@ -689,6 +687,44 @@
                                                         </form>
                                                         <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Asst Manager (Admin Only in Dropdown) --}}
+                                                    @if($canApproveAsstManager)
+                                                        <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST" class="d-inline w-100">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve Asst Manager QC
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject Asst Manager QC
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Manager (Admin Only in Dropdown) --}}
+                                                    @if($canApproveManager)
+                                                        <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST" class="d-inline w-100">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve Manager QC
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject Manager QC
                                                         </button>
                                                         <div class="dropdown-divider"></div>
                                                     @endif

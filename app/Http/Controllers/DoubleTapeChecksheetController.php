@@ -108,20 +108,29 @@ class DoubleTapeChecksheetController extends Controller
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
         
         $plantId = \App\Models\Plant::resolveId('karawang');
-        
-        $items = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('double_tape_checksheets')->where('plant_id', $plantId);
-        })->orderBy('name')->get();
 
-        $customers = Item::whereIn('id', function($query) use ($plantId) {
-            $query->select('item_id')->from('double_tape_checksheets')->where('plant_id', $plantId);
-        })->whereNotNull('customer')->distinct()->pluck('customer')->sort();
+        $items = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        });
 
-        $initials = DoubleTapeChecksheet::where('plant_id', $plantId)
-            ->whereNotNull('operator_initials')
-            ->distinct()
-            ->pluck('operator_initials')
-            ->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_cust_{$plantId}", 1800, function () use ($plantId) {
+            return Item::where('plant_id', $plantId)
+                ->whereNotNull('customer')
+                ->where('customer', '!=', '')
+                ->distinct()
+                ->pluck('customer')
+                ->sort();
+        });
+
+        $initials = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return DoubleTapeChecksheet::where('plant_id', $plantId)
+                ->where('date', '>=', now()->subDays(90))
+                ->whereNotNull('operator_initials')
+                ->where('operator_initials', '!=', '')
+                ->distinct()
+                ->pluck('operator_initials')
+                ->sort();
+        });
 
         return view('double_tape.index', compact('checksheets', 'items', 'customers', 'initials'));
     }

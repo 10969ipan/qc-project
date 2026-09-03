@@ -77,7 +77,13 @@ class DoubleTapeChecksheetService extends BaseService
         }
 
         if (!empty($filters['qr_raw'])) {
-            $query->where('double_tape_checksheets.qrcode', 'like', "%{$filters['qr_raw']}%");
+            $qr = trim($filters['qr_raw']);
+            $query->where(function ($q) use ($qr) {
+                $q->where('double_tape_checksheets.qrcode', $qr)
+                  ->orWhere('double_tape_checksheets.unique_code_id', $qr)
+                  ->orWhere('double_tape_checksheets.sap_code', $qr)
+                  ->orWhere('double_tape_checksheets.qrcode', 'like', "%{$qr}%");
+            });
         }
 
         // Entry Method filter (Verification vs Regular)
@@ -159,6 +165,9 @@ class DoubleTapeChecksheetService extends BaseService
             ]);
 
             DB::commit();
+
+            // Clear filter cache so dropdown options refresh immediately
+            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_init_{$checksheet->plant_id}");
 
             Log::info('Checksheet Double Tape berhasil dibuat', [
                 'user_id' => auth()->id(),
