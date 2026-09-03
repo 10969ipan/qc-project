@@ -100,6 +100,7 @@ class IncomingMaterialService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_materials_filters_" . md5(json_encode([$checksheet->plant_id])));
 
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Material');
@@ -138,6 +139,7 @@ class IncomingMaterialService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_materials_filters_" . md5(json_encode([$checksheet->plant_id])));
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
