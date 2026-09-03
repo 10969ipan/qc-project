@@ -229,16 +229,13 @@
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
                     @if($canExport)
-                    <a href="{{ route('incoming.chemicals.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
-                    </a>
                     <a href="{{ route('incoming.chemicals.print', request()->query()) }}"
                         target="_blank"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print-direct" title="Print"
                         style="background-color: #17a589; color: white;">
                         <i class="fas fa-print fa-sm"></i> Cetak
                     </a>
+                    @endif
                 </div>
             </form>
 
