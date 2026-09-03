@@ -913,11 +913,16 @@ class InProcessChecksheetController extends Controller
             $defects = [];
         }
 
+        $isDimensiType = function($t) {
+            $key = strtolower(trim((string)$t));
+            return in_array($key, ['dimensi', 'dimension', 'ng dimensi']);
+        };
+
         if ($newJudgment === 'NG') {
             // Cari apakah sudah ada entry "Dimensi" atau "NG Dimensi"
             $found = false;
             foreach ($defects as &$defect) {
-                if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
+                if (is_array($defect) && isset($defect['type']) && $isDimensiType($defect['type'])) {
                     // Normalisasi nama ke "Dimensi" jika masih menggunakan nama lama
                     $defect['type'] = 'Dimensi';
                     $found = true;
@@ -939,9 +944,8 @@ class InProcessChecksheetController extends Controller
         } else {
             // Judgment adalah OK — hapus entry "Dimensi" dan "NG Dimensi" jika ada
             $hadNgDimensi = false;
-            $defects = array_values(array_filter($defects, function ($defect) use (&$hadNgDimensi) {
-                $type = $defect['type'] ?? '';
-                if (is_array($defect) && ($type === 'Dimensi' || $type === 'NG Dimensi')) {
+            $defects = array_values(array_filter($defects, function ($defect) use (&$hadNgDimensi, $isDimensiType) {
+                if (is_array($defect) && $isDimensiType($defect['type'] ?? '')) {
                     $hadNgDimensi = true;
                     return false; // hapus dari list
                 }

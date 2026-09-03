@@ -77,24 +77,23 @@ class FirstPieceApprovalService extends BaseService
                     if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
                         $pointKey = (string) ($index + 1);
 
-                        // Robust float conversion helper
-                        $toFloat = function ($val) {
-                            if ($val === null || $val === "") {
-                                return null;
+                        // Flexible conversion that preserves +/- operators and asymmetric tolerances
+                        $processValue = function ($val) {
+                            $val = $this->normalizeStandardValue($val);
+                            if ($val === null || $val === '') return null;
+                            
+                            if (preg_match('/^[+-]\d+(\.\d+)?(\/[+-]\d+(\.\d+)?)?$/u', $val)) {
+                                return $val;
                             }
-                            $val = (string) $val;
-                            // Remove ±, +, and leading spaces
-                            $val = str_replace(["±", "+"], "", $val);
-                            $val = str_replace(",", ".", $val);
-                            $val = trim($val);
-                            return is_numeric($val) ? (float) $val : null;
+                            
+                            return is_numeric($val) ? (float) $val : $val;
                         };
 
                         $itemStandards[$pointKey] = [
-                            "size" => $toFloat($std["size"] ?? null),
-                            "tolerance" => $toFloat($std["tolerance"] ?? null),
-                            "min" => $toFloat($std["min"] ?? null),
-                            "max" => $toFloat($std["max"] ?? null),
+                            "size" => $processValue($std["size"] ?? null),
+                            "tolerance" => $processValue($std["tolerance"] ?? null),
+                            "min" => $processValue($std["min"] ?? null),
+                            "max" => $processValue($std["max"] ?? null),
                         ];
                     }
                 }

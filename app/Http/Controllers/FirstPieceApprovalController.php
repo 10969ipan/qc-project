@@ -838,13 +838,18 @@ class FirstPieceApprovalController extends Controller
         if (is_string($defects)) { $defects = json_decode($defects, true) ?? []; }
         if (!is_array($defects)) { $defects = []; }
 
+        $isDimensiType = function($t) {
+            $key = strtolower(trim((string)$t));
+            return in_array($key, ['dimensi', 'dimension', 'ng dimensi']);
+        };
+
         // Hitung base total NG (tanpa Dimensi)
         $baseTotalNg = 0;
         $hasExistingDimensi = false;
         foreach ($defects as $d) {
-            $type = $d['type'] ?? '';
             if (is_array($d)) {
-                if ($type === 'Dimensi' || $type === 'NG Dimensi') {
+                $type = $d['type'] ?? '';
+                if ($isDimensiType($type)) {
                     $hasExistingDimensi = true;
                 } else {
                     $baseTotalNg += (int)($d['qty'] ?? 0);
@@ -853,25 +858,19 @@ class FirstPieceApprovalController extends Controller
         }
 
         // Determine if Dimensi defect should exist
-        // Rule: if the saved judgment is OK, NEVER add Dimensi back.
-        // If judgment is NG AND ngPoints > 0 (dimension validation failed), add/keep Dimensi.
         $shouldHaveDimensi = false;
-        if ($newJudgment === 'OK') {
-            // Judgment is OK — always remove Dimensi defect regardless of ngPoints
-            $shouldHaveDimensi = false;
-        } elseif ($ngPoints !== null) {
-            // Judgment is NG and we have explicit dimension validation results
+        if ($ngPoints !== null) {
+            // If we have explicit validation results, trust ngPoints
             $shouldHaveDimensi = ($ngPoints > 0);
         } else {
-            // Judgment is NG but no dimension validation (no standards or empty data)
-            // Preserve existing Dimensi defect if it was already there
-            $shouldHaveDimensi = $hasExistingDimensi;
+            // Fallback for when there is no dimension validation result
+            $shouldHaveDimensi = ($newJudgment === 'NG') ? $hasExistingDimensi : false;
         }
 
         if ($shouldHaveDimensi) {
             $found = false;
             foreach ($defects as &$defect) {
-                if (is_array($defect) && isset($defect['type']) && ($defect['type'] === 'Dimensi' || $defect['type'] === 'NG Dimensi')) {
+                if (is_array($defect) && isset($defect['type']) && $isDimensiType($defect['type'])) {
                     $defect['type'] = 'Dimensi';
                     $found = true;
                     break;
@@ -883,18 +882,18 @@ class FirstPieceApprovalController extends Controller
             if (!$found) {
                 $defects[] = ['type' => 'Dimensi', 'qty' => $qty];
             } else {
-                // Update qty jika sudah ada (tetap 1 sesuai request)
                 foreach ($defects as &$d) {
-                    if (is_array($d) && ($d['type'] === 'Dimensi' || $d['type'] === 'NG Dimensi')) {
+                    if (is_array($d) && $isDimensiType($d['type'] ?? '')) {
+                        $d['type'] = 'Dimensi';
                         $d['qty'] = $qty;
                     }
                 }
             }
             $checksheet->total_ng = $baseTotalNg + $qty;
         } else {
-            $defects = array_values(array_filter($defects, function ($defect) {
-                $type = $defect['type'] ?? '';
-                if (is_array($defect) && ($type === 'Dimensi' || $type === 'NG Dimensi')) {
+            // Dimension measurements are OK - remove ALL dimension defect entries
+            $defects = array_values(array_filter($defects, function ($defect) use ($isDimensiType) {
+                if (is_array($defect) && $isDimensiType($defect['type'] ?? '')) {
                     return false; // hapus dari list
                 }
                 return true;
@@ -908,8 +907,8 @@ class FirstPieceApprovalController extends Controller
         $totalNg = (int) ($checksheet->total_ng ?? 0);
         $checksheet->total_ok = max(0, $samplingQty - $totalNg);
         
-        // Re-evaluate judgment if needed (if total_ng > 0 then NG, otherwise keep newJudgment or OK)
-        $checksheet->judgment = ($checksheet->total_ng > 0) ? 'NG' : ($newJudgment === 'NG' ? 'NG' : 'OK');
+        // Re-evaluate judgment: if total_ng > 0 then NG, otherwise OK
+        $checksheet->judgment = ($checksheet->total_ng > 0) ? 'NG' : 'OK';
 
         $checksheet->defects = $defects; // Cast handled by model
         return $checksheet;
