@@ -38,6 +38,7 @@
                                 data-part-number="{{ $item->part_number }}"
                                 data-customer="{{ $item->customer }}"
                                 data-weight-standard="{{ $item->weight_standard }}"
+                                data-dimension-standards="{{ json_encode($item->dimension_standards) }}"
                                 data-defects="{{ json_encode($item->defects) }}">
                                 {{ $item->name }} ({{ $item->customer }})
                             </option>
@@ -487,50 +488,103 @@
 
         // Validation Logic
         function normalizePN(p){ return p ? p.toString().replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/\s+/g, '').toUpperCase() : ''; }
-        function normalizeStd(v){ return (v === null || v === '') ? null : v.toString().replace(',', '.').replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/±/g, '').trim(); }
+        function normalizeStd(v){ return (v === null || v === undefined || v === '') ? null : v.toString().replace(',', '.').replace(/[\u2012\u2013\u2014\u2212]/g, '-').replace(/±/g, '').trim(); }
 
         function validateDimensions() {
             const sel = $('#item_id option:selected');
             const pn = normalizePN(sel.data('part-number'));
-            const stads = partDimensionStandards[pn];
+
+            let dimensionStandards = sel.data('dimension-standards');
+            if (typeof dimensionStandards === 'string') {
+                try { dimensionStandards = JSON.parse(dimensionStandards); }
+                catch (e) { dimensionStandards = null; }
+            }
+            if (!dimensionStandards) {
+                dimensionStandards = (typeof partDimensionStandards !== 'undefined') ? partDimensionStandards[pn] : null;
+            }
 
             $('.edit-dimension-input').each(function() {
                 const name = $(this).attr('name');
                 const m = name.match(/\[\d+\]\[(\d+)\]/); if(!m) return;
-                const p = m[1]; const valStr = $(this).val().trim().replace(',', '.');
-                const val = parseFloat(valStr); const std = stads ? stads[p] : null;
+                const point = m[1];
+                const valStr = $(this).val().trim();
+                const val = parseFloat(valStr.replace(',', '.'));
+
+                let standard = null;
+                if (dimensionStandards) {
+                    if (Array.isArray(dimensionStandards)) {
+                        standard = dimensionStandards.find(s => String(s.point) === String(point))
+                            || dimensionStandards[point - 1];
+                    } else {
+                        standard = dimensionStandards[point];
+                    }
+                }
 
                 $(this).removeClass('is-invalid is-valid bg-danger text-white');
-                if(std && valStr !== '' && !isNaN(val)) {
-                    let isNG = false; const eps = 0.00001;
-                    const check = (v, sVal, mode) => {
-                        if(!sVal) return false; let sStr = normalizeStd(sVal);
-                        if(sStr.length > 1 && (sStr.startsWith('+') || sStr.startsWith('-'))) {
-                            let op = sStr[0]; let l = parseFloat(sStr.substring(1));
-                            if(op === '+') return v <= (l+eps); if(op === '-') return v >= (l-eps);
-                        }
-                        let sF = parseFloat(sStr);
-                        if(mode === 'min') return v < (sF-eps); if(mode === 'max') return v > (sF+eps);
-                        return false;
-                    };
-                    if(std.min && check(val, std.min, 'min')) isNG = true;
-                    if(!isNG && std.max && check(val, std.max, 'max')) isNG = true;
-                    if(!isNG && std.size && String(std.size).match(/^[+-]/) && check(val, std.size, 'size')) isNG = true;
-                    if(!isNG && !std.min && !std.max && std.size && std.tolerance) {
-                        let sz = parseFloat(normalizeStd(std.size)); let tl = normalizeStd(std.tolerance);
-                        let lb = sz, ub = sz;
-                        if(tl.includes('/')) {
-                            tl.split('/').forEach(part => {
-                                let ps = normalizeStd(part); let fv = parseFloat(ps);
-                                if(ps.startsWith('+') || fv > 0) ub = sz + Math.abs(fv);
-                                else if(ps.startsWith('-') || fv < 0) lb = sz - Math.abs(fv);
-                            });
-                        } else if(tl.startsWith('+')) ub = sz + parseFloat(tl.substring(1));
-                        else if(tl.startsWith('-')) lb = sz + parseFloat(tl);
-                        else { let tv = parseFloat(tl); lb = sz-tv; ub = sz+tv; }
-                        if(val < (lb-eps) || val > (ub+eps)) isNG = true;
+
+                if(standard && valStr !== '' && !isNaN(val)) {
+                    let isInvalid = false;
+                    const epsilon = 0.00001;
+
+                    // 1. Min / Max absolut
+                    if (standard.min != null && standard.min !== '') {
+                        const minBound = parseFloat(String(standard.min).replace(',', '.'));
+                        if (!isNaN(minBound) && val < minBound - epsilon) isInvalid = true;
                     }
-                    if(isNG) $(this).addClass('is-invalid bg-danger text-white'); else $(this).addClass('is-valid');
+                    if (!isInvalid && standard.max != null && standard.max !== '') {
+                        const maxBound = parseFloat(String(standard.max).replace(',', '.'));
+                        if (!isNaN(maxBound) && val > maxBound + epsilon) isInvalid = true;
+                    }
+
+                    // 2. Size ± Tolerance
+                    if (!isInvalid &&
+                        standard.size != null && standard.tolerance != null &&
+                        standard.size !== '' && standard.tolerance !== '') {
+                        const stdSzStr = normalizeStd(standard.size);
+                        if (stdSzStr && !stdSzStr.startsWith('+') && !stdSzStr.startsWith('-')) {
+                            const base = parseFloat(stdSzStr);
+                            const tol = normalizeStd(standard.tolerance);
+                            let lb = base, ub = base;
+
+                            if (tol.includes('/')) {
+                                tol.split('/').forEach(p => {
+                                    p = normalizeStd(p);
+                                    const fv = parseFloat(p);
+                                    if (p.startsWith('+') || fv > 0) ub = base + Math.abs(fv);
+                                    else if (p.startsWith('-') || fv < 0) lb = base - Math.abs(fv);
+                                });
+                            } else if (tol.startsWith('+')) {
+                                ub = base + parseFloat(tol.substring(1));
+                            } else if (tol.startsWith('-')) {
+                                lb = base + parseFloat(tol);
+                            } else {
+                                const tv = parseFloat(tol);
+                                lb = base - tv;
+                                ub = base + tv;
+                            }
+
+                            if (val < lb - epsilon || val > ub + epsilon) isInvalid = true;
+                        }
+                    }
+
+                    // 3. Size dengan prefix +/- (tanpa tolerance)
+                    if (!isInvalid && standard.size != null && standard.size !== '') {
+                        const sz = String(standard.size);
+                        if (sz.startsWith('+') || sz.startsWith('-')) {
+                            const op = sz.charAt(0);
+                            const bound = parseFloat(sz.substring(1));
+                            if (!isNaN(bound)) {
+                                if (op === '+' && val < bound - epsilon) isInvalid = true;
+                                else if (op === '-' && val > bound + epsilon) isInvalid = true;
+                            }
+                        }
+                    }
+
+                    if(isInvalid) {
+                        $(this).addClass('is-invalid bg-danger text-white');
+                    } else {
+                        $(this).addClass('is-valid');
+                    }
                 }
             });
             updateJudgment();
