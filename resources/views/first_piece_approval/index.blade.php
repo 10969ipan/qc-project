@@ -133,10 +133,27 @@
         border-bottom: none !important;
     }
 
-    #checksheetTable .table-dimension-minimalist .text-std-header { 
-        color: #64748b !important; 
-        font-weight: 600 !important; 
-        background-color: #f1f5f9 !important; 
+    #checksheetTable .text-danger,
+    #checksheetTable td.text-danger,
+    #checksheetTable small.text-danger,
+    #checksheetTable span.text-danger,
+    #checksheetTable div.text-danger {
+        color: #dc3545 !important;
+    }
+
+    #checksheetTable .text-success,
+    #checksheetTable td.text-success,
+    #checksheetTable small.text-success,
+    #checksheetTable span.text-success,
+    #checksheetTable div.text-success {
+        color: #198754 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data.text-danger,
+    #checksheetTable .table-dimension-minimalist td.text-danger {
+        color: #dc3545 !important;
+        font-weight: bold !important;
+        background-color: #fef2f2 !important;
     }
 
 </style>
@@ -436,9 +453,26 @@
                                                 }
                                             }
                                         }
-                                        $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
-                                        $itemPartNumber = strtoupper($itemPartNumber);
-                                        $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                                        $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
+                                        $standards = [];
+                                        if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+                                            foreach ($itemStandardsRaw as $idx => $std) {
+                                                if (is_array($std)) {
+                                                    $pKey = (string)($std['point'] ?? ($idx + 1));
+                                                    $standards[$pKey] = [
+                                                        'size' => $std['size'] ?? null,
+                                                        'tolerance' => $std['tolerance'] ?? null,
+                                                        'min' => $std['min'] ?? null,
+                                                        'max' => $std['max'] ?? null,
+                                                    ];
+                                                }
+                                            }
+                                        }
+                                        if (empty($standards)) {
+                                            $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
+                                            $itemPartNumber = strtoupper($itemPartNumber);
+                                            $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                                        }
 
                                         // Find active points (columns that have data or are defined in standards)
                                         $activePoints = [];
@@ -587,14 +621,16 @@
                                                                     @php
                                                                         $val = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
                                                                         $isNG = false;
+                                                                        $cleanValStr = str_replace(',', '.', trim((string)$val));
                                                                         
                                                                         // Robust lookup for standard in PHP
                                                                         $std = null;
                                                                         if (!empty($standards)) {
                                                                             if (isset($standards[$j])) {
                                                                                 $std = $standards[$j];
+                                                                            } elseif (isset($standards["$j"])) {
+                                                                                $std = $standards["$j"];
                                                                             } else {
-                                                                                // Fallback for array structure if needed
                                                                                 foreach ($standards as $itemStd) {
                                                                                     if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
                                                                                         $std = $itemStd;
@@ -604,17 +640,17 @@
                                                                             }
                                                                         }
 
-                                                                        if ($std && is_numeric($val)) {
-                                                                            $fVal = (float)$val;
+                                                                        if ($std && is_numeric($cleanValStr)) {
+                                                                            $fVal = (float)$cleanValStr;
                                                                             $epsilon = 0.00001;
 
                                                                             // 1. Check Absolute Min/Max
                                                                             if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                                                $minBound = (float)$std['min'];
+                                                                                $minBound = (float)str_replace(',', '.', $std['min']);
                                                                                 if ($fVal < ($minBound - $epsilon)) $isNG = true;
                                                                             }
                                                                             if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                                                $maxBound = (float)$std['max'];
+                                                                                $maxBound = (float)str_replace(',', '.', $std['max']);
                                                                                 if ($fVal > ($maxBound + $epsilon)) $isNG = true;
                                                                             }
 
@@ -622,7 +658,7 @@
                                                                             if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
                                                                                 $szStr = (string)$std['size'];
                                                                                 if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
-                                                                                    $base = (float)$szStr;
+                                                                                    $base = (float)str_replace(',', '.', $szStr);
                                                                                     $tol = (string)$std['tolerance'];
                                                                                     $lb = $base; $ub = $base;
                                                                                     
@@ -635,11 +671,11 @@
                                                                                             elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
                                                                                         }
                                                                                     } elseif (str_starts_with($tol, '+')) {
-                                                                                        $ub = $base + (float)substr($tol, 1);
+                                                                                        $ub = $base + (float)substr(str_replace(',', '.', $tol), 1);
                                                                                     } elseif (str_starts_with($tol, '-')) {
-                                                                                        $lb = $base + (float)$tol;
+                                                                                        $lb = $base + (float)str_replace(',', '.', $tol);
                                                                                     } else {
-                                                                                        $tv = (float)$tol;
+                                                                                        $tv = (float)str_replace(',', '.', $tol);
                                                                                         $lb = $base - $tv; $ub = $base + $tv;
                                                                                     }
                                                                                     
@@ -652,7 +688,7 @@
                                                                                 $szStr = (string)$std['size'];
                                                                                 if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
                                                                                     $op = $szStr[0];
-                                                                                    $bound = (float)substr($szStr, 1);
+                                                                                    $bound = (float)substr(str_replace(',', '.', $szStr), 1);
                                                                                     if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
                                                                                     elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
                                                                                 }
@@ -707,24 +743,45 @@
 
                                 @php
                                     $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
-                                    $pcsLines = [];
-                                    $nameLines = [];
+                                    $defectsData = is_array($defectsData) ? $defectsData : [];
 
-                                    if (is_array($defectsData)) {
-                                        foreach ($defectsData as $d) {
-                                            if (is_array($d) && isset($d['type'])) {
-                                                $qty = $d['qty'] ?? 1;
-                                                $pcsLines[] = $qty;
-                                                $typeStr = strtolower($d['type']) === 'dimension' ? 'Dimensi' : $d['type'];
-                                                $nameLines[] = $typeStr;
-                                            } elseif (is_string($d)) {
-                                                $pcsLines[] = 1;
-                                                $typeStr = strtolower($d) === 'dimension' ? 'Dimensi' : $d;
-                                                $nameLines[] = $typeStr;
-                                            }
+                                    $consolidatedDefects = [];
+                                    foreach ($defectsData as $d) {
+                                        if (is_array($d) && isset($d['type'])) {
+                                            $rawType = trim((string)$d['type']);
+                                            $qty = (int)($d['qty'] ?? 1);
+                                        } elseif (is_string($d) && trim($d) !== '') {
+                                            $rawType = trim($d);
+                                            $qty = 1;
+                                        } else {
+                                            continue;
+                                        }
+
+                                        $key = strtolower($rawType);
+                                        if (in_array($key, ['dimension', 'dimensi', 'ng dimensi'])) {
+                                            $key = 'dimensi';
+                                            $displayType = 'Dimensi';
+                                        } else {
+                                            $displayType = strtoupper($rawType);
+                                        }
+
+                                        if (isset($consolidatedDefects[$key])) {
+                                            $consolidatedDefects[$key]['qty'] += $qty;
+                                        } else {
+                                            $consolidatedDefects[$key] = [
+                                                'type' => $displayType,
+                                                'qty'  => $qty,
+                                            ];
                                         }
                                     }
-                                    
+
+                                    $pcsLines = [];
+                                    $nameLines = [];
+                                    foreach ($consolidatedDefects as $cd) {
+                                        $pcsLines[] = $cd['qty'];
+                                        $nameLines[] = $cd['type'];
+                                    }
+
                                     if ($anyNGInRow ?? false) {
                                         $hasDimensi = false;
                                         foreach ($nameLines as $name) {

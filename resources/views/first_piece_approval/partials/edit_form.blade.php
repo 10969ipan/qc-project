@@ -437,13 +437,13 @@
             // Auto-defect Dimension
             let hasDimDef = false;
             $('.defect-select').each(function(){ 
-                const text = $(this).find('option:selected').text().toLowerCase();
-                const val = $(this).val().toLowerCase();
-                if(text === 'dimensi' || val === 'dimension') hasDimDef = true; 
+                const text = ($(this).find('option:selected').text() || '').trim().toLowerCase();
+                const val = ($(this).val() || '').trim().toLowerCase();
+                if(text === 'dimensi' || text === 'dimension' || text === 'ng dimensi' || val === 'dimensi' || val === 'dimension' || val === 'ng dimensi') hasDimDef = true; 
             });
             
             if(isDimInvalid && !hasDimDef) {
-                const dimDefName = ($('#item_id option:selected').data('defects') || []).find(d => d.toLowerCase() === 'dimensi' || d.toLowerCase() === 'dimension') || 'Dimensi';
+                const dimDefName = ($('#item_id option:selected').data('defects') || []).find(d => (String(d)).toLowerCase() === 'dimensi' || (String(d)).toLowerCase() === 'dimension') || 'Dimensi';
                 $('#noDefectMsg').remove();
                 $('#editDefectContainer').prepend(`
                     <div class="row no-gutters mb-2 defect-row align-items-center shadow-sm bg-white p-1 rounded">
@@ -456,9 +456,9 @@
             } else if (!isDimInvalid && hasDimDef) {
                 // Remove Dimensi defect if it exists and dimensions are OK
                 $('.defect-select').each(function() {
-                    const text = $(this).find('option:selected').text().toLowerCase();
-                    const val = $(this).val().toLowerCase();
-                    if(text === 'dimensi' || val === 'dimension') {
+                    const text = ($(this).find('option:selected').text() || '').trim().toLowerCase();
+                    const val = ($(this).val() || '').trim().toLowerCase();
+                    if(text === 'dimensi' || text === 'dimension' || text === 'ng dimensi' || val === 'dimensi' || val === 'dimension' || val === 'ng dimensi') {
                         $(this).closest('.defect-row').remove();
                     }
                 });

@@ -280,7 +280,7 @@
                         @foreach($nextProcesses as $opt)
                             <option value="{{ $opt->name }}" {{ $checksheet->next_proses == $opt->name ? 'selected' : '' }}>{{ $opt->name }}</option>
                         @endforeach
-                        @if($checksheet->next_proses && !$nextProcessesGlobal->pluck('name')->contains($checksheet->next_proses))
+                        @if($checksheet->next_proses && !$nextProcesses->pluck('name')->contains($checksheet->next_proses))
                             <option value="{{ $checksheet->next_proses }}" selected>{{ $checksheet->next_proses }}</option>
                         @endif
                     </select>
@@ -446,8 +446,9 @@
             // 0. Handle Dimension Defect independently of Lot Judgment
             var hasDimensiDefect = false;
             $('.defect-select').each(function () {
-                var text = $(this).find('option:selected').text();
-                if (text.toLowerCase() === 'dimensi') {
+                var text = ($(this).find('option:selected').text() || '').trim().toLowerCase();
+                var val = ($(this).val() || '').trim().toLowerCase();
+                if (text === 'dimensi' || text === 'dimension' || text === 'ng dimensi' || val === 'dimensi' || val === 'dimension' || val === 'ng dimensi') {
                     hasDimensiDefect = true;
                     return false;
                 }

@@ -16,18 +16,34 @@ trait ChecksheetServiceTrait
      */
     protected function processDefects(array $data): array
     {
-        $defects = [];
+        $defectsMap = [];
         if (isset($data['defect_types'])) {
             foreach ($data['defect_types'] as $index => $type) {
-                if ($type) {
-                    $qty = $data['defect_quantities'][$index] ?? 0;
-                    if ((int)$qty > 0) {
-                        $defects[] = ['type' => $type, 'qty' => (int) $qty];
+                if ($type !== null && trim((string)$type) !== '') {
+                    $qty = (int) ($data['defect_quantities'][$index] ?? 0);
+                    if ($qty > 0) {
+                        $trimmedType = trim((string)$type);
+                        $key = strtolower($trimmedType);
+                        
+                        // Standardize dimension defect names to 'Dimensi'
+                        if (in_array($key, ['dimension', 'dimensi', 'ng dimensi'])) {
+                            $key = 'dimensi';
+                            $trimmedType = 'Dimensi';
+                        }
+
+                        if (isset($defectsMap[$key])) {
+                            $defectsMap[$key]['qty'] += $qty;
+                        } else {
+                            $defectsMap[$key] = [
+                                'type' => $trimmedType,
+                                'qty'  => $qty,
+                            ];
+                        }
                     }
                 }
             }
         }
-        return $defects;
+        return array_values($defectsMap);
     }
 
     /**

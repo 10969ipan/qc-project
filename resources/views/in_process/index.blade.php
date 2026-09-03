@@ -134,10 +134,27 @@
         border-bottom: none !important;
     }
 
-    #checksheetTable .table-dimension-minimalist .text-std-header { 
-        color: #64748b !important; 
-        font-weight: 600 !important; 
-        background-color: #f1f5f9 !important; 
+    #checksheetTable .text-danger,
+    #checksheetTable td.text-danger,
+    #checksheetTable small.text-danger,
+    #checksheetTable span.text-danger,
+    #checksheetTable div.text-danger {
+        color: #dc3545 !important;
+    }
+
+    #checksheetTable .text-success,
+    #checksheetTable td.text-success,
+    #checksheetTable small.text-success,
+    #checksheetTable span.text-success,
+    #checksheetTable div.text-success {
+        color: #198754 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data.text-danger,
+    #checksheetTable .table-dimension-minimalist td.text-danger {
+        color: #dc3545 !important;
+        font-weight: bold !important;
+        background-color: #fef2f2 !important;
     }
 
 </style>
@@ -804,22 +821,45 @@
 
                                 @php
                                     $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
-                                    $pcsLines = [];
-                                    $nameLines = [];
+                                    $defectsData = is_array($defectsData) ? $defectsData : [];
 
-                                    if (is_array($defectsData)) {
-                                        foreach ($defectsData as $d) {
-                                            if (is_array($d) && isset($d['type'])) {
-                                                $qty = $d['qty'] ?? 1;
-                                                $pcsLines[] = $qty;
-                                                $nameLines[] = $d['type'];
-                                            } elseif (is_string($d)) {
-                                                $pcsLines[] = 1;
-                                                $nameLines[] = $d;
-                                            }
+                                    $consolidatedDefects = [];
+                                    foreach ($defectsData as $d) {
+                                        if (is_array($d) && isset($d['type'])) {
+                                            $rawType = trim((string)$d['type']);
+                                            $qty = (int)($d['qty'] ?? 1);
+                                        } elseif (is_string($d) && trim($d) !== '') {
+                                            $rawType = trim($d);
+                                            $qty = 1;
+                                        } else {
+                                            continue;
+                                        }
+
+                                        $key = strtolower($rawType);
+                                        if (in_array($key, ['dimension', 'dimensi', 'ng dimensi'])) {
+                                            $key = 'dimensi';
+                                            $displayType = 'Dimensi';
+                                        } else {
+                                            $displayType = strtoupper($rawType);
+                                        }
+
+                                        if (isset($consolidatedDefects[$key])) {
+                                            $consolidatedDefects[$key]['qty'] += $qty;
+                                        } else {
+                                            $consolidatedDefects[$key] = [
+                                                'type' => $displayType,
+                                                'qty'  => $qty,
+                                            ];
                                         }
                                     }
-                                    
+
+                                    $pcsLines = [];
+                                    $nameLines = [];
+                                    foreach ($consolidatedDefects as $cd) {
+                                        $pcsLines[] = $cd['qty'];
+                                        $nameLines[] = $cd['type'];
+                                    }
+
                                     if ($anyNGInRow ?? false) {
                                         $hasDimensi = false;
                                         foreach ($nameLines as $name) {

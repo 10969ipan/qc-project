@@ -841,9 +841,15 @@ class FpaCreate {
 
         if (Array.isArray(defectsData) && defectsData.length > 0) {
             defectsData.forEach((d) => {
-                const name = typeof d === "object" ? (d.name || d.t || d.v) : d;
-                const key = typeof d === "object" ? (d.v || d.name) : d;
-                this.defectItems.push({ key: key, name: name, count: 0 });
+                let name = typeof d === "object" ? (d.name || d.t || d.v) : d;
+                let key = typeof d === "object" ? (d.v || d.name) : d;
+                if (name && (String(name).toUpperCase() === 'DIMENSI' || String(name).toLowerCase() === 'dimension')) {
+                    name = 'Dimensi';
+                    key = 'DIMENSI';
+                }
+                if (!this.defectItems.some(item => item.key === key || (item.name && item.name.toLowerCase() === String(name).toLowerCase()))) {
+                    this.defectItems.push({ key: key, name: name, count: 0 });
+                }
             });
         } else {
             defaults.forEach((d) => {
