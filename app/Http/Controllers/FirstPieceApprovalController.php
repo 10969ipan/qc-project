@@ -126,12 +126,20 @@ class FirstPieceApprovalController extends Controller
         // Data for filters (Cached per plant to avoid 4x subquery scans on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = \Illuminate\Support\Facades\Cache::remember("fpa_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("fpa_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
+            $usedItemIds = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("fpa_filter_cust_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)
+        $customers = \Illuminate\Support\Facades\Cache::remember("fpa_filter_cust_v2_{$plantId}", 1800, function () use ($plantId) {
+            $usedItemIds = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $usedItemIds)
                 ->whereNotNull('customer')
                 ->where('customer', '!=', '')
                 ->distinct()
