@@ -306,58 +306,60 @@
                     @endif
                 </div>
             </form>
-
             <div class="table-responsive">
                 <table class="table table-hover text-center" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
-                        <tr>
-                            <th rowspan="2" class="align-middle text-center" style="width: 55px;">
-                                <div class="d-flex flex-column align-items-center justify-content-center">
-                                    <span style="font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; line-height: 1.1;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
-                                    <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
-                                        <input type="checkbox" class="custom-control-input" id="checkAllRows">
-                                        <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                        @php $rs = request('view_mode') === 'verifikasi' ? 1 : 2; @endphp
+                        <tr class="text-center">
+                            @if(auth()->user()->role === 'admin')
+                                <th rowspan="{{ $rs }}" class="align-middle text-center" style="width: 55px;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <span style="font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; line-height: 1.1;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
+                                        <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
+                                            <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                            <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                        </div>
                                     </div>
-                                </div>
-                            </th>
-                            <th rowspan="2" class="align-middle">No</th>
+                                </th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">No</th>
                             @if(request('view_mode') === 'verifikasi')
-                                <th rowspan="2" class="align-middle">QR-Code</th>
+                                <th rowspan="{{ $rs }}" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
-                            <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
-                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
-                            <th rowspan="2" class="align-middle">Customer / Supplier</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Item Part / Part No</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Customer / Supplier</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th rowspan="2" class="align-middle">Tgl &amp; Shift Datang</th>
-                                <th rowspan="2" class="align-middle">Qty Datang Awal</th>
+                                <th rowspan="{{ $rs }}" class="align-middle">Tgl &amp; Shift Datang</th>
+                                <th rowspan="{{ $rs }}" class="align-middle">Qty Datang Awal</th>
                             @endif
-                            <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th rowspan="2" class="align-middle">Qty Balance Sisa</th>
+                                <th rowspan="{{ $rs }}" class="align-middle">Qty Balance Sisa</th>
                             @endif
-                            <th rowspan="2" class="align-middle">OK</th>
-                            <th rowspan="2" class="align-middle">NG</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">OK</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">NG</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="2" class="align-middle">Detail NG</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Judgment</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="4" class="align-middle">Approval Status</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Remarks</th>
-                            <th rowspan="2" class="align-middle">Action</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Remarks</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Action</th>
                         </tr>
-                        <tr class="text-center">
-                            @if(request('view_mode') !== 'verifikasi')
+                        @if(request('view_mode') !== 'verifikasi')
+                            <tr class="text-center">
                                 <th style="width: 45px; min-width: 45px;">Pcs</th>
                                 <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
                                 <th style="font-size: 10px; min-width: 120px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
-                            @endif
-                        </tr>
+                            </tr>
+                        @endif
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
@@ -503,20 +505,22 @@
                                     }
                                 @endphp
 
-                                <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
-                                    @if(count($pcsLines) > 0)
-                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                                <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
-                                    @if(count($nameLines) > 0)
-                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+                                @if(request('view_mode') !== 'verifikasi')
+                                    <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
+                                        @if(count($pcsLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                        @if(count($nameLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                @endif
 
                                 <td class="align-middle text-nowrap">
                                     <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }} px-2 py-1" style="font-size: 0.65rem;">
