@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-    @php
-        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $headerPlantCode, [
-            'no_dokumen' => 'QC-KRW-F-0214',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
-    @endphp
+@php
+    $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+    $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $headerPlantCode, [
+        'no_dokumen' => 'QC-KRW-F-0214',
+        'tgl_terbit' => '01/01/2026',
+        'revisi'     => '-',
+        'halaman'    => '- / -'
+    ]);
+    $isVerification = (request('view_mode') === 'verifikasi');
+    $approvalOrder = $approvalOrder ?? ['kashift', 'supervisor', 'asst_manager', 'manager'];
+@endphp
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Incoming Material</title>
+    <title>Laporan Checksheet Incoming Chemical</title>
     <style>
         @page {
             size: A4 landscape;
@@ -24,20 +26,20 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
-            color: #333;
+            color: #000;
             margin: 0;
             padding: 10mm 10mm 5mm 10mm;
         }
 
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        .header-table td { border: 1px solid #000; padding: 5px; vertical-align: middle; }
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+        .header-table td { border: 1px solid #000; padding: 4px; vertical-align: middle; }
         .logo { width: 90px; text-align: center; }
         .title { text-align: center; font-size: 13px; font-weight: bold; color: #000; }
         .doc-info { width: 160px; font-size: 8.5px; }
         .doc-info table { width: 100%; border: none; }
         .doc-info td { border: none; padding: 1px 2px; }
 
-        .sub-header { margin-bottom: 8px; font-size: 9px; }
+        .sub-header { margin-bottom: 6px; font-size: 9px; color: #000; }
 
         .table { width: 100%; border-collapse: collapse; table-layout: auto; }
 
@@ -49,12 +51,12 @@
             padding: 3px 4px;
             text-align: center;
             vertical-align: middle;
-            background-color: #f2f2f2;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background-color: #fff;
+            color: #000;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 6px;
+            font-size: 6.5px;
+            white-space: nowrap;
         }
 
         .table td {
@@ -63,7 +65,7 @@
             text-align: center;
             vertical-align: middle;
             font-size: 7.5px;
-            white-space: nowrap;
+            color: #000;
         }
 
         tbody tr {
@@ -71,26 +73,12 @@
             break-inside: avoid;
         }
 
-        .col-hidden { display: none; }
+        .text-left { text-align: left !important; }
+        .text-center { text-align: center !important; }
+        .font-weight-bold { font-weight: bold !important; }
+        .text-nowrap { white-space: nowrap !important; }
 
-        .badge {
-            display: inline-block;
-            padding: .2em .35em;
-            font-size: 75%;
-            font-weight: 700;
-            line-height: 1;
-            text-align: center;
-            border-radius: .25rem;
-        }
-        .badge-success { color: #fff; background-color: #28a745; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-danger  { color: #fff; background-color: #dc3545; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .badge-warning { color: #212529; background-color: #ffc107; }
-
-        .text-success   { color: #28a745; }
-        .text-danger    { color: #dc3545; }
-        .text-uppercase { text-transform: uppercase; }
-
-        .print-footer { margin-top: 8mm; font-size: 7.5px; color: #666; }
+        .print-footer { margin-top: 6mm; font-size: 7.5px; color: #000; }
     </style>
 </head>
 
@@ -102,7 +90,7 @@
                 <img src="{{ asset('master item/ipp.jpg') }}"
                      style="max-width: 75px; max-height: 55px; object-fit: contain;">
             </td>
-            <td class="title">LAPORAN DATA INCOMING CHEMICAL</td>
+            <td class="title">LAPORAN DATA CHECKSHEET INCOMING CHEMICAL</td>
             <td class="doc-info">
                 <table>
                     <tr><td>No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] }}</td></tr>
@@ -115,39 +103,46 @@
     </table>
 
     <div class="sub-header">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}<br>
-        <strong>Plant:</strong> {{ strtoupper($plantName) }}
+        @if(!empty($selectedItem))
+            <strong>Chemical Name / Supplier:</strong> {{ $selectedItem->name }} ({{ $selectedItem->customer ?? '-' }})
+        @else
+            <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        @endif
     </div>
 
     <table class="table">
         <thead>
             <tr>
-                <td colspan="19" style="height:4mm; border:none; padding:0; background:#fff;"></td>
-            </tr>
-            <tr>
                 <th rowspan="2">No</th>
-                <th rowspan="2">Tanggal</th>
-                <th rowspan="2">Jam (Before)</th>
-                <th rowspan="2">Jam (After)</th>
-                <th rowspan="2">Cycle (s)</th>
-                <th rowspan="2">Chemical Name</th>
-                <th rowspan="2">Supplier</th>
-                <th rowspan="2">Part No</th>
-                <th rowspan="2">Tgl Datang</th>
+                @if($isVerification)
+                    <th rowspan="2">QR-Code</th>
+                @endif
+                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                <th rowspan="2">CHEMICAL NAME / SUPPLIER</th>
+                <th rowspan="2">Tanggal Datang</th>
                 <th rowspan="2">Expired</th>
                 <th rowspan="2">Lot/Batch</th>
                 <th colspan="3">Qty (Kg)</th>
                 <th rowspan="2">Result</th>
-                <th colspan="2">Detail NG</th>
-                <th rowspan="2">QC</th>
-                <th rowspan="2">Ket</th>
+                @if(!$isVerification)
+                    <th colspan="2">Detail NG</th>
+                    <th colspan="4">Approval Status</th>
+                @endif
+                <th rowspan="2">Keterangan</th>
             </tr>
             <tr>
-                <th>Total</th>
-                <th>Komp.</th>
-                <th>Samp.</th>
-                <th>Pcs</th>
-                <th>Jenis</th>
+                <th>Total (kg)</th>
+                <th>Jirigen</th>
+                <th>Sampling Size</th>
+                @if(!$isVerification)
+                    <th>Pcs</th>
+                    <th>Jenis NG</th>
+                    <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                    <th style="font-size: 5.5px;">Supervisor QC</th>
+                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                    <th style="font-size: 5.5px;">Manager QC</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -169,35 +164,68 @@
                             }
                         }
                     }
+
+                    $sec = (int) ($cs->cycle_time ?? 0);
+                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ date('d/m/y', strtotime($cs->date)) }}</td>
-                    <td>{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
-                    <td>{{ $cs->created_at->format('H:i') }}</td>
-                    <td>{{ $cs->cycle_time ?? '-' }}</td>
-                    <td>{{ $cs->item->name ?? '-' }}</td>
-                    <td>{{ $cs->item->customer ?? '-' }}</td>
-                    <td>{{ $cs->item->part_number ?? '-' }}</td>
-                    <td>{{ date('d/m/y', strtotime($cs->tanggal_datang)) }}</td>
-                    <td>{{ date('d/m/y', strtotime($cs->expired_date)) }}</td>
-                    <td>{{ $cs->lot_batch_number }}</td>
-                    <td>{{ (float) $cs->quantity_kg }}</td>
+                    @if($isVerification)
+                        <td style="font-size: 6.5px;">{{ $cs->qrcode ?? '-' }}</td>
+                    @endif
+                    <td class="text-nowrap">
+                        {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift ?? '1' }} / {{ $cs->operator_initials ?? '-' }}
+                    </td>
+                    <td class="text-nowrap">
+                        {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} ({{ $ctStr }})
+                    </td>
+                    <td class="text-left" style="line-height: 1.1;">
+                        <strong style="font-size: 8px;">{{ $cs->item->name ?? '-' }}</strong><br>
+                        <span style="font-size: 6.5px;">{{ $cs->item->customer ?? '-' }}</span>
+                    </td>
+                    <td class="text-nowrap">{{ date('d-m-Y', strtotime($cs->tanggal_datang)) }}</td>
+                    <td class="text-nowrap">{{ date('d-m-Y', strtotime($cs->expired_date)) }}</td>
+                    <td class="text-nowrap font-weight-bold">{{ $cs->lot_batch_number }}</td>
+                    <td class="font-weight-bold">{{ (float) $cs->quantity_kg }}</td>
                     <td>{{ (float) $cs->komper_jirigen_kg }}</td>
                     <td>{{ (float) $cs->sampling_size_jirigen_kg }}</td>
                     <td>
-                        <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
-                            {{ $cs->judgment }}
-                        </span>
+                        <strong>{{ $cs->judgment }}</strong>
                     </td>
-                    <td class="text-danger" style="font-size:6.5px;">
-                        {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
-                    </td>
-                    <td class="text-danger" style="font-size:6.5px;">
-                        {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
-                    </td>
-                    <td class="text-uppercase">{{ $cs->operator_initials }}</td>
-                    <td style="text-align:left; font-size:6.5px;">{{ $cs->remarks ?? '-' }}</td>
+                    @if(!$isVerification)
+                        <td style="font-size: 6.5px;">
+                            {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                        </td>
+                        <td style="font-size: 6.5px; text-align: left;">
+                            {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                        </td>
+                        @foreach ($approvalOrder as $role)
+                            @php
+                                $field = getApprovalField($role);
+                                $dateField = getApprovalDateField($role);
+                                $status = $cs->$field;
+                                $date = $cs->$dateField;
+                            @endphp
+                            <td class="text-center" style="font-size: 6px; line-height: 1.1;">
+                                @if($status === 'REJECTED')
+                                    <strong>REJECTED</strong><br>
+                                    <span>oleh {{ getRejectorName($cs->rejection_remarks) }}</span>
+                                    @if($date)
+                                        <br><span>{{ \Carbon\Carbon::parse($date)->format('d/m/y H:i') }}</span>
+                                    @endif
+                                @elseif($status && $status !== 'Pending')
+                                    <strong>APPROVED</strong><br>
+                                    <span>oleh {{ $status }}</span>
+                                    @if($date)
+                                        <br><span>{{ \Carbon\Carbon::parse($date)->format('d/m/y H:i') }}</span>
+                                    @endif
+                                @else
+                                    <span>PENDING</span>
+                                @endif
+                            </td>
+                        @endforeach
+                    @endif
+                    <td class="text-left" style="font-size: 6.5px; word-break: break-all;">{{ $cs->remarks ?? '-' }}</td>
                 </tr>
             @endforeach
         </tbody>

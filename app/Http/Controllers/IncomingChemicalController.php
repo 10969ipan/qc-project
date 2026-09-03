@@ -70,12 +70,31 @@ class IncomingChemicalController extends Controller
 
     public function index(Request $request)
     {
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
+        $plantId = Plant::resolveId($plantFilter);
+
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory('Incoming Chemical')->orderBy('name')->get();
-        $suppliers = $items->pluck('customer')->filter()->unique()->sort()->values();
 
-        return view('incoming.chemicals.index', compact('checksheets', 'items', 'suppliers'));
+        $cacheKey = "incoming_chemicals_filters_" . md5(json_encode([$plantId]));
+        $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
+            $items = Item::byCategory('Incoming Chemical')->where('plant_id', $plantId)->orderBy('name')->get();
+            $suppliers = $items->pluck('customer')->filter()->unique()->sort()->values();
+            return compact('items', 'suppliers');
+        });
+
+        $items = $cachedData['items'];
+        $suppliers = $cachedData['suppliers'];
+
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0214',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        return view('incoming.chemicals.index', compact('checksheets', 'items', 'suppliers', 'approvalOrder', 'docHeader'));
     }
 
     public function create(Request $request)
@@ -162,12 +181,26 @@ class IncomingChemicalController extends Controller
         $query = $this->checksheetService->getQuery($filters)->latest();
         $checksheets = $query->get();
 
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
         $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
-        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $plantName = Plant::resolveName($plantFilter);
         $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
         $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
 
-        return view('incoming.chemicals.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode'));
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0214',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        $selectedItem = null;
+        if (!empty($filters['item_id'])) {
+            $selectedItem = Item::find($filters['item_id']);
+        }
+
+        return view('incoming.chemicals.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode', 'approvalOrder', 'docHeader', 'selectedItem'));
     }
 
     public function editApproval($id)
