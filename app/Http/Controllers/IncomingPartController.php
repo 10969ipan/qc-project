@@ -149,11 +149,24 @@ class IncomingPartController extends Controller
         $customers = $cachedFilterData['customers'];
         $initials = $cachedFilterData['initials'];
 
-        $openArrivals = \App\Models\IncomingPartArrival::with('item')
+        $openArrivalsQuery = \App\Models\IncomingPartArrival::with('item')
             ->where('plant_id', $plantId)
             ->where('status', 'OPEN')
-            ->where('qty_sisa', '>', 0)
-            ->where('tanggal_datang', '>=', '2026-08-21')
+            ->where('qty_sisa', '>', 0);
+
+        if ($isJakarta) {
+            $openArrivalsQuery->where(function ($q) {
+                $q->where('tanggal_datang', '>', '2026-08-24')
+                  ->orWhere(function ($sub) {
+                      $sub->where('tanggal_datang', '2026-08-24')
+                          ->where('shift_datang', '>', 1);
+                  });
+            });
+        } else {
+            $openArrivalsQuery->where('tanggal_datang', '>=', '2026-08-21');
+        }
+
+        $openArrivals = $openArrivalsQuery
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->orderBy('id', 'asc')
@@ -187,11 +200,24 @@ class IncomingPartController extends Controller
         $defaultShift = ShiftHelper::getShift($now);
         $recentArrivals = [];
 
-        $openArrivals = \App\Models\IncomingPartArrival::with('item')
+        $openArrivalsQuery = \App\Models\IncomingPartArrival::with('item')
             ->where('plant_id', $plantId)
             ->where('status', 'OPEN')
-            ->where('qty_sisa', '>', 0)
-            ->where('tanggal_datang', '>=', '2026-08-21')
+            ->where('qty_sisa', '>', 0);
+
+        if ($isJakarta) {
+            $openArrivalsQuery->where(function ($q) {
+                $q->where('tanggal_datang', '>', '2026-08-24')
+                  ->orWhere(function ($sub) {
+                      $sub->where('tanggal_datang', '2026-08-24')
+                          ->where('shift_datang', '>', 1);
+                  });
+            });
+        } else {
+            $openArrivalsQuery->where('tanggal_datang', '>=', '2026-08-21');
+        }
+
+        $openArrivals = $openArrivalsQuery
             ->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->orderBy('id', 'asc')
@@ -510,7 +536,8 @@ class IncomingPartController extends Controller
             return response()->json([]);
         }
 
-        $arrivals = $this->checksheetService->getOutstandingArrivals($itemId);
+        $plant = $request->query('plant', auth()->user()->plant_id);
+        $arrivals = $this->checksheetService->getOutstandingArrivals($itemId, $plant);
         return response()->json($arrivals);
     }
 

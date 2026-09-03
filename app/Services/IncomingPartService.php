@@ -134,13 +134,29 @@ class IncomingPartService extends BaseService
         return $this->buildFilteredQuery($filters)->paginate(10)->withQueryString();
     }
 
-    public function getOutstandingArrivals($itemId)
+    public function getOutstandingArrivals($itemId, $plantInput = null)
     {
-        return IncomingPartArrival::where('item_id', $itemId)
+        $query = IncomingPartArrival::where('item_id', $itemId)
             ->where('status', 'OPEN')
-            ->where('qty_sisa', '>', 0)
-            ->where('tanggal_datang', '>=', '2026-08-21')
-            ->orderBy('tanggal_datang', 'asc')
+            ->where('qty_sisa', '>', 0);
+
+        $plantId = \App\Models\Plant::resolveId($plantInput ?: auth()->user()->plant_id);
+        $plantCodeVal = \App\Models\Plant::where('id', $plantId)->value('code');
+        $isJakarta = strtolower($plantCodeVal ?: '') === 'jakarta';
+
+        if ($isJakarta) {
+            $query->where(function ($q) {
+                $q->where('tanggal_datang', '>', '2026-08-24')
+                  ->orWhere(function ($sub) {
+                      $sub->where('tanggal_datang', '2026-08-24')
+                          ->where('shift_datang', '>', 1);
+                  });
+            });
+        } else {
+            $query->where('tanggal_datang', '>=', '2026-08-21');
+        }
+
+        return $query->orderBy('tanggal_datang', 'asc')
             ->orderBy('shift_datang', 'asc')
             ->get();
     }
