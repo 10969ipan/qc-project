@@ -417,7 +417,7 @@
                                         <i class="fas fa-qrcode text-purple mr-1"></i>{{ $checksheet->qr_code }}
                                     </td>
                                     <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
                                         $sec = (int) ($checksheet->cycle_time ?? 0);
@@ -439,7 +439,7 @@
                                         @endif
                                     </td>
                                     <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
                                         $sec = (int) ($checksheet->cycle_time ?? 0);
