@@ -128,6 +128,7 @@ class IncomingSubPartService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_sub_parts_filters_" . md5(json_encode([$checksheet->plant_id])));
 
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Sub-Part');
@@ -167,6 +168,7 @@ class IncomingSubPartService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_sub_parts_filters_" . md5(json_encode([$checksheet->plant_id])));
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();

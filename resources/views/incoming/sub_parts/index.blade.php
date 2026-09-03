@@ -139,6 +139,8 @@
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
 
+        $approvalOrder = $approvalOrder ?? ['kashift', 'supervisor', 'asst_manager', 'manager'];
+
         // Resolve menu ID for permission checks
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.sub_parts.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
@@ -146,7 +148,7 @@
         $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
 
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantCode, [
+        $docHeader = $docHeader ?? \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0212',
             'tgl_terbit' => '01/01/2026',
             'revisi' => '-',
@@ -233,9 +235,9 @@
                     </div>
                 </div>
 
-                <!-- Field: Tgl Datang -->
+                <!-- Field: Tanggal Datang -->
                 <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Datang:</label>
+                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tanggal Datang:</label>
                     <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
                         <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0"
                             style="width: 120px; font-size: 0.75rem;" value="{{ request('start_tgl_datang') }}">
@@ -276,15 +278,11 @@
                         @endif
                     @endif
                     @if($canExport)
-                    <a href="{{ route('incoming.sub_parts.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
-                    </a>
                     <a href="{{ route('incoming.sub_parts.print', request()->query()) }}"
                         target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print"
+                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print-direct" title="Print"
                         style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                        <i class="fas fa-print fa-sm"></i> Cetak
                     </a>
                     @endif
                 </div>
@@ -293,32 +291,51 @@
             <div class="table-responsive">
                 <table class="table table-hover text-center" width="100%" cellspacing="0" id="checksheetTable">
                     <thead class="bg-light">
-                        <tr class="align-middle">
-                            <th rowspan="2">No</th>
-                            <th rowspan="2">Tanggal Check</th>
-                            <th rowspan="2">Jam (Before)</th>
-                            <th rowspan="2">Jam (After)</th>
-                            <th rowspan="2">Cycle Time (s)</th>
-                            <th rowspan="2">Sub-Part Name</th>
-                            <th rowspan="2">Tgl Datang</th>
-                            <th rowspan="2">Lot/Batch</th>
-                            <th colspan="2">Qty (Pcs)</th>
-                            <th rowspan="2" class="align-middle" style="min-width: 170px;">Check Dimensi</th>
-                            <th rowspan="2">Result</th>
-                            <th colspan="2">Detail NG</th>
-                            <th rowspan="2">QC</th>
-                            <th colspan="2">Approval</th>
-                            <th rowspan="2">Description</th>
-                            <th rowspan="2">Action</th>
+                        @php $rs = request('view_mode') === 'verifikasi' ? 1 : 2; @endphp
+                        <tr class="align-middle text-center">
+                            @if(auth()->user()->role === 'admin')
+                                <th rowspan="{{ $rs }}" class="align-middle text-center" style="width: 55px;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <span style="font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; line-height: 1.1;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
+                                        <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
+                                            <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                            <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                        </div>
+                                    </div>
+                                </th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">No</th>
+                            @if(request('view_mode') === 'verifikasi')
+                                <th rowspan="{{ $rs }}" class="align-middle">QR-Code</th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Sub-Part Name / Part No</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Supplier</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Tanggal Datang</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Lot/Batch</th>
+                            <th colspan="2" class="align-middle">Qty (Pcs)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle" style="min-width: 170px;">Check Dimensi</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Judgment</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="2" class="align-middle">Detail NG</th>
+                                <th colspan="4" class="align-middle">Approval Status</th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">Description</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Action</th>
                         </tr>
-                        <tr>
-                            <th>Total (Pcs)</th>
-                            <th>Sampling Size</th>
-                            <th>Pcs</th>
-                            <th>Jenis</th>
-                            <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                            <th style="font-size: 10px;">Supervisor QC</th>
-                        </tr>
+                        @if(request('view_mode') !== 'verifikasi')
+                            <tr class="text-center">
+                                <th>Total (Pcs)</th>
+                                <th>Sampling Size</th>
+                                <th style="width: 45px; min-width: 45px;">Pcs</th>
+                                <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
+                                <th style="font-size: 10px; min-width: 120px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
+                            </tr>
+                        @endif
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
@@ -329,25 +346,60 @@
                                 $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                 $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta ||
-                                    $isKaruJakarta) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED');
-                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) &&
-                                    (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED');
-                                $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) &&
-                                    (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED');
-                                $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc ||
-                                    $cs->manager_qc === 'REJECTED');
-                                $showEdit = $canEdit && !in_array($user->role, ['inspector']);
-                                $showDel = $canDelete && !in_array($user->role, ['inspector']);
+                                $canApproveKashift = (in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) 
+                                    && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED');
+
+                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
+                                    && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED')
+                                    && (!empty($cs->kashift_qc) && $cs->kashift_qc !== 'REJECTED');
+
+                                $canApproveAsst = (in_array($user->role, ['asst_manager', 'asst_manager_qc']) || $isAdmin) 
+                                    && (empty($cs->asst_manager_qc) || $cs->asst_manager_qc === 'REJECTED')
+                                    && (!empty($cs->supervisor_qc) && $cs->supervisor_qc !== 'REJECTED');
+
+                                $canApproveManager = (in_array($user->role, ['manager', 'manager_qc']) || $isAdmin) 
+                                    && (empty($cs->manager_qc) || $cs->manager_qc === 'REJECTED')
+                                    && (!empty($cs->asst_manager_qc) && $cs->asst_manager_qc !== 'REJECTED');
                             @endphp
-                            <tr>
-                                <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">{{ date('d/m/Y', strtotime($cs->date)) }}</td>
-                                <td class="align-middle">{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
-                                <td class="align-middle">{{ $cs->created_at->format('H:i') }}</td>
-                                <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
-                                <td class="align-middle">{{ $cs->item->name }}</td>
-                                <td class="align-middle">{{ date('d/m/Y', strtotime($cs->tanggal_datang)) }}</td>
+                            <tr class="text-center">
+                                @if(auth()->user()->role === 'admin')
+                                    <td class="align-middle text-center">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input row-checkbox" id="check_{{ $cs->id }}" value="{{ $cs->id }}">
+                                            <label class="custom-control-label" for="check_{{ $cs->id }}" style="cursor:pointer;"></label>
+                                        </div>
+                                    </td>
+                                @endif
+                                <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                @if(request('view_mode') === 'verifikasi')
+                                    <td class="align-middle text-center text-nowrap">
+                                        @if(!empty($cs->qrcode) || !empty($cs->unique_code_id))
+                                            <button type="button" class="btn btn-outline-primary btn-xs btn-qr-detail" 
+                                                data-qr="{{ $cs->qrcode }}"
+                                                style="padding: 0.2rem 0.5rem; font-size: 0.80rem;" title="Lihat Detail QR Code">
+                                                <i class="fas fa-qrcode"></i>
+                                            </button>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                @endif
+                                <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
+                                    {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift ?? '1' }} / {{ $cs->operator_initials ?? '-' }}
+                                </td>
+                                @php
+                                    $sec = (int) ($cs->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
+                                <td class="align-middle text-nowrap">
+                                    {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} <span class="text-muted">({{ $ctStr }})</span>
+                                </td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $cs->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted">{{ $cs->item->part_number ?? '-' }}</small>
+                                </td>
+                                <td class="align-middle text-nowrap text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ date('d-m-Y', strtotime($cs->tanggal_datang)) }}</td>
                                 <td class="align-middle">{{ $cs->lot_batch_number }}</td>
                                 <td class="align-middle font-weight-bold">{{ (float) $cs->quantity }}</td>
                                 <td class="align-middle">{{ (float) $cs->sampling_size_pcs }}</td>
@@ -805,12 +857,72 @@
                                                 </form>
                                             @endif
                                         </div>
-                                    </div>
+                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 160px;">
+                                    @if($loop->first)
+                                        @include('partials.bulk_approve_button')
+                                    @endif
+
+                                    @if($canApproveKashift)
+                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $isJakarta ? 'Kepala Regu' : 'Kashift' }})" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ ($user->role === 'admin') ? ($isJakarta ? ' KR' : ' KS') : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $isJakarta ? 'Kepala Regu' : 'Kashift' }})" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveSupervisor)
+                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveAsst)
+                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveManager)
+                                        <form action="{{ route('incoming.sub_parts.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
+                                    @include('partials.action_dropdown', [
+                                        'canEdit'      => $canEdit && !in_array($user->role, ['inspector']),
+                                        'canDelete'    => $canDelete && !in_array($user->role, ['inspector']),
+                                        'editUrl'      => route('incoming.sub_parts.edit', array_merge(['id' => $cs->id], request()->all())),
+                                        'deleteRoute'  => route('incoming.sub_parts.destroy', array_merge(request()->query(), ['id' => $cs->id])),
+                                        'deleteParams' => [],
+                                        'statusUrl'    => auth()->user()->role === 'admin' && Route::has('admin.incoming.sub_parts.edit_approval') ? route('admin.incoming.sub_parts.edit_approval', $cs->id) : null,
+                                    ])
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="19" class="text-center">Data tidak ditemukan.</td>
+                                <td colspan="24" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
+                                    Data checksheet tidak ditemukan.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -821,13 +933,11 @@
             </div>
         </div>
     </div>
-
     @php $bulkApproveRoute = route('incoming.sub_parts.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
 
 @endsection
 
-@push('scripts')
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
@@ -845,7 +955,6 @@
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>
@@ -876,34 +985,32 @@
     </div>
 
     <!-- Rejection Modal for each checksheet and type -->
-    @php
-        $user = auth()->user();
-        $isAdmin = $user->role === 'admin';
-        $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-        $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-        $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
-    @endphp
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor'] as $rejectType)
+        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
+                $user = auth()->user();
+                $isAdmin = $user->role === 'admin';
+                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
                 $canReject = false;
                 if (
-                    $rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&
-                        (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))
+                    $rejectType == 'kashift' && ((in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&
+                        (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED'))
                 ) {
                     $canReject = true;
                 } elseif (
-                    $rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc ||
+                    $rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (empty($cs->supervisor_qc) ||
                         $cs->supervisor_qc === 'REJECTED'))
                 ) {
                     $canReject = true;
                 } elseif (
-                    $rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc ||
+                    $rejectType == 'asst_manager' && ((in_array($user->role, ['asst_manager', 'asst_manager_qc']) || $isAdmin) && (empty($cs->asst_manager_qc) ||
                         $cs->asst_manager_qc === 'REJECTED'))
                 ) {
                     $canReject = true;
                 } elseif (
-                    $rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc
+                    $rejectType == 'manager' && ((in_array($user->role, ['manager', 'manager_qc']) || $isAdmin) && (empty($cs->manager_qc) || $cs->manager_qc
                         === 'REJECTED'))
                 ) {
                     $canReject = true;

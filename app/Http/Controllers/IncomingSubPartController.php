@@ -68,15 +68,31 @@ class IncomingSubPartController extends Controller
 
     public function index(Request $request)
     {
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
+        $plantId = Plant::resolveId($plantFilter);
+
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
         if ($request->get('view_mode') !== 'verifikasi' && empty($filters['entry_method'])) {
             $filters['entry_method'] = 'manual';
         }
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
-        $items = Item::byCategory('Incoming Sub-Part')->orderBy('name')->get();
+
+        $cacheKey = "incoming_sub_parts_filters_" . md5(json_encode([$plantId]));
+        $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
+            return Item::byCategory('Incoming Sub-Part')->where('plant_id', $plantId)->orderBy('name')->get();
+        });
+
         $partDimensionStandards = $this->getSubPartDimensionStandards($items);
 
-        return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards'));
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0212',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards', 'approvalOrder', 'docHeader'));
     }
 
     public function create(Request $request)
@@ -215,19 +231,29 @@ class IncomingSubPartController extends Controller
 
     public function printView(Request $request)
     {
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
         $query = $this->checksheetService->getQuery($filters)->latest();
+        $checksheets = $query->get();
 
-        if ($request->has('page')) {
-            $checksheets = $query->paginate(10)->getCollection();
-        } else {
-            $checksheets = $query->limit(10)->get();
-        }
+        $plantFilter = $request->get('plant', auth()->user()->plant_id);
         $plantCode = strtolower($request->plant ?? auth()->user()->plant->code ?? 'karawang');
-        $plantName = Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $plantName = Plant::resolveName($plantFilter);
         $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : 'Semua';
         $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : 'Semua';
 
-        return view('incoming.sub_parts.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode'));
+        $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantFilter, [
+            'no_dokumen' => 'QC-KRW-F-0212',
+            'tgl_terbit' => '01/01/2026',
+            'revisi'     => '-',
+            'halaman'    => '- / -'
+        ]);
+
+        $selectedItem = null;
+        if (!empty($filters['item_id'])) {
+            $selectedItem = Item::find($filters['item_id']);
+        }
+
+        return view('incoming.sub_parts.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode', 'approvalOrder', 'docHeader', 'selectedItem'));
     }
 }

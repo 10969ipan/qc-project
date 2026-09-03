@@ -100,6 +100,8 @@
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
         $plantCode = strtolower($plantCode ?: 'karawang');
 
+        $approvalOrder = $approvalOrder ?? ['kashift', 'supervisor', 'asst_manager', 'manager'];
+
         // Resolve menu ID for permission checks
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.materials.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
@@ -107,7 +109,7 @@
         $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
         $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
 
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_materials', $plantCode, [
+        $docHeader = $docHeader ?? \App\Models\GeneralSetting::getDocHeader('incoming_materials', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0211',
             'tgl_terbit' => '01/01/2026',
             'revisi' => '-',
