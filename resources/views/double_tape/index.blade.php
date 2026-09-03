@@ -413,8 +413,17 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 @if(request('view_mode') === 'verifikasi')
-                                    <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
-                                        <i class="fas fa-qrcode text-purple mr-1"></i>{{ $checksheet->qr_code }}
+                                    <td class="align-middle text-center text-nowrap">
+                                        <button type="button" class="btn btn-outline-primary btn-xs btn-qr-detail" 
+                                            data-qr="{{ $checksheet->qrcode }}"
+                                            data-part="{{ $checksheet->part_code ?? '-' }}"
+                                            data-supplier="{{ $checksheet->supplier_id ?? '-' }}"
+                                            data-qty="{{ $checksheet->quantity ?? '-' }}"
+                                            data-unique="{{ $checksheet->unique_code_id ?? '-' }}"
+                                            data-sap="{{ $checksheet->sap_code ?? '-' }}"
+                                            style="padding: 0.2rem 0.5rem; font-size: 0.80rem;" title="Lihat Detail QR Code">
+                                            <i class="fas fa-qrcode"></i>
+                                        </button>
                                     </td>
                                     <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
                                         {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
