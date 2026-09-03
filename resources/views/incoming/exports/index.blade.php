@@ -202,7 +202,7 @@
                     <a href="{{ route('incoming.exports.index', array_merge(request()->except('view_mode', 'page'), ['view_mode' => 'verifikasi', 'entry_method' => 'verification', 'plant' => request('plant')])) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-3 no-loader font-weight-bold" title="Data Hasil Verifikasi"
                         style="background-color: #6f42c1; color: white;">
-                        Hasil Verifikasi
+                        <i class="fas fa-clipboard-check fa-sm mr-1"></i> Hasil Verifikasi
                     </a>
                 @else
                     <a href="{{ route('incoming.exports.index', ['plant' => request('plant')]) }}"
@@ -211,131 +211,287 @@
                         <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
                     </a>
                 @endif
-                <a href="{{ route('incoming.exports.export_pdf', request()->query()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export to PDF"><i class="fas fa-file-pdf fa-sm"></i></a>
+                <a href="{{ route('incoming.exports.print', request()->query()) }}"
+                    target="_blank"
+                    class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print-direct" title="Print"
+                    style="background-color: #17a589; color: white;">
+                    <i class="fas fa-print fa-sm"></i> Cetak
+                </a>
             </div>
         </form>
 
             <div class="table-responsive">
-                <table class="table table-hover" width="100%" cellspacing="0" id="checksheetTable">
-                    <thead>
-                        <tr class="text-center">
-                            <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">QR-Code</th>
-                            <th rowspan="2" class="align-middle">Tanggal</th>
-                            @if(request('view_mode') !== 'verifikasi')
-                                <th rowspan="2" class="align-middle">Jam (Before)</th>
-                                <th rowspan="2" class="align-middle">Jam (After)</th>
-                                <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                <table class="table table-hover text-center" width="100%" cellspacing="0" id="checksheetTable">
+                    <thead class="bg-light">
+                        @php $rs = request('view_mode') === 'verifikasi' ? 1 : 2; @endphp
+                        <tr class="align-middle text-center">
+                            @if(auth()->user()->role === 'admin')
+                                <th rowspan="{{ $rs }}" class="align-middle text-center" style="width: 55px;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center">
+                                        <span style="font-size: 9px; font-weight: bold; margin-bottom: 3px; text-transform: uppercase; line-height: 1.1;">SEMUA<br>(<span id="checkedCountDisplay">0</span>)</span>
+                                        <div class="custom-control custom-checkbox d-inline-block" style="min-height: 1.2rem; padding-left: 1.2rem; margin: 0 auto;">
+                                            <input type="checkbox" class="custom-control-input" id="checkAllRows">
+                                            <label class="custom-control-label" for="checkAllRows" style="cursor:pointer;"></label>
+                                        </div>
+                                    </div>
+                                </th>
                             @endif
-                            <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part</th>
-                            <th rowspan="2" class="align-middle">Tgl Delivery</th>
-                            <th rowspan="2" class="align-middle">Lot Qty</th>
-                            <th rowspan="2" class="align-middle">Total Check</th>
-                            <th rowspan="2" class="align-middle">OK</th>
-                            <th rowspan="2" class="align-middle">NG</th>
-                            <th colspan="2" class="align-middle">Detail NG</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inspector</th>
-                            @if(request('view_mode') !== 'verifikasi')
-                                <th colspan="2" class="align-middle">Approval Status</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">No</th>
+                            @if(request('view_mode') === 'verifikasi')
+                                <th rowspan="{{ $rs }}" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
-                            <th rowspan="2" class="no-export align-middle">Actions</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Item Part / Part No</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Supplier</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Tanggal Delivery</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Lot Qty</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Total Check</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">OK</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">NG</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="2" class="align-middle">Detail NG</th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">Judgment</th>
+                            @if(request('view_mode') !== 'verifikasi')
+                                <th colspan="4" class="align-middle">Approval Status</th>
+                            @endif
+                            <th rowspan="{{ $rs }}" class="align-middle">Description</th>
+                            <th rowspan="{{ $rs }}" class="no-export align-middle">Actions</th>
                         </tr>
-                        <tr class="text-center">
-                            <th style="width: 60px; min-width: 60px;">Pcs</th>
-                            <th style="min-width: 150px;">Jenis NG</th>
-                            @if(request('view_mode') !== 'verifikasi')
-                                <th style="font-size: 10px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                                <th style="font-size: 10px;">Supervisor QC</th>
-                            @endif
-                        </tr>
+                        @if(request('view_mode') !== 'verifikasi')
+                            <tr class="text-center">
+                                <th style="width: 45px; min-width: 45px;">Pcs</th>
+                                <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
+                                <th style="font-size: 10px; min-width: 120px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
+                            </tr>
+                        @endif
                     </thead>
                     <tbody>
                         @forelse($checksheets as $cs)
+                            @php
+                                $user = auth()->user();
+                                $isAdmin = $user->role === 'admin';
+                                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
+                                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
+                                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
+
+                                $canApproveKashift = (in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) 
+                                    && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED');
+
+                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
+                                    && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED')
+                                    && (!empty($cs->kashift_qc) && $cs->kashift_qc !== 'REJECTED');
+
+                                $canApproveAsst = (in_array($user->role, ['asst_manager', 'asst_manager_qc']) || $isAdmin) 
+                                    && (empty($cs->asst_manager_qc) || $cs->asst_manager_qc === 'REJECTED')
+                                    && (!empty($cs->supervisor_qc) && $cs->supervisor_qc !== 'REJECTED');
+
+                                $canApproveManager = (in_array($user->role, ['manager', 'manager_qc']) || $isAdmin) 
+                                    && (empty($cs->manager_qc) || $cs->manager_qc === 'REJECTED')
+                                    && (!empty($cs->asst_manager_qc) && $cs->asst_manager_qc !== 'REJECTED');
+                            @endphp
                             <tr class="text-center">
-                                <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                <td class="align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
-                                        data-qr="{{ $cs->qrcode }}"
-                                        data-part="{{ $cs->part_code }}"
-                                        data-supplier="{{ $cs->supplier_id }}"
-                                        data-qty="{{ $cs->quantity }}"
-                                        data-unique="{{ $cs->unique_code_id }}"
-                                        data-sap="{{ $cs->sap_code ?? '-' }}">
-                                        <i class="fas fa-qrcode"></i> View
-                                    </button>
-                                </td>
-                                <td class="align-middle text-nowrap">{{ date('d-m-Y', strtotime($cs->date)) }}</td>
-                                @if(request('view_mode') !== 'verifikasi')
-                                    <td class="align-middle">{{ $cs->created_at->copy()->subSeconds($cs->cycle_time ?? 0)->format('H:i') }}</td>
-                                    <td class="align-middle">{{ $cs->created_at->format('H:i') }}</td>
-                                    <td class="align-middle">{{ $cs->cycle_time ?? '-' }}</td>
+                                @if(auth()->user()->role === 'admin')
+                                    <td class="align-middle text-center">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input row-checkbox" id="check_{{ $cs->id }}" value="{{ $cs->id }}">
+                                            <label class="custom-control-label" for="check_{{ $cs->id }}" style="cursor:pointer;"></label>
+                                        </div>
+                                    </td>
                                 @endif
-                                <td class="align-middle text-nowrap d-none">{{ $cs->item->sap_code ?? '-' }}</td>
-                                <td class="align-middle text-nowrap text-left">{{ $cs->item->name }}<br><small class="text-muted">{{ $cs->item->part_number }}</small></td>
-                                <td class="align-middle">{{ date('d-m-Y', strtotime($cs->tanggal_delivery)) }}</td>
-                                <td class="align-middle">{{ $cs->lot_qty }}</td>
-                                <td class="align-middle">{{ $cs->total_check }}</td>
+                                <td class="align-middle text-nowrap">{{ $checksheets->firstItem() + $loop->index }}</td>
+                                @if(request('view_mode') === 'verifikasi')
+                                    <td class="align-middle text-center text-nowrap">
+                                        @if(!empty($cs->qrcode) || !empty($cs->unique_code_id))
+                                            <button type="button" class="btn btn-outline-primary btn-xs btn-qr-detail" 
+                                                data-qr="{{ $cs->qrcode }}"
+                                                style="padding: 0.2rem 0.5rem; font-size: 0.80rem;" title="Lihat Detail QR Code">
+                                                <i class="fas fa-qrcode"></i>
+                                            </button>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                @endif
+                                <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
+                                    {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift ?? '1' }} / {{ $cs->operator_initials ?? '-' }}
+                                </td>
+                                @php
+                                    $sec = (int) ($cs->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
+                                <td class="align-middle text-nowrap">
+                                    {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} <span class="text-muted">({{ $ctStr }})</span>
+                                </td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $cs->item->name ?? '-' }}</span><br>
+                                    <small class="text-muted">{{ $cs->item->part_number ?? '-' }}</small>
+                                </td>
+                                <td class="align-middle text-nowrap text-gray-700">{{ $cs->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ date('d-m-Y', strtotime($cs->tanggal_delivery)) }}</td>
+                                <td class="align-middle font-weight-bold text-dark">{{ $cs->lot_qty }}</td>
+                                <td class="align-middle font-weight-bold text-dark">{{ $cs->total_check }}</td>
                                 <td class="align-middle text-success font-weight-bold">{{ $cs->total_check - $cs->total_ng }}</td>
                                 <td class="align-middle text-danger font-weight-bold">{{ $cs->total_ng }}</td>
-                                @php $defects = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true); @endphp
-                                <td class="p-0 align-middle">
-                                    @foreach($defects ?? [] as $d) <div class="border-bottom py-1">{{ $d['qty'] ?? 0 }}</div>
-                                    @endforeach
-                                </td>
-                                <td class="p-0 align-middle">
-                                    @foreach($defects ?? [] as $d) <div class="border-bottom py-1 text-nowrap px-1">
-                                        {{ $d['type'] ?? '-' }}
-                                    </div> @endforeach
-                                </td>
-                                <td class="align-middle">
-                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">{{ $cs->judgment }}</span>
-                                </td>
-                                <td class="align-middle text-uppercase">{{ $cs->operator_initials }}</td>
+                                @php
+                                    $defectsData = is_array($cs->defects) ? $cs->defects : json_decode($cs->defects, true);
+                                    $pcsLines = [];
+                                    $nameLines = [];
+                                    if (is_array($defectsData)) {
+                                        foreach ($defectsData as $d) {
+                                            if (is_array($d) && isset($d['type'])) {
+                                                $pcsLines[] = $d['qty'] ?? 1;
+                                                $nameLines[] = $d['type'];
+                                            } elseif (is_string($d)) {
+                                                $pcsLines[] = 1;
+                                                $nameLines[] = $d;
+                                            }
+                                        }
+                                    }
+                                @endphp
+
                                 @if(request('view_mode') !== 'verifikasi')
-                                    @foreach(['kashift_qc', 'supervisor_qc'] as $lvl)
-                                        <td class="align-middle text-center">
-                                            @if($cs->$lvl === 'REJECTED')
-                                                <span class="badge badge-danger" title="Rejected"><i class="fas fa-times"></i></span>
-                                            @elseif($cs->$lvl)
-                                                <span class="badge badge-success" title="Approved"><i class="fas fa-check"></i></span>
+                                    <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
+                                        @if(count($pcsLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                        @if(count($nameLines) > 0)
+                                            <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                @endif
+
+                                <td class="align-middle text-nowrap">
+                                    <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }} px-2 py-1" style="font-size: 0.65rem;">
+                                        {{ $cs->judgment }}
+                                    </span>
+                                </td>
+
+                                @if(request('view_mode') !== 'verifikasi')
+                                    {{-- Unified Approval Columns (4 Roles) --}}
+                                    @foreach ($approvalOrder as $role)
+                                        @php
+                                            $field = getApprovalField($role);
+                                            $dateField = getApprovalDateField($role);
+                                            $status = $cs->$field;
+                                            $date = $cs->$dateField;
+                                        @endphp
+                                        <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                            @if($status === 'REJECTED')
+                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $cs->rejection_remarks }}">
+                                                    <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                    @endif
+                                                </div>
+                                            @elseif($status && $status !== 'Pending')
+                                                <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                                </span>
+                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
+                                                    <div>oleh {{ $status }}</div>
+                                                    @if($date)
+                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
+                                                    @endif
+                                                </div>
                                             @else
-                                                <span class="badge badge-warning" title="Pending"><i class="fas fa-clock"></i></span>
+                                                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                    <i class="fas fa-clock mr-1"></i> PENDING
+                                                </span>
                                             @endif
                                         </td>
                                     @endforeach
                                 @endif
-                                <td class="align-middle small">{{ $cs->remarks }}</td>
-                                <td class="align-middle text-center">
-                                    @if($loop->first && request('view_mode') !== 'verifikasi')
+
+                                <td class="align-middle text-left small" style="min-width: 150px; white-space: normal;">
+                                    @if($cs->rejection_remarks)
+                                        <div class="text-danger font-weight-bold">
+                                            <i class="fas fa-exclamation-triangle"></i> REJECTED
+                                        </div>
+                                        <small class="text-muted">{{ $cs->rejection_remarks }}</small>
+                                    @else
+                                        {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($cs->remarks)) !!}
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center text-nowrap no-export" style="min-width: 160px;">
+                                    @if($loop->first)
                                         @include('partials.bulk_approve_button')
                                     @endif
-                                    <div class="btn-group">
-                                        @if(!in_array(auth()->user()->role, ['inspector']))
-                                            <button type="button"
-                                                class="btn btn-outline-primary btn-sm shadow-sm rounded mr-1 btn-edit-export"
-                                                style="padding: 2px 6px; font-size: 0.65rem;"
-                                                title="Edit"
-                                                data-id="{{ $cs->id }}"
-                                                data-url="{{ route('incoming.exports.edit', $cs->id) }}"
-                                                data-update-url="{{ route('incoming.exports.update', $cs->id) }}">
-                                                <i class="fas fa-edit"></i>
+
+                                    @if($canApproveKashift)
+                                        <form action="{{ route('incoming.exports.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $isJakarta ? 'Kepala Regu' : 'Kashift' }})" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ ($user->role === 'admin') ? ($isJakarta ? ' KR' : ' KS') : '' }}
                                             </button>
-                                            <form action="{{ route('incoming.exports.destroy', $cs->id) }}" method="POST" class="d-inline form-delete">
-                                                @csrf @method('DELETE')
-                                                <button type="button" class="btn btn-outline-danger btn-sm shadow-sm rounded btn-delete" style="padding: 2px 6px; font-size: 0.65rem;" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $isJakarta ? 'Kepala Regu' : 'Kashift' }})" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveSupervisor)
+                                        <form action="{{ route('incoming.exports.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' SPV' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}supervisor" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveAsst)
+                                        <form action="{{ route('incoming.exports.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' AM' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}asst_manager" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                    @if($canApproveManager)
+                                        <form action="{{ route('incoming.exports.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ (auth()->user()->role === 'admin') ? ' MGR' : '' }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}manager" style="min-width: 90px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+
+                                    @include('partials.action_dropdown', [
+                                        'canEdit'      => $canEdit && !in_array($user->role, ['inspector']),
+                                        'canDelete'    => $canDelete && !in_array($user->role, ['inspector']),
+                                        'editUrl'      => route('incoming.exports.edit', array_merge(['id' => $cs->id], request()->all())),
+                                        'deleteRoute'  => route('incoming.exports.destroy', array_merge(request()->query(), ['id' => $cs->id])),
+                                        'deleteParams' => [],
+                                        'statusUrl'    => auth()->user()->role === 'admin' && Route::has('admin.incoming.exports.edit_approval') ? route('admin.incoming.exports.edit_approval', $cs->id) : null,
+                                    ])
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ request('view_mode') === 'verifikasi' ? 16 : 23 }}" class="py-4 text-muted text-center">Data tidak ditemukan.</td>
+                                <td colspan="24" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-400"></i>
+                                    Data checksheet tidak ditemukan.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

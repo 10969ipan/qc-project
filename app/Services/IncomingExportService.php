@@ -149,6 +149,7 @@ class IncomingExportService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_exports_filters_" . md5(json_encode([$checksheet->plant_id])));
 
             if ($checksheet->total_ng > 0) {
                 $this->notificationService->notifyNGFinding($checksheet, 'Incoming Export');
@@ -192,6 +193,7 @@ class IncomingExportService extends BaseService
             ]);
 
             DB::commit();
+            \Illuminate\Support\Facades\Cache::forget("incoming_exports_filters_" . md5(json_encode([$checksheet->plant_id])));
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
