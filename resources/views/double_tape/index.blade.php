@@ -363,11 +363,11 @@
                             <th rowspan="2" class="align-middle">No</th>
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="2" class="align-middle">QR-Code</th>
-                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             @else
-                                <th rowspan="2" class="bg-light align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Lot ID<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             @endif
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
@@ -425,7 +425,7 @@
                                             <i class="fas fa-qrcode"></i>
                                         </button>
                                     </td>
-                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                    <td class="align-middle text-nowrap" style="font-size: 0.70rem;">
                                         {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
@@ -440,14 +440,14 @@
                                         $injDateStr = $checksheet->injection_date ? \Carbon\Carbon::parse($checksheet->injection_date)->format('d-m-Y') : null;
                                         $hasLotData = !empty($injDateStr) || !empty($checksheet->injection_shift) || !empty($checksheet->injection_initials);
                                     @endphp
-                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                    <td class="align-middle text-nowrap" style="font-size: 0.70rem;">
                                         @if($hasLotData)
                                             {{ $injDateStr ?? '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ $checksheet->injection_initials ?? '-' }}
                                         @else
                                             -
                                         @endif
                                     </td>
-                                    <td class="align-middle text-nowrap bg-light" style="font-size: 0.70rem;">
+                                    <td class="align-middle text-nowrap" style="font-size: 0.70rem;">
                                         {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
