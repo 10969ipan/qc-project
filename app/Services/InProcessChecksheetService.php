@@ -295,13 +295,12 @@ class InProcessChecksheetService extends BaseService
             }
             if (!empty($itemStandards)) {
                 $dimensionStandards = $itemStandards;
-        if ($item && !empty($item->dimension_standards) && is_array($item->dimension_standards)) {
-            $dimensionStandards = $item->dimension_standards;
+            }
         }
 
-        if (!$dimensionStandards) {
-            $partNum = $itemPartNumber ? $this->normalizePartNumber($itemPartNumber) : ($item ? $this->normalizePartNumber($item->part_number) : null);
-            $allStandards = config('dimension_standards', []);
+        if (!$dimensionStandards && $item) {
+            $allStandards = $this->getConsolidatedStandards();
+            $partNum = $this->normalizePartNumber($item->part_number ?? "");
             $dimensionStandards = $allStandards[$partNum] ?? null;
         }
 
