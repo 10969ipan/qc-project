@@ -827,7 +827,10 @@
 
                                 <td class="align-middle">
                                      @php
-                                         $effectiveJudgment = ($checksheet->judgment == 'NG' || ($anyNGInRow ?? false)) ? 'NG' : 'OK';
+                                         // Judgment efektif: NG jika ada NG dimensi ATAU ada defect lain (non-dimensi).
+                                         // Tidak lagi bergantung pada nilai tersimpan ($checksheet->judgment)
+                                         // karena $pcsLines sudah mengecualikan dimensi saat dimensi OK.
+                                         $effectiveJudgment = (($anyNGInRow ?? false) || count($pcsLines) > 0) ? 'NG' : 'OK';
                                      @endphp
                                      <span class="badge badge-{{ $effectiveJudgment == 'OK' ? 'success' : 'danger' }}" 
                                            title="{{ $checksheet->judgment != $effectiveJudgment ? 'Warning: Database judgment differs from dimension check' : '' }}">

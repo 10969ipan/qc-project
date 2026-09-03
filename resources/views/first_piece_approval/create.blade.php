@@ -324,11 +324,11 @@
                                                     data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}"
                                                     data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}"
                                                     data-description="{{ $item->description }}"
-                                                    data-defects="{{ json_encode($item->defects) }}"
+                                                    data-defects='@json($item->defects ?? [])'
                                                     data-sap_code="{{ $item->sap_code ?? '' }}"
                                                     data-cavity="{{ $item->cavity }}" data-customer="{{ $item->customer }}"
                                                     data-weight-standard="{{ $item->weight_standard }}"
-                                                    data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
+                                                    data-dimension-standards='@json($item->dimension_standards ?? [])'>
                                                     {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                                     {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
                                                 </option>

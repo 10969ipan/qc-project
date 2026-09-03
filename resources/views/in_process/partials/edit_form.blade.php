@@ -63,8 +63,8 @@
                                 data-part-number="{{ $item->part_number }}"
                                 data-customer="{{ $item->customer }}"
                                 data-weight-standard="{{ $item->weight_standard }}"
-                                data-dimension-standards="{{ json_encode($item->dimension_standards) }}"
-                                data-defects="{{ json_encode($item->defects) }}">
+                                data-dimension-standards='@json($item->dimension_standards ?? [])'
+                                data-defects='@json($item->defects ?? [])'>
                                 {{ $item->name }} ({{ $item->customer }})
                             </option>
                         @endforeach

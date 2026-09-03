@@ -266,11 +266,45 @@ class InProcessChecksheetService extends BaseService
     public function validateDimensions(array $data, $itemId): array
     {
         $item = Item::find($itemId);
-        $allStandards = $this->getConsolidatedStandards();
-        $partNum = $item ? $this->normalizePartNumber($item->part_number ?? '') : '';
+        $dimensionStandards = null;
 
-        if ($item && isset($allStandards[$partNum]) && !empty($data['dimensions'])) {
-            $dimensionStandards = $allStandards[$partNum];
+        if ($item && !empty($item->dimension_standards)) {
+            $itemStandards = [];
+            foreach ($item->dimension_standards as $index => $std) {
+                $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
+                $hasMinMax = (isset($std['min']) && $std['min'] !== '') || (isset($std['max']) && $std['max'] !== '');
+
+                if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
+                    $pointKey = (string) ($index + 1);
+                    $processValue = function ($val) {
+                        $val = $this->normalizeStandardValue($val);
+                        if ($val === null || $val === '') return null;
+                        if (preg_match('/^[+-]\d+(\.\d+)?(\/[+-]\d+(\.\d+)?)?$/u', $val)) {
+                            return $val;
+                        }
+                        return is_numeric($val) ? (float) $val : $val;
+                    };
+
+                    $itemStandards[$pointKey] = [
+                        'size' => $processValue($std['size'] ?? null),
+                        'tolerance' => $processValue($std['tolerance'] ?? null),
+                        'min' => $processValue($std['min'] ?? null),
+                        'max' => $processValue($std['max'] ?? null),
+                    ];
+                }
+            }
+            if (!empty($itemStandards)) {
+                $dimensionStandards = $itemStandards;
+            }
+        }
+
+        if (!$dimensionStandards && $item) {
+            $allStandards = $this->getConsolidatedStandards();
+            $partNum = $this->normalizePartNumber($item->part_number ?? '');
+            $dimensionStandards = $allStandards[$partNum] ?? null;
+        }
+
+        if ($item && !empty($dimensionStandards) && !empty($data['dimensions'])) {
             $isAnyInvalid = false;
             $hasValidDimensions = false;
 
