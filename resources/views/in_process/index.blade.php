@@ -588,7 +588,7 @@
                                                     @php
                                                         $hasStdData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-')) {
+                                                            if (isset($standards[$j]['size']) && $standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-') {
                                                                 $hasStdData = true;
                                                                 break;
                                                             }
@@ -599,7 +599,7 @@
                                                             <td class="dim-header text-std-header">Std</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
+                                                                    {{ $standards[$j]['size'] ?? '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -609,7 +609,7 @@
                                                     @php
                                                         $hasMinData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null && ($standards[$j]['min'] ?? null) !== '' && ($standards[$j]['min'] ?? null) !== '-') {
+                                                            if (isset($standards[$j]['min']) && $standards[$j]['min'] !== null && $standards[$j]['min'] !== '' && $standards[$j]['min'] !== '-') {
                                                                 $hasMinData = true;
                                                                 break;
                                                             }
@@ -620,7 +620,7 @@
                                                             <td class="dim-header text-std-header">Min</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
+                                                                    {{ $standards[$j]['min'] ?? '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -630,7 +630,7 @@
                                                     @php
                                                         $hasMaxData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null && ($standards[$j]['max'] ?? null) !== '' && ($standards[$j]['max'] ?? null) !== '-') {
+                                                            if (isset($standards[$j]['max']) && $standards[$j]['max'] !== null && $standards[$j]['max'] !== '' && $standards[$j]['max'] !== '-') {
                                                                 $hasMaxData = true;
                                                                 break;
                                                             }
@@ -641,7 +641,7 @@
                                                             <td class="dim-header text-std-header">Max</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
+                                                                    {{ $standards[$j]['max'] ?? '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -651,7 +651,7 @@
                                                     @php
                                                         $hasTolData = false;
                                                         foreach ($activePoints as $j) {
-                                                            if (isset($standards[$j]) && ($standards[$j]['tolerance'] ?? null) !== null && ($standards[$j]['tolerance'] ?? null) !== '' && ($standards[$j]['tolerance'] ?? null) !== '-') {
+                                                            if (isset($standards[$j]['tolerance']) && $standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '' && $standards[$j]['tolerance'] !== '-') {
                                                                 $hasTolData = true;
                                                                 break;
                                                             }
@@ -662,7 +662,7 @@
                                                             <td class="dim-header text-std-header">Tol</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ isset($standards[$j]) ? '±' . ($standards[$j]['tolerance'] ?? '-') : '-' }}
+                                                                    {{ (isset($standards[$j]['tolerance']) && $standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '') ? '±' . $standards[$j]['tolerance'] : '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
