@@ -254,10 +254,6 @@
                 <!-- Tombol Ekspor (Paling Kanan) -->
                 <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
-                    <a href="{{ route('cross_cut.export_pdf', request()->query()) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Export to PDF">
-                        <i class="fas fa-file-pdf fa-sm mr-1"></i> PDF
-                    </a>
                     <a href="{{ route('cross_cut.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;" title="Cetak Direct">
                         <i class="fas fa-print fa-sm mr-1"></i> Cetak
@@ -293,13 +289,9 @@
                                 </th>
                             @endif
                             <th rowspan="2" class="align-middle">No</th>
-                            <th rowspan="2" class="align-middle">Tanggal Produksi</th>
-                            <th rowspan="2" class="align-middle">Shift Produksi</th>
-                            <th rowspan="2" class="align-middle">Tanggal QC</th>
-                            <th rowspan="2" class="align-middle">Shift QC</th>
-                            <th rowspan="2" class="align-middle">Jam Before</th>
-                            <th rowspan="2" class="align-middle">Jam After</th>
-                            <th rowspan="2" class="align-middle">Cycle Time (s)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Prod.<br>(Tgl / Shift)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
                             <th rowspan="2" class="align-middle">Customer</th>
@@ -307,8 +299,7 @@
                             <th rowspan="2" class="align-middle">Bak No</th>
                             <th rowspan="2" class="align-middle">Judgment & Posisi Remark</th>
                             <th rowspan="2" class="align-middle">Result Remark</th>
-                            <th rowspan="2" class="align-middle">Inisial</th>
-                            <th colspan="4" class="align-middle">Approval Status</th>
+                            <th colspan="6" class="align-middle">Approval Status</th>
                             <th rowspan="2" class="align-middle" style="min-width: 400px;">DESCRIPTION</th>
                             @if(!in_array(auth()->user()->role, ['inspector']))
                                 <th rowspan="2" class="align-middle no-export">Actions</th>
@@ -319,6 +310,8 @@
                             <th style="font-size: 10px; min-width: 120px;">Kashift Plating</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Quality</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Plating</th>
+                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Quality</th>
+                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Plating</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -334,23 +327,22 @@
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-Y') }} / {{ $checksheet->production_shift }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->production_shift }}</td>
                                 <td class="align-middle text-nowrap">
-                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
                                 </td>
-                                <td class="align-middle">{{ $checksheet->qc_shift }}</td>
-                                <td class="align-middle">
-                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}
+                                @php
+                                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                @endphp
+                                <td class="align-middle text-nowrap">
+                                    {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                 </td>
-                                <td class="align-middle">{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}
-                                </td>
-                                <td class="align-middle">{{ $checksheet->cycle_time ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name }}</span><br>
-                                    <small class="text-muted"><i class="fas fa-tag mr-1"></i>{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                 </td>
                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 <td class="align-middle no-export">
@@ -379,7 +371,6 @@
                                     {{ $checksheet->position_remark_no_lot }}
                                 </td>
                                 <td class="align-middle">{{ $checksheet->result_remark }}</td>
-                                <td class="align-middle text-uppercase">{{ $checksheet->operator_initials }}</td>
 
                                 {{-- Kolom Status Approval --}}
                                 {{-- Level 1: Karu QC --}}
@@ -389,8 +380,7 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
-                                            <br><small class="text-muted">oleh
-                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -403,8 +393,7 @@
                                         </span>
                                     @endif
                                     @if($checksheet->karu_qc_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->karu_qc_approved_at)->format('d/m/Y H:i') }}</small>
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->karu_qc_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -415,8 +404,7 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
-                                            <br><small class="text-muted">oleh
-                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -429,12 +417,9 @@
                                         </span>
                                     @endif
                                     @if($checksheet->kashift_plating_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->kashift_plating_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
-
-
 
                                 {{-- Level 3: SPV Quality --}}
                                 <td class="align-middle text-center">
@@ -443,8 +428,7 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
-                                            <br><small class="text-muted">oleh
-                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -457,8 +441,7 @@
                                         </span>
                                     @endif
                                     @if($checksheet->supervisor_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
 
@@ -469,8 +452,7 @@
                                             <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-times-circle mr-1"></i> REJECTED
                                             </span>
-                                            <br><small class="text-muted">oleh
-                                                {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
                                         @else
                                             <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
                                                 <i class="fas fa-check-circle mr-1"></i> APPROVED
@@ -483,8 +465,55 @@
                                         </span>
                                     @endif
                                     @if($checksheet->supervisor_plating_approved_at)
-                                        <br><small
-                                            class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
+                                    @endif
+                                </td>
+
+                                {{-- Level 5: Asst Manager Quality --}}
+                                <td class="align-middle text-center">
+                                    @if($checksheet->asst_manager_qc)
+                                        @if($checksheet->asst_manager_qc === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ $checksheet->asst_manager_qc }}</small>
+                                        @endif
+                                    @else
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                    @if($checksheet->asst_manager_approved_at)
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
+                                    @endif
+                                </td>
+
+                                {{-- Level 6: Asst Manager Plating --}}
+                                <td class="align-middle text-center">
+                                    @if($checksheet->asst_manager_plating)
+                                        @if($checksheet->asst_manager_plating === 'REJECTED')
+                                            <span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</small>
+                                        @else
+                                            <span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;">
+                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
+                                            </span>
+                                            <br><small class="text-muted">oleh {{ $checksheet->asst_manager_plating }}</small>
+                                        @endif
+                                    @else
+                                        <span class="badge badge-warning px-3 py-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-clock mr-1"></i> PENDING
+                                        </span>
+                                    @endif
+                                    @if($checksheet->asst_manager_plating_approved_at)
+                                        <br><small class="text-muted">{{ \Carbon\Carbon::parse($checksheet->asst_manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
                                     @endif
                                 </td>
                                 {{-- DESCRIPTION Column --}}

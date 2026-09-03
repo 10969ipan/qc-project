@@ -114,7 +114,7 @@ class CrossCutChecksheetService extends BaseService
                     \Log::error("Upload failed in CrossCutChecksheetService. Error: {$errMsg}");
                     throw new \Exception("Gambar gagal diunggah atau hilang dari server temporer ({$errMsg}). Silakan coba lagi.");
                 }
-                $imagePath = $data['image']->store('cross_cut_images', 'public');
+                $imagePath = \App\Helpers\ImageCompressor::compressAndStore($data['image'], 'cross_cut_images');
             }
 
             $checksheet = CrossCutChecksheet::create([
@@ -137,6 +137,10 @@ class CrossCutChecksheetService extends BaseService
                 'cycle_time' => $data['cycle_time'] ?? null,
                 'operator_initials' => $data['operator_initials'] ?? null,
             ]);
+
+            \Illuminate\Support\Facades\Cache::forget("crosscut_filter_items_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("crosscut_filter_customers_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("crosscut_filter_init_{$checksheet->plant_id}");
 
             DB::commit();
 

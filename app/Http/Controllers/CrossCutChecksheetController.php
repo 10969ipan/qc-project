@@ -73,19 +73,38 @@ class CrossCutChecksheetController extends Controller
             'shift' => $request->input('shift'),
         ];
         $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
-        // Fetch unique item IDs that have checksheets
-        $existingItemIds = CrossCutChecksheet::withoutGlobalScope('plant')->distinct()->pluck('item_id');
 
-        $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $plantId = \App\Models\Plant::resolveId($filters['plant'] ?? auth()->user()->plant_id);
+        $items = \Illuminate\Support\Facades\Cache::remember("crosscut_filter_items_{$plantId}", 1800, function () use ($plantId) {
+            $existingItemIds = CrossCutChecksheet::withoutGlobalScope('plant')
+                ->where('plant_id', $plantId)
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        });
 
-        $customers = Item::whereIn('id', $existingItemIds)
-            ->whereNotNull('customer')
-            ->where('customer', '!=', '')
-            ->distinct()
-            ->orderBy('customer')
-            ->pluck('customer');
-            
-        $initials = CrossCutChecksheet::withoutGlobalScope('plant')->whereNotNull('operator_initials')->where('operator_initials', '!=', '')->distinct()->orderBy('operator_initials')->pluck('operator_initials');
+        $customers = \Illuminate\Support\Facades\Cache::remember("crosscut_filter_customers_{$plantId}", 1800, function () use ($plantId) {
+            $existingItemIds = CrossCutChecksheet::withoutGlobalScope('plant')
+                ->where('plant_id', $plantId)
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)
+                ->whereNotNull('customer')
+                ->where('customer', '!=', '')
+                ->distinct()
+                ->orderBy('customer')
+                ->pluck('customer');
+        });
+
+        $initials = \Illuminate\Support\Facades\Cache::remember("crosscut_filter_init_{$plantId}", 1800, function () use ($plantId) {
+            return CrossCutChecksheet::withoutGlobalScope('plant')
+                ->where('plant_id', $plantId)
+                ->whereNotNull('operator_initials')
+                ->where('operator_initials', '!=', '')
+                ->distinct()
+                ->orderBy('operator_initials')
+                ->pluck('operator_initials');
+        });
 
         $canExport = \App\Helpers\AppMenu::checkPermission('cross_cut.index', 'export');
         $canEdit = \App\Helpers\AppMenu::checkPermission('cross_cut.index', 'edit');
@@ -571,26 +590,44 @@ class CrossCutChecksheetController extends Controller
 
     public function printView(Request $request)
     {
-        $filters = $request->only(['start_date', 'end_date', 'item_id', 'approval_status', 'check_type', 'operator_initials', 'customer', 'shift']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'check_type', 'qr_raw', 'shift', 'operator_initials', 'customer', 'entry_method', 'plant']);
 
-        // Default to today if no date range is provided
-        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+        if ($request->get('view_mode') === 'verifikasi') {
+            $filters['entry_method'] = 'verification';
+        } else {
+            $filters['entry_method'] = 'regular';
+        }
+
+        // Default ke hari ini jika tidak ada filter tanggal
+        if (empty($filters['start_date'])) {
             $filters['start_date'] = now()->toDateString();
+        }
+        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
-        $query = $this->crossCutService->buildFilteredQuery($filters)->latest();
-        $checksheets = $query->get();
+        $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
 
-        $itemName = null;
+        $plantCode = strtolower($request->input('plant', auth()->user()->plant_id == 1 ? 'karawang' : 'jakarta'));
+        $plantName = \App\Models\Plant::resolveName($plantCode);
+        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
+        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+
+        $selectedItem = null;
         if ($request->filled('item_id')) {
-            $item = Item::find($request->item_id);
-            $itemName = $item ? $item->name : null;
+            $selectedItem = Item::find($request->item_id);
         }
 
-        $plantName = \App\Models\Plant::resolveName($request->plant ?? auth()->user()->plant_id);
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut', $plantCode, [
+            'judul'      => 'LAPORAN CHECK SHEET CROSS CUT PLATING',
+            'no_dokumen' => 'QC-KRW-F-0214',
+            'tgl_terbit' => '25/03/2015',
+            'revisi'     => '3',
+            'tgl_revisi' => '22/12/2025',
+            'halaman'    => '1/1'
+        ]);
 
-        return view('cross_cut.print', compact('checksheets', 'filters', 'itemName', 'plantName'));
+        return view('cross_cut.print', compact('checksheets', 'filters', 'plantName', 'plantCode', 'startDate', 'endDate', 'docHeader', 'selectedItem'));
     }
 
 

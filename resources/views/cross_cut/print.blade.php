@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-    @php
-        $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut', $headerPlantCode, [
-            'no_dokumen' => '-',
-            'tgl_terbit' => '-',
-            'revisi' => '-',
-            'halaman' => '- / -'
-        ]);
-    @endphp
+@php
+    $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+    $docHeader = isset($docHeader) ? $docHeader : \App\Models\GeneralSetting::getDocHeader('cross_cut', $headerPlantCode, [
+        'judul'      => 'LAPORAN CHECK SHEET CROSS CUT PLATING',
+        'no_dokumen' => 'QC-KRW-F-0214',
+        'tgl_terbit' => '25/03/2015',
+        'revisi'     => '3',
+        'tgl_revisi' => '22/12/2025',
+        'halaman'    => '1/1'
+    ]);
+    $isVerification = request('view_mode') === 'verifikasi';
+@endphp
 <html lang="en">
 
 <head>
@@ -24,9 +27,9 @@
         body {
             font-family: 'Arial', sans-serif;
             font-size: 8px;
-            color: #333;
+            color: #000;
             margin: 0;
-            padding: 10mm 10mm 5mm 10mm;
+            padding: 8mm 8mm 5mm 8mm;
         }
 
         /* ===== HEADER DOKUMEN ===== */
@@ -38,8 +41,9 @@
 
         .header-table td {
             border: 1px solid #000;
-            padding: 5px;
+            padding: 4px;
             vertical-align: middle;
+            color: #000;
         }
 
         .logo {
@@ -49,23 +53,26 @@
 
         .title {
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: #000;
+            text-transform: uppercase;
         }
 
         .doc-info {
-            width: 160px;
-            font-size: 8.5px;
+            width: 170px;
+            font-size: 8px;
+            color: #000;
         }
 
         .doc-info table { width: 100%; border: none; }
-        .doc-info td   { border: none; padding: 1px 2px; }
+        .doc-info td   { border: none; padding: 1px 2px; color: #000; }
 
         /* ===== INFO PERIODE ===== */
         .sub-header {
             margin-bottom: 8px;
-            font-size: 9px;
+            font-size: 8.5px;
+            color: #000;
         }
 
         /* ===== TABEL DATA ===== */
@@ -73,6 +80,7 @@
             width: 100%;
             border-collapse: collapse;
             table-layout: auto;
+            margin-top: 0;
         }
 
         /* Header tabel mengikuti di setiap halaman baru */
@@ -89,55 +97,28 @@
             print-color-adjust: exact;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 6.5px;
+            font-size: 6px;
+            color: #000;
         }
 
         .table td {
             border: 1px solid #000;
-            padding: 3px 4px;
+            padding: 2px 4px;
             text-align: center;
             vertical-align: middle;
             font-size: 7.5px;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: #000;
         }
-
-        /* Hindari baris terpotong di tengah halaman */
-        tbody tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        /* ===== KOLOM TERSEMBUNYI ===== */
-        .col-hidden { display: none; }
-
-        .text-uppercase { text-transform: uppercase; }
 
         /* ===== FOOTER KUSTOM ===== */
         .print-footer {
-            position: fixed;
-            bottom: 5mm;
-            left: 10mm;
+            margin-top: 6mm;
             font-size: 7.5px;
-            color: #666;
+            color: #000;
             text-align: left;
         }
-
-        .kimia-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0;
-        }
-
-        .kimia-table td,
-        .kimia-table th {
-            border: 1px solid #ccc;
-            padding: 1px;
-            text-align: left;
-            font-size: 6px;
-        }
-
-        .text-left { text-align: left !important; }
-
     </style>
 </head>
 
@@ -148,31 +129,27 @@
         <tr>
             <td class="logo">
                 <img src="{{ asset('master item/ipp.jpg') }}"
-                     style="max-width: 75px; max-height: 55px; object-fit: contain;">
+                     style="max-width: 75px; max-height: 50px; object-fit: contain;">
             </td>
-            <td class="title">LAPORAN DATA CHECKSHEET CROSS CUT PLATING</td>
+            <td class="title">{{ $docHeader['judul'] }}</td>
             <td class="doc-info">
                 <table>
-                    <tr><td>No. Dokumen</td><td>: QC-KRW-F-0214</td></tr>
-                    <tr><td>Tgl. Terbit</td><td>: 25/03/2015</td></tr>
-                    <tr><td>Revisi Ke</td><td>: 3</td></tr>
-                    <tr><td>Tgl. Revisi</td><td>: 22/12/2025</td></tr>
-                    <tr><td>Hal</td><td>: 1/1</td></tr>
+                    <tr><td style="width: 70px;">No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] }}</td></tr>
+                    <tr><td>Tgl. Terbit</td><td>: {{ $docHeader['tgl_terbit'] }}</td></tr>
+                    <tr><td>Revisi Ke</td><td>: {{ $docHeader['revisi'] }}</td></tr>
+                    <tr><td>Tgl. Revisi</td><td>: {{ $docHeader['tgl_revisi'] ?? '-' }}</td></tr>
+                    <tr><td>Hal</td><td>: {{ $docHeader['halaman'] }}</td></tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    {{-- Sub-header: Periode & Item --}}
+    {{-- Sub-header: Periode --}}
     <div class="sub-header">
-        <strong>Periode:</strong>
-        @if(isset($filters['start_date']) && isset($filters['end_date']))
-            {{ \Carbon\Carbon::parse($filters['start_date'])->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($filters['end_date'])->format('d M Y') }}
-        @else
-            Semua Periode
+        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+        @if(isset($selectedItem) && $selectedItem)
+            &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Item Part / Part No:</strong> {{ $selectedItem->name }} ({{ $selectedItem->part_number ?? '-' }})
         @endif
-        <br>
-        <strong>Item:</strong> {{ $itemName ?? 'Semua' }}
     </div>
 
     {{-- Tabel Data --}}
@@ -180,56 +157,108 @@
         <thead>
             <tr>
                 <th rowspan="2">No</th>
-                <th rowspan="2">Tgl. Prod</th>
-                <th rowspan="2">Tgl. QC</th>
-                <th rowspan="2">Shift Prod.</th>
-                <th rowspan="2">Shift QC</th>
-                <th rowspan="2">Jam (B)</th>
-                <th rowspan="2">Jam (A)</th>
-                <th rowspan="2">Cycle (s)</th>
-                <th rowspan="2" class="col-hidden">Kode SAP</th>
-                <th rowspan="2">Item Part</th>
-                <th rowspan="2">Customer</th>
-                <th rowspan="2">Part No</th>
+                <th rowspan="2">Prod.<br>(Tgl / Shift)</th>
+                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
                 <th colspan="2">Bak No</th>
-                <th rowspan="2">Posisi Remark</th>
+                <th rowspan="2">Judgment & Posisi Remark</th>
                 <th rowspan="2">Result Remark</th>
-                <th rowspan="2">Ket</th>
-                <th rowspan="2">Inisial</th>
+                <th colspan="6">Approval Status</th>
+                <th rowspan="2">Keterangan</th>
             </tr>
             <tr>
                 <th>Catalyst</th>
                 <th>Copper</th>
+                <th style="font-size: 5.5px;">Karu QC</th>
+                <th style="font-size: 5.5px;">Kashift Plating</th>
+                <th style="font-size: 5.5px;">Supervisor QC</th>
+                <th style="font-size: 5.5px;">Supervisor Plating</th>
+                <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                <th style="font-size: 5.5px;">Asst Mgr Plating</th>
             </tr>
         </thead>
         <tbody>
             @foreach($checksheets as $checksheet)
+                @php
+                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d-m-y') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-y') }}</td>
-                    <td>{{ $checksheet->production_shift }}</td>
-                    <td>{{ $checksheet->qc_shift }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }}</td>
-                    <td>{{ $checksheet->cycle_time ?? '-' }}</td>
-                    <td class="col-hidden">{{ $checksheet->item->sap_code ?? '-' }}</td>
-                    <td class="text-left">{{ $checksheet->item->name ?? '-' }}</td>
-                    <td class="text-left">{{ $checksheet->item->customer ?? '-' }}</td>
-                    <td class="text-left text-nowrap">{{ $checksheet->item->part_number ?? '-' }}</td>
+                    <td style="white-space: nowrap;">{{ \Carbon\Carbon::parse($checksheet->production_datetime)->format('d/m/y') }} / {{ $checksheet->production_shift }}</td>
+                    <td style="white-space: nowrap;">
+                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d/m/y') }} / {{ $checksheet->qc_shift }} / {{ $checksheet->operator_initials ?? '-' }}
+                    </td>
+                    <td style="white-space: nowrap;">
+                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} ({{ $ctStr }})
+                    </td>
+
+                    {{-- Item Part / Part No / Customer Combined Column --}}
+                    <td style="text-align: left;">
+                        <div style="font-weight: bold; font-size: 8.5px; color: #000;">{{ $checksheet->item->name ?? '-' }}</div>
+                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->part_number ?? '-' }}</div>
+                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->customer ?? '-' }}</div>
+                    </td>
+
                     <td>{{ $checksheet->chemical_catalyst ?? '-' }}</td>
                     <td>{{ $checksheet->chemical_abu ?? '-' }}</td>
-                    <td class="text-left">
-                        {{ $checksheet->position_remark_judgment }} - {{ $checksheet->position_remark_no_lot }}
+
+                    <td style="font-weight: bold; color: #000; text-align: left;">
+                        {{ $checksheet->position_remark_judgment ?? '-' }} - {{ $checksheet->position_remark_no_lot ?? '-' }}
                     </td>
-                    <td class="text-left">{{ $checksheet->result_remark ?? '-' }}</td>
-                    <td class="text-left">{{ $checksheet->keterangan ?? '-' }}</td>
-                    <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
+                    <td style="text-align: left; color: #000;">
+                        {{ $checksheet->result_remark ?? '-' }}
+                    </td>
+
+                    {{-- 6 Approval Columns: Full Black Bold Text --}}
+                    @php
+                        $approvalFields = [
+                            'karu_qc'              => 'karu_qc_approved_at',
+                            'kashift_plating'      => 'kashift_plating_approved_at',
+                            'supervisor_qc'        => 'supervisor_approved_at',
+                            'supervisor_plating'   => 'supervisor_plating_approved_at',
+                            'asst_manager_qc'      => 'asst_manager_approved_at',
+                            'asst_manager_plating' => 'asst_manager_plating_approved_at',
+                        ];
+                    @endphp
+                    @foreach($approvalFields as $field => $timeField)
+                        <td style="white-space: nowrap; font-size: 6.5px; vertical-align: middle; color: #000;">
+                            @if($checksheet->$field === 'REJECTED')
+                                <div style="font-weight: bold; font-size: 7px; color: #000;">REJECTED</div>
+                                <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                    {{ getRejectorName($checksheet->rejection_remarks) }}
+                                    @if($checksheet->$timeField)
+                                        <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                    @endif
+                                </div>
+                            @elseif($checksheet->$field)
+                                <div style="font-weight: bold; font-size: 7px; color: #000;">APPROVED</div>
+                                <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                    {{ $checksheet->$field }}
+                                    @if($checksheet->$timeField)
+                                        <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                    @endif
+                                </div>
+                            @else
+                                <div style="font-weight: bold; font-size: 7px; color: #000;">PENDING</div>
+                            @endif
+                        </td>
+                    @endforeach
+
+                    <td style="text-align:left; font-size:7px; min-width:70px; word-break: break-word; color: #000;">
+                        @if($checksheet->rejection_remarks)
+                            <span>REJECTED: {{ $checksheet->rejection_remarks }}</span>
+                        @else
+                            {{ $checksheet->keterangan ?? '-' }}
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
+    {{-- Footer: tanggal cetak di pojok bawah kiri --}}
     <div class="print-footer" id="printFooter">
         <span id="footerDateTime"></span>
     </div>
