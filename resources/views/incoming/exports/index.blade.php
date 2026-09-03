@@ -92,7 +92,18 @@
     @php
         $plant = request('plant') ?? auth()->user()->plant_id;
         $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_exports', $plantCode, [
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $approvalOrder = $approvalOrder ?? ['kashift', 'supervisor', 'asst_manager', 'manager'];
+
+        // Resolve menu ID for permission checks
+        $currentMenu = \App\Models\AppMenu::where('route', 'incoming.exports.index')->first();
+        $menuId = $currentMenu ? $currentMenu->id : null;
+        $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
+
+        $docHeader = $docHeader ?? \App\Models\GeneralSetting::getDocHeader('incoming_exports', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0215',
             'tgl_terbit' => '01/01/2026',
             'revisi' => '-',

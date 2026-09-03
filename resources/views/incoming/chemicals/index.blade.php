@@ -106,6 +106,8 @@
         $currentMenu = \App\Models\AppMenu::where('route', 'incoming.chemicals.index')->first();
         $menuId = $currentMenu ? $currentMenu->id : null;
         $canExport = $menuId ? auth()->user()->hasPermission($menuId, 'export') : true;
+        $canEdit = $menuId ? auth()->user()->hasPermission($menuId, 'edit') : true;
+        $canDelete = $menuId ? auth()->user()->hasPermission($menuId, 'delete') : true;
 
         $docHeader = $docHeader ?? \App\Models\GeneralSetting::getDocHeader('incoming_chemicals', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0214',
