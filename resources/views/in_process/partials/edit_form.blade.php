@@ -308,120 +308,43 @@
         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : (json_decode($checksheet->dimension_check, true) ?? []);
         $maxCavityFound = 5;
         $maxPointFound = 5;
-        $hasDualShoot = false;
         foreach ($dimensions as $cav => $pts) {
             if (is_numeric($cav)) $maxCavityFound = max($maxCavityFound, (int) $cav);
             if (is_array($pts)) {
                 foreach ($pts as $pt => $val) {
                     if (is_numeric($pt)) $maxPointFound = max($maxPointFound, (int) $pt);
-                    if (is_array($val)) {
-                        $hasDualShoot = true;
-                    }
                 }
             }
         }
     @endphp
 
-    @if($hasDualShoot)
-        {{-- SHOOT 1 TABLE --}}
-        <div class="mb-2">
-            <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.75rem;">Shoot 1:</small>
-            <div class="table-responsive bg-white rounded shadow-sm border mb-3" style="max-height: 250px; overflow-y: auto;">
-                <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot1">
-                    <thead class="bg-light text-center small font-weight-bold">
-                        <tr id="editDimensionHeadRowShoot1">
-                            <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
-                            @for ($j = 1; $j <= $maxPointFound; $j++)
-                                <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
-                            @endfor
-                        </tr>
-                    </thead>
-                    <tbody id="editDimensionBodyShoot1">
-                        @for ($i = 1; $i <= $maxCavityFound; $i++)
-                            <tr class="edit-cavity-row" data-cavity="{{ $i }}">
-                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
-                                    Cavity {{ $i }}
-                                </td>
-                                @for ($j = 1; $j <= $maxPointFound; $j++)
-                                    @php
-                                        $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions[$i]["$j"] ?? null));
-                                        $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? ''))) : ($valCheck ?? '');
-                                    @endphp
-                                    <td class="p-0">
-                                        <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
-                                            style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}][p1]"
-                                            value="{{ $v1 }}" placeholder="-">
-                                    </td>
-                                @endfor
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        {{-- SHOOT 2 TABLE --}}
-        <div class="mb-4">
-            <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.75rem;">Shoot 2:</small>
-            <div class="table-responsive bg-white rounded shadow-sm border mb-3" style="max-height: 250px; overflow-y: auto;">
-                <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot2">
-                    <thead class="bg-light text-center small font-weight-bold">
-                        <tr id="editDimensionHeadRowShoot2">
-                            <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
-                            @for ($j = 1; $j <= $maxPointFound; $j++)
-                                <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
-                            @endfor
-                        </tr>
-                    </thead>
-                    <tbody id="editDimensionBodyShoot2">
-                        @for ($i = 1; $i <= $maxCavityFound; $i++)
-                            <tr class="edit-cavity-row" data-cavity="{{ $i }}">
-                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
-                                    Cavity {{ $i }}
-                                </td>
-                                @for ($j = 1; $j <= $maxPointFound; $j++)
-                                    @php
-                                        $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions[$i]["$j"] ?? null));
-                                        $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? ''))) : '';
-                                    @endphp
-                                    <td class="p-0">
-                                        <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
-                                            style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}][p2]"
-                                            value="{{ $v2 }}" placeholder="-">
-                                    </td>
-                                @endfor
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @else
-        {{-- SINGLE SHOOT TABLE --}}
-        <div class="table-responsive bg-white rounded shadow-sm border mb-4" style="max-height: 400px; overflow-y: auto;">
-            <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTable">
+    {{-- SHOOT 1 TABLE (ATAS) --}}
+    <div class="mb-3">
+        <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.75rem;">Shoot 1:</small>
+        <div class="table-responsive bg-white rounded shadow-sm border" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot1">
                 <thead class="bg-light text-center small font-weight-bold">
-                    <tr id="editDimensionHeadRow">
+                    <tr id="editDimensionHeadRowShoot1">
                         <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
                         @for ($j = 1; $j <= $maxPointFound; $j++)
                             <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
                         @endfor
                     </tr>
                 </thead>
-                <tbody id="editDimensionBody">
+                <tbody id="editDimensionBodyShoot1">
                     @for ($i = 1; $i <= $maxCavityFound; $i++)
-                        <tr class="edit-cavity-row" data-cavity="{{ $i }}">
+                        <tr class="edit-cavity-row-shoot1" data-cavity="{{ $i }}">
                             <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
                                 Cavity {{ $i }}
                             </td>
                             @for ($j = 1; $j <= $maxPointFound; $j++)
                                 @php
                                     $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions[$i]["$j"] ?? null));
-                                    $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck[0] ?? '')) : ($valCheck ?? '');
+                                    $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? ''))) : ($valCheck ?? '');
                                 @endphp
                                 <td class="p-0">
                                     <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
-                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}]"
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}][p1]"
                                         value="{{ $v1 }}" placeholder="-">
                                 </td>
                             @endfor
@@ -430,7 +353,44 @@
                 </tbody>
             </table>
         </div>
-    @endif
+    </div>
+
+    {{-- SHOOT 2 TABLE (BAWAH) --}}
+    <div class="mb-4">
+        <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.75rem;">Shoot 2:</small>
+        <div class="table-responsive bg-white rounded shadow-sm border" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot2">
+                <thead class="bg-light text-center small font-weight-bold">
+                    <tr id="editDimensionHeadRowShoot2">
+                        <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                        @for ($j = 1; $j <= $maxPointFound; $j++)
+                            <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
+                        @endfor
+                    </tr>
+                </thead>
+                <tbody id="editDimensionBodyShoot2">
+                    @for ($i = 1; $i <= $maxCavityFound; $i++)
+                        <tr class="edit-cavity-row-shoot2" data-cavity="{{ $i }}">
+                            <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                                Cavity {{ $i }}
+                            </td>
+                            @for ($j = 1; $j <= $maxPointFound; $j++)
+                                @php
+                                    $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions[$i]["$j"] ?? null));
+                                    $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? ''))) : '';
+                                @endphp
+                                <td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}][p2]"
+                                        value="{{ $v2 }}" placeholder="-">
+                                </td>
+                            @endfor
+                        </tr>
+                    @endfor
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="bg-white border-top py-3 px-4 d-flex justify-content-end align-items-center" style="margin: 1.5rem -1.5rem -1.5rem -1.5rem; border-radius: 0 0 12px 12px;">
         <button type="button" class="btn btn-light border px-4 font-weight-bold mr-2" data-dismiss="modal">Batal</button>
@@ -456,21 +416,37 @@
         $('#editAddCavityBtn').click(function () {
             if (currentCavities < maxCavities) {
                 currentCavities++;
-                let newRow = `<tr class="edit-cavity-row" data-cavity="${currentCavities}">
+                let newRow1 = `<tr class="edit-cavity-row-shoot1" data-cavity="${currentCavities}">
                                 <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
                                     Cavity ${currentCavities}
                                 </td>`;
 
                 for (let j = 1; j <= currentPoints; j++) {
-                    newRow += `<td class="p-0">
+                    newRow1 += `<td class="p-0">
                                     <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
                                         style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
-                                        name="dimensions[${currentCavities}][${j}]" 
+                                        name="dimensions[${currentCavities}][${j}][p1]" 
                                         placeholder="-">
                                 </td>`;
                 }
-                newRow += `</tr>`;
-                $('#editDimensionBody').append(newRow);
+                newRow1 += `</tr>`;
+                $('#editDimensionBodyShoot1').append(newRow1);
+
+                let newRow2 = `<tr class="edit-cavity-row-shoot2" data-cavity="${currentCavities}">
+                                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                                    Cavity ${currentCavities}
+                                </td>`;
+
+                for (let j = 1; j <= currentPoints; j++) {
+                    newRow2 += `<td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
+                                        name="dimensions[${currentCavities}][${j}][p2]" 
+                                        placeholder="-">
+                                </td>`;
+                }
+                newRow2 += `</tr>`;
+                $('#editDimensionBodyShoot2').append(newRow2);
             } else {
                 Swal.fire('Limit!', 'Maksimum 50 cavities.', 'warning');
             }
@@ -479,16 +455,27 @@
         $('#editAddPointBtn').click(function () {
             if (currentPoints < maxPoints) {
                 currentPoints++;
-                // Add header
-                $('#editDimensionHeadRow').append(`<th class="point-header" style="background-color: #f8f9fc !important; color: #475569 !important;">P${currentPoints}</th>`);
+                // Add header to both tables
+                $('#editDimensionHeadRowShoot1, #editDimensionHeadRowShoot2').append(`<th class="point-header" style="background-color: #f8f9fc !important; color: #475569 !important;">P${currentPoints}</th>`);
 
-                // Add cells to each row
-                $('.edit-cavity-row').each(function () {
+                // Add cells to Shoot 1
+                $('.edit-cavity-row-shoot1').each(function () {
                     let cavityNum = $(this).data('cavity');
                     $(this).append(`<td class="p-0">
                                     <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
                                         style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
-                                        name="dimensions[${cavityNum}][${currentPoints}]" 
+                                        name="dimensions[${cavityNum}][${currentPoints}][p1]" 
+                                        placeholder="-">
+                                </td>`);
+                });
+
+                // Add cells to Shoot 2
+                $('.edit-cavity-row-shoot2').each(function () {
+                    let cavityNum = $(this).data('cavity');
+                    $(this).append(`<td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" 
+                                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
+                                        name="dimensions[${cavityNum}][${currentPoints}][p2]" 
                                         placeholder="-">
                                 </td>`);
                 });
