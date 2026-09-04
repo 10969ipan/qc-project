@@ -4,11 +4,12 @@
 
     $itemsToCheck = isset($checksheets) ? $checksheets : (isset($reports) ? $reports : null);
     $hasPendingApproval = false;
+    $user = auth()->user();
+    $userRole = $user->role ?? '';
+    $approvalRoles = ['admin', 'kashift', 'kashift_qc', 'karu_qc', 'kashift_plating', 'supervisor', 'supervisor_qc', 'supervisor_plating', 'asst_manager', 'asst_manager_qc', 'asst_manager_plating', 'manager', 'manager_qc', 'manager_plating'];
+    $canBulkApprove = in_array($userRole, $approvalRoles) || \App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all');
 
     if (!empty($itemsToCheck) && count($itemsToCheck) > 0) {
-        $user = auth()->user();
-        $userRole = $user->role ?? '';
-
         foreach ($itemsToCheck as $cs) {
             if ($userRole === 'admin') {
                 $approvalFields = ['kashift_qc', 'supervisor_qc', 'supervisor_plating', 'asst_manager_qc', 'asst_manager_plating', 'manager_qc', 'manager_plating'];
@@ -50,7 +51,7 @@
         }
     }
 @endphp
-@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasPendingApproval)
+@if($canBulkApprove && $hasPendingApproval)
     <button type="button" id="btnBulkApprove" class="btn btn-success btn-sm shadow-sm" style="font-size: 0.72rem; padding: 3px 8px;"
         title="Approve semua data yang tampil / sesuai filter">
         <i class="fas fa-check-double mr-1"></i> Approve Semua

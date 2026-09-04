@@ -511,8 +511,6 @@
             <div class="mt-4">{{ $checksheets->withQueryString()->links() }}</div>
         </div>
     </div>
-    @php $bulkApproveRoute = route('incoming.exports.bulk_approve'); @endphp
-    @include('partials.bulk_approve_script')
 
     <!-- QR Detail Modal -->
     <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
@@ -677,4 +675,6 @@
         });
     });
 </script>
+    @php $bulkApproveRoute = route('incoming.exports.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
 @endpush

@@ -831,10 +831,6 @@
                 {{ $checksheets->withQueryString()->links() }}
             </div>
         </div>
-    </div>
-    @php $bulkApproveRoute = route('incoming.sub_parts.bulk_approve'); @endphp
-    @include('partials.bulk_approve_script')
-
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
@@ -1121,6 +1117,8 @@
 @endpush
 
 @push('scripts')
+    @php $bulkApproveRoute = route('incoming.sub_parts.bulk_approve'); @endphp
+    @include('partials.bulk_approve_script')
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script>
         $(document).ready(function() {
