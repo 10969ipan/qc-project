@@ -97,19 +97,50 @@
     #checksheetTable .table-dimension-minimalist,
     #checksheetTable td .table-dimension-minimalist,
     #checksheetTable table.table-dimension-minimalist {
-        border-collapse: collapse !important;
-        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        min-width: 100% !important;
+        width: max-content !important;
         margin: 0 !important;
         background: #ffffff !important;
-        border: none !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        table-layout: fixed !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
 
     #checksheetTable .table-dimension-minimalist td,
     #checksheetTable .table-dimension-minimalist th {
         background-color: transparent !important;
-        border: none !important;
-        padding: 4px !important;
+        border-right: 1px solid #f1f5f9 !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        border-left: none !important;
+        padding: 3px 6px !important;
         text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist th:last-child,
+    #checksheetTable .table-dimension-minimalist td:last-child {
+        border-right: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist tr:last-child td {
+        border-bottom: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td:first-child,
+    #checksheetTable .table-dimension-minimalist th:first-child {
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td:not(:first-child),
+    #checksheetTable .table-dimension-minimalist th:not(:first-child) {
+        min-width: 34px !important;
     }
 
     #checksheetTable .table-dimension-minimalist .dim-header {
@@ -123,14 +154,9 @@
     }
 
     #checksheetTable .table-dimension-minimalist .dim-data {
-        font-size: 0.65rem !important;
-        border-bottom: 1px solid #f1f5f9 !important;
+        font-size: 0.60rem !important;
         color: #1e293b !important;
-        line-height: 1.2 !important;
-    }
-
-    #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
-        border-bottom: none !important;
+        line-height: 1.1 !important;
     }
 
     #checksheetTable .text-danger,
@@ -506,7 +532,7 @@
                                         $anyNGInRow = false;
                                     @endphp
                                     @if($hasUserInputs)
-                                        <div style="max-height: 200px; overflow-y: auto;">
+                                        <div style="max-height: 280px; overflow: auto; max-width: 100%;">
                                             <table class="table-dimension-minimalist">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
                                                     {{-- Standard Row --}}
