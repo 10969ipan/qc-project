@@ -36,6 +36,17 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($e instanceof \Illuminate\Http\Exceptions\PostTooLargeException) {
+                $maxSize = ini_get('post_max_size');
+                $message = "Ukuran file/foto yang Anda unggah terlalu besar (Melebihi batas server {$maxSize}). Mohon kurangi ukuran atau kompres foto sebelum mengunggah.";
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => $message
+                    ], 413);
+                }
+                return redirect()->back()->with('error', $message);
+            }
+
             if ($e instanceof \Illuminate\Session\TokenMismatchException || ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() === 419)) {
                 if ($request->expectsJson() || $request->ajax()) {
                     return response()->json([

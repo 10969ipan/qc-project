@@ -3431,6 +3431,28 @@
                     printWindow.close();
                 }, 400);
             });
+
+            $(document).on('change', 'input[type="file"]', function() {
+                var maxMB = 15;
+                var maxBytes = maxMB * 1024 * 1024;
+                if (this.files && this.files[0]) {
+                    var file = this.files[0];
+                    if (file.size > maxBytes) {
+                        var fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Ukuran Foto Terlalu Besar!',
+                                text: 'Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB. Silakan kompres foto atau pilih berkas yang lebih kecil.',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        } else {
+                            alert('Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB. Silakan kompres foto.');
+                        }
+                        $(this).val('');
+                    }
+                }
+            });
         });
     </script>
 @endpush
