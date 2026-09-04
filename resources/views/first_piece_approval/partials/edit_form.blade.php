@@ -311,10 +311,14 @@
                             Cavity {{ $i }}
                         </td>
                         @for ($j = 1; $j <= $maxP; $j++)
+                            @php
+                                $valCheck = $dims[$i][$j] ?? ($dims["$i"][$j] ?? ($dims[$i]["$j"] ?? null));
+                                $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck[0] ?? '')) : ($valCheck ?? '');
+                            @endphp
                             <td class="p-0">
                                 <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
                                     style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[{{ $i }}][{{ $j }}]"
-                                    value="{{ $dims[$i][$j] ?? '' }}" placeholder="-">
+                                    value="{{ $v1 }}" placeholder="-">
                             </td>
                         @endfor
                     </tr>
