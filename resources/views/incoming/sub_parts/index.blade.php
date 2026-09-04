@@ -277,6 +277,7 @@
                             </a>
                         @endif
                     @endif
+                    @include('partials.bulk_approve_button')
                     @if($canExport)
                     <a href="{{ route('incoming.sub_parts.print', request()->query()) }}"
                         target="_blank"

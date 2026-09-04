@@ -343,6 +343,12 @@ trait HasChecksheetApproval
                 if ($request->filled('end_date')) {
                     $query->whereDate($dateColumn, '<=', $request->end_date);
                 }
+                if ($request->filled('start_tgl_datang')) {
+                    $query->whereDate('tanggal_datang', '>=', $request->input('start_tgl_datang'));
+                }
+                if ($request->filled('end_tgl_datang')) {
+                    $query->whereDate('tanggal_datang', '<=', $request->input('end_tgl_datang'));
+                }
 
                 $table = (new $modelClass)->getTable();
 
@@ -364,6 +370,26 @@ trait HasChecksheetApproval
                 if ($request->filled('item_id')) {
                     if (Schema::hasColumn($table, 'item_id')) {
                         $query->where("{$table}.item_id", $request->input('item_id'));
+                    }
+                }
+
+                if ($request->filled('supplier')) {
+                    $supplierVal = $request->input('supplier');
+                    if (Schema::hasColumn($table, 'supplier')) {
+                        $query->where("{$table}.supplier", $supplierVal);
+                    } elseif (method_exists($modelClass, 'item')) {
+                        $query->whereHas('item', function ($q) use ($supplierVal) {
+                            $q->where('customer', $supplierVal)->orWhere('name', 'like', "%{$supplierVal}%");
+                        });
+                    }
+                }
+
+                if ($request->filled('judgment') || $request->filled('result_judgment')) {
+                    $jVal = $request->input('judgment', $request->input('result_judgment'));
+                    if (Schema::hasColumn($table, 'judgment')) {
+                        $query->where("{$table}.judgment", $jVal);
+                    } elseif (Schema::hasColumn($table, 'result_judgment')) {
+                        $query->where("{$table}.result_judgment", $jVal);
                     }
                 }
 

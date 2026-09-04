@@ -1,11 +1,11 @@
 {{-- Bulk Approve Button --}}
 @php
-    $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
+    $hasFilter = request('start_date') || request('end_date') || request('start_tgl_datang') || request('end_tgl_datang') || request('supplier') || request('approval_status') || request('judgment') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
 
     $itemsToCheck = isset($checksheets) ? $checksheets : (isset($reports) ? $reports : null);
     $hasPendingApproval = false;
 
-    if ($hasFilter && !empty($itemsToCheck) && count($itemsToCheck) > 0) {
+    if (!empty($itemsToCheck) && count($itemsToCheck) > 0) {
         $user = auth()->user();
         $userRole = $user->role ?? '';
 
@@ -50,9 +50,9 @@
         }
     }
 @endphp
-@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasFilter && $hasPendingApproval)
+@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasPendingApproval)
     <button type="button" id="btnBulkApprove" class="btn btn-success btn-sm shadow-sm" style="font-size: 0.72rem; padding: 3px 8px;"
-        title="Approve semua data sesuai filter yang aktif">
+        title="Approve semua data yang tampil / sesuai filter">
         <i class="fas fa-check-double mr-1"></i> Approve Semua
     </button>
 @endif

@@ -1,19 +1,20 @@
 {{-- Bulk Approve JavaScript - Include in @push('scripts') --}}
 {{-- Requires: $bulkApproveRoute variable to be set before including --}}
-@php
-    $hasFilter = request('start_date') || request('end_date') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
-@endphp
-@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all') && $hasFilter)
+@if(\App\Helpers\AppMenu::checkPermission(Route::currentRouteName(), 'approve_all'))
     <script>
         $(document).ready(function () {
             $(document).off('click', '#btnBulkApprove').on('click', '#btnBulkApprove', function (e) {
                 e.preventDefault();
                 var startDate = '{{ request("start_date") }}';
                 var endDate = '{{ request("end_date", request("start_date")) }}';
+                var startTglDatang = '{{ request("start_tgl_datang", "") }}';
+                var endTglDatang = '{{ request("end_tgl_datang", "") }}';
                 var plant = '{{ request("plant", "") }}';
-                var resultJudgment = '{{ request("result_judgment", "") }}';
+                var resultJudgment = '{{ request("result_judgment", request("judgment", "")) }}';
                 var search = '{{ request("search", "") }}';
                 var customerName = '{{ request("customer_name", request("customer", "")) }}';
+                var supplier = '{{ request("supplier", "") }}';
+                var approvalStatus = '{{ request("approval_status", "") }}';
                 var category = '{{ request("category", "") }}';
                 var shift = '{{ request("shift", "") }}';
                 var operatorInitials = '{{ request("operator_initials", "") }}';
@@ -27,8 +28,8 @@
                         title: 'Pilih Level Approval',
                         input: 'select',
                         inputOptions: {
-                            'karu_qc': 'Karu QC',
-                            'kashift': 'Kashift',
+                            'karu_qc': 'Karu QC / Kashift QC',
+                            'kashift': 'Kashift / Kepala Regu',
                             'kashift_plating': 'Kashift Plating',
                             'supervisor': 'Supervisor Quality',
                             'supervisor_plating': 'Supervisor Plating',
@@ -47,17 +48,20 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, result.value, resultJudgment, search, customerName, category, shift, operatorInitials, itemId);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, result.value, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId);
                         }
                     });
                 } else {
                     Swal.fire({
                         title: 'Konfirmasi Bulk Approve',
                         html: '<div class="text-left">' +
-                            '<p>Anda akan meng-approve <strong>semua</strong> data checksheet yang memenuhi filter berikut:</p>' +
+                            '<p>Anda akan meng-approve <strong>semua</strong> data yang memenuhi filter berikut:</p>' +
                             '<ul>' +
                             (startDate ? '<li><strong>Dari Tanggal:</strong> ' + startDate + '</li>' : '') +
                             (endDate ? '<li><strong>Sampai Tanggal:</strong> ' + endDate + '</li>' : '') +
+                            (startTglDatang ? '<li><strong>Tgl Datang Dari:</strong> ' + startTglDatang + '</li>' : '') +
+                            (endTglDatang ? '<li><strong>Tgl Datang Sampai:</strong> ' + endTglDatang + '</li>' : '') +
+                            (supplier ? '<li><strong>Supplier:</strong> ' + supplier + '</li>' : '') +
                             (shift ? '<li><strong>Shift:</strong> Shift ' + shift + '</li>' : '') +
                             (operatorInitials ? '<li><strong>Inisial:</strong> ' + operatorInitials + '</li>' : '') +
                             (customerName ? '<li><strong>Customer:</strong> ' + customerName + '</li>' : '') +
@@ -76,13 +80,13 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category, shift, operatorInitials, itemId);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId);
                         }
                     });
                 }
             });
 
-            function doBulkApprove(startDate, endDate, plant, approvalType, resultJudgment, search, customerName, category, shift, operatorInitials, itemId) {
+            function doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId) {
                 // Show animated progress bar
                 let progress = 0;
                 Swal.fire({
@@ -122,12 +126,17 @@
                         _token: '{{ csrf_token() }}',
                         start_date: startDate,
                         end_date: endDate,
+                        start_tgl_datang: startTglDatang,
+                        end_tgl_datang: endTglDatang,
                         plant: plant,
                         approval_type: approvalType,
                         result_judgment: resultJudgment || '',
+                        judgment: resultJudgment || '',
                         search: search || '',
                         customer_name: customerName || '',
                         customer: customerName || '',
+                        supplier: supplier || '',
+                        approval_status: approvalStatus || '',
                         category: category || '',
                         shift: shift || '',
                         operator_initials: operatorInitials || '',

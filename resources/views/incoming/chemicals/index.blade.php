@@ -230,6 +230,7 @@
                         class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
                         <i class="fas fa-undo fa-sm"></i>
                     </a>
+                    @include('partials.bulk_approve_button')
                     @if($canExport)
                     <a href="{{ route('incoming.chemicals.print', request()->query()) }}"
                         target="_blank"

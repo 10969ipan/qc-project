@@ -222,6 +222,7 @@
                         <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
                     </a>
                 @endif
+                @include('partials.bulk_approve_button')
                 <a href="{{ route('incoming.exports.print', request()->query()) }}"
                     target="_blank"
                     class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print-direct" title="Print"

@@ -297,6 +297,7 @@
                             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
                         </a>
                     @endif
+                    @include('partials.bulk_approve_button')
                     @if($canExport)
                     <a href="{{ route('incoming.parts.print', request()->query()) }}"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Cetak Direct"
