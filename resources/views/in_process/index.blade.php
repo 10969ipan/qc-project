@@ -100,7 +100,8 @@
     #checksheetTable table.table-dimension-minimalist {
         border-collapse: separate !important;
         border-spacing: 0 !important;
-        width: 100% !important;
+        min-width: 100% !important;
+        width: max-content !important;
         margin: 0 !important;
         background: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
@@ -119,6 +120,7 @@
         border-left: none !important;
         padding: 3px 6px !important;
         text-align: center !important;
+        white-space: nowrap !important;
     }
 
     #checksheetTable .table-dimension-minimalist th:last-child,
@@ -135,6 +137,11 @@
         width: 36px !important;
         min-width: 36px !important;
         max-width: 36px !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td:not(:first-child),
+    #checksheetTable .table-dimension-minimalist th:not(:first-child) {
+        min-width: 34px !important;
     }
 
     #checksheetTable .table-dimension-minimalist .dim-header {
@@ -729,8 +736,8 @@
                                             }
                                         }
                                     @endphp
-                                    @if($hasUserInputs)
-                                        <div style="max-height: 250px; overflow-y: auto;">
+                                     @if($hasUserInputs)
+                                         <div style="max-height: 300px; overflow: auto; max-width: 100%;">
                                              <!-- SHOOT 1 TABLE (ATAS) -->
                                              <div class="mb-2">
                                                  <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 1:</small>
