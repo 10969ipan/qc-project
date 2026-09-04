@@ -69,50 +69,118 @@
     #totalQtyInput { -moz-appearance: textfield; }
 
     /* ─── Inner Dimension Table ─── */
+    .dimension-table,
     #dimensionTable,
     #checksheetTable .table-sm {
-        border-collapse: collapse !important;
-        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
         margin: 0 !important;
         background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
+    .dimension-table td,
+    .dimension-table th,
     #dimensionTable td,
     #dimensionTable th {
         background-color: transparent !important;
-        border: 1px solid #e2e8f0 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
+        border-left: none !important;
         padding: 4px 6px !important;
         text-align: center !important;
         font-size: 0.68rem !important;
+        white-space: nowrap !important;
     }
+    .dimension-table th:last-child,
+    .dimension-table td:last-child {
+        border-right: none !important;
+    }
+    .dimension-table tr:last-child td {
+        border-bottom: none !important;
+    }
+    .dimension-table th:first-child,
+    .dimension-table td:first-child {
+        min-width: 65px !important;
+        width: 65px !important;
+    }
+    .dimension-table .point-header,
+    .dimension-table .point-cell {
+        min-width: 55px !important;
+    }
+    .dimension-table thead th,
     #dimensionTable thead th {
         background-color: #f1f5f9 !important;
         color: #475569 !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
         font-size: 0.58rem !important;
-        border-bottom: 2px solid #cbd5e1 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
         position: sticky;
         top: 0;
         z-index: 2;
     }
+    .dimension-table tbody td,
     #dimensionTable tbody td {
         color: #1e293b !important;
         font-size: 0.65rem !important;
     }
+    .dimension-table .dimension-input,
     #dimensionTable .dimension-input {
         font-size: 0.68rem !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 4px !important;
-        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        background: #ffffff !important;
         text-align: center;
-        padding: 2px 4px !important;
-        min-width: 55px;
+        padding: 3px 5px !important;
+        width: 100%;
+        min-width: 45px;
     }
+    .dimension-table .dimension-input::placeholder {
+        color: #94a3b8 !important;
+        opacity: 0.8;
+    }
+    .dimension-table .dimension-input:focus,
     #dimensionTable .dimension-input:focus {
         border-color: #6366f1 !important;
         background: #fff !important;
         box-shadow: 0 0 0 2px rgba(99,102,241,0.1) !important;
+    }
+    .dimension-table .dimension-input.is-invalid,
+    #dimensionTable .dimension-input.is-invalid {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+        color: #dc2626 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+        animation: ngPulse 1.2s infinite ease-in-out;
+    }
+    .dimension-table .dimension-input.is-valid,
+    #dimensionTable .dimension-input.is-valid {
+        border-color: #22c55e !important;
+        background-color: #f0fdf4 !important;
+        color: #15803d !important;
+    }
+
+    @keyframes ngPulse {
+        0% {
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+            transform: scale(1);
+        }
+        50% {
+            background-color: #fee2e2;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            transform: scale(1.02);
+        }
+        100% {
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+            transform: scale(1);
+        }
     }
 
     /* ─── OK/NG Labels ─── */
@@ -430,16 +498,32 @@
                                     </div>
                                 </td>
 
-                                <!-- Qty (Total / Sampling) -->
-                                <td class="align-middle" style="min-width: 120px; max-width: 160px;">
-                                    <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 32px; gap: 2px;">
-                                        <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0" name="total_qty" id="totalQtyInput" placeholder="-" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 40px; font-size: 0.85rem; outline: none; padding: 0;">
-                                        <span class="font-weight-bold text-dark text-nowrap" id="samplingDisplay" style="user-select: none; font-size: 0.85rem; white-space: nowrap;">/ -</span>
+                                 <!-- Qty (Total / Sampling) - 2 Kolom Input Shoot -->
+                                <td class="align-top" style="min-width: 175px; max-width: 220px; padding-top: 44px;">
+                                    <!-- Shoot 1 -->
+                                    <div style="margin-bottom: 24px;">
+                                        <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 1:</small>
+                                        <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 28px; gap: 2px;">
+                                            <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0 total-qty-pass" name="total_qty_1" id="totalQtyInput1" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 35px; font-size: 0.8rem; outline: none; padding: 0;">
+                                            <span class="font-weight-bold text-dark text-nowrap sampling-display-pass" id="samplingDisplay1" style="user-select: none; font-size: 0.8rem; white-space: nowrap;">/ -</span>
+                                        </div>
+                                        <input type="hidden" name="sampling_qty_1" id="samplingQtyInput1" value="0">
                                     </div>
+                                    <!-- Shoot 2 -->
+                                    <div>
+                                        <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 2:</small>
+                                        <div class="d-flex align-items-center justify-content-center form-control form-control-sm px-2 py-0 overflow-hidden" style="background-color: #ffffff !important; border: 1px solid #d1d5db; height: 28px; gap: 2px;">
+                                            <input type="number" class="border-0 text-center font-weight-bold shadow-none m-0 total-qty-pass" name="total_qty_2" id="totalQtyInput2" min="0" required style="background: transparent !important; box-shadow: none !important; width: 50%; min-width: 35px; font-size: 0.8rem; outline: none; padding: 0;">
+                                            <span class="font-weight-bold text-dark text-nowrap sampling-display-pass" id="samplingDisplay2" style="user-select: none; font-size: 0.8rem; white-space: nowrap;">/ -</span>
+                                        </div>
+                                        <input type="hidden" name="sampling_qty_2" id="samplingQtyInput2" value="0">
+                                    </div>
+                                     <!-- Hidden Inputs untuk Backend Submission -->
+                                    <input type="hidden" name="total_qty" id="totalQtyInput" value="0">
                                     <input type="hidden" name="sampling_qty" id="samplingQtyInput" value="0">
                                 </td>
 
-                                <!-- Cek Dimensi (Cavity & Titik) -->
+                                 <!-- Cek Dimensi (Cavity & Titik - Sub-kolom SHOOT 1 | SHOOT 2) -->
                                 <td class="align-middle">
                                     <div class="d-flex justify-content-center mb-2">
                                         <div class="btn-toolbar bg-white border rounded shadow-sm p-1" role="toolbar">
@@ -465,35 +549,68 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="table-responsive" style="max-height: 400px; overflow: auto;">
-                                        <table class="table table-sm table-bordered mb-0" id="dimensionTable">
-                                            <thead class="text-center bg-light">
-                                                <tr id="dimensionHeadRow">
-                                                    <th
-                                                        style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">
-                                                        Cavity</th>
-                                                    @for ($j = 1; $j <= 5; $j++)
-                                                        <th class="point-header">Point {{ $j }}</th>
-                                                    @endfor
-                                                </tr>
-                                            </thead>
-                                            <tbody id="dimensionBody">
-                                                @for ($i = 1; $i <= 2; $i++)
-                                                    <tr class="cavity-row" data-cavity="{{ $i }}">
-                                                        <td class="text-center font-weight-bold bg-light"
-                                                            style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
+                                    <div class="table-responsive" style="max-height: 450px; overflow: auto;">
+                                        <!-- SHOOT 1 TABLE -->
+                                        <div class="mb-3">
+                                            <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 1:</small>
+                                            <table class="table table-sm table-bordered mb-0 dimension-table" id="dimensionTableShoot1">
+                                                <thead class="text-center bg-light">
+                                                    <tr id="dimensionHeadRowShoot1">
+                                                        <th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa; vertical-align: middle;">CAVITY</th>
                                                         @for ($j = 1; $j <= 5; $j++)
-                                                            <td class="point-cell">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm dimension-input"
-                                                                    style="min-width: 60px;" name="dimensions[{{ $i }}][{{ $j }}]"
-                                                                    placeholder="P{{ $j }}">
-                                                            </td>
+                                                            <th class="point-header text-center align-middle" data-point="{{ $j }}">POINT {{ $j }}</th>
                                                         @endfor
                                                     </tr>
-                                                @endfor
-                                            </tbody>
-                                        </table>
+                                                </thead>
+                                                <tbody id="dimensionBodyShoot1">
+                                                    @for ($i = 1; $i <= 2; $i++)
+                                                        <tr class="cavity-row cavity-row-s1" data-cavity="{{ $i }}">
+                                                            <td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
+                                                            @for ($j = 1; $j <= 5; $j++)
+                                                                <td class="point-cell p-1 text-center">
+                                                                    <input type="text"
+                                                                        class="form-control form-control-sm dimension-input dim-pass-1"
+                                                                        style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" 
+                                                                        placeholder="P{{ $j }}"
+                                                                        name="dimensions[{{ $i }}][{{ $j }}][p1]">
+                                                                </td>
+                                                            @endfor
+                                                        </tr>
+                                                    @endfor
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- SHOOT 2 TABLE -->
+                                        <div>
+                                            <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 2:</small>
+                                            <table class="table table-sm table-bordered mb-0 dimension-table" id="dimensionTableShoot2">
+                                                <thead class="text-center bg-light">
+                                                    <tr id="dimensionHeadRowShoot2">
+                                                        <th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa; vertical-align: middle;">CAVITY</th>
+                                                        @for ($j = 1; $j <= 5; $j++)
+                                                            <th class="point-header text-center align-middle" data-point="{{ $j }}">POINT {{ $j }}</th>
+                                                        @endfor
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="dimensionBodyShoot2">
+                                                    @for ($i = 1; $i <= 2; $i++)
+                                                        <tr class="cavity-row cavity-row-s2" data-cavity="{{ $i }}">
+                                                            <td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
+                                                            @for ($j = 1; $j <= 5; $j++)
+                                                                <td class="point-cell p-1 text-center">
+                                                                    <input type="text"
+                                                                        class="form-control form-control-sm dimension-input dim-pass-2"
+                                                                        style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" 
+                                                                        placeholder="P{{ $j }}"
+                                                                        name="dimensions[{{ $i }}][{{ $j }}][p2]">
+                                                                </td>
+                                                            @endfor
+                                                        </tr>
+                                                    @endfor
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </td>
 

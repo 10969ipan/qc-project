@@ -304,131 +304,81 @@ class InProcessChecksheetService extends BaseService
             $dimensionStandards = $allStandards[$partNum] ?? null;
         }
 
-        if ($item && !empty($dimensionStandards) && !empty($data['dimension_check'])) {
+        $rawCheck = $data['dimension_check'] ?? $data['dimensions'] ?? null;
+        if (is_string($rawCheck)) {
+            $rawCheck = json_decode($rawCheck, true);
+        }
+
+        if ($item && !empty($dimensionStandards) && !empty($rawCheck) && is_array($rawCheck)) {
             $isAnyInvalid = false;
             $hasValidDimensions = false;
-            $okPointsCount = 0;
-            $ngPointsCount = 0;
+            $epsilon = 0.0001;
 
-            foreach ($data['dimension_check'] as $cavity => $points) {
+            foreach ($rawCheck as $cavity => $points) {
                 if (!is_array($points)) continue;
 
-                foreach ($points as $point => $value) {
-                    $std = null;
-                    if (isset($dimensionStandards[$point])) {
-                        $std = $dimensionStandards[$point];
-                    } elseif (isset($dimensionStandards[(string)$point])) {
-                        $std = $dimensionStandards[(string)$point];
-                    } else {
-                        foreach ($dimensionStandards as $itemStd) {
-                            if (is_array($itemStd) && isset($itemStd['point']) && (string)$itemStd['point'] === (string)$point) {
-                                $std = $itemStd;
-                                break;
-                            }
-                        }
-                    }
+                foreach ($points as $point => $valOrArr) {
+                    $pointKey = (string)$point;
+                    $std = $dimensionStandards[$pointKey] ?? null;
 
-                    if ($std && $value !== null && $value !== '' && is_numeric($value)) {
+                    $valuesToCheck = is_array($valOrArr) ? array_values($valOrArr) : [$valOrArr];
+
+                    foreach ($valuesToCheck as $val) {
+                        if ($val === null || $val === '') continue;
+
+                        $valStr = str_replace(',', '.', (string)$val);
+                        if (!is_numeric($valStr)) continue;
+
+                        $floatValue = (float)$valStr;
                         $hasValidDimensions = true;
-                        $floatValue = (float) $value;
+
+                        if (!$std) continue;
+
                         $isPointNG = false;
-                        $epsilon = 0.00001;
 
-                        // NEW: Resolve baseline size for offset calculation
-                        $baseSizeStr = $this->normalizeStandardValue($std['size'] ?? null);
-                        $baseSize = ($baseSizeStr !== null && !str_starts_with($baseSizeStr, '+') && !str_starts_with($baseSizeStr, '-')) ? (float)$baseSizeStr : null;
-
-                        // 1. Check Absolute Min/Max
-                        if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                            $minBound = (float)$this->normalizeStandardValue($std['min']);
-                            if ($floatValue < ($minBound - $epsilon)) $isPointNG = true;
-                        }
-                        if (!$isPointNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                            $maxBound = (float)$this->normalizeStandardValue($std['max']);
-                            if ($floatValue > ($maxBound + $epsilon)) $isPointNG = true;
-                        }
-
-                        // 2. Check Size +/- Tolerance
-                        if (!$isPointNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                            $szStr = $this->normalizeStandardValue($std['size']);
-                            if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
-                                $base = (float)$szStr;
-                                $tol = $this->normalizeStandardValue($std['tolerance']);
-                                $lb = $base; $ub = $base;
-                                
-                                if (str_contains($tol, '/')) {
-                                    $parts = explode('/', $tol);
-                                    foreach ($parts as $p) {
-                                        $p = $this->normalizeStandardValue($p);
-                                        $fv = (float)$p;
-                                        if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
-                                        elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
-                                    }
-                                } elseif (str_starts_with($tol, '+')) {
-                                    $ub = $base + (float)substr($tol, 1);
-                                } elseif (str_starts_with($tol, '-')) {
-                                    $lb = $base + (float)$tol;
-                                } else {
-                                    $tv = (float)$tol;
-                                    $lb = $base - $tv; $ub = $base + $tv;
-                                }
-                                
-                                if ($floatValue < ($lb - $epsilon) || $floatValue > ($ub + $epsilon)) $isPointNG = true;
+                        if (isset($std['min']) || isset($std['max'])) {
+                            if (isset($std['min']) && $std['min'] !== null && $floatValue < ((float)$std['min'] - $epsilon)) {
+                                $isPointNG = true;
                             }
-                        }
-
-                        // 3. Check Special Size (prefix)
-                        if (!$isPointNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
-                            $szStr = $this->normalizeStandardValue($std['size']);
-                            if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
-                                $op = $szStr[0];
-                                $bound = (float)substr($szStr, 1);
-                                if ($op === '+' && $floatValue < ($bound - $epsilon)) $isPointNG = true;
-                                elseif ($op === '-' && $floatValue > ($bound + $epsilon)) $isPointNG = true;
+                            if (isset($std['max']) && $std['max'] !== null && $floatValue > ((float)$std['max'] + $epsilon)) {
+                                $isPointNG = true;
                             }
-                        }
+                        } elseif (isset($std['size']) && $std['size'] !== null && isset($std['tolerance']) && $std['tolerance'] !== null) {
+                            $size = (float)$std['size'];
+                            $tol = (string)$std['tolerance'];
 
-                        // Fallback to Size +/- Tolerance
-                        if (!$isPointNG && ($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null) {
-                            $sizeStr = $this->normalizeStandardValue($std['size']);
-                            if (!str_starts_with($sizeStr, '+') && !str_starts_with($sizeStr, '-')) {
-                                $size = (float)$sizeStr;
-                                $tol = $this->normalizeStandardValue($std['tolerance']);
-                                $lowerBound = $size;
-                                $upperBound = $size;
+                            $lowerBound = $size;
+                            $upperBound = $size;
 
-                                if (str_contains($tol, '/')) {
-                                    $parts = explode('/', $tol);
-                                    foreach ($parts as $p) {
-                                        $p = $this->normalizeStandardValue($p);
-                                        $fVal = (float)$p;
-                                        if (str_starts_with($p, '+') || $fVal > 0) {
-                                            $upperBound = $size + abs($fVal);
-                                        } elseif (str_starts_with($p, '-') || $fVal < 0) {
-                                            $lowerBound = $size - abs($fVal);
-                                        }
+                            if (str_contains($tol, '/')) {
+                                $parts = explode('/', $tol);
+                                foreach ($parts as $p) {
+                                    $p = $this->normalizeStandardValue($p);
+                                    $fVal = (float)$p;
+                                    if (str_starts_with($p, '+') || $fVal > 0) {
+                                        $upperBound = $size + abs($fVal);
+                                    } elseif (str_starts_with($p, '-') || $fVal < 0) {
+                                        $lowerBound = $size - abs($fVal);
                                     }
-                                } elseif (str_starts_with($tol, '+')) {
-                                    $upperBound = $size + (float)substr($tol, 1);
-                                } elseif (str_starts_with($tol, '-')) {
-                                    $lowerBound = $size + (float)$tol; // Negative value handled by parseFloat equivalent
-                                } else {
-                                    $tVal = (float)$tol;
-                                    $lowerBound = $size - $tVal;
-                                    $upperBound = $size + $tVal;
                                 }
+                            } elseif (str_starts_with($tol, '+')) {
+                                $upperBound = $size + (float)substr($tol, 1);
+                            } elseif (str_starts_with($tol, '-')) {
+                                $lowerBound = $size + (float)$tol;
+                            } else {
+                                $tVal = (float)$tol;
+                                $lowerBound = $size - $tVal;
+                                $upperBound = $size + $tVal;
+                            }
 
-                                if ($floatValue < ($lowerBound - $epsilon) || $floatValue > ($upperBound + $epsilon)) {
-                                    $isPointNG = true;
-                                }
+                            if ($floatValue < ($lowerBound - $epsilon) || $floatValue > ($upperBound + $epsilon)) {
+                                $isPointNG = true;
                             }
                         }
 
                         if ($isPointNG) {
                             $isAnyInvalid = true;
-                            // We don't break here because we want all matching inputs to be flagged (thought it's simpler to break for backend judgment)
-                            // But for backend judgment calculation, one NG is enough.
-                            break 2;
+                            break 3;
                         }
                     }
                 }
@@ -464,7 +414,20 @@ class InProcessChecksheetService extends BaseService
 
         $filteredDimensions = [];
         foreach ($dimensions as $cavity => $points) {
-            $filteredPoints = array_filter($points, fn($value) => $value !== null && $value !== '');
+            if (!is_array($points)) continue;
+            $filteredPoints = [];
+            foreach ($points as $point => $valOrArr) {
+                if (is_array($valOrArr)) {
+                    $cleanedArr = array_filter($valOrArr, fn($v) => $v !== null && $v !== '');
+                    if (!empty($cleanedArr)) {
+                        $filteredPoints[$point] = $cleanedArr;
+                    }
+                } else {
+                    if ($valOrArr !== null && $valOrArr !== '') {
+                        $filteredPoints[$point] = $valOrArr;
+                    }
+                }
+            }
             if (!empty($filteredPoints)) {
                 $filteredDimensions[$cavity] = $filteredPoints;
             }

@@ -516,17 +516,27 @@ class InProcessCreate {
             return false;
         }
 
-        // Collect dimensions
+        // Collect dimensions (supporting P1 and P2 dual pass)
         const dimensions = {};
         $('.dimension-input').each(function () {
             const name = $(this).attr('name');
             if (name) {
-                const match = name.match(/dimensions\[(\d+)\]\[(\d+)\]/);
+                const match = name.match(/dimensions\[(\d+)\]\[(\d+)\]\[(p1|p2)\]/);
                 if (match) {
                     const cav = match[1];
                     const pt = match[2];
+                    const pass = match[3];
                     if (!dimensions[cav]) dimensions[cav] = {};
-                    dimensions[cav][pt] = $(this).val();
+                    if (!dimensions[cav][pt]) dimensions[cav][pt] = {};
+                    dimensions[cav][pt][pass] = $(this).val();
+                } else {
+                    const matchOld = name.match(/dimensions\[(\d+)\]\[(\d+)\]/);
+                    if (matchOld) {
+                        const cav = matchOld[1];
+                        const pt = matchOld[2];
+                        if (!dimensions[cav]) dimensions[cav] = {};
+                        dimensions[cav][pt] = $(this).val();
+                    }
                 }
             }
         });
@@ -1519,19 +1529,40 @@ class InProcessCreate {
             } else $(this).removeClass("is-valid is-invalid");
         });
 
+        const calculateCombinedQty = () => {
+            const qty1 = parseInt($('#totalQtyInput1').val()) || 0;
+            const sample1 = _this.getSampleSize(qty1);
+            $('#samplingQtyInput1').val(sample1);
+            $('#samplingDisplay1').text('/ ' + (sample1 > 0 ? sample1 : '-'));
+
+            const qty2 = parseInt($('#totalQtyInput2').val()) || 0;
+            const sample2 = _this.getSampleSize(qty2);
+            $('#samplingQtyInput2').val(sample2);
+            $('#samplingDisplay2').text('/ ' + (sample2 > 0 ? sample2 : '-'));
+
+            const combinedTotal = qty1 + qty2;
+            const combinedSampling = sample1 + sample2;
+
+            $('#totalQtyInput').val(combinedTotal);
+            $('#samplingQtyInput').val(combinedSampling);
+            $('#totalQtyCombined').text(combinedTotal);
+            $('#samplingQtyCombined').text(combinedSampling);
+
+            _this.updateJudgment();
+        };
+
+        $(document).on("input change", '.total-qty-pass', calculateCombinedQty);
         $('input[name="total_qty"]').on("input change", function () {
             const valStr = $(this).val() || '';
             const lotSize = parseInt(valStr) || 0;
             const sampleSize = _this.getSampleSize(lotSize);
-            $('input[name="sampling_qty"]').val(sampleSize).trigger("input");
+            $('input[name="sampling_qty"]').val(sampleSize);
+            _this.updateJudgment();
         });
 
         $('input[name="total_ng"], input[name="sampling_qty"]').on(
             "input change",
             () => {
-                const val = parseInt($('input[name="sampling_qty"]').val()) || 0;
-                const textVal = "/ " + (val > 0 ? val : "-");
-                $("#samplingDisplay").text(textVal);
                 this.updateJudgment();
             },
         );
@@ -1782,18 +1813,23 @@ class InProcessCreate {
         $("#addCavityBtn").click(() => {
             if (this.currentCavities < this.maxCavities) {
                 this.currentCavities++;
-                let newRow = `<tr class="cavity-row" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
+                let newRow1 = `<tr class="cavity-row cavity-row-s1" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
+                let newRow2 = `<tr class="cavity-row cavity-row-s2" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
                 for (let j = 1; j <= this.currentPoints; j++) {
-                    newRow += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${this.currentCavities}][${j}]" placeholder="P${j}"></td>`;
+                    newRow1 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p1]"></td>`;
+                    newRow2 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p2]"></td>`;
                 }
-                newRow += `</tr>`;
-                $("#dimensionBody").append(newRow);
+                newRow1 += `</tr>`;
+                newRow2 += `</tr>`;
+                $("#dimensionBodyShoot1").append(newRow1);
+                $("#dimensionBodyShoot2").append(newRow2);
             }
         });
 
         $("#deleteCavityBtn").click(() => {
             if (this.currentCavities > 1) {
-                $("#dimensionBody tr:last-child").remove();
+                $("#dimensionBodyShoot1 tr:last-child").remove();
+                $("#dimensionBodyShoot2 tr:last-child").remove();
                 this.currentCavities--;
                 this.updateJudgment();
             }
@@ -1802,13 +1838,22 @@ class InProcessCreate {
         $("#addPointBtn").click(() => {
             if (this.currentPoints < this.maxPoints) {
                 this.currentPoints++;
-                $("#dimensionHeadRow").append(
-                    `<th class="point-header">Point ${this.currentPoints}</th>`,
+                $("#dimensionHeadRowShoot1").append(
+                    `<th class="point-header text-center align-middle" data-point="${this.currentPoints}">POINT ${this.currentPoints}</th>`
                 );
-                $(".cavity-row").each((index, element) => {
+                $("#dimensionHeadRowShoot2").append(
+                    `<th class="point-header text-center align-middle" data-point="${this.currentPoints}">POINT ${this.currentPoints}</th>`
+                );
+                $(".cavity-row-s1").each((index, element) => {
                     const cavityNum = $(element).data("cavity");
                     $(element).append(
-                        `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${cavityNum}][${this.currentPoints}]" placeholder="P${this.currentPoints}"></td>`,
+                        `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${this.currentPoints}" name="dimensions[${cavityNum}][${this.currentPoints}][p1]"></td>`
+                    );
+                });
+                $(".cavity-row-s2").each((index, element) => {
+                    const cavityNum = $(element).data("cavity");
+                    $(element).append(
+                        `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${this.currentPoints}" name="dimensions[${cavityNum}][${this.currentPoints}][p2]"></td>`
                     );
                 });
             }
@@ -1816,8 +1861,8 @@ class InProcessCreate {
 
         $("#deletePointBtn").click(() => {
             if (this.currentPoints > 1) {
-                $("#dimensionHeadRow th.point-header:last-child").remove();
-                $(".cavity-row").each(function () {
+                $("#dimensionHeadRowShoot1 th.point-header:last-child, #dimensionHeadRowShoot2 th.point-header:last-child").remove();
+                $(".cavity-row-s1, .cavity-row-s2").each(function () {
                     $(this).find("td.point-cell:last-child").remove();
                 });
                 this.currentPoints--;
@@ -1837,21 +1882,31 @@ class InProcessCreate {
 
     updateCavityRows(cavityCount, pointCount = 5) {
         if (this.config.plantContext !== "karawang") return;
-        const tbody = $("#dimensionBody");
-        const theadRow = $("#dimensionHeadRow");
-        tbody.empty();
-        let headerHtml =
-            '<th style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">Cavity</th>';
-        for (let j = 1; j <= pointCount; j++)
-            headerHtml += `<th class="point-header">Point ${j}</th>`;
-        theadRow.html(headerHtml);
+        const tbody1 = $("#dimensionBodyShoot1");
+        const tbody2 = $("#dimensionBodyShoot2");
+        const headRow1 = $("#dimensionHeadRowShoot1");
+        const headRow2 = $("#dimensionHeadRowShoot2");
+        tbody1.empty();
+        tbody2.empty();
+
+        let headHtml = '<th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa; vertical-align: middle;">CAVITY</th>';
+        for (let j = 1; j <= pointCount; j++) {
+            headHtml += `<th class="point-header text-center align-middle" data-point="${j}">POINT ${j}</th>`;
+        }
+        headRow1.html(headHtml);
+        headRow2.html(headHtml);
+
         for (let i = 1; i <= cavityCount; i++) {
-            let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
+            let row1Html = `<tr class="cavity-row cavity-row-s1" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
+            let row2Html = `<tr class="cavity-row cavity-row-s2" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
             for (let j = 1; j <= pointCount; j++) {
-                rowHtml += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width: 60px;" name="dimensions[${i}][${j}]" placeholder="P${j}"></td>`;
+                row1Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p1]"></td>`;
+                row2Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p2]"></td>`;
             }
-            rowHtml += `</tr>`;
-            tbody.append(rowHtml);
+            row1Html += `</tr>`;
+            row2Html += `</tr>`;
+            tbody1.append(row1Html);
+            tbody2.append(row2Html);
         }
         this.currentCavities = cavityCount;
         this.currentPoints = pointCount;
@@ -2600,15 +2655,15 @@ class InProcessCreate {
             if (!match) return;
             const point = match[2];
 
-            // Robust lookup for standard (no cross-point fallback)
+            // Robust lookup for standard with fallback indexing
             let standard = null;
             if (dimensionStandards) {
                 if (Array.isArray(dimensionStandards)) {
                     standard = dimensionStandards.find(
-                        (s) => String(s.point) === String(point),
-                    ) || null;
+                        (s) => s && String(s.point || s.point_number || s.point_index || s.no) === String(point),
+                    ) || dimensionStandards[parseInt(point) - 1] || dimensionStandards[point] || null;
                 } else {
-                    standard = dimensionStandards[point] || null;
+                    standard = dimensionStandards[point] || dimensionStandards[parseInt(point) - 1] || null;
                 }
             }
             const valStr = $(this).val().trim();

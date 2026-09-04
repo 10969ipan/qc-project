@@ -250,8 +250,17 @@
                     foreach ($dimensions as $cavKey => $points) {
                         if (is_array($points)) {
                             foreach ($points as $pKey => $pVal) {
-                                if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
-                                    $activePoints[$pKey] = true;
+                                if (is_array($pVal)) {
+                                    foreach ($pVal as $subV) {
+                                        if ($subV !== null && $subV !== '' && $subV !== '-' && $subV !== 0 && $subV !== '0') {
+                                            $activePoints[$pKey] = true;
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
+                                        $activePoints[$pKey] = true;
+                                    }
                                 }
                             }
                         }
@@ -304,9 +313,17 @@
                                         @php
                                             $rowHasData = false;
                                             foreach ($activePoints as $j) {
-                                                $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
-                                                if ($val !== null && $val !== '' && $val !== '-' && $val !== 0 && $val !== '0') {
-                                                    $rowHasData = true; break;
+                                                $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                if (is_array($valCheck)) {
+                                                    foreach ($valCheck as $subV) {
+                                                        if ($subV !== null && $subV !== '' && $subV !== '-' && $subV !== 0 && $subV !== '0') {
+                                                            $rowHasData = true; break;
+                                                        }
+                                                    }
+                                                } else {
+                                                    if ($valCheck !== null && $valCheck !== '' && $valCheck !== '-' && $valCheck !== 0 && $valCheck !== '0') {
+                                                        $rowHasData = true; break;
+                                                    }
                                                 }
                                             }
                                         @endphp
@@ -315,9 +332,23 @@
                                                 <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
                                                 @foreach($activePoints as $j)
                                                     @php
-                                                        $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                        $valRaw = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                        $valList = [];
+                                                        if (is_array($valRaw)) {
+                                                            foreach (['p1', 'p2', 's1', 's2', 0, 1] as $subKey) {
+                                                                if (isset($valRaw[$subKey]) && $valRaw[$subKey] !== '' && $valRaw[$subKey] !== null) {
+                                                                    $valList[] = $valRaw[$subKey];
+                                                                }
+                                                            }
+                                                            if (empty($valList)) {
+                                                                $valList = array_values(array_filter($valRaw, fn($v) => $v !== '' && $v !== null));
+                                                            }
+                                                        } elseif ($valRaw !== '-' && $valRaw !== '' && $valRaw !== null) {
+                                                            $valList = [$valRaw];
+                                                        }
+                                                        $displayVal = empty($valList) ? '-' : implode(' | ', $valList);
                                                     @endphp
-                                                    <td>{{ $val }}</td>
+                                                    <td>{{ $displayVal }}</td>
                                                 @endforeach
                                             </tr>
                                         @endif
