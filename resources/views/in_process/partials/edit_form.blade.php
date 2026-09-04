@@ -652,12 +652,41 @@
             });
         }
 
+        function isOnlyDimensiDefect() {
+            let hasNonDimensiDefect = false;
+            let hasAnyDefect = false;
+
+            $('.defect-select').each(function () {
+                const typeVal = ($(this).val() || '').trim().toLowerCase();
+                const typeText = ($(this).find('option:selected').text() || '').trim().toLowerCase();
+                const qtyInput = $(this).closest('.defect-row').find('.defect-qty');
+                const qty = parseInt(qtyInput.val()) || 0;
+
+                if (typeVal !== '' && qty > 0) {
+                    hasAnyDefect = true;
+                    if (typeVal !== 'dimensi' && typeVal !== 'ng dimensi' && typeVal !== 'dimension' &&
+                        typeText !== 'dimensi' && typeText !== 'ng dimensi' && typeText !== 'dimension') {
+                        hasNonDimensiDefect = true;
+                    }
+                }
+            });
+
+            const isDimensiInvalid = $('.edit-dimension-input.is-invalid').length > 0;
+            
+            // Return true if NG is caused ONLY by dimensions (no non-dimension defects present)
+            if (!hasNonDimensiDefect && (isDimensiInvalid || hasAnyDefect)) {
+                return true;
+            }
+
+            return false;
+        }
+
         function toggleNextProses() {
             const judgment = $('#judgment').val();
-            const ngCount = parseInt($('#total_ng').val()) || 0;
             const container = $('#nextProsesContainer');
 
-            if (judgment === 'NG' || ngCount > 0) {
+            // If NG is strictly dimension-only, Next Proses is NOT mandatory, hide container
+            if (judgment === 'NG' && !isOnlyDimensiDefect()) {
                 container.fadeIn();
             } else {
                 container.fadeOut();
@@ -828,12 +857,12 @@
             const nextProses = $('#next_proses').val();
             const totalNg = parseInt($('#total_ng').val()) || 0;
 
-            if (judgment === 'NG' && !nextProses) {
+            if (judgment === 'NG' && !nextProses && !isOnlyDimensiDefect()) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'warning',
                     title: 'Next Proses Wajib Dipilih',
-                    text: 'Untuk hasil NG, silakan pilih Next Proses terlebih dahulu!',
+                    text: 'Untuk hasil NG visual/fisik, silakan pilih Next Proses terlebih dahulu!',
                     confirmButtonColor: '#3085d6'
                 });
                 
