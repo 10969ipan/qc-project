@@ -934,24 +934,18 @@
                                     }
                                 @endphp
 
-                                <td colspan="2" class="align-middle" style="padding: 0px !important; vertical-align: middle !important;">
+                                <td class="align-middle text-center" style="width: 45px; min-width: 45px; padding: 2px 4px !important;">
                                     @if(count($pcsLines) > 0)
-                                        <table style="width: 100% !important; border-collapse: collapse !important; margin: 0px !important; padding: 0px !important; border: none !important; table-layout: auto;">
-                                            <tbody>
-                                                @foreach($pcsLines as $index => $qty)
-                                                    <tr style="border: none !important; border-bottom: {{ $index < count($pcsLines) - 1 ? '1.5px solid #dee2e6 !important' : 'none !important' }}; background: transparent !important;">
-                                                        <td style="width: 60px; min-width: 60px; max-width: 60px; border: none !important; border-right: 1.5px solid #dee2e6 !important; padding: 4px 6px !important; vertical-align: middle !important; background: transparent !important;" class="text-center">
-                                                            <small class="text-danger font-weight-bold">{{ $qty }}</small>
-                                                        </td>
-                                                        <td style="border: none !important; padding: 4px 8px !important; vertical-align: middle !important; background: transparent !important; white-space: nowrap;" class="text-center">
-                                                            <small class="text-danger font-weight-bold">{{ $nameLines[$index] ?? '-' }}</small>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $pcsLines) !!}</span>
                                     @else
-                                        <div class="py-1 text-center" style="padding: 4px 6px !important;">-</div>
+                                        -
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center text-nowrap" style="min-width: 70px; padding: 2px 4px !important;">
+                                    @if(count($nameLines) > 0)
+                                        <span class="text-danger font-weight-bold" style="font-size: 0.68rem; line-height: 1.1; display: block;">{!! implode('<br>', $nameLines) !!}</span>
+                                    @else
+                                        -
                                     @endif
                                 </td>
 

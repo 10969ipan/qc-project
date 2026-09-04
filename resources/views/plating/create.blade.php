@@ -78,6 +78,7 @@
                 <input type="hidden" name="quantity" id="quantityInput">
                 <input type="hidden" name="unique_code_id" id="uniqueCodeInput">
                 <input type="hidden" name="sap_code" id="sapCodeInputHidden">
+                <input type="hidden" name="scan_method" id="scanMethodInput" value="manual">
                 <input type="hidden" name="is_scanned" id="isScannedInput" value="0">
 
                 <div class="table-responsive">
@@ -105,19 +106,21 @@
                                 <!-- Pilihan Barang -->
                                 <td class="align-middle" style="min-width: 450px;">
                                     <div class="form-group mb-2">
-                                        <label class="font-weight-bold small mb-1">
-                                            Scan QR Code (Autofill)
+                                        <label class="font-weight-bold small font-weight-bold mb-1">
+                                            Scan Verifikasi Quality
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"
-                                                placeholder="Masukkan Kode SAP" autocomplete="off" value="">
+                                                placeholder="Tap kolom ini, lalu scan barcode label" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                             <div class="input-group-append">
                                                 <button type="button" class="btn btn-primary" id="btnScanQR"
                                                     title="Buka QR Scanner">
-                                                    <i class="fas fa-qrcode mr-1"></i> Scan QR Code
+                                                    <i class="fas fa-qrcode"></i>
+                                                    <span class="d-none d-md-inline ml-1"></span>
                                                 </button>
                                             </div>
                                         </div>
+                                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Arahkan kursor ke sini sebelum menembak QR</small>
                                     </div>
                                     <div class="form-group mb-0">
                                         <label class="font-weight-bold small">Item Part</label>
