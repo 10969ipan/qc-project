@@ -12,7 +12,7 @@
     @endphp
     @foreach(request()->all() as $key => $value)
         @if(!in_array($key, $formFields) && is_scalar($value))
-            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            <input type="hidden" name="redirect_params[{{ $key }}]" value="{{ $value }}">
         @endif
     @endforeach
 
@@ -279,6 +279,14 @@
     <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center mt-3" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
         <span class="font-weight-bold">PEMERIKSAAN DIMENSI (MM)</span>
         <div class="btn-group shadow-sm">
+            @if(auth()->check() && auth()->user()->role === 'admin')
+                <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editCopyDimensionsBtn" title="Copy Semua Dimensi" style="font-size: 0.7rem;">
+                    <i class="fas fa-copy mr-1"></i> Copy Dimensi
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editPasteDimensionsBtn" title="Paste Data Dimensi" style="font-size: 0.7rem;">
+                    <i class="fas fa-paste mr-1"></i> Paste Dimensi
+                </button>
+            @endif
             <button type="button" class="btn btn-primary btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity" style="font-size: 0.7rem;">
                 <i class="fas fa-plus mr-1"></i> Cavity
             </button>
@@ -411,6 +419,219 @@
                 $(this).append(`<td class="p-0"><input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[${c}][${currentPoints}]" placeholder="-"></td>`);
             });
         });
+
+        @if(auth()->check() && auth()->user()->role === 'admin')
+        // Admin Copy All Dimensi (Memory, LocalStorage & System Clipboard)
+        $('#editCopyDimensionsBtn').click(function () {
+            let dimData = {};
+            let count = 0;
+
+            $('.edit-cavity-row').each(function () {
+                let cavNum = $(this).data('cavity');
+                dimData[cavNum] = {};
+                $(this).find('.edit-dimension-input').each(function () {
+                    let name = $(this).attr('name');
+                    let match = name ? name.match(/dimensions\[(\d+)\]\[(\d+)\]/) : null;
+                    if (match) {
+                        let pt = match[2];
+                        let val = $(this).val();
+                        dimData[cavNum][pt] = val;
+                        if (val !== '' && val !== null) count++;
+                    }
+                });
+            });
+
+            window.copiedDimensionData = dimData;
+            window.copiedFpaDimensionData = dimData;
+            let jsonStr = JSON.stringify(dimData);
+
+            try {
+                localStorage.setItem('qc_copied_dimension_data', jsonStr);
+            } catch (e) {}
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(jsonStr).catch(function () {});
+            }
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Data dimensi (' + count + ' nilai) berhasil disalin!',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        });
+
+        // Admin Paste Dimensi
+        $('#editPasteDimensionsBtn').click(function () {
+            let ensureCavityAndPoint = function(cav, pt) {
+                cav = parseInt(cav) || 1;
+                pt = parseInt(pt) || 1;
+                while (typeof currentPoints !== 'undefined' && currentPoints < pt && currentPoints < 50) {
+                    if ($('#editAddPointBtn').length) $('#editAddPointBtn').trigger('click');
+                    else break;
+                }
+                let cavCount = $('#editDimensionBody tr').length;
+                while (cavCount < cav && cavCount < 50) {
+                    if ($('#editAddCavityBtn').length) {
+                        $('#editAddCavityBtn').trigger('click');
+                        cavCount = $('#editDimensionBody tr').length;
+                    } else break;
+                }
+            };
+
+            let applyData = function (data) {
+                if (!data) return false;
+                let count = 0;
+
+                let dimObj = (data.shoot1 || data.shoot2) ? (data.shoot1 || data.shoot2) : data;
+
+                $.each(dimObj, function (cav, points) {
+                    if (typeof points === 'object' && points !== null) {
+                        $.each(points, function (pt, val) {
+                            ensureCavityAndPoint(cav, pt);
+                            let $input = $('input[name="dimensions[' + cav + '][' + pt + ']"]');
+                            if ($input.length && val !== undefined && val !== null) {
+                                $input.val(val);
+                                if (val !== '') count++;
+                            }
+                        });
+                    }
+                });
+
+                validateDimensions();
+                updateJudgment();
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Berhasil menempel ' + count + ' nilai dimensi!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return true;
+            };
+
+            let applyTabularText = function (text) {
+                if (!text || (!text.includes('\t') && !text.includes('\n'))) return false;
+                let lines = text.split(/\r\n|\n|\r/);
+                let filledCount = 0;
+                lines.forEach(function (line, lineIdx) {
+                    if (!line && lineIdx === lines.length - 1) return;
+                    let cells = line.split('\t');
+                    let currentCav = 1 + lineIdx;
+                    cells.forEach(function (cellVal, cellIdx) {
+                        let currentPt = 1 + cellIdx;
+                        let val = cellVal.trim();
+                        ensureCavityAndPoint(currentCav, currentPt);
+                        let $target = $('input[name="dimensions[' + currentCav + '][' + currentPt + ']"]');
+                        if ($target.length) {
+                            $target.val(val);
+                            if (val !== '') filledCount++;
+                        }
+                    });
+                });
+
+                validateDimensions();
+                updateJudgment();
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Berhasil menempel ' + filledCount + ' sel dari Excel/Tabel!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                return true;
+            };
+
+            let getStoredData = function() {
+                try {
+                    let local = localStorage.getItem('qc_copied_dimension_data');
+                    if (local) return JSON.parse(local);
+                } catch(e) {}
+                return window.copiedFpaDimensionData || window.copiedDimensionData || null;
+            };
+
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(function (text) {
+                    if (text && text.trim()) {
+                        let trimmed = text.trim();
+                        if (trimmed.startsWith('{')) {
+                            try {
+                                let parsed = JSON.parse(trimmed);
+                                if (applyData(parsed)) return;
+                            } catch (e) {}
+                        } else if (trimmed.includes('\t') || trimmed.includes('\n')) {
+                            if (applyTabularText(trimmed)) return;
+                        }
+                    }
+                    let fallback = getStoredData();
+                    if (fallback && applyData(fallback)) return;
+                    Swal.fire('Paste', 'Tidak ada data dimensi di clipboard.', 'info');
+                }).catch(function () {
+                    let fallback = getStoredData();
+                    if (fallback && applyData(fallback)) return;
+                    Swal.fire('Paste', 'Tidak ada data dimensi tersimpan.', 'info');
+                });
+            } else {
+                let fallback = getStoredData();
+                if (fallback && applyData(fallback)) return;
+                Swal.fire('Paste', 'Tidak ada data dimensi tersimpan.', 'info');
+            }
+        });
+
+        // Admin Multi-cell Excel Grid Paste (Ctrl+V into any dimension cell)
+        $(document).on('paste', '.edit-dimension-input', function (e) {
+            let clipboard = (e.originalEvent || e).clipboardData;
+            if (!clipboard) return;
+            let text = clipboard.getData('text/plain');
+            if (!text || (!text.includes('\t') && !text.includes('\n'))) return;
+
+            e.preventDefault();
+            let $startInput = $(this);
+            let name = $startInput.attr('name');
+            let match = name ? name.match(/dimensions\[(\d+)\]\[(\d+)\]/) : null;
+            if (!match) return;
+
+            let startCav = parseInt(match[1]);
+            let startPt = parseInt(match[2]);
+
+            let lines = text.split(/\r\n|\n|\r/);
+            let filledCount = 0;
+
+            lines.forEach(function (line, lineIdx) {
+                if (!line && lineIdx === lines.length - 1) return;
+                let cells = line.split('\t');
+                let currentCav = startCav + lineIdx;
+
+                cells.forEach(function (cellVal, cellIdx) {
+                    let currentPt = startPt + cellIdx;
+                    let val = cellVal.trim();
+                    let $target = $('input[name="dimensions[' + currentCav + '][' + currentPt + ']"]');
+                    if ($target.length) {
+                        $target.val(val);
+                        filledCount++;
+                    }
+                });
+            });
+
+            validateDimensions();
+            updateJudgment();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Berhasil menempel ' + filledCount + ' sel dari Excel/Spreadsheet!',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        });
+        @endif
 
         // Calculation Logic
         function getAqlLimits(s) {

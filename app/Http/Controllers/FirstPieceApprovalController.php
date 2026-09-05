@@ -95,6 +95,28 @@ class FirstPieceApprovalController extends Controller
         return $this->firstPieceService->getConsolidatedStandards();
     }
 
+    /**
+     * Get redirect parameters preserving user active filter context.
+     */
+    private function getRedirectParams(Request $request): array
+    {
+        if ($request->has('redirect_params') && is_array($request->input('redirect_params'))) {
+            return array_filter($request->input('redirect_params'), function ($val) {
+                return $val !== null && $val !== '';
+            });
+        }
+
+        $preservationKeys = [
+            'page', 'plant', 'start_date', 'end_date', 'approval_status',
+            'search', 'shift', 'item_id', 'customer', 'operator_initials',
+            'code_machine', 'next_proses'
+        ];
+
+        return array_filter($request->only($preservationKeys), function ($val) {
+            return $val !== null && $val !== '';
+        });
+    }
+
     public function index(Request $request)
     {
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
@@ -325,8 +347,7 @@ class FirstPieceApprovalController extends Controller
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet First Piece Approval: {$checksheet->item->name}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
-            $redirectParams = $request->only($preservationKeys);
+            $redirectParams = $this->getRedirectParams($request);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -359,8 +380,7 @@ class FirstPieceApprovalController extends Controller
             $this->firstPieceService->deleteChecksheet($id);
             ActivityLogger::log('deleted', null, "Menghapus checksheet First Piece Approval: {$itemName}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
-            $redirectParams = $request->only($preservationKeys);
+            $redirectParams = $this->getRedirectParams($request);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -468,8 +488,7 @@ class FirstPieceApprovalController extends Controller
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet First Piece Approval: {$checksheet->item->name}");
 
-            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'shift'];
-            $redirectParams = $request->only($preservationKeys);
+            $redirectParams = $this->getRedirectParams($request);
 
             if ($request->ajax() || $request->wantsJson()) {
                 session()->flash('success', 'Status approval berhasil diperbarui oleh Admin.');

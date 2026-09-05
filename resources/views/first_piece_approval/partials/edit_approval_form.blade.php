@@ -16,7 +16,7 @@
     {{-- Preserve all filter and pagination parameters --}}
     @foreach(request()->all() as $key => $value)
         @if(!in_array($key, ['_token', '_method', 'id', 'kashift_qc', 'supervisor_qc', 'asst_manager_qc', 'manager_qc']))
-            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            <input type="hidden" name="redirect_params[{{ $key }}]" value="{{ $value }}">
         @endif
     @endforeach
 
