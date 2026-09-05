@@ -532,7 +532,7 @@
                                         $anyNGInRow = false;
                                     @endphp
                                     @if($hasUserInputs)
-                                        <div style="max-height: 280px; overflow: auto; max-width: 100%;">
+                                        <div>
                                             <table class="table-dimension-minimalist">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
                                                     {{-- Standard Row --}}

@@ -737,7 +737,7 @@
                                         }
                                     @endphp
                                      @if($hasUserInputs)
-                                         <div style="max-height: 300px; overflow: auto; max-width: 100%;">
+                                         <div>
                                              <!-- SHOOT 1 TABLE (ATAS) -->
                                              <div class="mb-2">
                                                  <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 1:</small>
