@@ -61,7 +61,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Form Edit Checksheet Inprocess</h6>
-            <a href="{{ route('in_process.index', ['plant' => request('plant')]) }}"
+            <a href="{{ route('in_process.index', request()->query()) }}"
                 class="btn btn-secondary btn-sm shadow-sm">
                 <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
             </a>

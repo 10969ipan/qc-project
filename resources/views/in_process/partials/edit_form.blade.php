@@ -6,10 +6,10 @@
     @php
         $defects = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
     @endphp
-    {{-- Preserve all filter and pagination parameters --}}
-    @foreach(request()->all() as $key => $value)
-        @if(!in_array($key, ['_token', '_method', 'id']))
-            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+    {{-- Preserve all filter and pagination parameters for redirect --}}
+    @foreach(request()->except(['_token', '_method', 'id']) as $key => $value)
+        @if(!is_array($value) && $value !== null && $value !== '')
+            <input type="hidden" name="redirect_params[{{ $key }}]" value="{{ $value }}">
         @endif
     @endforeach
 
