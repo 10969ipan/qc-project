@@ -867,7 +867,7 @@
                                     @else
                                         <div class="px-2 py-1 text-center text-nowrap">
                                             <span class="text-dark font-weight-bold" style="font-size: 0.68rem; white-space: nowrap;">
-                                                {{ $checksheet->scan_method === 'hardware' ? 'VERIFIKASI QUALITY IN PROCESS' : 'TIDAK ADA PENGUKURAN DIMENSI' }}
+                                                {{ $checksheet->scan_method === 'hardware' ? 'VERIFIKASI QUALITY IN PROCESS' : 'TIDAK ADA PENGUKURAN DIMENSI HANYA CHECK VISUAL' }}
                                             </span>
                                         </div>
                                     @endif
