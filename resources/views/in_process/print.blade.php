@@ -299,62 +299,117 @@
                     {{-- Check Dimensi --}}
                     <td style="padding:0; vertical-align:top;">
                         @if(count($dimensions) > 0)
-                            <table class="dimension-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width:10%;">Cav</th>
-                                        @foreach($activePoints as $j)
-                                            <th>Ø{{ $j }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for($i = 1; $i <= $displayMaxCavity; $i++)
-                                        @php
-                                            $rowHasData = false;
-                                            foreach ($activePoints as $j) {
-                                                $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
-                                                if (is_array($valCheck)) {
-                                                    foreach ($valCheck as $subV) {
-                                                        if ($subV !== null && $subV !== '' && $subV !== '-' && $subV !== 0 && $subV !== '0') {
-                                                            $rowHasData = true; break;
-                                                        }
-                                                    }
-                                                } else {
-                                                    if ($valCheck !== null && $valCheck !== '' && $valCheck !== '-' && $valCheck !== 0 && $valCheck !== '0') {
-                                                        $rowHasData = true; break;
-                                                    }
-                                                }
-                                            }
-                                        @endphp
-                                        @if($rowHasData)
+                            @php
+                                $hasShoot1Data = false;
+                                for($i = 1; $i <= $displayMaxCavity; $i++) {
+                                    foreach ($activePoints as $j) {
+                                        $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                        $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
+                                        if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
+                                            $hasShoot1Data = true; break 2;
+                                        }
+                                    }
+                                }
+
+                                $hasShoot2Data = false;
+                                for($i = 1; $i <= $displayMaxCavity; $i++) {
+                                    foreach ($activePoints as $j) {
+                                        $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                        $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
+                                        if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
+                                            $hasShoot2Data = true; break 2;
+                                        }
+                                    }
+                                }
+                            @endphp
+
+                            @if($hasShoot1Data)
+                                <div style="margin-bottom: 2px;">
+                                    <div style="font-weight:bold; font-size:6px; background:#e2e8f0; text-align:center; padding:1px; border-bottom:1px solid #000;">Shoot 1</div>
+                                    <table class="dimension-table">
+                                        <thead>
                                             <tr>
-                                                <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
+                                                <th style="width:10%;">Cav</th>
                                                 @foreach($activePoints as $j)
-                                                    @php
-                                                        $valRaw = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
-                                                        $valList = [];
-                                                        if (is_array($valRaw)) {
-                                                            foreach (['p1', 'p2', 's1', 's2', 0, 1] as $subKey) {
-                                                                if (isset($valRaw[$subKey]) && $valRaw[$subKey] !== '' && $valRaw[$subKey] !== null) {
-                                                                    $valList[] = $valRaw[$subKey];
-                                                                }
-                                                            }
-                                                            if (empty($valList)) {
-                                                                $valList = array_values(array_filter($valRaw, fn($v) => $v !== '' && $v !== null));
-                                                            }
-                                                        } elseif ($valRaw !== '-' && $valRaw !== '' && $valRaw !== null) {
-                                                            $valList = [$valRaw];
-                                                        }
-                                                        $displayVal = empty($valList) ? '-' : implode(' | ', $valList);
-                                                    @endphp
-                                                    <td>{{ $displayVal }}</td>
+                                                    <th>Ø{{ $j }}</th>
                                                 @endforeach
                                             </tr>
-                                        @endif
-                                    @endfor
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody>
+                                            @for($i = 1; $i <= $displayMaxCavity; $i++)
+                                                @php
+                                                    $rowHasData1 = false;
+                                                    foreach ($activePoints as $j) {
+                                                        $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                        $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
+                                                        if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
+                                                            $rowHasData1 = true; break;
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if($rowHasData1)
+                                                    <tr>
+                                                        <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
+                                                        @foreach($activePoints as $j)
+                                                            @php
+                                                                $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                                $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? '-'))) : $valCheck;
+                                                            @endphp
+                                                            <td>{{ ($v1 !== '' && $v1 !== null) ? $v1 : '-' }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endif
+                                            @endfor
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+
+                            @if($hasShoot2Data)
+                                <div>
+                                    <div style="font-weight:bold; font-size:6px; background:#e2e8f0; text-align:center; padding:1px; border-bottom:1px solid #000; border-top:1px solid #000;">Shoot 2</div>
+                                    <table class="dimension-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:10%;">Cav</th>
+                                                @foreach($activePoints as $j)
+                                                    <th>Ø{{ $j }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for($i = 1; $i <= $displayMaxCavity; $i++)
+                                                @php
+                                                    $rowHasData2 = false;
+                                                    foreach ($activePoints as $j) {
+                                                        $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                        $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
+                                                        if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
+                                                            $rowHasData2 = true; break;
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if($rowHasData2)
+                                                    <tr>
+                                                        <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
+                                                        @foreach($activePoints as $j)
+                                                            @php
+                                                                $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                                $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? '-'))) : '-';
+                                                            @endphp
+                                                            <td>{{ ($v2 !== '' && $v2 !== null) ? $v2 : '-' }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endif
+                                            @endfor
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+
+                            @if(!$hasShoot1Data && !$hasShoot2Data)
+                                <div style="padding:2px; font-size:6px; color:#000;">-</div>
+                            @endif
                         @else
                             <div style="padding:2px; font-size:6px; color:#000;">-</div>
                         @endif

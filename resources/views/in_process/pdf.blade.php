@@ -325,6 +325,37 @@
                                 $actualMaxCavity = max($actualMaxCavity, $cavNum);
                             }
                             $displayMaxCavity = max(5, $actualMaxCavity);
+
+                            $checkValIsNG = function($val, $std) {
+                                if ($val === null || $val === '' || $val === '-' || !is_numeric($val) || empty($std)) return false;
+                                $fVal = (float)$val;
+                                $epsilon = 0.00001;
+                                if (($std['min'] ?? null) !== null && $fVal < ((float)$std['min'] - $epsilon)) return true;
+                                if (($std['max'] ?? null) !== null && $fVal > ((float)$std['max'] + $epsilon)) return true;
+                                return false;
+                            };
+
+                            $hasShoot1Data = false;
+                            for($i = 1; $i <= $displayMaxCavity; $i++) {
+                                foreach ($activePoints as $j) {
+                                    $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                    $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
+                                    if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
+                                        $hasShoot1Data = true; break 2;
+                                    }
+                                }
+                            }
+
+                            $hasShoot2Data = false;
+                            for($i = 1; $i <= $displayMaxCavity; $i++) {
+                                foreach ($activePoints as $j) {
+                                    $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                    $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
+                                    if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
+                                        $hasShoot2Data = true; break 2;
+                                    }
+                                }
+                            }
                         @endphp
                         @if(count($dimensions) > 0 || $displayMaxCavity > 0)
                             @php
@@ -333,213 +364,153 @@
                                 $fontSize = 6.5;
                                 if ($pointCount > 20) $fontSize = 4.5;
                                 elseif ($pointCount > 10) $fontSize = 5.5;
+
+                                $hasStdData = false;
+                                $hasMinMaxData = false;
+                                $hasTolData = false;
+                                foreach ($activePoints as $j) {
+                                    if (isset($standards[$j])) {
+                                        if ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-') $hasStdData = true;
+                                        if (($standards[$j]['min'] !== null && $standards[$j]['min'] !== '' && $standards[$j]['min'] !== '-') || 
+                                            ($standards[$j]['max'] !== null && $standards[$j]['max'] !== '' && $standards[$j]['max'] !== '-')) $hasMinMaxData = true;
+                                        if ($standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '' && $standards[$j]['tolerance'] !== '-') $hasTolData = true;
+                                    }
+                                }
                             @endphp
-                            <table class="dimension-table"
-                                style="table-layout: fixed; width: 100%; border-collapse: collapse; border: none; font-size: {{ $fontSize }}px;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 10%; border-top: none; border-left: none;">Cav</th>
-                                        @foreach ($activePoints as $j)
-                                            <th style="width: {{ $pointWidth }}%; border-top: none;">Ø{{ $j }}</th>
-                                        @endforeach
-                                    </tr>
-                                    @php
-                                        // Check which metadata rows have data
-                                        $hasStdData = false;
-                                        $hasMinMaxData = false;
-                                        $hasTolData = false;
-                                        foreach ($activePoints as $j) {
-                                            if (isset($standards[$j])) {
-                                                if ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-') $hasStdData = true;
-                                                if (($standards[$j]['min'] !== null && $standards[$j]['min'] !== '' && $standards[$j]['min'] !== '-') || 
-                                                    ($standards[$j]['max'] !== null && $standards[$j]['max'] !== '' && $standards[$j]['max'] !== '-')) $hasMinMaxData = true;
-                                                if ($standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '' && $standards[$j]['tolerance'] !== '-') $hasTolData = true;
-                                            }
-                                        }
-                                    @endphp
-                                    @if($hasStdData)
-                                    <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
-                                        <th style="border-left: none; font-weight: normal;">Std</th>
-                                        @foreach ($activePoints as $j)
-                                            <th style="font-weight: normal; color: #666;">{{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}</th>
-                                        @endforeach
-                                    </tr>
-                                    @endif
-                                    @if($hasMinMaxData)
-                                    <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
-                                        <th style="border-left: none; font-weight: normal;">Limit</th>
-                                        @foreach ($activePoints as $j)
-                                            <th style="font-weight: normal; color: #666;">
-                                                @if(isset($standards[$j]))
-                                                    @if($standards[$j]['min'] !== null && $standards[$j]['max'] !== null)
-                                                        {{ $standards[$j]['min'] }}-{{ $standards[$j]['max'] }}
-                                                    @elseif($standards[$j]['min'] !== null)
-                                                        Min: {{ $standards[$j]['min'] }}
-                                                    @elseif($standards[$j]['max'] !== null)
-                                                        Max: {{ $standards[$j]['max'] }}
+
+                            @if($hasShoot1Data)
+                                <div style="font-weight: bold; font-size: {{ $fontSize }}px; background-color: #f2f2f2; text-align: center; border-bottom: 1px solid #000; padding: 1px;">Shoot 1</div>
+                                <table class="dimension-table"
+                                    style="table-layout: fixed; width: 100%; border-collapse: collapse; border: none; font-size: {{ $fontSize }}px; margin-bottom: 2px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%; border-top: none; border-left: none;">Cav</th>
+                                            @foreach ($activePoints as $j)
+                                                <th style="width: {{ $pointWidth }}%; border-top: none;">Ø{{ $j }}</th>
+                                            @endforeach
+                                        </tr>
+                                        @if($hasStdData)
+                                        <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
+                                            <th style="border-left: none; font-weight: normal;">Std</th>
+                                            @foreach ($activePoints as $j)
+                                                <th style="font-weight: normal; color: #666;">{{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}</th>
+                                            @endforeach
+                                        </tr>
+                                        @endif
+                                        @if($hasMinMaxData)
+                                        <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
+                                            <th style="border-left: none; font-weight: normal;">Limit</th>
+                                            @foreach ($activePoints as $j)
+                                                <th style="font-weight: normal; color: #666;">
+                                                    @if(isset($standards[$j]))
+                                                        @if($standards[$j]['min'] !== null && $standards[$j]['max'] !== null)
+                                                            {{ $standards[$j]['min'] }}-{{ $standards[$j]['max'] }}
+                                                        @elseif($standards[$j]['min'] !== null)
+                                                            Min: {{ $standards[$j]['min'] }}
+                                                        @elseif($standards[$j]['max'] !== null)
+                                                            Max: {{ $standards[$j]['max'] }}
+                                                        @else
+                                                            -
+                                                        @endif
                                                     @else
                                                         -
                                                     @endif
-                                                @else
-                                                    -
-                                                @endif
-                                            </th>
-                                        @endforeach
-                                    </tr>
-                                    @endif
-                                    @if($hasTolData)
-                                    <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
-                                        <th style="border-left: none; font-weight: normal;">Tol</th>
-                                        @foreach ($activePoints as $j)
-                                            <th style="font-weight: normal; color: #666;">{{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}</th>
-                                        @endforeach
-                                    </tr>
-                                    @endif
-                                </thead>
-                                <tbody>
-                                    @for ($i = 1; $i <= $displayMaxCavity; $i++)
-                                        @php
-                                            // Check if this cavity row has any actual data
-                                            $rowHasData = false;
-                                            foreach ($activePoints as $j) {
-                                                $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
-                                                if (is_array($valCheck)) {
-                                                    foreach ($valCheck as $subV) {
-                                                        if ($subV !== null && $subV !== '' && $subV !== '-' && $subV !== 0 && $subV !== '0') {
-                                                            $rowHasData = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                } else {
-                                                    if ($valCheck !== null && $valCheck !== '' && $valCheck !== '-' && $valCheck !== 0 && $valCheck !== '0') {
-                                                        $rowHasData = true;
-                                                        break;
+                                                </th>
+                                            @endforeach
+                                        </tr>
+                                        @endif
+                                        @if($hasTolData)
+                                        <tr class="limit-row" style="background-color: #f8f8f8; font-size: {{ $fontSize * 0.8 }}px;">
+                                            <th style="border-left: none; font-weight: normal;">Tol</th>
+                                            @foreach ($activePoints as $j)
+                                                <th style="font-weight: normal; color: #666;">{{ isset($standards[$j]) ? '±' . $standards[$j]['tolerance'] : '-' }}</th>
+                                            @endforeach
+                                        </tr>
+                                        @endif
+                                    </thead>
+                                    <tbody>
+                                        @for ($i = 1; $i <= $displayMaxCavity; $i++)
+                                            @php
+                                                $rowHasData1 = false;
+                                                foreach ($activePoints as $j) {
+                                                    $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                    $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
+                                                    if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
+                                                        $rowHasData1 = true; break;
                                                     }
                                                 }
-                                            }
-                                        @endphp
-                                        @if($rowHasData)
+                                            @endphp
+                                            @if($rowHasData1)
+                                            <tr>
+                                                <td style="background-color: #f9f9f9; border-left: none; text-align: center; font-weight: bold;">{{ $i }}</td>
+                                                @foreach ($activePoints as $j)
+                                                    @php
+                                                        $valRaw = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                        $val1 = is_array($valRaw) ? ($valRaw['p1'] ?? ($valRaw['s1'] ?? ($valRaw[0] ?? '-'))) : $valRaw;
+                                                        $std = $standards[$j] ?? null;
+                                                        $isNG1 = $checkValIsNG($val1, $std);
+                                                    @endphp
+                                                    <td style="@if($isNG1) color: red; font-weight: bold; background-color: #ffeef0; @endif text-align: center;">
+                                                        {{ ($val1 !== '' && $val1 !== null) ? $val1 : '-' }}
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                            @endif
+                                        @endfor
+                                    </tbody>
+                                </table>
+                            @endif
+
+                            @if($hasShoot2Data)
+                                <div style="font-weight: bold; font-size: {{ $fontSize }}px; background-color: #f2f2f2; text-align: center; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 1px;">Shoot 2</div>
+                                <table class="dimension-table"
+                                    style="table-layout: fixed; width: 100%; border-collapse: collapse; border: none; font-size: {{ $fontSize }}px;">
+                                    <thead>
                                         <tr>
-                                            <td style="background-color: #f9f9f9; border-left: none; text-align: center; font-weight: bold; @if($i == $displayMaxCavity) border-bottom: none; @endif">{{ $i }}</td>
+                                            <th style="width: 10%; border-top: none; border-left: none;">Cav</th>
                                             @foreach ($activePoints as $j)
-                                                @php
-                                                    $valRaw = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
-                                                    $valList = [];
-                                                    if (is_array($valRaw)) {
-                                                        foreach (['p1', 'p2', 's1', 's2', 0, 1] as $subKey) {
-                                                            if (isset($valRaw[$subKey]) && $valRaw[$subKey] !== '' && $valRaw[$subKey] !== null) {
-                                                                $valList[] = $valRaw[$subKey];
-                                                            }
-                                                        }
-                                                        if (empty($valList)) {
-                                                            $valList = array_values(array_filter($valRaw, fn($v) => $v !== '' && $v !== null));
-                                                        }
-                                                    } elseif ($valRaw !== '-' && $valRaw !== '' && $valRaw !== null) {
-                                                        $valList = [$valRaw];
-                                                    }
-                                                    $displayVal = empty($valList) ? '-' : implode(' | ', $valList);
-                                                    $isNG = false;
-
-                                                    if (isset($standards[$j]) && !empty($valList)) {
-                                                        foreach ($valList as $vItem) {
-                                                            if (!is_numeric($vItem)) continue;
-                                                            $std = $standards[$j];
-                                                            $fVal = (float)$vItem;
-                                                            $epsilon = 0.00001;
-
-                                                            $check = function($v, $s, $m) use ($epsilon, $std) {
-                                                                if ($s === null || $s === '') return false;
-                                                                $sStr = (string)$s;
-
-                                                                $baseSize = null;
-                                                                if (isset($std['size']) && $std['size'] !== '' && !str_starts_with((string)$std['size'], '+') && !str_starts_with((string)$std['size'], '-')) {
-                                                                    $baseSize = (float)$std['size'];
-                                                                }
-
-                                                                if (strlen($sStr) > 1 && (str_starts_with($sStr, '+') || str_starts_with($sStr, '-'))) {
-                                                                    $op = $sStr[0]; $lim = (float)substr($sStr, 1);
-                                                                    if ($baseSize !== null) {
-                                                                        $bound = ($op === '+') ? $baseSize + $lim : $baseSize - $lim;
-                                                                        return ($op === '+') ? $v > ($bound + $epsilon) : $v < ($bound - $epsilon);
-                                                                    }
-                                                                    return ($op === '+') ? $v < ($lim - $epsilon) : $v > ($lim + $epsilon);
-                                                                }
-                                                                
-                                                                $sf = (float)$s;
-                                                                if ($baseSize !== null) {
-                                                                    if ($m === 'min') return $v < ($baseSize - $sf - $epsilon);
-                                                                    if ($m === 'max') return $v > ($baseSize + $sf + $epsilon);
-                                                                }
-
-                                                                if ($m === 'min') return $v < ($sf - $epsilon);
-                                                                if ($m === 'max') return $v > ($sf + $epsilon);
-                                                                return false;
-                                                            };
-
-                                                            if (($std['min'] ?? null) !== null && $check($fVal, $std['min'], 'min')) {
-                                                                $isNG = true;
-                                                            }
-                                                            if (!$isNG && ($std['max'] ?? null) !== null && $check($fVal, $std['max'], 'max')) {
-                                                                $isNG = true;
-                                                            }
-
-                                                            if (!$isNG && ($std['size'] ?? null) !== null) {
-                                                                $sStr = (string)$std['size'];
-                                                                if (str_starts_with($sStr, '+') || str_starts_with($sStr, '-')) {
-                                                                    if ($check($fVal, $std['size'], 'size')) {
-                                                                        $isNG = true;
-                                                                    }
-                                                                } elseif (($std['min'] ?? null) === null && ($std['max'] ?? null) === null && ($std['tolerance'] ?? null) !== null) {
-                                                                    $size = (float)$std['size'];
-                                                                    $tol = (string)$std['tolerance'];
-                                                                    $lowerBound = $size;
-                                                                    $upperBound = $size;
-
-                                                                    if (str_contains($tol, '/')) {
-                                                                        $parts = explode('/', $tol);
-                                                                        foreach ($parts as $p) {
-                                                                            $p = trim(str_replace(',', '.', $p));
-                                                                            $fValTol = (float)$p;
-                                                                            if (str_starts_with($p, '+') || $fValTol > 0) {
-                                                                                $upperBound = $size + abs($fValTol);
-                                                                            } elseif (str_starts_with($p, '-') || $fValTol < 0) {
-                                                                                $lowerBound = $size - abs($fValTol);
-                                                                            }
-                                                                        }
-                                                                    } elseif (str_starts_with($tol, '+')) {
-                                                                        $upperBound = $size + (float)substr($tol, 1);
-                                                                    } elseif (str_starts_with($tol, '-')) {
-                                                                        $lowerBound = $size + (float)$tol;
-                                                                    } else {
-                                                                        $tVal = (float)$tol;
-                                                                        $lowerBound = $size - $tVal;
-                                                                        $upperBound = $size + $tVal;
-                                                                    }
-
-                                                                    if ($fVal < ($lowerBound - $epsilon) || $fVal > ($upperBound + $epsilon)) {
-                                                                        $isNG = true;
-                                                                    }
-                                                                }
-                                                            }
-                                                            if ($isNG) break;
-                                                        }
-                                                    }
-                                                @endphp
-                                                <td style="@if($isNG) color: #dc3545; font-weight: bold; background-color: #ffeef0; @endif @if($i == $displayMaxCavity) border-bottom: none; @endif @if($loop->last) border-right: none; @endif; text-align: center;">
-                                                    {{ $displayVal }}
-                                                </td>
+                                                <th style="width: {{ $pointWidth }}%; border-top: none;">Ø{{ $j }}</th>
                                             @endforeach
                                         </tr>
-                                        @endif
-                                    @endford>
-                                            @endforeach
-                                        </tr>
-                                        @endif
-                                    @endfor
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @for ($i = 1; $i <= $displayMaxCavity; $i++)
+                                            @php
+                                                $rowHasData2 = false;
+                                                foreach ($activePoints as $j) {
+                                                    $valCheck = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                    $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
+                                                    if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
+                                                        $rowHasData2 = true; break;
+                                                    }
+                                                }
+                                            @endphp
+                                            @if($rowHasData2)
+                                            <tr>
+                                                <td style="background-color: #f9f9f9; border-left: none; text-align: center; font-weight: bold;">{{ $i }}</td>
+                                                @foreach ($activePoints as $j)
+                                                    @php
+                                                        $valRaw = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                        $val2 = is_array($valRaw) ? ($valRaw['p2'] ?? ($valRaw['s2'] ?? ($valRaw[1] ?? '-'))) : '-';
+                                                        $std = $standards[$j] ?? null;
+                                                        $isNG2 = $checkValIsNG($val2, $std);
+                                                    @endphp
+                                                    <td style="@if($isNG2) color: red; font-weight: bold; background-color: #ffeef0; @endif text-align: center;">
+                                                        {{ ($val2 !== '' && $val2 !== null) ? $val2 : '-' }}
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                            @endif
+                                        @endfor
+                                    </tbody>
+                                </table>
+                            @endif
+
+                            @if(!$hasShoot1Data && !$hasShoot2Data)
+                                <div style="text-align: center; font-size: 6px; padding: 2px;">-</div>
+                            @endif
                         @else
-                            <div style="padding: 5px;">-</div>
+                            <div style="text-align: center; font-size: 6px; padding: 2px;">-</div>
                         @endif
                     </td>
 
