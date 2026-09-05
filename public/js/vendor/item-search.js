@@ -128,6 +128,7 @@
             for (var i = 0; i < selectEl.options.length; i++) {
                 var opt = selectEl.options[i];
                 if (!opt.value) continue; // skip placeholder option
+                if (opt.hidden || opt.disabled || opt.style.display === 'none' || opt.hasAttribute('hidden')) continue;
                 opts.push(opt);
             }
             return opts;

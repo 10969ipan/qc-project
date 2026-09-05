@@ -207,6 +207,7 @@
                                     data-customer="{{ $itm->customer }}"
                                     data-sap-code="{{ $itm->sap_code }}"
                                     data-detail="{{ optional($itm->category)->name }}"
+                                    data-category-id="{{ $itm->category_id }}"
                                     {{ request('f_item_id') == $itm->id ? 'selected' : '' }}>
                                     {{ $itm->name }} {{ $itm->part_number ? '- '.$itm->part_number : '' }}
                                 </option>
@@ -1091,12 +1092,70 @@
                     initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No / SAP...', maxResults: 50 });
                 }
 
+                function updateItemDropdownFilters() {
+                    const selectedCategory = $('#filterCategory').val();
+                    const selectedCustomer = $('#filterCustomer').val();
+                    const filterItem = document.getElementById('filterItem');
+                    if (!filterItem) return;
+
+                    const currentSelectedValue = filterItem.value;
+                    let selectedStillValid = false;
+
+                    Array.from(filterItem.options).forEach(opt => {
+                        if (!opt.value) return;
+
+                        const optCatId = opt.dataset.categoryId;
+                        const optCatName = opt.dataset.detail;
+                        const optCust = opt.dataset.customer;
+
+                        let matchCategory = true;
+                        if (selectedCategory) {
+                            matchCategory = (
+                                optCatId == selectedCategory || 
+                                (optCatName && optCatName.toLowerCase() === selectedCategory.toLowerCase())
+                            );
+                        }
+
+                        let matchCustomer = true;
+                        if (selectedCustomer) {
+                            matchCustomer = (optCust === selectedCustomer);
+                        }
+
+                        if (matchCategory && matchCustomer) {
+                            opt.hidden = false;
+                            opt.disabled = false;
+                            opt.removeAttribute('hidden');
+                            opt.style.display = '';
+                            if (opt.value === currentSelectedValue) {
+                                selectedStillValid = true;
+                            }
+                        } else {
+                            opt.hidden = true;
+                            opt.disabled = true;
+                            opt.setAttribute('hidden', 'hidden');
+                            opt.style.display = 'none';
+                        }
+                    });
+
+                    if (currentSelectedValue && !selectedStillValid) {
+                        filterItem.value = '';
+                        if (typeof filterItem._ipsReset === 'function') {
+                            filterItem._ipsReset();
+                        }
+                    }
+                }
+
+                updateItemDropdownFilters();
+
                 // Auto-submit filter on dropdown change
                 const filters = ['filterItem', 'filterCategory', 'filterCustomer'];
                 filters.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         $(el).on('change', function() {
+                            if (id === 'filterCategory' || id === 'filterCustomer') {
+                                updateItemDropdownFilters();
+                            }
                             var form = document.getElementById('filterFormItems');
                             if (form) form.submit();
                         });

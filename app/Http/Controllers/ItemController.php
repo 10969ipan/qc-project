@@ -136,10 +136,16 @@ class ItemController extends Controller
         $plantCode = $isTotalView ? null : ($plantIdentifier ?: optional(auth()->user()->plant)->code);
         $allPlants = Plant::all();
 
-        // Get all items in a lightweight format for the searchable dropdown
+        // Get all items in a lightweight format for the searchable dropdown, matching active category/customer filters
         $allItemsQuery = Item::with('category')->select('id', 'name', 'part_number', 'sap_code', 'customer', 'category_id');
         if ($plantId) {
             $allItemsQuery->where('plant_id', $plantId);
+        }
+        if (!empty($filters['category'])) {
+            $allItemsQuery->byCategory($filters['category']);
+        }
+        if (!empty($filters['customer'])) {
+            $allItemsQuery->where('customer', $filters['customer']);
         }
         $allItemsList = $allItemsQuery->orderBy('name')->get();
 
