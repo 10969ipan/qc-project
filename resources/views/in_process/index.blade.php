@@ -532,9 +532,9 @@
                                     </td>
                                 @endif
                                 <td class="align-middle">{{ $checksheets->firstItem() + $loop->index }}</td>
-                                @if(request('view_mode') === 'verifikasi')
+                                 @if(request('view_mode') === 'verifikasi')
                                  <td class="align-middle">
-                                     @if($canExport)
+                                     @if($canExport || auth()->user()->role === 'inspector')
                                      <button type="button" class="btn btn-sm btn-primary btn-qr-detail" 
                                          data-qr="{{ $checksheet->qrcode }}"
                                          data-part="{{ $checksheet->part_code }}"
