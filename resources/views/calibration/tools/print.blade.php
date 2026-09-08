@@ -100,7 +100,7 @@
             </td>
 
             {{-- No. Dokumen & Signatures --}}
-            <td width="420" class="small p-0 align-middle" style="border:1px solid #000 !important; padding:0 !important; white-space:nowrap; vertical-align:top;">
+            <td class="small p-0 align-middle" style="border:1px solid #000 !important; padding:0 !important; vertical-align:top; width:55%;">
                 <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
                     <tr style="height:100%;">
                         {{-- No. Dokumen --}}
@@ -133,13 +133,13 @@
 
                         {{-- Signatures --}}
                         <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
-                            <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:7pt; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:322px;">
+                            <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:7pt; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:100%;">
                                 <thead>
                                     <tr>
-                                        <th style="border:1px solid #000; padding:2px 2px; font-weight:600; color:#495057; background:#fff; width:22px;">Tgl.</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Dibuat</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diperiksa</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diketahui</th>
+                                        <th style="border:1px solid #000; padding:2px 2px; font-weight:600; color:#495057; background:#fff; width:15%;">Tgl.</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:28.33%;">Dibuat</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:28.33%;">Diperiksa</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:28.34%;">Diketahui</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -150,13 +150,13 @@
                                             </div>
                                         </td>
                                         <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff;">
-                                            <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:46px; max-width:92px; object-fit:contain; mix-blend-mode:multiply;">
+                                            <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:46px; max-width:100%; object-fit:contain; mix-blend-mode:multiply;">
                                         </td>
                                         <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff;">
-                                            <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:46px; max-width:92px; object-fit:contain; mix-blend-mode:multiply;">
+                                            <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:46px; max-width:100%; object-fit:contain; mix-blend-mode:multiply;">
                                         </td>
                                         <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff;">
-                                            <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:46px; max-width:92px; object-fit:contain; mix-blend-mode:multiply;">
+                                            <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:46px; max-width:100%; object-fit:contain; mix-blend-mode:multiply;">
                                         </td>
                                     </tr>
                                     <tr>

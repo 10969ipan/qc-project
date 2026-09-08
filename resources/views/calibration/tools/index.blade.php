@@ -288,9 +288,6 @@
                     class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
                     <i class="fas fa-undo fa-sm"></i>
                 </a>
-                <button type="submit" formaction="{{ route('calibration.tools.pdf') }}" formtarget="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
-                    <i class="fas fa-file-pdf fa-sm"></i>
-                </button>
                 <button type="submit" formaction="{{ route('calibration.tools.print') }}" formtarget="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
                     <i class="fas fa-print fa-sm"></i>
                 </button>

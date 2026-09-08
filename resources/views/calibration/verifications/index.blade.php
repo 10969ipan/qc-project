@@ -401,10 +401,7 @@
                             <i class="fas fa-print fa-sm"></i>
                         </a>
                         
-                        <a href="{{ route('calibration.verifications.pdf', array_merge(request()->all(), ['plant' => $plantCode])) }}"
-                            target="_blank" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" title="Export PDF">
-                            <i class="fas fa-file-pdf fa-sm"></i>
-                        </a>
+
                         @endif
                         
                         <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalVerifikasiBaru" title="Input Baru">
