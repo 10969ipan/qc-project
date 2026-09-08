@@ -412,6 +412,63 @@ trait HasChecksheetApproval
                     }
                 }
 
+                // Apply hiding filters for non-admins if this is InProcessChecksheet
+                if ($user->role !== 'admin' && strpos($modelClass, 'InProcessChecksheet') !== false) {
+                    $plantId = \App\Models\Plant::resolveId($request->input('plant')) ?? optional($user->plant)->id;
+
+                    $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
+                        ->where('plant_code', $plantId ?? 'global')
+                        ->first();
+                    if ($setting && !empty($setting->value)) {
+                        $decoded = json_decode($setting->value, true);
+                        if (is_array($decoded) && !empty($decoded)) {
+                            $query->whereNotIn("{$table}.item_id", array_values(array_filter($decoded)));
+                        }
+                    }
+
+                    $settingNg = \App\Models\GeneralSetting::where('key', 'hide_ng_rows_inprocess')
+                        ->where('plant_code', $plantId ?? 'global')
+                        ->first();
+                    if ($settingNg && $settingNg->value == '1') {
+                        $query->where(function($q) use ($table) {
+                            $q->where(function($sub) use ($table) {
+                                $sub->where("{$table}.judgment", '!=', 'NG')
+                                    ->orWhereNull("{$table}.judgment");
+                            })
+                            ->where(function($sub) use ($table) {
+                                $sub->whereNull("{$table}.total_ng")
+                                    ->orWhere("{$table}.total_ng", '<=', 0);
+                            });
+                        });
+                    }
+
+                    $settingNoDim = \App\Models\GeneralSetting::where('key', 'hide_no_dimension_rows_inprocess')
+                        ->where('plant_code', $plantId ?? 'global')
+                        ->first();
+                    if ($settingNoDim && $settingNoDim->value == '1') {
+                        $query->where(function($q) use ($table) {
+                            $q->where(function($sub) use ($table) {
+                                $sub->whereNotNull("{$table}.qrcode")
+                                    ->where("{$table}.qrcode", '!=', '');
+                            })
+                            ->orWhere(function($sub) use ($table) {
+                                $sub->whereNotNull("{$table}.unique_code_id")
+                                    ->where("{$table}.unique_code_id", '!=', '');
+                            })
+                            ->orWhereIn("{$table}.scan_method", ['hardware', 'camera'])
+                            ->orWhere(function($sub) use ($table) {
+                                $sub->whereNotNull("{$table}.dimension_check")
+                                    ->where("{$table}.dimension_check", '!=', '')
+                                    ->where("{$table}.dimension_check", '!=', '[]')
+                                    ->where("{$table}.dimension_check", '!=', '{}')
+                                    ->where("{$table}.dimension_check", '!=', 'null')
+                                    ->where("{$table}.dimension_check", '!=', '""')
+                                    ->whereRaw("CAST({$table}.dimension_check AS CHAR) REGEXP '[0-9]'");
+                            });
+                        });
+                    }
+                }
+
                 $cust = $request->input('customer', $request->input('customer_name'));
                 if (!empty($cust)) {
                     if (Schema::hasColumn($table, 'customer')) {
