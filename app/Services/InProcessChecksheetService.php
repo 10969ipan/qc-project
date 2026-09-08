@@ -144,6 +144,38 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.item_id', $filters['item_id']);
         }
 
+        if (!empty($filters['hidden_item_ids']) && is_array($filters['hidden_item_ids'])) {
+            $query->whereNotIn('in_process_checksheets.item_id', $filters['hidden_item_ids']);
+        }
+
+        if (!empty($filters['hide_ng_rows']) && $filters['hide_ng_rows'] == '1') {
+            if (isset($filters['ng_dimensi_checksheet_ids']) && is_array($filters['ng_dimensi_checksheet_ids'])) {
+                if (!empty($filters['ng_dimensi_checksheet_ids'])) {
+                    $query->whereNotIn('in_process_checksheets.id', $filters['ng_dimensi_checksheet_ids']);
+                }
+            } else {
+                $plantId = $filters['plant'] ?? null;
+                $ngDimIds = $this->getDimensionNgChecksheetIds($plantId, $filters);
+                if (!empty($ngDimIds)) {
+                    $query->whereNotIn('in_process_checksheets.id', $ngDimIds);
+                }
+            }
+        }
+
+        if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
+            if (isset($filters['no_dimension_checksheet_ids']) && is_array($filters['no_dimension_checksheet_ids'])) {
+                if (!empty($filters['no_dimension_checksheet_ids'])) {
+                    $query->whereNotIn('in_process_checksheets.id', $filters['no_dimension_checksheet_ids']);
+                }
+            } else {
+                $plantId = $filters['plant'] ?? null;
+                $noDimIds = $this->getNoDimensionChecksheetIds($plantId, $filters);
+                if (!empty($noDimIds)) {
+                    $query->whereNotIn('in_process_checksheets.id', $noDimIds);
+                }
+            }
+        }
+
         if (!empty($filters['operator_initials'])) {
             $query->where('in_process_checksheets.operator_initials', $filters['operator_initials']);
         }
@@ -398,6 +430,161 @@ class InProcessChecksheetService extends BaseService
         }
 
         return $data;
+    }
+
+    /**
+     * Determine if a checksheet row has NG Dimensi (Dimension check NG specifically)
+     * 
+     * @param InProcessChecksheet|array $checksheet
+     * @param array|null $consolidatedStandards
+     * @return bool
+     */
+    public function isDimensionNg($checksheet, ?array $consolidatedStandards = null): bool
+    {
+        if (!$checksheet) return false;
+
+        $defects = is_object($checksheet) ? $checksheet->defects : ($checksheet['defects'] ?? []);
+        if (is_string($defects)) {
+            $defects = json_decode($defects, true);
+        }
+        if (is_array($defects)) {
+            foreach ($defects as $d) {
+                $rawType = is_array($d) ? ($d['type'] ?? '') : (is_string($d) ? $d : '');
+                $key = strtolower(trim((string)$rawType));
+                if (in_array($key, ['dimensi', 'dimension', 'ng dimensi'])) {
+                    return true;
+                }
+            }
+        }
+
+        $rawCheck = is_object($checksheet) ? $checksheet->dimension_check : ($checksheet['dimension_check'] ?? []);
+        if (is_string($rawCheck)) {
+            $rawCheck = json_decode($rawCheck, true);
+        }
+        if (empty($rawCheck) || !is_array($rawCheck)) {
+            return false;
+        }
+
+        $item = is_object($checksheet) ? $checksheet->item : null;
+        $itemId = is_object($checksheet) ? $checksheet->item_id : ($checksheet['item_id'] ?? null);
+        if (!$item && $itemId) {
+            $item = Item::find($itemId);
+        }
+
+        $dimensionStandards = null;
+        if ($item && !empty($item->dimension_standards) && is_array($item->dimension_standards)) {
+            $itemStandards = [];
+            foreach ($item->dimension_standards as $index => $std) {
+                if (is_array($std)) {
+                    $pointKey = (string)($std['point'] ?? ($index + 1));
+                    $itemStandards[$pointKey] = [
+                        'size' => $std['size'] ?? null,
+                        'tolerance' => $std['tolerance'] ?? null,
+                        'min' => $std['min'] ?? null,
+                        'max' => $std['max'] ?? null,
+                    ];
+                }
+            }
+            if (!empty($itemStandards)) {
+                $dimensionStandards = $itemStandards;
+            }
+        }
+
+        if (!$dimensionStandards && $item) {
+            if ($consolidatedStandards === null) {
+                $consolidatedStandards = $this->getConsolidatedStandards();
+            }
+            $partNum = $this->normalizePartNumber($item->part_number ?? '');
+            $dimensionStandards = $consolidatedStandards[$partNum] ?? null;
+        }
+
+        if (empty($dimensionStandards)) {
+            return false;
+        }
+
+        $epsilon = 0.00001;
+
+        $checkValueNG = function($val, $std) use ($epsilon) {
+            if ($val === '-' || $val === '' || $val === null || !is_numeric($val) || empty($std)) {
+                return false;
+            }
+            $fVal = (float)$val;
+            $normStd = function($v) {
+                if ($v === null || $v === '') return '';
+                $s = str_replace(',', '.', (string)$v);
+                $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
+                $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
+                return trim($s);
+            };
+
+            // 1. Check Min / Max
+            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                $minBound = (float)$normStd($std['min']);
+                if ($fVal < ($minBound - $epsilon)) return true;
+            }
+            if (($std['max'] ?? null) !== null && $std['max'] !== '') {
+                $maxBound = (float)$normStd($std['max']);
+                if ($fVal > ($maxBound + $epsilon)) return true;
+            }
+
+            // 2. Check Size +/- Tolerance
+            if (($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                $szStr = $normStd($std['size']);
+                if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                    $base = (float)$szStr;
+                    $tol = $normStd($std['tolerance']);
+                    $lb = $base; $ub = $base;
+                    if (str_contains($tol, '/')) {
+                        $parts = explode('/', $tol);
+                        foreach ($parts as $p) {
+                            $p = $normStd($p);
+                            $fv = (float)$p;
+                            if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                            elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                        }
+                    } elseif (str_starts_with($tol, '+')) {
+                        $ub = $base + (float)substr($tol, 1);
+                    } elseif (str_starts_with($tol, '-')) {
+                        $lb = $base + (float)$tol;
+                    } else {
+                        $tv = (float)$tol;
+                        $lb = $base - $tv; $ub = $base + $tv;
+                    }
+                    if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) return true;
+                }
+            }
+
+            // 3. Check Special Size (operator prefix)
+            if (($std['size'] ?? null) !== null && $std['size'] !== '') {
+                $szStr = $normStd($std['size']);
+                if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                    $op = $szStr[0];
+                    $bound = (float)substr($szStr, 1);
+                    if ($op === '+' && $fVal < ($bound - $epsilon)) return true;
+                    if ($op === '-' && $fVal > ($bound + $epsilon)) return true;
+                }
+            }
+
+            return false;
+        };
+
+        foreach ($rawCheck as $cavKey => $points) {
+            if (!is_array($points)) continue;
+            foreach ($points as $pKey => $valOrArr) {
+                $pointKey = (string)$pKey;
+                $std = $dimensionStandards[$pointKey] ?? null;
+                if (!$std) continue;
+
+                $valuesToCheck = is_array($valOrArr) ? $valOrArr : [$valOrArr];
+                foreach ($valuesToCheck as $v) {
+                    if ($checkValueNG($v, $std)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -781,5 +968,178 @@ class InProcessChecksheetService extends BaseService
         $pn = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', $pn);
 
         return strtoupper($pn);
+    }
+
+    /**
+     * Get IDs of checksheets that have NG Dimensi for a given plant/filter set
+     * 
+     * @param mixed $plantId
+     * @param array $filters
+     * @return array
+     */
+    public function getDimensionNgChecksheetIds($plantId, array $filters = []): array
+    {
+        $resolvedPlant = $this->resolvePlantId($plantId);
+        $cacheKey = "in_proc_dim_ng_ids_" . ($resolvedPlant ?? 'global') . "_" . md5(json_encode([
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null,
+            $filters['item_id'] ?? null,
+            $filters['search'] ?? null,
+        ]));
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function() use ($resolvedPlant, $filters) {
+            $standards = $this->getConsolidatedStandards();
+            
+            $query = InProcessChecksheet::where('plant_id', $resolvedPlant)
+                ->where(function($q) {
+                    $q->where('judgment', 'NG')
+                      ->orWhere('total_ng', '>', 0)
+                      ->orWhere(function($sub) {
+                          $sub->whereNotNull('dimension_check')
+                              ->where('dimension_check', '!=', '[]')
+                              ->where('dimension_check', '!=', '{}');
+                      });
+                });
+
+            if (!empty($filters['start_date'])) {
+                $query->whereDate('date', '>=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $query->whereDate('date', '<=', $filters['end_date']);
+            }
+            if (!empty($filters['item_id'])) {
+                $query->where('item_id', $filters['item_id']);
+            }
+
+            $candidates = $query->get(['id', 'item_id', 'dimension_check', 'defects']);
+            $ngIds = [];
+
+            foreach ($candidates as $c) {
+                if ($this->isDimensionNg($c, $standards)) {
+                    $ngIds[] = $c->id;
+                }
+            }
+
+            return $ngIds;
+        });
+    }
+
+    /**
+     * Get distinct item IDs that have NG Dimensi history
+     * 
+     * @param mixed $plantId
+     * @return array
+     */
+    public function getDimensionNgItemIds($plantId): array
+    {
+        $resolvedPlant = $this->resolvePlantId($plantId);
+        $cacheKey = "in_proc_dim_ng_item_ids_" . ($resolvedPlant ?? 'global');
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($resolvedPlant) {
+            $standards = $this->getConsolidatedStandards();
+            
+            $candidates = InProcessChecksheet::where('plant_id', $resolvedPlant)
+                ->whereNotNull('item_id')
+                ->where(function($q) {
+                    $q->where('judgment', 'NG')
+                      ->orWhere('total_ng', '>', 0)
+                      ->orWhere(function($sub) {
+                          $sub->whereNotNull('dimension_check')
+                              ->where('dimension_check', '!=', '[]')
+                              ->where('dimension_check', '!=', '{}');
+                      });
+                })->get(['id', 'item_id', 'dimension_check', 'defects']);
+
+            $itemIds = [];
+            foreach ($candidates as $c) {
+                if ($this->isDimensionNg($c, $standards)) {
+                    $itemIds[$c->item_id] = true;
+                }
+            }
+
+            return array_keys($itemIds);
+        });
+    }
+
+    /**
+     * Determine if a checksheet row has NO dimension measurement values (Visual Only row)
+     * 
+     * @param InProcessChecksheet|array $checksheet
+     * @return bool
+     */
+    public function isNoDimensionRow($checksheet): bool
+    {
+        if (!$checksheet) return false;
+
+        $rawCheck = is_object($checksheet) ? $checksheet->dimension_check : ($checksheet['dimension_check'] ?? []);
+        if (is_string($rawCheck)) {
+            $rawCheck = json_decode($rawCheck, true);
+        }
+        if (empty($rawCheck) || !is_array($rawCheck)) {
+            return true;
+        }
+
+        foreach ($rawCheck as $cavPoints) {
+            if (is_array($cavPoints)) {
+                foreach ($cavPoints as $val) {
+                    if (is_array($val)) {
+                        foreach ($val as $subV) {
+                            if ($subV !== null && $subV !== '' && $subV !== '-') {
+                                return false;
+                            }
+                        }
+                    } else {
+                        if ($val !== null && $val !== '' && $val !== '-') {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get IDs of checksheets that have NO dimension check measurements for a given plant/filter set
+     * 
+     * @param mixed $plantId
+     * @param array $filters
+     * @return array
+     */
+    public function getNoDimensionChecksheetIds($plantId, array $filters = []): array
+    {
+        $resolvedPlant = $this->resolvePlantId($plantId);
+        $cacheKey = "in_proc_no_dim_ids_" . ($resolvedPlant ?? 'global') . "_" . md5(json_encode([
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null,
+            $filters['item_id'] ?? null,
+            $filters['search'] ?? null,
+        ]));
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function() use ($resolvedPlant, $filters) {
+            $query = InProcessChecksheet::where('plant_id', $resolvedPlant);
+
+            if (!empty($filters['start_date'])) {
+                $query->whereDate('date', '>=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $query->whereDate('date', '<=', $filters['end_date']);
+            }
+            if (!empty($filters['item_id'])) {
+                $query->where('item_id', $filters['item_id']);
+            }
+
+            $candidates = $query->get(['id', 'dimension_check']);
+            $noDimIds = [];
+
+            foreach ($candidates as $c) {
+                if ($this->isNoDimensionRow($c)) {
+                    $noDimIds[] = $c->id;
+                }
+            }
+
+            return $noDimIds;
+        });
     }
 }

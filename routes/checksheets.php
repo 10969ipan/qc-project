@@ -140,6 +140,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/in-process-checksheets/print', [InProcessChecksheetController::class, 'printView'])->name('in_process.print');
         Route::get('/report/in-process-checksheets/export-measurements', [InProcessChecksheetController::class, 'exportMeasureData'])->name('in_process.export_measurements');
         Route::post('/report/in-process-checksheets/import-measurements', [InProcessChecksheetController::class, 'importMeasureData'])->name('in_process.import_measurements');
+        Route::post('/report/in-process-checksheets/hidden-items', [InProcessChecksheetController::class, 'updateHiddenItems'])->name('in_process.hidden_items');
 
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
         Route::get('/report/first-piece-approvals/daily-recap', [FirstPieceApprovalController::class, 'dailyRecap'])->name('first_piece_approval.daily_recap');

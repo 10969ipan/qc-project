@@ -432,6 +432,15 @@
                         title="Import Data Dimensi (CSV/XLSX)">
                         <i class="fas fa-file-import fa-sm mr-1"></i> Import
                     </button>
+                    @if(auth()->check() && auth()->user()->role === 'admin')
+                    <button type="button" 
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" 
+                        style="background-color: #7c3aed; color: white; font-size: 0.68rem; height: 26px;"
+                        data-toggle="modal" data-target="#modalHiddenItems" 
+                        title="Kelola Item Tersembunyi">
+                        <i class="fas fa-eye-slash fa-sm mr-1"></i> Kelola Item
+                    </button>
+                    @endif
                 </div>
 
             </form>
@@ -505,7 +514,15 @@
                     </thead>
                     <tbody>
                         @foreach($checksheets as $checksheet)
-                            <tr class="text-center">
+                            @php
+                                $isHiddenItem = in_array($checksheet->item_id, $hiddenItemIds ?? []);
+                                $isDimensionNgRow = app(\App\Services\InProcessChecksheetService::class)->isDimensionNg($checksheet, $partDimensionStandards);
+                                $isHiddenNgRow = (($hideNgRows ?? '0') == '1' && $isDimensionNgRow);
+                                $isNoDimensionRow = app(\App\Services\InProcessChecksheetService::class)->isNoDimensionRow($checksheet);
+                                $isHiddenNoDimensionRow = (($hideNoDimensionRows ?? '0') == '1' && $isNoDimensionRow);
+                                $isRowHidden = $isHiddenItem || $isHiddenNgRow || $isHiddenNoDimensionRow;
+                            @endphp
+                            <tr class="text-center {{ $isRowHidden ? 'bg-light-hidden' : '' }}" style="{{ $isRowHidden ? 'opacity: 0.6; background-color: #fff7ed !important;' : '' }}">
                                 @if(auth()->user()->role === 'admin')
                                     <td class="align-middle text-center">
                                         <div class="custom-control custom-checkbox">
@@ -547,7 +564,21 @@
                                 @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                  <td class="align-middle text-left text-nowrap">
-                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
+                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span>
+                                     @if($isHiddenItem)
+                                         <span class="badge badge-warning text-dark ml-1" style="font-size: 0.52rem; padding: 1px 4px;" title="Item ini disembunyikan dari pengguna non-admin">
+                                             <i class="fas fa-eye-slash fa-xs mr-1"></i>HIDDEN ITEM
+                                         </span>
+                                     @elseif($isHiddenNgRow)
+                                         <span class="badge badge-danger ml-1" style="font-size: 0.52rem; padding: 1px 4px;" title="Baris data berstatus NG Dimensi ini disembunyikan dari pengguna non-admin">
+                                             <i class="fas fa-eye-slash fa-xs mr-1"></i>BARIS NG HIDDEN
+                                         </span>
+                                     @elseif($isHiddenNoDimensionRow)
+                                         <span class="badge badge-secondary ml-1" style="font-size: 0.52rem; padding: 1px 4px; background-color: #64748b;" title="Baris data tanpa pengukuran dimensi ini disembunyikan dari pengguna non-admin">
+                                             <i class="fas fa-eye-slash fa-xs mr-1"></i>BARIS TANPA DIMENSI HIDDEN
+                                         </span>
+                                     @endif
+                                     <br>
                                      <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
                                  </td>
                                  <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
@@ -1714,6 +1745,330 @@
             </div>
         </div>
     </div>
+
+    @if(auth()->check() && auth()->user()->role === 'admin')
+        <!-- Modal Kelola Item Tersembunyi (Admin Only) -->
+        <div class="modal fade" id="modalHiddenItems" tabindex="-1" role="dialog" aria-labelledby="modalHiddenItemsLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                    <style>
+                        #tableHiddenItems .custom-control-input:checked ~ .custom-control-label::before {
+                            background-color: #7c3aed !important;
+                            border-color: #7c3aed !important;
+                        }
+                        #tableHiddenItems tbody tr:hover {
+                            background-color: #f5f3ff !important;
+                        }
+                    </style>
+                    <form action="{{ route('in_process.hidden_items') }}" method="POST" id="formHiddenItems" class="no-loader">
+                        @csrf
+                        <input type="hidden" name="plant" value="{{ request('plant') }}">
+                        
+                        <!-- Header Model Edit -->
+                        <div class="modal-header bg-white py-3 px-4" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0;">
+                            <h5 class="modal-title font-weight-bold" id="modalHiddenItemsLabel" style="font-size: 1.05rem; color: #7c3aed;">
+                                <i class="fas fa-eye-slash mr-2" style="color: #7c3aed;"></i>Kelola Item Tersembunyi In-Process
+                            </h5>
+                            <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Body Model Edit -->
+                        <div class="modal-body bg-light px-4 py-4" style="max-height: 70vh; overflow-y: auto;">
+                            <!-- Banner Petunjuk -->
+                            <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0 !important;">
+                                <div class="card-body p-3 bg-white">
+                                    <div class="d-flex align-items-center text-gray-700 small">
+                                        <i class="fas fa-shield-alt fa-lg mr-3" style="color: #7c3aed;"></i>
+                                        <div>
+                                            <strong class="text-dark">Keamanan Data:</strong> Fitur ini <u>hanya menyembunyikan (filter tampilan)</u> dari pengguna non-admin dan <strong>SAMA SEKALI TIDAK MENGHAPUS DATA</strong> dari database. Item dapat dimunculkan kembali kapan saja untuk semua pengguna dengan melepas centang.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Option Sembunyikan Baris NG -->
+                            <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #fee2e2 !important; background-color: #fff5f5;">
+                                <div class="card-body p-3">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" name="hide_ng_rows" value="1" class="custom-control-input" id="switchHideNgRows" {{ ($hideNgRows ?? '0') == '1' ? 'checked' : '' }}>
+                                        <label class="custom-control-label font-weight-bold text-danger" for="switchHideNgRows" style="font-size: 0.86rem; cursor: pointer;">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>Sembunyikan Khusus Baris Data yang Berstatus NG Dimensi
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted mt-1" style="font-size: 0.76rem; line-height: 1.3;">
+                                        Jika diaktifkan, <strong>hanya baris data/transaksi yang berstatus NG Dimensi</strong> yang akan disembunyikan dari pengguna non-admin. Baris data berkategori <strong>OK</strong> pada Part Name tersebut tetap akan ditampilkan secara normal.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Card Option Sembunyikan Baris Visual Only / Tanpa Pengukuran Dimensi -->
+                            <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #fde68a !important; background-color: #fffbeb;">
+                                <div class="card-body p-3">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" name="hide_no_dimension_rows" value="1" class="custom-control-input" id="switchHideNoDimensionRows" {{ ($hideNoDimensionRows ?? '0') == '1' ? 'checked' : '' }}>
+                                        <label class="custom-control-label font-weight-bold" for="switchHideNoDimensionRows" style="font-size: 0.86rem; cursor: pointer; color: #d97706;">
+                                            <i class="fas fa-eye mr-1"></i>Sembunyikan Baris Data Visual Only / Tanpa Pengukuran Dimensi
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted mt-1" style="font-size: 0.76rem; line-height: 1.3;">
+                                        Jika diaktifkan, <strong>baris data/transaksi yang tidak memiliki pengukuran dimensi (Check Visual Only)</strong> akan disembunyikan dari pengguna non-admin.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Card Tabel & Pencarian -->
+                            <div class="card border-0 shadow-sm mb-1" style="border-radius: 10px; border: 1px solid #e2e8f0 !important; overflow: hidden;">
+                                <div class="card-header bg-white py-3 px-3 border-bottom d-flex align-items-center justify-content-between flex-wrap" style="border-bottom: 1px solid #e2e8f0 !important; gap: 10px;">
+                                    <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                                        <div class="input-group input-group-sm" style="width: 200px;">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-light border-right-0" style="border-color: #cbd5e1;"><i class="fas fa-search text-muted"></i></span>
+                                            </div>
+                                            <input type="text" id="searchHiddenModalItem" class="form-control border-left-0" style="border-color: #cbd5e1; font-size: 0.8rem;" placeholder="Cari Part Name / No / Cust...">
+                                        </div>
+                                        <div style="width: 175px;">
+                                            <select id="filterDimensionModalItem" class="form-control form-control-sm" style="border-color: #cbd5e1; font-size: 0.78rem;">
+                                                <option value="">Semua Tipe Check</option>
+                                                <option value="1">Ada Dimensi</option>
+                                                <option value="0">Visual Only (Tanpa Dimensi)</option>
+                                                <option value="ng">NG Dimensi</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 shadow-xs" id="btnSelectNgHidden" style="font-size: 0.75rem; color: #dc2626; border: 1px solid #fca5a5; background-color: #fef2f2;" title="Centang otomatis semua item yang memiliki riwayat Hasil NG Dimensi">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>Centang Item NG Dimensi
+                                        </button>
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 shadow-xs" id="btnSelectNoDimensionHidden" style="font-size: 0.75rem; color: #d97706; border: 1px solid #f59e0b; background-color: #fffbeb;" title="Centang otomatis semua item tanpa standar dimensi">
+                                            <i class="fas fa-eye mr-1"></i>Centang Tanpa Dimensi
+                                        </button>
+                                        <button type="button" class="btn btn-sm rounded-pill px-3 shadow-xs" id="btnSelectAllHidden" style="font-size: 0.75rem; color: #7c3aed; border: 1px solid #7c3aed; background-color: #f5f3ff;">
+                                            <i class="fas fa-check-square mr-1"></i>Centang Semua
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs" id="btnUnselectAllHidden" style="font-size: 0.75rem;">
+                                            <i class="fas fa-square mr-1"></i>Hapus Centang
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0 bg-white">
+                                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                                        <table class="table table-hover table-striped mb-0" id="tableHiddenItems">
+                                            <thead class="bg-light sticky-top" style="z-index: 10; border-bottom: 2px solid #e2e8f0;">
+                                                <tr>
+                                                    <th style="width: 65px; background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="text-center py-2 font-weight-bold text-uppercase">Hide</th>
+                                                    <th style="width: 140px; background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Tipe Check</th>
+                                                    <th style="background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Part Name</th>
+                                                    <th style="background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Part Number</th>
+                                                    <th style="background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Customer</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $sortedAllItems = $allItems->sortByDesc(function($item) use ($hiddenItemIds) {
+                                                        return in_array($item->id, $hiddenItemIds ?? []);
+                                                    });
+                                                @endphp
+                                                @forelse($sortedAllItems as $item)
+                                                    @php
+                                                        $normPn = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $item->part_number ?? ''));
+                                                        $hasDbStandards = !empty($item->dimension_standards) && is_array($item->dimension_standards) && count($item->dimension_standards) > 0;
+                                                        $hasConsolidatedStandards = !empty($normPn) && isset($partDimensionStandards[$normPn]) && !empty($partDimensionStandards[$normPn]);
+                                                        $hasDimension = $hasDbStandards || $hasConsolidatedStandards;
+                                                        $hasNg = in_array($item->id, $ngItemIds ?? []);
+                                                        $isCheck = in_array($item->id, $hiddenItemIds ?? []);
+                                                    @endphp
+                                                    <tr class="hidden-item-row" data-has-dimension="{{ $hasDimension ? '1' : '0' }}" data-has-ng="{{ $hasNg ? '1' : '0' }}" data-search="{{ strtolower(($item->name ?? '') . ' ' . ($item->part_number ?? '') . ' ' . ($item->customer ?? '')) }}">
+                                                        <td class="text-center align-middle">
+                                                            <div class="custom-control custom-checkbox">
+                                                                <input type="checkbox" name="hidden_item_ids[]" value="{{ $item->id }}" 
+                                                                    class="custom-control-input chk-hidden-item" id="chkHiddenItem{{ $item->id }}" 
+                                                                    {{ $isCheck ? 'checked' : '' }}>
+                                                                <label class="custom-control-label" for="chkHiddenItem{{ $item->id }}"></label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="align-middle text-nowrap">
+                                                            @if($hasDimension)
+                                                                <span class="badge badge-light text-success border border-success px-2 py-1" style="font-size: 0.68rem;" title="Memiliki standar dimensi">
+                                                                    <i class="fas fa-ruler-combined mr-1"></i>Cek Dimensi
+                                                                </span>
+                                                                @if($hasNg)
+                                                                    <span class="badge badge-danger px-2 py-1 ml-1" style="font-size: 0.65rem;" title="Item ini memiliki riwayat hasil NG Dimensi">
+                                                                        <i class="fas fa-exclamation-circle mr-1"></i>NG Dimensi
+                                                                    </span>
+                                                                @endif
+                                                            @else
+                                                                <span class="badge badge-light border px-2 py-1" style="font-size: 0.68rem; color: #d97706; background-color: #fffbeb; border-color: #fde68a !important;" title="Tidak ada standar dimensi (Hanya Check Visual)">
+                                                                    <i class="fas fa-eye mr-1"></i>Visual Only
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="align-middle font-weight-bold text-dark" style="font-size: 0.8rem;">
+                                                            {{ $item->name ?? '-' }}
+                                                        </td>
+                                                        <td class="align-middle text-muted small" style="font-size: 0.78rem;">
+                                                            {{ $item->part_number ?? '-' }}
+                                                        </td>
+                                                        <td class="align-middle text-muted small" style="font-size: 0.78rem;">
+                                                            {{ $item->customer ?? '-' }}
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="5" class="text-center text-muted py-4">Tidak ada data item ditemukan.</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Model Edit -->
+                        <div class="modal-footer bg-white py-3 px-4" style="border-top: 2px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                            <div class="mr-auto d-flex align-items-center">
+                                <span class="badge border px-3 py-2 shadow-xs" style="background-color: #fef2f2; border-color: #fecaca !important; color: #dc2626; font-size: 0.78rem;" id="countSelectedHidden">
+                                    <i class="fas fa-eye-slash mr-1" style="color: #dc2626;"></i> Total Item Tersembunyi: <strong style="color: #dc2626;">{{ count($hiddenItemIds ?? []) }}</strong>
+                                </span>
+                            </div>
+                            <button type="button" class="btn btn-secondary shadow-sm rounded-pill px-4" data-dismiss="modal">
+                                <i class="fas fa-times mr-1"></i>Batal
+                            </button>
+                            <button type="submit" class="btn shadow-sm rounded-pill px-4 text-white font-weight-bold" style="background-color: #7c3aed; border: none; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;">
+                                <i class="fas fa-save mr-1"></i>Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function sortHiddenTableRows() {
+                    var tbody = $('#tableHiddenItems tbody');
+                    var rows = tbody.find('tr.hidden-item-row').get();
+                    rows.sort(function(a, b) {
+                        var aChecked = $(a).find('.chk-hidden-item').is(':checked') ? 1 : 0;
+                        var bChecked = $(b).find('.chk-hidden-item').is(':checked') ? 1 : 0;
+                        if (aChecked !== bChecked) {
+                            return bChecked - aChecked; // Checked (1) comes before Unchecked (0)
+                        }
+                        var aName = $(a).find('td:nth-child(3)').text().trim().toLowerCase();
+                        var bName = $(b).find('td:nth-child(3)').text().trim().toLowerCase();
+                        return aName.localeCompare(bName);
+                    });
+                    $.each(rows, function(index, row) {
+                        tbody.append(row);
+                    });
+                }
+
+                function filterHiddenModalTable() {
+                    var query = $('#searchHiddenModalItem').val().toLowerCase().trim();
+                    var dimFilter = $('#filterDimensionModalItem').val();
+
+                    $('#tableHiddenItems tbody tr.hidden-item-row').each(function() {
+                        var searchData = $(this).data('search') || '';
+                        var hasDim = $(this).attr('data-has-dimension');
+                        var hasNg = $(this).attr('data-has-ng');
+
+                        var matchSearch = searchData.indexOf(query) !== -1;
+                        var matchDim = true;
+                        if (dimFilter === "1" || dimFilter === "0") {
+                            matchDim = (dimFilter === hasDim);
+                        } else if (dimFilter === "ng") {
+                            matchDim = (hasNg === "1");
+                        }
+
+                        if (matchSearch && matchDim) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                }
+
+                $('#searchHiddenModalItem').on('input', filterHiddenModalTable);
+                $('#filterDimensionModalItem').on('change', filterHiddenModalTable);
+
+                function updateHiddenCount() {
+                    var cnt = $('.chk-hidden-item:checked').length;
+                    $('#countSelectedHidden strong').text(cnt);
+                }
+
+                $('.chk-hidden-item').on('change', function() {
+                    updateHiddenCount();
+                    sortHiddenTableRows();
+                });
+
+                $('#btnSelectAllHidden').on('click', function() {
+                    $('#tableHiddenItems tbody tr.hidden-item-row:visible .chk-hidden-item').prop('checked', true);
+                    updateHiddenCount();
+                    sortHiddenTableRows();
+                });
+
+                $('#btnUnselectAllHidden').on('click', function() {
+                    $('#tableHiddenItems tbody tr.hidden-item-row:visible .chk-hidden-item').prop('checked', false);
+                    updateHiddenCount();
+                    sortHiddenTableRows();
+                });
+
+                $('#btnSelectNoDimensionHidden').on('click', function() {
+                    $('#switchHideNoDimensionRows').prop('checked', true);
+                    var countChecked = 0;
+                    $('#tableHiddenItems tbody tr.hidden-item-row[data-has-dimension="0"]').each(function() {
+                        var chk = $(this).find('.chk-hidden-item');
+                        if (!chk.is(':checked')) {
+                            chk.prop('checked', true);
+                            countChecked++;
+                        }
+                    });
+                    updateHiddenCount();
+                    sortHiddenTableRows();
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: countChecked > 0 ? (countChecked + ' item Visual Only (Tanpa Dimensi) & opsi sembunyikan baris Visual Only diaktifkan') : 'Semua item Visual Only sudah dicentang & opsi sembunyikan baris Visual Only diaktifkan',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                });
+
+                $('#btnSelectNgHidden').on('click', function() {
+                    $('#switchHideNgRows').prop('checked', true);
+                    var countChecked = 0;
+                    $('#tableHiddenItems tbody tr.hidden-item-row[data-has-ng="1"]').each(function() {
+                        var chk = $(this).find('.chk-hidden-item');
+                        if (!chk.is(':checked')) {
+                            chk.prop('checked', true);
+                            countChecked++;
+                        }
+                    });
+                    updateHiddenCount();
+                    sortHiddenTableRows();
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: countChecked > 0 ? (countChecked + ' item NG Dimensi & opsi sembunyikan baris NG Dimensi diaktifkan') : 'Semua item NG Dimensi sudah dicentang & opsi sembunyikan baris NG Dimensi diaktifkan',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                });
+
+                $('#modalHiddenItems').on('shown.bs.modal', function() {
+                    sortHiddenTableRows();
+                });
+            });
+        </script>
+    @endif
 
     <script>
         // Custom file input label update

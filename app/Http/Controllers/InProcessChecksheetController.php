@@ -151,6 +151,44 @@ class InProcessChecksheetController extends Controller
             $filters['entry_method'] = 'regular';
         }
 
+        $plantId = \App\Models\Plant::resolveId($filters['plant']) ?? optional(auth()->user()->plant)->id;
+
+        $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hiddenItemIds = [];
+        if ($setting && !empty($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (is_array($decoded)) {
+                $hiddenItemIds = array_values(array_filter($decoded));
+            }
+        }
+
+        $settingNgRows = \App\Models\GeneralSetting::where('key', 'hide_ng_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNgRows = ($settingNgRows && $settingNgRows->value == '1') ? '1' : '0';
+
+        $settingNoDimRows = \App\Models\GeneralSetting::where('key', 'hide_no_dimension_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNoDimensionRows = ($settingNoDimRows && $settingNoDimRows->value == '1') ? '1' : '0';
+
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            if (!empty($hiddenItemIds)) {
+                $filters['hidden_item_ids'] = $hiddenItemIds;
+            }
+            if ($hideNgRows == '1') {
+                $filters['hide_ng_rows'] = '1';
+            }
+            if ($hideNoDimensionRows == '1') {
+                $filters['hide_no_dimension_rows'] = '1';
+            }
+        }
+
         $checksheets = $this->inProcessService->getFilteredChecksheets($filters);
 
         $partDimensionStandards = \Illuminate\Support\Facades\Cache::remember("in_proc_standards", 43200, function () {
@@ -158,8 +196,6 @@ class InProcessChecksheetController extends Controller
         });
 
         // Data for filters (Cached per plant to avoid 4x subquery scans over 28,000+ rows on every page load)
-        $plantId = \App\Models\Plant::resolveId($filters['plant']);
-        
         $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
             $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
                 ->whereNotNull('item_id')
@@ -167,6 +203,17 @@ class InProcessChecksheetController extends Controller
                 ->pluck('item_id');
             return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
         });
+
+        $allItems = Item::byCategory('INPROSES')
+            ->when($plantId, function ($q) use ($plantId) {
+                $q->where('plant_id', $plantId);
+            })
+            ->orderBy('name')
+            ->get();
+
+        if ($allItems->isEmpty()) {
+            $allItems = $items;
+        }
 
         $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v2_{$plantId}", 1800, function () use ($plantId) {
             $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
@@ -199,7 +246,70 @@ class InProcessChecksheetController extends Controller
                 ->values();
         });
 
-        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines'));
+        $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
+
+        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines', 'hiddenItemIds', 'allItems', 'ngItemIds', 'hideNgRows', 'hideNoDimensionRows'));
+    }
+
+    public function updateHiddenItems(Request $request)
+    {
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Hanya admin yang dapat mengelola item tersembunyi.');
+        }
+
+        $plantInput = $request->input('plant');
+        $plantId = \App\Models\Plant::resolveId($plantInput) ?? optional(auth()->user()->plant)->id;
+        $hiddenItemIds = $request->input('hidden_item_ids', []);
+        $hideNgRows = $request->has('hide_ng_rows') ? '1' : '0';
+        $hideNoDimensionRows = $request->has('hide_no_dimension_rows') ? '1' : '0';
+
+        if (!is_array($hiddenItemIds)) {
+            $hiddenItemIds = [];
+        }
+
+        $hiddenItemIds = array_values(array_unique(array_filter($hiddenItemIds)));
+
+        \App\Models\GeneralSetting::updateOrCreate(
+            [
+                'key' => 'hidden_items_inprocess',
+                'plant_code' => $plantId ?? 'global',
+            ],
+            [
+                'category' => 'in_process_hidden_items',
+                'value' => json_encode($hiddenItemIds),
+                'description' => 'Hidden item IDs for In-Process Checksheet'
+            ]
+        );
+
+        \App\Models\GeneralSetting::updateOrCreate(
+            [
+                'key' => 'hide_ng_rows_inprocess',
+                'plant_code' => $plantId ?? 'global',
+            ],
+            [
+                'category' => 'in_process_hidden_items',
+                'value' => $hideNgRows,
+                'description' => 'Option to hide NG rows for non-admins'
+            ]
+        );
+
+        \App\Models\GeneralSetting::updateOrCreate(
+            [
+                'key' => 'hide_no_dimension_rows_inprocess',
+                'plant_code' => $plantId ?? 'global',
+            ],
+            [
+                'category' => 'in_process_hidden_items',
+                'value' => $hideNoDimensionRows,
+                'description' => 'Option to hide rows with no dimension measurement for non-admins'
+            ]
+        );
+
+        \Illuminate\Support\Facades\Cache::forget("in_proc_filter_items_v2_{$plantId}");
+
+        ActivityLogger::log('updated', null, "Memperbarui konfigurasi item tersembunyi In-Process (Hidden Items: " . count($hiddenItemIds) . ", Hide NG Rows: {$hideNgRows})");
+
+        return redirect()->back()->with('success', 'Konfigurasi item tersembunyi berhasil diperbarui.');
     }
 
     // Show form (updated to pass items)
