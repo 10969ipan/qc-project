@@ -165,41 +165,25 @@ class InProcessChecksheetService extends BaseService
             }
 
             if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
-                $plantId = $this->resolvePlantId($filters['plant'] ?? null);
-                $query->whereNotIn('in_process_checksheets.id', function($subQuery) use ($plantId, $filters) {
-                    $subQuery->select('id')
-                        ->from('in_process_checksheets')
-                        ->where(function($sub) {
-                            $sub->whereNull('qrcode')->orWhere('qrcode', '');
-                        })
-                        ->where(function($sub) {
-                            $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
-                        })
-                        ->where(function($sub) {
-                            $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
-                        })
-                        ->where(function($sub) {
-                            $sub->whereNull('dimension_check')
-                                ->orWhere('dimension_check', '')
-                                ->orWhere('dimension_check', '[]')
-                                ->orWhere('dimension_check', '{}')
-                                ->orWhere('dimension_check', 'null')
-                                ->orWhere('dimension_check', '""')
-                                ->orWhereRaw("CAST(dimension_check AS CHAR) NOT REGEXP '[0-9]'");
-                        });
-
-                    if ($plantId) {
-                        $subQuery->where('plant_id', $plantId);
-                    }
-                    if (!empty($filters['start_date'])) {
-                        $subQuery->whereDate('date', '>=', $filters['start_date']);
-                    }
-                    if (!empty($filters['end_date'])) {
-                        $subQuery->whereDate('date', '<=', $filters['end_date']);
-                    }
-                    if (!empty($filters['item_id'])) {
-                        $subQuery->where('item_id', $filters['item_id']);
-                    }
+                $query->where(function($q) {
+                    $q->where(function($sub) {
+                        $sub->whereNotNull('in_process_checksheets.qrcode')
+                            ->where('in_process_checksheets.qrcode', '!=', '');
+                    })
+                    ->orWhere(function($sub) {
+                        $sub->whereNotNull('in_process_checksheets.unique_code_id')
+                            ->where('in_process_checksheets.unique_code_id', '!=', '');
+                    })
+                    ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera'])
+                    ->orWhere(function($sub) {
+                        $sub->whereNotNull('in_process_checksheets.dimension_check')
+                            ->where('in_process_checksheets.dimension_check', '!=', '')
+                            ->where('in_process_checksheets.dimension_check', '!=', '[]')
+                            ->where('in_process_checksheets.dimension_check', '!=', '{}')
+                            ->where('in_process_checksheets.dimension_check', '!=', 'null')
+                            ->where('in_process_checksheets.dimension_check', '!=', '""')
+                            ->whereRaw("CAST(in_process_checksheets.dimension_check AS CHAR) REGEXP '[0-9]'");
+                    });
                 });
             }
         }
