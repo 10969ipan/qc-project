@@ -133,7 +133,8 @@ class NotificationController extends Controller
             });
         }
 
-        $unreadCount = $unreadCountQuery->count();
+        // Capped at 10 to prevent scanning thousands of unread notifications; topbar badge displays '9+' for any count > 9.
+        $unreadCount = $unreadCountQuery->select('id')->limit(10)->get()->count();
 
         return response()->json([
             'notifications' => $notifications,
