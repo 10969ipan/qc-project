@@ -144,34 +144,37 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.item_id', $filters['item_id']);
         }
 
-        if (!empty($filters['hidden_item_ids']) && is_array($filters['hidden_item_ids'])) {
-            $query->whereNotIn('in_process_checksheets.item_id', $filters['hidden_item_ids']);
-        }
+        // Apply hiding filters ONLY for general table listing (bypassed for direct QR scans or direct ID lookups)
+        if (empty($filters['qr_raw']) && empty($filters['id'])) {
+            if (!empty($filters['hidden_item_ids']) && is_array($filters['hidden_item_ids'])) {
+                $query->whereNotIn('in_process_checksheets.item_id', $filters['hidden_item_ids']);
+            }
 
-        if (!empty($filters['hide_ng_rows']) && $filters['hide_ng_rows'] == '1') {
-            if (isset($filters['ng_dimensi_checksheet_ids']) && is_array($filters['ng_dimensi_checksheet_ids'])) {
-                if (!empty($filters['ng_dimensi_checksheet_ids'])) {
-                    $query->whereNotIn('in_process_checksheets.id', $filters['ng_dimensi_checksheet_ids']);
-                }
-            } else {
-                $plantId = $filters['plant'] ?? null;
-                $ngDimIds = $this->getDimensionNgChecksheetIds($plantId, $filters);
-                if (!empty($ngDimIds)) {
-                    $query->whereNotIn('in_process_checksheets.id', $ngDimIds);
+            if (!empty($filters['hide_ng_rows']) && $filters['hide_ng_rows'] == '1') {
+                if (isset($filters['ng_dimensi_checksheet_ids']) && is_array($filters['ng_dimensi_checksheet_ids'])) {
+                    if (!empty($filters['ng_dimensi_checksheet_ids'])) {
+                        $query->whereNotIn('in_process_checksheets.id', $filters['ng_dimensi_checksheet_ids']);
+                    }
+                } else {
+                    $plantId = $filters['plant'] ?? null;
+                    $ngDimIds = $this->getDimensionNgChecksheetIds($plantId, $filters);
+                    if (!empty($ngDimIds)) {
+                        $query->whereNotIn('in_process_checksheets.id', $ngDimIds);
+                    }
                 }
             }
-        }
 
-        if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
-            if (isset($filters['no_dimension_checksheet_ids']) && is_array($filters['no_dimension_checksheet_ids'])) {
-                if (!empty($filters['no_dimension_checksheet_ids'])) {
-                    $query->whereNotIn('in_process_checksheets.id', $filters['no_dimension_checksheet_ids']);
-                }
-            } else {
-                $plantId = $filters['plant'] ?? null;
-                $noDimIds = $this->getNoDimensionChecksheetIds($plantId, $filters);
-                if (!empty($noDimIds)) {
-                    $query->whereNotIn('in_process_checksheets.id', $noDimIds);
+            if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
+                if (isset($filters['no_dimension_checksheet_ids']) && is_array($filters['no_dimension_checksheet_ids'])) {
+                    if (!empty($filters['no_dimension_checksheet_ids'])) {
+                        $query->whereNotIn('in_process_checksheets.id', $filters['no_dimension_checksheet_ids']);
+                    }
+                } else {
+                    $plantId = $filters['plant'] ?? null;
+                    $noDimIds = $this->getNoDimensionChecksheetIds($plantId, $filters);
+                    if (!empty($noDimIds)) {
+                        $query->whereNotIn('in_process_checksheets.id', $noDimIds);
+                    }
                 }
             }
         }
