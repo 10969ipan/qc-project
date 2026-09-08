@@ -730,7 +730,7 @@ class InProcessChecksheetController extends Controller
         if (empty($filters['start_date']) && empty($filters['end_date']) && 
             empty($filters['item_id']) && empty($filters['operator_initials']) && 
             empty($filters['customer']) && empty($filters['part_no']) && 
-            empty($filters['search']) && empty($filters['entry_method'])) {
+            empty($filters['search']) && empty($filters['id']) && empty($filters['qr_raw'])) {
             $filters['start_date'] = now()->toDateString();
             $filters['end_date'] = now()->toDateString();
         }

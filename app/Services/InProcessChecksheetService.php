@@ -165,17 +165,42 @@ class InProcessChecksheetService extends BaseService
             }
 
             if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
-                if (isset($filters['no_dimension_checksheet_ids']) && is_array($filters['no_dimension_checksheet_ids'])) {
-                    if (!empty($filters['no_dimension_checksheet_ids'])) {
-                        $query->whereNotIn('in_process_checksheets.id', $filters['no_dimension_checksheet_ids']);
+                $plantId = $this->resolvePlantId($filters['plant'] ?? null);
+                $query->whereNotIn('in_process_checksheets.id', function($subQuery) use ($plantId, $filters) {
+                    $subQuery->select('id')
+                        ->from('in_process_checksheets')
+                        ->where(function($sub) {
+                            $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                        })
+                        ->where(function($sub) {
+                            $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                        })
+                        ->where(function($sub) {
+                            $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                        })
+                        ->where(function($sub) {
+                            $sub->whereNull('dimension_check')
+                                ->orWhere('dimension_check', '')
+                                ->orWhere('dimension_check', '[]')
+                                ->orWhere('dimension_check', '{}')
+                                ->orWhere('dimension_check', 'null')
+                                ->orWhere('dimension_check', '""')
+                                ->orWhereRaw("dimension_check NOT REGEXP '[0-9]'");
+                        });
+
+                    if ($plantId) {
+                        $subQuery->where('plant_id', $plantId);
                     }
-                } else {
-                    $plantId = $filters['plant'] ?? null;
-                    $noDimIds = $this->getNoDimensionChecksheetIds($plantId, $filters);
-                    if (!empty($noDimIds)) {
-                        $query->whereNotIn('in_process_checksheets.id', $noDimIds);
+                    if (!empty($filters['start_date'])) {
+                        $subQuery->whereDate('date', '>=', $filters['start_date']);
                     }
-                }
+                    if (!empty($filters['end_date'])) {
+                        $subQuery->whereDate('date', '<=', $filters['end_date']);
+                    }
+                    if (!empty($filters['item_id'])) {
+                        $subQuery->where('item_id', $filters['item_id']);
+                    }
+                });
             }
         }
 
