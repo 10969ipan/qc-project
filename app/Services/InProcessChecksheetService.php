@@ -1066,6 +1066,7 @@ class InProcessChecksheetService extends BaseService
 
     /**
      * Determine if a checksheet row has NO dimension measurement values (Visual Only row)
+     * Note: Verification scan records (QR/Hardware/Camera) are NOT considered Visual Only rows.
      * 
      * @param InProcessChecksheet|array $checksheet
      * @return bool
@@ -1073,6 +1074,15 @@ class InProcessChecksheetService extends BaseService
     public function isNoDimensionRow($checksheet): bool
     {
         if (!$checksheet) return false;
+
+        $qrCode = is_object($checksheet) ? $checksheet->qrcode : ($checksheet['qrcode'] ?? null);
+        $uniqueCode = is_object($checksheet) ? $checksheet->unique_code_id : ($checksheet['unique_code_id'] ?? null);
+        $scanMethod = is_object($checksheet) ? $checksheet->scan_method : ($checksheet['scan_method'] ?? null);
+
+        // Verification scan records are NOT regular visual-only rows
+        if (!empty($qrCode) || !empty($uniqueCode) || in_array($scanMethod, ['hardware', 'camera'])) {
+            return false;
+        }
 
         $rawCheck = is_object($checksheet) ? $checksheet->dimension_check : ($checksheet['dimension_check'] ?? []);
         if (is_string($rawCheck)) {
@@ -1121,7 +1131,16 @@ class InProcessChecksheetService extends BaseService
         ]));
 
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function() use ($resolvedPlant, $filters) {
-            $query = InProcessChecksheet::where('plant_id', $resolvedPlant);
+            $query = InProcessChecksheet::where('plant_id', $resolvedPlant)
+                ->where(function($q) {
+                    $q->whereNull('qrcode')->orWhere('qrcode', '');
+                })
+                ->where(function($q) {
+                    $q->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                })
+                ->where(function($q) {
+                    $q->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                });
 
             if (!empty($filters['start_date'])) {
                 $query->whereDate('date', '>=', $filters['start_date']);
@@ -1133,7 +1152,7 @@ class InProcessChecksheetService extends BaseService
                 $query->where('item_id', $filters['item_id']);
             }
 
-            $candidates = $query->get(['id', 'dimension_check']);
+            $candidates = $query->get(['id', 'dimension_check', 'qrcode', 'unique_code_id', 'scan_method']);
             $noDimIds = [];
 
             foreach ($candidates as $c) {
