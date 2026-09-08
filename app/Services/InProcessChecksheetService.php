@@ -151,17 +151,16 @@ class InProcessChecksheetService extends BaseService
             }
 
             if (!empty($filters['hide_ng_rows']) && $filters['hide_ng_rows'] == '1') {
-                if (isset($filters['ng_dimensi_checksheet_ids']) && is_array($filters['ng_dimensi_checksheet_ids'])) {
-                    if (!empty($filters['ng_dimensi_checksheet_ids'])) {
-                        $query->whereNotIn('in_process_checksheets.id', $filters['ng_dimensi_checksheet_ids']);
-                    }
-                } else {
-                    $plantId = $filters['plant'] ?? null;
-                    $ngDimIds = $this->getDimensionNgChecksheetIds($plantId, $filters);
-                    if (!empty($ngDimIds)) {
-                        $query->whereNotIn('in_process_checksheets.id', $ngDimIds);
-                    }
-                }
+                $query->where(function($q) {
+                    $q->where(function($sub) {
+                        $sub->where('in_process_checksheets.judgment', '!=', 'NG')
+                            ->orWhereNull('in_process_checksheets.judgment');
+                    })
+                    ->where(function($sub) {
+                        $sub->whereNull('in_process_checksheets.total_ng')
+                            ->orWhere('in_process_checksheets.total_ng', '<=', 0);
+                    });
+                });
             }
 
             if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
@@ -1004,17 +1003,10 @@ class InProcessChecksheetService extends BaseService
         ]));
 
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function() use ($resolvedPlant, $filters) {
-            $standards = $this->getConsolidatedStandards();
-            
             $query = InProcessChecksheet::where('plant_id', $resolvedPlant)
                 ->where(function($q) {
                     $q->where('judgment', 'NG')
-                      ->orWhere('total_ng', '>', 0)
-                      ->orWhere(function($sub) {
-                          $sub->whereNotNull('dimension_check')
-                              ->where('dimension_check', '!=', '[]')
-                              ->where('dimension_check', '!=', '{}');
-                      });
+                      ->orWhere('total_ng', '>', 0);
                 });
 
             if (!empty($filters['start_date'])) {
@@ -1027,16 +1019,7 @@ class InProcessChecksheetService extends BaseService
                 $query->where('item_id', $filters['item_id']);
             }
 
-            $candidates = $query->get(['id', 'item_id', 'dimension_check', 'defects']);
-            $ngIds = [];
-
-            foreach ($candidates as $c) {
-                if ($this->isDimensionNg($c, $standards)) {
-                    $ngIds[] = $c->id;
-                }
-            }
-
-            return $ngIds;
+            return $query->pluck('id')->toArray();
         });
     }
 
@@ -1052,28 +1035,15 @@ class InProcessChecksheetService extends BaseService
         $cacheKey = "in_proc_dim_ng_item_ids_" . ($resolvedPlant ?? 'global');
 
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($resolvedPlant) {
-            $standards = $this->getConsolidatedStandards();
-            
-            $candidates = InProcessChecksheet::where('plant_id', $resolvedPlant)
+            return InProcessChecksheet::where('plant_id', $resolvedPlant)
                 ->whereNotNull('item_id')
                 ->where(function($q) {
                     $q->where('judgment', 'NG')
-                      ->orWhere('total_ng', '>', 0)
-                      ->orWhere(function($sub) {
-                          $sub->whereNotNull('dimension_check')
-                              ->where('dimension_check', '!=', '[]')
-                              ->where('dimension_check', '!=', '{}');
-                      });
-                })->get(['id', 'item_id', 'dimension_check', 'defects']);
-
-            $itemIds = [];
-            foreach ($candidates as $c) {
-                if ($this->isDimensionNg($c, $standards)) {
-                    $itemIds[$c->item_id] = true;
-                }
-            }
-
-            return array_keys($itemIds);
+                      ->orWhere('total_ng', '>', 0);
+                })
+                ->distinct()
+                ->pluck('item_id')
+                ->toArray();
         });
     }
 
