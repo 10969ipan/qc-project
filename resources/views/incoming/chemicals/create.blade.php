@@ -156,10 +156,13 @@
 
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-gray-700">Chemical Name <span class="text-danger">*</span></label>
-                            <select class="form-control select2" name="item_id" id="itemSelect" required style="width: 100%;">
+                            <select class="form-control" name="item_id" id="itemSelect" required style="width: 100%;">
                                 <option value="">-- Pilih Chemical --</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}" 
+                                        data-name="{{ $item->name }}"
+                                        data-part-number="{{ $item->part_number ?? '' }}"
+                                        data-sap-code="{{ $item->sap_code ?? '' }}"
                                         data-defects="{{ json_encode($item->defects) }}"
                                         data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}">
                                         {{ $item->name }}
@@ -288,8 +291,16 @@
         <!-- Kolom Kanan: STANDARD -->
         <div class="col-xl-6 col-lg-6 col-md-12">
             <div class="card shadow mb-4" id="pdfDisplaySection">
-                <div class="card-header py-3 bg-light">
+                <div class="card-header py-3 bg-light d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">STANDARD</h6>
+                    <div>
+                        <a id="downloadStandardBtn" href="#" target="_blank" class="btn btn-xs btn-primary mr-1" style="display:none;" title="Download PDF">
+                            <i class="fas fa-download mr-1"></i> Download PDF
+                        </a>
+                        <button type="button" class="btn btn-xs btn-secondary" id="fullStandardBtn" style="display:none;" title="Full Screen Preview">
+                            <i class="fas fa-expand mr-1"></i> Fullscreen
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -349,6 +360,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Full Screen PDF Preview -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 95vw; margin: 10px auto;">
+            <div class="modal-content" style="height: 92vh; display: flex; flex-direction: column;">
+                <div class="modal-header py-2 bg-dark text-white align-items-center">
+                    <h6 class="modal-title font-weight-bold" id="pdfModalLabel">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i> Preview Standard PDF - <span id="pdfInfo">File 1</span>
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group mr-3">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomOut" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomReset" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomIn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                        </div>
+                        <div class="btn-group mr-3">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="prevPdf" title="File PDF Sebelumnya" style="display:none;"><i class="fas fa-step-backward"></i> Prev File</button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="prevPage" title="Halaman Sebelumnya"><i class="fas fa-chevron-left"></i> Prev</button>
+                            <span class="btn btn-sm btn-dark disabled text-white" id="pageInfo" style="min-width: 100px;">Page 1</span>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="nextPage" title="Halaman Selanjutnya">Next <i class="fas fa-chevron-right"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="nextPdf" title="File PDF Selanjutnya" style="display:none;">Next File <i class="fas fa-step-forward"></i></button>
+                        </div>
+                        <button type="button" class="close text-white opacity-100" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body p-0 bg-secondary flex-grow-1" style="overflow: auto; display: flex; justify-content: center; align-items: flex-start;">
+                    <canvas id="the-canvas" class="shadow-lg my-2" style="background-color: white;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -357,5 +401,13 @@
         window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
         window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
     </script>
-    <script src="{{ asset('js/checksheet/incoming-chemical-create.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v={{ time() }}"></script>
+    <script>
+        $(document).ready(function () {
+            if (typeof window.initItemSearch === 'function') {
+                window.initItemSearch('itemSelect');
+            }
+        });
+    </script>
+    <script src="{{ asset('js/checksheet/incoming-chemical-create.js') }}?v={{ time() }}"></script>
 @endpush

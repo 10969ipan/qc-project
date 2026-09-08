@@ -58,4 +58,9 @@ class IncomingSubPart extends Model
     {
         return $this->belongsTo(Plant::class);
     }
+
+    public function getDimensionCheckAttribute()
+    {
+        return $this->attributes['check_dimensi'] ?? null;
+    }
 }

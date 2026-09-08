@@ -164,24 +164,46 @@
     </div>
 
     @php
-        $rawDims = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
+        $dimVal = $checksheet->check_dimensi ?? $checksheet->dimension_check;
+        $rawDims = is_array($dimVal) ? $dimVal : (json_decode($dimVal, true) ?? []);
         $flatDims = [];
-        if (!empty($rawDims)) {
+        if (!empty($rawDims) && is_array($rawDims)) {
             if (isset($rawDims[1]) && is_array($rawDims[1])) {
                 $flatDims = $rawDims[1];
             } elseif (isset($rawDims["1"]) && is_array($rawDims["1"])) {
                 $flatDims = $rawDims["1"];
             } else {
-                $flatDims = $rawDims;
+                foreach ($rawDims as $k => $v) {
+                    if (is_array($v)) {
+                        foreach ($v as $subK => $subV) {
+                            $flatDims[$subK] = $subV;
+                        }
+                    } else {
+                        $flatDims[$k] = $v;
+                    }
+                }
             }
         }
         $itemStd = optional($checksheet->item)->dimension_standards;
         $stds = is_array($itemStd) ? $itemStd : (json_decode($itemStd, true) ?? []);
         $maxPointFound = count($stds) > 0 ? count($stds) : 1;
         foreach ($flatDims as $pt => $v) {
-            if (is_numeric($pt)) {
-                $maxPointFound = max($maxPointFound, (int)$pt);
+            $cleanPt = preg_replace('/[^0-9]/', '', (string)$pt);
+            if (is_numeric($cleanPt) && (int)$cleanPt > 0) {
+                $maxPointFound = max($maxPointFound, (int)$cleanPt);
             }
+        }
+
+        if (isset($flatDims[0]) && !isset($flatDims[$maxPointFound])) {
+            $rekeyed = [];
+            foreach ($flatDims as $idx => $v) {
+                if (is_numeric($idx)) {
+                    $rekeyed[(int)$idx + 1] = $v;
+                } else {
+                    $rekeyed[$idx] = $v;
+                }
+            }
+            $flatDims = $rekeyed;
         }
     @endphp
 
@@ -196,7 +218,7 @@
             <tbody id="editDimensionBody">
                 @for ($j = 1; $j <= $maxPointFound; $j++)
                     @php
-                        $val = $flatDims[$j] ?? ($flatDims["$j"] ?? '');
+                        $val = $flatDims[$j] ?? ($flatDims["$j"] ?? ($flatDims["P$j"] ?? ($flatDims["p$j"] ?? '')));
                     @endphp
                     <tr class="edit-point-row" data-point="{{ $j }}">
                         <td class="text-center font-weight-bold bg-light align-middle" style="font-size: 0.8rem; background: #f8f9fc !important;">P{{ $j }}</td>

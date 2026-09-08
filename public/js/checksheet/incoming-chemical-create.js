@@ -103,6 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const firstPdfUrl = window.pdfUrlPattern
                     .replace('ID_PLACEHOLDER', $(this).val())
                     .replace('INDEX_PLACEHOLDER', 0);
+                $("#downloadStandardBtn").attr('href', firstPdfUrl).show();
+                $("#fullStandardBtn").data('id', $(this).val()).data('count', validFiles.length || 1).data('similar', 0).show();
                 renderPdfToCanvas(
                     firstPdfUrl,
                     "standardPdfCanvas",
@@ -111,11 +113,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     1
                 );
             } else {
+                $("#downloadStandardBtn, #fullStandardBtn").hide();
                 $("#standardPdfCanvas").addClass("d-none").hide();
                 $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Standard PDF tidak tersedia");
                 $(".standard-nav-controls").hide();
             }
         } else {
+            $("#downloadStandardBtn, #fullStandardBtn").hide();
             $('#addDefectBtn').hide();
             $("#standardPdfCanvas").addClass("d-none").hide();
             $("#standardPdfPlaceholder").removeClass("d-none").addClass("d-flex").find("p").text("Pilih Item untuk menampilkan Standard PDF");
@@ -481,5 +485,128 @@ document.addEventListener('DOMContentLoaded', function () {
         if ($(this).val()) {
             $(this).removeClass('is-invalid');
         }
+    });
+
+    // Modal Full Screen PDF Logic
+    let fullPdfDoc = null,
+        fullPageNum = 1,
+        fullScale = 1.0,
+        currentPdfIndexFull = 0,
+        totalPdfFilesFull = 1,
+        fullCurrentItemId = null;
+
+    const fullCanvas = document.getElementById("the-canvas");
+    const fullCtx = fullCanvas ? fullCanvas.getContext("2d") : null;
+
+    $(document).on("click", ".view-pdf-btn, #fullStandardBtn, #fullSimilarBtn", function (e) {
+        e.preventDefault();
+        const itemId = $(this).data("id") || $('#itemSelect').val();
+        if (!itemId) return;
+
+        const isSimilar = $(this).data("similar");
+        totalPdfFilesFull = isSimilar ? 1 : ($(this).data("count") || (standardFiles ? standardFiles.length : 1));
+        currentPdfIndexFull = isSimilar ? "similar" : (standardFileIndex || 0);
+        fullCurrentItemId = itemId;
+
+        $("#pdfModal").modal("show");
+        loadFullPdf(itemId, currentPdfIndexFull);
+    });
+
+    function loadFullPdf(id, idx) {
+        if (!fullCanvas || !fullCtx) return;
+        let url;
+        if (idx === "similar") {
+            const selectedOpt = $('#itemSelect').find(':selected');
+            const similarUrl = selectedOpt.data('similar');
+            if (similarUrl) {
+                url = similarUrl;
+            } else {
+                url = window.pdfUrlPattern.replace("ID_PLACEHOLDER", id).replace("INDEX_PLACEHOLDER", 1);
+            }
+            $("#pdfInfo").text("Dimensi Part PDF");
+            $("#prevPdf, #nextPdf").hide();
+        } else {
+            url = window.pdfUrlPattern.replace("ID_PLACEHOLDER", id).replace("INDEX_PLACEHOLDER", idx);
+            $("#pdfInfo").text(`File ${idx + 1} of ${totalPdfFilesFull}`);
+            if (totalPdfFilesFull > 1) {
+                $("#prevPdf, #nextPdf").show();
+            } else {
+                $("#prevPdf, #nextPdf").hide();
+            }
+        }
+        fullPdfDoc = null;
+        fullPageNum = 1;
+        fullScale = 1.0;
+        fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
+        $("#pageInfo").text("Loading...");
+
+        pdfjsLib.getDocument(url).promise.then((pdf) => {
+            fullPdfDoc = pdf;
+            renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+        }).catch((err) => {
+            console.error(err);
+            $("#pageInfo").text("Gagal memuat PDF");
+        });
+    }
+
+    function renderFullPage(pdf, canvas, ctx, num, scale) {
+        if (!pdf || !canvas || !ctx) return;
+        pdf.getPage(num).then((page) => {
+            const viewport = page.getViewport({ scale: scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            }).promise.then(() => {
+                $("#pageInfo").text(`Page ${num} of ${pdf.numPages}`);
+                fullPageNum = num;
+            });
+        });
+    }
+
+    $("#prevPdf").click(function() {
+        if (typeof currentPdfIndexFull === 'number' && currentPdfIndexFull > 0) {
+            currentPdfIndexFull--;
+            loadFullPdf(fullCurrentItemId, currentPdfIndexFull);
+        }
+    });
+
+    $("#nextPdf").click(function() {
+        if (typeof currentPdfIndexFull === 'number' && currentPdfIndexFull < totalPdfFilesFull - 1) {
+            currentPdfIndexFull++;
+            loadFullPdf(fullCurrentItemId, currentPdfIndexFull);
+        }
+    });
+
+    $("#prevPage").click(function() {
+        if (fullPdfDoc && fullPageNum > 1) {
+            fullPageNum--;
+            renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+        }
+    });
+
+    $("#nextPage").click(function() {
+        if (fullPdfDoc && fullPageNum < fullPdfDoc.numPages) {
+            fullPageNum++;
+            renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+        }
+    });
+
+    $("#pdfZoomIn").click(function() {
+        fullScale += 0.25;
+        if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+    });
+
+    $("#pdfZoomOut").click(function() {
+        if (fullScale > 0.25) {
+            fullScale -= 0.25;
+            if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
+        }
+    });
+
+    $("#pdfZoomReset").click(function() {
+        fullScale = 1.0;
+        if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
     });
 });

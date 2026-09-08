@@ -175,14 +175,15 @@
                                 </div>
                             </div>
                             <small class="text-muted d-block mb-2"><i class="fas fa-info-circle mr-1"></i>Arahkan kursor ke sini sebelum menembak QR</small>
-                            <select class="form-control select2" name="item_id" id="itemSelect" required style="width: 100%;">
+                            <select class="form-control" name="item_id" id="itemSelect" required style="width: 100%;">
                                 <option value="" disabled selected style="font-weight:bold; color:#6c757d;">-- Pilih Item Part --</option>
                                 @foreach($items as $item)
                                     <option value="{{ $item->id }}"
                                         data-part-number="{{ $item->part_number ?? '' }}"
+                                        data-sap-code="{{ $item->sap_code ?? '' }}"
                                         data-sap_code="{{ $item->sap_code ?? '' }}"
                                         data-name="{{ $item->name }}"
-                                        data-defects="{{ json_encode($item->defects) }}"
+                                        data-defects='@json($item->defects ?? [])'
                                         data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                         data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                         data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
@@ -190,7 +191,7 @@
                                         data-description="{{ $item->description ?? '' }}"
                                         data-customer="{{ $item->customer ?? '' }}"
                                         data-weight-standard="{{ $item->weight_standard ?? '' }}"
-                                        data-dimension-standards="{{ json_encode($item->dimension_standards) }}">
+                                        data-dimension-standards='@json($item->dimension_standards ?? [])'>
                                         {{ $item->name }} ({{ $item->part_number ?? '-' }})
                                         {{ $item->sap_code ? '- SAP: '.$item->sap_code : '' }}
                                     </option>
@@ -471,6 +472,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Full Screen PDF Preview -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 95vw; margin: 10px auto;">
+            <div class="modal-content" style="height: 92vh; display: flex; flex-direction: column;">
+                <div class="modal-header py-2 bg-dark text-white align-items-center">
+                    <h6 class="modal-title font-weight-bold" id="pdfModalLabel">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i> Preview Standard PDF - <span id="pdfInfo">File 1</span>
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group mr-3">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomOut" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomReset" title="Reset Zoom"><i class="fas fa-sync-alt"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="pdfZoomIn" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                        </div>
+                        <div class="btn-group mr-3">
+                            <button type="button" class="btn btn-sm btn-outline-light" id="prevPdf" title="File PDF Sebelumnya" style="display:none;"><i class="fas fa-step-backward"></i> Prev File</button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="prevPage" title="Halaman Sebelumnya"><i class="fas fa-chevron-left"></i> Prev</button>
+                            <span class="btn btn-sm btn-dark disabled text-white" id="pageInfo" style="min-width: 100px;">Page 1</span>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="nextPage" title="Halaman Selanjutnya">Next <i class="fas fa-chevron-right"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="nextPdf" title="File PDF Selanjutnya" style="display:none;">Next File <i class="fas fa-step-forward"></i></button>
+                        </div>
+                        <button type="button" class="close text-white opacity-100" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body p-0 bg-secondary flex-grow-1" style="overflow: auto; display: flex; justify-content: center; align-items: flex-start;">
+                    <canvas id="the-canvas" class="shadow-lg my-2" style="background-color: white;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -490,8 +524,8 @@
         window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
         window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
     </script>
-    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
-    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}?v={{ time() }}"></script>
     <script>
         $(document).ready(function () {
             if(typeof window.initItemSearch === 'function') {

@@ -216,18 +216,22 @@
                                         <td class="align-middle">
                                             <div class="form-group mb-0">
                                                 <label class="font-weight-bold mb-1">Sub-Part Name</label>
-                                                <select class="form-control select2" name="item_id" id="itemSelect" required style="width: 100%; min-width: 260px;">
+                                                <select class="form-control" name="item_id" id="itemSelect" required style="width: 100%; min-width: 260px;">
                                                     <option value="" disabled selected style="font-weight: bold; color: #6c757d;">-- Pilih Sub-Part --</option>
                                                     @foreach($items as $item)
                                                         <option value="{{ $item->id }}" 
+                                                            data-name="{{ $item->name }}"
                                                             data-part-number="{{ $item->part_number ?? '' }}"
-                                                            data-defects="{{ json_encode($item->defects) }}"
-                                                            data-dimension-standards="{{ json_encode($item->dimension_standards ?? []) }}"
+                                                            data-sap_code="{{ $item->sap_code ?? '' }}"
+                                                            data-customer="{{ $item->customer ?? '' }}"
+                                                            data-defects='@json($item->defects ?? [])'
+                                                            data-dimension-standards='@json($item->dimension_standards ?? [])'
                                                             data-file="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                             data-files="{{ json_encode($item->file_paths ?? ($item->file_path ? [$item->file_path] : [])) }}"
                                                             data-standard="{{ $item->file_path ? route('items.pdf', $item->id) : '' }}"
                                                             data-similar="{{ $item->similar_part_file_path ? route('items.pdf', ['id' => $item->id, 'index' => 'similar']) : '' }}">
                                                             {{ $item->name }} ({{ $item->part_number ?? '-' }})
+                                                            {{ $item->sap_code ? '- SAP: ' . $item->sap_code : '' }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -473,17 +477,75 @@
                                 </div>
                             </div>
                         </div>
+            </div>
+        </div>
+
+    <!-- Modal PDF Full Screen -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document" style="max-width: 90%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfModalLabel">Preview PDF</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-center mb-2 align-items-center flex-wrap">
+                        <div class="mr-3 mb-2">
+                            <button type="button" class="btn btn-dark btn-sm" id="prevPdf">
+                                <i class="fas fa-file-pdf"></i> <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <span id="pdfInfo" class="mx-2 font-weight-bold">File 1 of ?</span>
+                            <button type="button" class="btn btn-dark btn-sm" id="nextPdf">
+                                <i class="fas fa-arrow-right"></i> <i class="fas fa-file-pdf"></i>
+                            </button>
+                        </div>
+                        <div class="mr-3 mb-2 border-left pl-3">
+                            <button type="button" class="btn btn-secondary btn-sm" id="prevPage">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="pageInfo" class="mx-2">Page 1 of ?</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="nextPage">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="border-left pl-3 mb-2">
+                            <button type="button" class="btn btn-primary btn-sm mr-1" id="pdfZoomIn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm mr-1" id="pdfZoomReset">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="pdfZoomOut">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center bg-dark" style="overflow: auto; max-height: 80vh;">
+                        <canvas id="the-canvas" style="border: 1px solid black; direction: ltr;"></canvas>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}"></script>
     <script>
         window.pdfWorkerSrc = "{{ asset('js/vendor/pdf.worker.min.js') }}";
         window.pdfUrlPattern = "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}";
         window.partDimensionStandards = {!! $partDimensionStandards ?? '{}' !!};
+
+        $(document).ready(function () {
+            if (typeof window.initItemSearch === 'function') {
+                window.initItemSearch('itemSelect', {
+                    placeholder: 'Cari Sub-Part Name / Part No / Kode SAP...'
+                });
+            }
+        });
     </script>
-    <script src="{{ asset('js/checksheet/incoming-create.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-create.js') }}?v={{ time() }}"></script>
 @endpush
