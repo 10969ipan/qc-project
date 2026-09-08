@@ -110,6 +110,18 @@
         .text-uppercase {
             text-transform: uppercase;
         }
+
+        /* Dimension table */
+        .dimension-table { width: 100%; border-collapse: collapse; margin: 0; color: #000 !important; }
+        .dimension-table td, .dimension-table th {
+            padding: 1px !important;
+            font-size: 5.5px;
+            line-height: 1.1;
+            border: 1px solid #000 !important;
+            text-align: center;
+            color: #000 !important;
+        }
+        .dimension-table th { background-color: #f2f2f2 !important; font-weight: bold; color: #000 !important; }
     </style>
 </head>
 
@@ -152,7 +164,7 @@
                 <th rowspan="2">Lot Number</th>
                 <th rowspan="2" style="width: 35px;">Qty (Pcs)</th>
                 <th rowspan="2" style="width: 30px;">Samp.</th>
-                <th rowspan="2" style="width: 30px;">Dimensi</th>
+                <th rowspan="2">Dimensi</th>
                 <th rowspan="2" style="width: 25px;">Jdg</th>
                 <th colspan="2">Detail NG</th>
                 <th rowspan="2" style="width: 30px;">QC</th>
@@ -172,7 +184,101 @@
                     <td>{{ $cs->lot_batch_number }}</td>
                     <td>{{ $cs->quantity }}</td>
                     <td>{{ $cs->sampling_size_pcs }}</td>
-                    <td>{{ $cs->check_dimensi }}</td>
+                    @php
+                        $dimData = is_array($cs->check_dimensi)
+                            ? $cs->check_dimensi
+                            : json_decode($cs->check_dimensi ?? '', true);
+                        $dimData = is_array($dimData) ? $dimData : [];
+
+                        $hasUserInputs = false;
+                        $flatPoints = [];
+                        foreach ($dimData as $k => $v) {
+                            if (is_array($v)) {
+                                foreach ($v as $pIdx => $pVal) {
+                                    if ($pVal !== null && $pVal !== '' && $pVal !== '-') {
+                                        $hasUserInputs = true;
+                                        $flatPoints[$pIdx] = $pVal;
+                                    }
+                                }
+                            } else {
+                                if ($v !== null && $v !== '' && $v !== '-') {
+                                    $hasUserInputs = true;
+                                    $pIdx = is_numeric($k) ? (int) $k : $k;
+                                    $flatPoints[$pIdx] = $v;
+                                }
+                            }
+                        }
+
+                        $itemStandardsRaw = $cs->item->dimension_standards ?? null;
+                        $standards = [];
+                        if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+                            foreach ($itemStandardsRaw as $idx => $std) {
+                                if (is_array($std)) {
+                                    $pKey = (string)($std['point'] ?? ($idx + 1));
+                                    $standards[$pKey] = [
+                                        'size' => $std['size'] ?? null,
+                                        'tolerance' => $std['tolerance'] ?? null,
+                                        'min' => $std['min'] ?? null,
+                                        'max' => $std['max'] ?? null,
+                                    ];
+                                }
+                            }
+                        }
+
+                        $activePoints = [];
+                        foreach ($flatPoints as $pKey => $pVal) {
+                            $activePoints[$pKey] = true;
+                        }
+                        foreach ($standards as $pKey => $std) {
+                            $activePoints[$pKey] = true;
+                        }
+                        $activePoints = array_keys($activePoints);
+                        sort($activePoints);
+
+                        if (empty($activePoints) && $hasUserInputs) {
+                            $activePoints = range(1, count($flatPoints));
+                        }
+                    @endphp
+                    <td style="padding: 1px; vertical-align: middle;">
+                        @if($hasUserInputs && !empty($activePoints))
+                            <table class="dimension-table">
+                                <thead>
+                                    @php
+                                        $hasStdData = false;
+                                        foreach ($activePoints as $j) {
+                                            if (isset($standards[$j]) && ($standards[$j]['size'] !== null && $standards[$j]['size'] !== '' && $standards[$j]['size'] !== '-')) {
+                                                $hasStdData = true; break;
+                                            }
+                                        }
+                                    @endphp
+                                    @if($hasStdData)
+                                        <tr>
+                                            @foreach ($activePoints as $j)
+                                                <th>{{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}</th>
+                                            @endforeach
+                                        </tr>
+                                    @endif
+                                    <tr>
+                                        @foreach($activePoints as $j)
+                                            <th>Ø{{ $j }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        @foreach($activePoints as $j)
+                                            @php
+                                                $val = $flatPoints[$j] ?? '-';
+                                            @endphp
+                                            <td>{{ ($val !== '' && $val !== null) ? $val : '-' }}</td>
+                                        @endforeach
+                                    </tr>
+                                </tbody>
+                            </table>
+                        @else
+                            {{ (is_string($cs->check_dimensi) && $cs->check_dimensi && $cs->check_dimensi !== '[]' && $cs->check_dimensi !== '{}') ? $cs->check_dimensi : '-' }}
+                        @endif
+                    </td>
                     <td>
                         <span class="badge badge-{{ $cs->judgment == 'OK' ? 'success' : 'danger' }}">
                             {{ $cs->judgment }}
