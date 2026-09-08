@@ -493,10 +493,14 @@ class InProcessChecksheetService extends BaseService
             return false;
         }
 
-        $item = is_object($checksheet) ? $checksheet->item : null;
+        $item = is_object($checksheet) && isset($checksheet->item) ? $checksheet->item : null;
         $itemId = is_object($checksheet) ? $checksheet->item_id : ($checksheet['item_id'] ?? null);
         if (!$item && $itemId) {
-            $item = Item::find($itemId);
+            static $itemLocalCache = [];
+            if (!array_key_exists($itemId, $itemLocalCache)) {
+                $itemLocalCache[$itemId] = Item::find($itemId);
+            }
+            $item = $itemLocalCache[$itemId];
         }
 
         $dimensionStandards = null;
