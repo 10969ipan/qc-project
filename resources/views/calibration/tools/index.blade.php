@@ -144,37 +144,89 @@
 
 <div class="card shadow mb-2">
     <div class="card-body p-0">
-        <table style="width:100%; border-collapse:collapse;">
+        <table style="width:100%; border-collapse:collapse; border:1px solid #dee2e6;">
             <tr>
                 <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo"
+                         style="max-width:58px; max-height:44px; object-fit:contain;">
                 </td>
-                <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
-                    <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
+                    <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800"
+                        style="font-size:0.85rem; letter-spacing:0.3px;">
                         MASTER DATA ALAT UKUR - {{ strtoupper($plantCode) }}
                     </h1>
                 </td>
-                <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                    <table style="border-collapse:collapse; font-size:0.68rem;">
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                            <td style="padding:1px 2px;">:</td>
-                            <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                    <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                        <tr style="height:100%;">
+                            <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                <!-- No. Dokumen Table -->
+                                <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                    <tr>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">
+                                            {{ $docHeader['no_dokumen'] }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                        <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                <!-- Signature Table -->
+                                <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:388px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
+                                            <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Dibuat</th>
+                                            <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diperiksa</th>
+                                            <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                <div style="writing-mode: vertical-rl; transform: rotate(180deg); -webkit-transform: rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                    06-Jan-26
+                                                </div>
+                                            </td>
+                                            <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                            </td>
+                                            <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                            </td>
+                                            <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Mida H</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QS</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
                         </tr>
                     </table>
                 </td>

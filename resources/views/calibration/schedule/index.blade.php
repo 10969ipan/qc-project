@@ -3,44 +3,101 @@
 @section('title', 'Jadwal Kalibrasi')
 
 @section('content')
+    @php
+        $plantCode = strtolower($plantCode ?: 'jakarta');
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('schedule_kalibrasi', $plantCode, [
+            'no_dokumen' => $plantCode === 'jakarta' ? 'QC-JKT-F-052' : 'QC-KRW-F-052',
+            'tgl_terbit' => '25/03/2015',
+            'revisi' => '1 / 21/03/2018',
+            'halaman' => '1 / 1'
+        ]);
+    @endphp
     <div class="container-fluid">
     <div class="card shadow mb-2">
         <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse;">
+            <table style="width:100%; border-collapse:collapse; border:1px solid #dee2e6;">
                 <tr>
                     <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
                         <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo"
                              style="max-width:58px; max-height:44px; object-fit:contain;">
                     </td>
-                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                    <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800"
                             style="font-size:0.85rem; letter-spacing:0.3px;">
                             SCHEDULE KALIBRASI ALAT UKUR
                         </h1>
                     </td>
-                    <td style="width:1px; border:1px solid #dee2e6; border-left:none; padding:4px 8px; vertical-align:middle; white-space:nowrap;">
-                        <table style="border-collapse:collapse; font-size:0.68rem;">
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">No. Dokumen</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">
-                                    {{ strtolower($plantCode) === 'jakarta' ? 'QC-JKT-F-052' : 'QC-KRW-F-052' }}
+                    <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                        <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                            <tr style="height:100%;">
+                                <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                    <!-- No. Dokumen Table -->
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">
+                                                {{ $docHeader['no_dokumen'] }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                        </tr>
+                                    </table>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Tgl. Terbit</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">25/03/2015</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Revisi / Tgl</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 21/03/2018</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">Halaman</td>
-                                <td style="padding:1px 2px;">:</td>
-                                <td style="padding:1px 3px; font-weight:600; white-space:nowrap;">1 / 1</td>
+                                <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                    <!-- Signature Table -->
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:388px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Dibuat</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diperiksa</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                    <div style="writing-mode: vertical-rl; transform: rotate(180deg); -webkit-transform: rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                        06-Jan-26
+                                                    </div>
+                                                </td>
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                    <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                </td>
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                </td>
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
+                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Mida H</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QS</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
                             </tr>
                         </table>
                     </td>
@@ -247,11 +304,8 @@
                             <i class="fas fa-undo fa-sm"></i>
                         </a>
                         <div class="d-flex align-items-center px-2" style="gap: 5px; border-left: 1px solid #e2e8f0;">
-                            <a href="{{ route('calibration.schedule.pdf', request()->all()) }}" class="btn btn-danger btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Export PDF">
-                                <i class="fas fa-file-pdf fa-sm"></i>
-                            </a>
                             <a href="{{ route('calibration.schedule.print', request()->all()) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
-                                <i class="fas fa-print fa-sm"></i>
+                                <i class="fas fa-print fa-sm"></i> Print / Cetak
                             </a>
                         </div>
                         <div class="d-flex align-items-center" style="gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 10px;">
@@ -329,7 +383,7 @@
                                         $actuals[$m][$w] = true;
                                     }
 
-                                    // Identify PR Pending (PR exists, but no Actual yet in that month/week)
+                                    // Identify PR Pending (PR exists, but NOT yet verified)
                                     $prPendings = [];
                                     foreach ($tool->schedules as $s) {
                                         if (!empty($s->pr_number)) {
@@ -337,8 +391,29 @@
                                             $d = (int) $s->schedule_date->format('j');
                                             $w = (int) ceil($d / 7.75);
                                             if ($w > 4) $w = 4;
-                                            // Only if not already verification exists
-                                            if (!isset($actuals[$m][$w])) {
+                                            
+                                            // Check if this schedule has already been verified
+                                            $sDate = $s->schedule_date->copy()->startOfDay();
+                                            $isVerified = false;
+                                            
+                                            // 1. Any actual verification in the same month?
+                                            if (!empty($actuals[$m])) {
+                                                $isVerified = true;
+                                            } else {
+                                                // 2. Any verification record in tool->verifications in same month or within 60 days after schedule date?
+                                                foreach ($tool->verifications as $v) {
+                                                    if ($v->tanggal_verifikasi) {
+                                                        $vDate = $v->tanggal_verifikasi->copy()->startOfDay();
+                                                        if ($vDate->format('Y-m') === $sDate->format('Y-m') || 
+                                                            ($vDate->gte($sDate) && $vDate->diffInDays($sDate) <= 60)) {
+                                                            $isVerified = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (!$isVerified) {
                                                 $prPendings[$m][$w] = true;
                                             }
                                         }

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
     @php
         $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('master_data', $headerPlantCode, [
-            'no_dokumen' => '-',
-            'tgl_terbit' => '-',
-            'revisi' => '-',
-            'halaman' => '- / -'
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('master_alat_ukur', $headerPlantCode, [
+            'no_dokumen' => strtolower($headerPlantCode) === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215',
+            'tgl_terbit' => '28/11/2019',
+            'revisi' => '- / -',
+            'halaman' => '1 / 1'
         ]);
     @endphp
 <html lang="id">
@@ -77,28 +77,79 @@
     {{-- ── Document Header ── --}}
     <table class="header-table">
         <tr>
-            <td class="logo">
-                <img src="{{ public_path('master item/ipp.jpg') }}"
-                     style="max-width: 70px; max-height: 50px;">
+            <td class="logo" style="width: 50px; text-align: center; vertical-align: middle;">
+                <img src="{{ public_path('master item/ipp.jpg') }}" height="35">
             </td>
-            <td class="title">MASTER DATA ALAT UKUR</td>
-            <td class="doc-info">
-                <table>
+            <td class="title" style="text-align: center; vertical-align: middle; font-weight: bold; font-size: 9pt; text-transform: uppercase;">
+                MASTER DATA ALAT UKUR - {{ strtoupper($plantCode) }}
+            </td>
+            <td class="doc-info" style="width: 320px; padding: 2px; vertical-align: middle;">
+                <table style="width: 100%; border-collapse: collapse; border: none;">
                     <tr>
-                        <td>No. Dokumen</td>
-                        <td>: {{ strtolower($plantCode) === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Tgl. Terbit</td>
-                        <td>: 28/11/2019</td>
-                    </tr>
-                    <tr>
-                        <td>Revisi / Tgl</td>
-                        <td>: - / -</td>
-                    </tr>
-                    <tr>
-                        <td>Halaman</td>
-                        <td>: 1 / 1</td>
+                        <td style="border: none; padding: 0 4px 0 0; vertical-align: middle; width: 42%;">
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #666; font-size: 6.5pt; line-height: 1.2; background: #fff;">
+                                <tr>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #333; white-space: nowrap;">No. Dokumen</td>
+                                    <td style="border: 1px solid #666; padding: 1px 2px; text-align: center; color: #333;">:</td>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #000; white-space: nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #333; white-space: nowrap;">Tgl. Terbit</td>
+                                    <td style="border: 1px solid #666; padding: 1px 2px; text-align: center; color: #333;">:</td>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #000; white-space: nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #333; white-space: nowrap;">Revisi / Tgl</td>
+                                    <td style="border: 1px solid #666; padding: 1px 2px; text-align: center; color: #333;">:</td>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #000; white-space: nowrap;">{{ $docHeader['revisi'] }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #333; white-space: nowrap;">Halaman</td>
+                                    <td style="border: 1px solid #666; padding: 1px 2px; text-align: center; color: #333;">:</td>
+                                    <td style="border: 1px solid #666; padding: 1px 4px; font-weight: bold; color: #000; white-space: nowrap;">{{ $docHeader['halaman'] }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="border: none; padding: 0; vertical-align: middle; width: 58%;">
+                            <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; text-align: center; font-size: 4.5pt; line-height: 1.0; background: #fff;">
+                                <thead>
+                                    <tr>
+                                        <th style="border: 1px solid #000; padding: 1px; font-weight: 600; background: #fff; width: 14%; font-size: 4.5pt;">Tgl.</th>
+                                        <th style="border: 1px solid #000; padding: 1px; font-weight: 600; background: #fff; width: 28%; font-size: 4.5pt;">Dibuat</th>
+                                        <th style="border: 1px solid #000; padding: 1px; font-weight: 600; background: #fff; width: 30%; font-size: 4.5pt;">Diperiksa</th>
+                                        <th style="border: 1px solid #000; padding: 1px; font-weight: 600; background: #fff; width: 28%; font-size: 4.5pt;">Diketahui</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td rowspan="3" style="border: 1px solid #000; padding: 0; vertical-align: middle; text-align: center;">
+                                            <div style="font-size: 4.5pt; line-height: 0.95;">
+                                                06<br>-<br>Jan<br>-<br>26
+                                            </div>
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
+                                            <img src="{{ public_path('signatures/mida.png') }}" style="max-height: 38px; max-width: 58px;">
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
+                                            <img src="{{ public_path('signatures/iwan.png') }}" style="max-height: 38px; max-width: 65px;">
+                                        </td>
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
+                                            <img src="{{ public_path('signatures/desti.png') }}" style="max-height: 38px; max-width: 58px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Mida H</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Iwan S</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Desti K</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Spv. QS</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Asst. Mgr Quality</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Mgr. Quality</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
                     </tr>
                 </table>
             </td>
