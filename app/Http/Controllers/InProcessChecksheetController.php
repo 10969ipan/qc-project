@@ -124,7 +124,7 @@ class InProcessChecksheetController extends Controller
         // For restricted roles (inspector, plating), override request plant to their own plant
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
 
-        if (in_array(auth()->user()->role, $restrictedRoles)) {
+        if (in_array(auth()->user()->role, $restrictedRoles) && !empty(auth()->user()->plant_id)) {
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
@@ -577,7 +577,7 @@ class InProcessChecksheetController extends Controller
     {
         // For restricted roles (inspector, plating), override request plant to their own plant
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
-        if (in_array(auth()->user()->role, $restrictedRoles)) {
+        if (in_array(auth()->user()->role, $restrictedRoles) && !empty(auth()->user()->plant_id)) {
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 
@@ -699,7 +699,7 @@ class InProcessChecksheetController extends Controller
     public function printView(Request $request)
     {
         $restrictedRoles = ['inspector', 'kashift_plating', 'supervisor_plating', 'manager_plating'];
-        if (in_array(auth()->user()->role, $restrictedRoles)) {
+        if (in_array(auth()->user()->role, $restrictedRoles) && !empty(auth()->user()->plant_id)) {
             $request->merge(['plant' => auth()->user()->plant_id]);
         }
 

@@ -185,7 +185,7 @@ class InProcessChecksheetService extends BaseService
                                 ->orWhere('dimension_check', '{}')
                                 ->orWhere('dimension_check', 'null')
                                 ->orWhere('dimension_check', '""')
-                                ->orWhereRaw("dimension_check NOT REGEXP '[0-9]'");
+                                ->orWhereRaw("CAST(dimension_check AS CHAR) NOT REGEXP '[0-9]'");
                         });
 
                     if ($plantId) {
