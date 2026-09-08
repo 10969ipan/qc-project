@@ -28,7 +28,7 @@
             font-size: 8px;
             color: #000;
             margin: 0;
-            padding: 10mm 10mm 5mm 10mm;
+            padding: 6mm 6mm 5mm 6mm;
         }
 
         .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
@@ -41,31 +41,33 @@
 
         .sub-header { margin-bottom: 6px; font-size: 9px; color: #000; }
 
-        .table { width: 100%; border-collapse: collapse; table-layout: auto; }
+        .table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
 
         .table th {
             border: 1px solid #000;
-            padding: 3px 4px;
+            padding: 2px 2px;
             text-align: center;
             vertical-align: middle;
-            background-color: #fff;
+            background-color: #f2f2f2;
             color: #000;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 6.5px;
-            white-space: nowrap;
+            font-size: 6px;
+            word-wrap: break-word;
         }
 
         .table td {
             border: 1px solid #000;
-            padding: 3px 4px;
+            padding: 2px 2px;
             text-align: center;
             vertical-align: middle;
-            font-size: 7.5px;
+            font-size: 7px;
             color: #000;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         tbody tr {
@@ -125,34 +127,34 @@
     <table class="table">
         <thead>
             <tr>
-                <th rowspan="2">No</th>
+                <th rowspan="2" style="width: 2.5%;">No</th>
                 @if($isVerification)
-                    <th rowspan="2">QR-Code</th>
+                    <th rowspan="2" style="width: 5%;">QR-Code</th>
                 @endif
-                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
-                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
-                <th rowspan="2">SUB-PART NAME / PART NO / SUPPLIER</th>
-                <th rowspan="2">Tanggal Datang</th>
-                <th rowspan="2">Lot/Batch</th>
-                <th colspan="2">Qty (Pcs)</th>
-                <th rowspan="2">Check Dimensi</th>
-                <th rowspan="2">Judgment</th>
+                <th rowspan="2" style="width: 7.5%;">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2" style="width: 7.5%;">Waktu Check<br>(Start - Finish / CT)</th>
+                <th rowspan="2" style="width: 14%;">SUB-PART NAME / PART NO / SUPPLIER</th>
+                <th rowspan="2" style="width: 5.5%;">Tanggal Datang</th>
+                <th rowspan="2" style="width: 6.5%;">Lot/Batch</th>
+                <th colspan="2" style="width: 8%;">Qty (Pcs)</th>
+                <th rowspan="2" style="width: 21%;">Check Dimensi</th>
+                <th rowspan="2" style="width: 3.5%;">Judgment</th>
                 @if(!$isVerification)
-                    <th colspan="2">Detail NG</th>
-                    <th colspan="4">Approval Status</th>
+                    <th colspan="2" style="width: 7%;">Detail NG</th>
+                    <th colspan="4" style="width: 14%;">Approval Status</th>
                 @endif
-                <th rowspan="2">Keterangan</th>
+                <th rowspan="2" style="width: 3%;">Keterangan</th>
             </tr>
             <tr>
-                <th>Total (Pcs)</th>
-                <th>Sampling Size</th>
+                <th style="width: 4%;">Total (Pcs)</th>
+                <th style="width: 4%;">Sampling Size</th>
                 @if(!$isVerification)
-                    <th>Pcs</th>
-                    <th>Jenis NG</th>
-                    <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                    <th style="font-size: 5.5px;">Supervisor QC</th>
-                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
-                    <th style="font-size: 5.5px;">Manager QC</th>
+                    <th style="width: 2.5%;">Pcs</th>
+                    <th style="width: 4.5%;">Jenis NG</th>
+                    <th style="width: 3.5%; font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                    <th style="width: 3.5%; font-size: 5.5px;">Supervisor QC</th>
+                    <th style="width: 3.5%; font-size: 5.5px;">Asst Mgr QC</th>
+                    <th style="width: 3.5%; font-size: 5.5px;">Manager QC</th>
                 @endif
             </tr>
         </thead>
