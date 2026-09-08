@@ -204,16 +204,8 @@ class InProcessChecksheetController extends Controller
             return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
         });
 
-        $allItems = Item::byCategory('INPROSES')
-            ->when($plantId, function ($q) use ($plantId) {
-                $q->where('plant_id', $plantId);
-            })
-            ->orderBy('name')
-            ->get();
-
-        if ($allItems->isEmpty()) {
-            $allItems = $items;
-        }
+        // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
+        $allItems = collect();
 
         $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v2_{$plantId}", 1800, function () use ($plantId) {
             $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
@@ -249,6 +241,64 @@ class InProcessChecksheetController extends Controller
         $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
 
         return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines', 'hiddenItemIds', 'allItems', 'ngItemIds', 'hideNgRows', 'hideNoDimensionRows'));
+    }
+
+    /**
+     * Lazy load hidden items modal rows via AJAX
+     */
+    public function getHiddenItemsModalData(Request $request)
+    {
+        $plantInput = $request->get('plant');
+        $plantId = \App\Models\Plant::resolveId($plantInput) ?? optional(auth()->user()->plant)->id;
+
+        $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hiddenItemIds = [];
+        if ($setting && !empty($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (is_array($decoded)) {
+                $hiddenItemIds = array_values(array_filter($decoded));
+            }
+        }
+
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
+            $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
+        });
+
+        $allItems = Item::byCategory('INPROSES')
+            ->when($plantId, function ($q) use ($plantId) {
+                $q->where('plant_id', $plantId);
+            })
+            ->orderBy('name')
+            ->get();
+
+        if ($allItems->isEmpty()) {
+            $allItems = $items;
+        }
+
+        $partDimensionStandards = \Illuminate\Support\Facades\Cache::remember("in_proc_standards", 43200, function () {
+            return $this->getConsolidatedStandards();
+        });
+
+        $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
+
+        $sortedAllItems = $allItems->sortByDesc(function ($item) use ($hiddenItemIds) {
+            return in_array($item->id, $hiddenItemIds ?? []);
+        });
+
+        $html = view('in_process.partials.hidden_items_rows', compact('sortedAllItems', 'hiddenItemIds', 'partDimensionStandards', 'ngItemIds'))->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'count_hidden' => count($hiddenItemIds)
+        ]);
     }
 
     public function updateHiddenItems(Request $request)
