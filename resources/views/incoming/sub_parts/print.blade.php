@@ -41,7 +41,7 @@
 
         .sub-header { margin-bottom: 6px; font-size: 9px; color: #000; }
 
-        .table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .table { width: 100%; border-collapse: collapse; table-layout: auto; max-width: 100%; }
 
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
@@ -127,34 +127,34 @@
     <table class="table">
         <thead>
             <tr>
-                <th rowspan="2" style="width: 2.5%;">No</th>
+                <th rowspan="2">No</th>
                 @if($isVerification)
-                    <th rowspan="2" style="width: 5%;">QR-Code</th>
+                    <th rowspan="2">QR-Code</th>
                 @endif
-                <th rowspan="2" style="width: 7.5%;">Checked<br>(Tgl / Shift / Inisial)</th>
-                <th rowspan="2" style="width: 7.5%;">Waktu Check<br>(Start - Finish / CT)</th>
-                <th rowspan="2" style="width: 14%;">SUB-PART NAME / PART NO / SUPPLIER</th>
-                <th rowspan="2" style="width: 5.5%;">Tanggal Datang</th>
-                <th rowspan="2" style="width: 6.5%;">Lot/Batch</th>
-                <th colspan="2" style="width: 8%;">Qty (Pcs)</th>
-                <th rowspan="2" style="width: 21%;">Check Dimensi</th>
-                <th rowspan="2" style="width: 3.5%;">Judgment</th>
+                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                <th rowspan="2">SUB-PART NAME / PART NO / SUPPLIER</th>
+                <th rowspan="2">Tanggal Datang</th>
+                <th rowspan="2">Lot/Batch</th>
+                <th colspan="2">Qty (Pcs)</th>
+                <th rowspan="2" style="min-width: 120px;">Check Dimensi</th>
+                <th rowspan="2">Judgment</th>
                 @if(!$isVerification)
-                    <th colspan="2" style="width: 7%;">Detail NG</th>
-                    <th colspan="4" style="width: 14%;">Approval Status</th>
+                    <th colspan="2">Detail NG</th>
+                    <th colspan="4">Approval Status</th>
                 @endif
-                <th rowspan="2" style="width: 3%;">Keterangan</th>
+                <th rowspan="2">Keterangan</th>
             </tr>
             <tr>
-                <th style="width: 4%;">Total (Pcs)</th>
-                <th style="width: 4%;">Sampling Size</th>
+                <th>Total (Pcs)</th>
+                <th>Sampling Size</th>
                 @if(!$isVerification)
-                    <th style="width: 2.5%;">Pcs</th>
-                    <th style="width: 4.5%;">Jenis NG</th>
-                    <th style="width: 3.5%; font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                    <th style="width: 3.5%; font-size: 5.5px;">Supervisor QC</th>
-                    <th style="width: 3.5%; font-size: 5.5px;">Asst Mgr QC</th>
-                    <th style="width: 3.5%; font-size: 5.5px;">Manager QC</th>
+                    <th>Pcs</th>
+                    <th>Jenis NG</th>
+                    <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                    <th style="font-size: 5.5px;">Supervisor QC</th>
+                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                    <th style="font-size: 5.5px;">Manager QC</th>
                 @endif
             </tr>
         </thead>
