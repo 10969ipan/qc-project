@@ -5,10 +5,11 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
-        overflow: auto !important;
+        max-height: none !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
         border: none !important;
-        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+        box-shadow: none !important;
     }
     #checksheetTable {
         border-collapse: separate !important;
