@@ -2026,7 +2026,7 @@
                 }
 
                 var hiddenItemsLoaded = false;
-                $('#modalManageHiddenItems').on('show.bs.modal', function () {
+                $('#modalHiddenItems, #modalManageHiddenItems').on('show.bs.modal', function () {
                     if (!hiddenItemsLoaded) {
                         $('#tbodyHiddenItems').html('<tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2 text-primary"></i> Memuat data item...</td></tr>');
                         fetch("{{ route('in_process.hidden_items_data', ['plant' => request('plant')]) }}")

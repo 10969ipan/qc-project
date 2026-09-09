@@ -279,6 +279,19 @@
         <tbody>
             @foreach($checksheets as $checksheet)
                 @php
+                    $isHiddenItem = !empty($hiddenItemIds) && in_array($checksheet->item_id, $hiddenItemIds);
+                    $isDimensionNgRow = app(\App\Services\InProcessChecksheetService::class)->isDimensionNg($checksheet, $partDimensionStandards ?? null);
+                    $isHiddenNgRow = (($hideNgRows ?? '0') == '1' && (in_array($checksheet->judgment, ['NG', 'NG Dimensi']) || ($checksheet->total_ng ?? 0) > 0 || $isDimensionNgRow));
+                    $isNoDimensionRow = app(\App\Services\InProcessChecksheetService::class)->isNoDimensionRow($checksheet);
+                    $isHiddenNoDimensionRow = (($hideNoDimensionRows ?? '0') == '1' && $isNoDimensionRow);
+                    $isRowHidden = $isHiddenItem || $isHiddenNgRow || $isHiddenNoDimensionRow;
+                @endphp
+
+                @if($isRowHidden)
+                    @continue
+                @endif
+
+                @php
                     $defectsData = is_array($checksheet->defects)
                         ? $checksheet->defects
                         : json_decode($checksheet->defects, true);

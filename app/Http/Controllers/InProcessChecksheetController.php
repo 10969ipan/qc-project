@@ -785,9 +785,59 @@ class InProcessChecksheetController extends Controller
             $filters['end_date'] = now()->toDateString();
         }
 
+        $plantId = \App\Models\Plant::resolveId($filters['plant']) ?? optional(auth()->user()->plant)->id;
+
+        $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hiddenItemIds = [];
+        if ($setting && !empty($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (is_array($decoded)) {
+                $hiddenItemIds = array_values(array_filter($decoded));
+            }
+        }
+
+        $settingNgRows = \App\Models\GeneralSetting::where('key', 'hide_ng_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNgRows = ($settingNgRows && $settingNgRows->value == '1') ? '1' : '0';
+
+        $settingNoDimRows = \App\Models\GeneralSetting::where('key', 'hide_no_dimension_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNoDimensionRows = ($settingNoDimRows && $settingNoDimRows->value == '1') ? '1' : '0';
+
+        if (!empty($hiddenItemIds)) {
+            $filters['hidden_item_ids'] = $hiddenItemIds;
+        }
+        if ($hideNgRows == '1') {
+            $filters['hide_ng_rows'] = '1';
+        }
+        if ($hideNoDimensionRows == '1') {
+            $filters['hide_no_dimension_rows'] = '1';
+        }
+
         $checksheets = $this->inProcessService->buildFilteredQuery($filters)->latest()->get();
 
         $partDimensionStandards = $this->getConsolidatedStandards();
+
+        if (!empty($hiddenItemIds) || $hideNgRows === '1' || $hideNoDimensionRows === '1') {
+            $checksheets = $checksheets->reject(function ($c) use ($hiddenItemIds, $hideNgRows, $hideNoDimensionRows, $partDimensionStandards) {
+                $isHiddenItem = !empty($hiddenItemIds) && in_array($c->item_id, $hiddenItemIds);
+                $isNgRow = ($hideNgRows === '1') && (
+                    in_array($c->judgment, ['NG', 'NG Dimensi']) ||
+                    ($c->total_ng ?? 0) > 0 ||
+                    $this->inProcessService->isDimensionNg($c, $partDimensionStandards)
+                );
+                $isNoDimRow = ($hideNoDimensionRows === '1') && $this->inProcessService->isNoDimensionRow($c);
+
+                return $isHiddenItem || $isNgRow || $isNoDimRow;
+            });
+        }
 
         $user = auth()->user();
         $plantCode = 'karawang';
@@ -808,7 +858,7 @@ class InProcessChecksheetController extends Controller
         $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
         $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
-        return view('in_process.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate'));
+        return view('in_process.print', compact('checksheets', 'partDimensionStandards', 'plantName', 'plantCode', 'startDate', 'endDate', 'hiddenItemIds', 'hideNgRows', 'hideNoDimensionRows'));
     }
 
     /**
@@ -845,8 +895,57 @@ class InProcessChecksheetController extends Controller
         $filters = $request->only(['start_date', 'end_date', 'approval_status', 'item_id', 'operator_initials', 'customer', 'part_no', 'plant']);
         $filters['plant'] = $plantId;
 
+        $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hiddenItemIds = [];
+        if ($setting && !empty($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (is_array($decoded)) {
+                $hiddenItemIds = array_values(array_filter($decoded));
+            }
+        }
+
+        $settingNgRows = \App\Models\GeneralSetting::where('key', 'hide_ng_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNgRows = ($settingNgRows && $settingNgRows->value == '1') ? '1' : '0';
+
+        $settingNoDimRows = \App\Models\GeneralSetting::where('key', 'hide_no_dimension_rows_inprocess')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideNoDimensionRows = ($settingNoDimRows && $settingNoDimRows->value == '1') ? '1' : '0';
+
+        if (!empty($hiddenItemIds)) {
+            $filters['hidden_item_ids'] = $hiddenItemIds;
+        }
+        if ($hideNgRows == '1') {
+            $filters['hide_ng_rows'] = '1';
+        }
+        if ($hideNoDimensionRows == '1') {
+            $filters['hide_no_dimension_rows'] = '1';
+        }
+
         $query = $this->inProcessService->buildFilteredQuery($filters)->latest();
         $checksheets = $query->get();
+
+        if (!empty($hiddenItemIds) || $hideNgRows === '1' || $hideNoDimensionRows === '1') {
+            $partDimensionStandards = $this->getConsolidatedStandards();
+            $checksheets = $checksheets->reject(function ($c) use ($hiddenItemIds, $hideNgRows, $hideNoDimensionRows, $partDimensionStandards) {
+                $isHiddenItem = !empty($hiddenItemIds) && in_array($c->item_id, $hiddenItemIds);
+                $isNgRow = ($hideNgRows === '1') && (
+                    in_array($c->judgment, ['NG', 'NG Dimensi']) ||
+                    ($c->total_ng ?? 0) > 0 ||
+                    $this->inProcessService->isDimensionNg($c, $partDimensionStandards)
+                );
+                $isNoDimRow = ($hideNoDimensionRows === '1') && $this->inProcessService->isNoDimensionRow($c);
+
+                return $isHiddenItem || $isNgRow || $isNoDimRow;
+            });
+        }
 
         $maxPoints = 20;
 
