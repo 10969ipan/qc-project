@@ -60,12 +60,13 @@ agar border atas dan bawah kedua tabel sejajar secara otomatis.
 
 ---
 
-## Ketentuan Kolom Dibuat (QC vs QS)
+## Ketentuan Kolom Dibuat (QC vs QS & Plant)
 
-| Area / Menu | Nama | Jabatan | Asset File |
-|---|---|---|---|
-| **Quality Control (QC / Checksheet)**<br>*(Incoming, Sub Parts, In-Process, Checksheet, dll)* | **Arief H** | Spv. QC | `signatures/arif.png` |
-| **Quality System (QS)**<br>*(Kalibrasi, Verification, Schedule, Problem Logs, dll)* | **Mida H** | Spv. QS | `signatures/mida.png` |
+| Area / Menu | Plant | Nama | Jabatan | Asset File |
+|---|---|---|---|---|
+| **Quality Control (QC / Checksheet)**<br>*(Incoming, Sub Parts, In-Process, Checksheet, FPA, Plating, Painting, Sortir, dll)* | Karawang (Default) | **Arief H** | Spv. QC | `signatures/arif.png` |
+| **Quality Control (QC / Checksheet)**<br>*(Incoming, Sub Parts, In-Process, Checksheet, FPA, Plating, Painting, Sortir, dll)* | Jakarta / JKT | **Masuli** | Spv. QC | `signatures/suli.png` |
+| **Quality System (QS)**<br>*(Kalibrasi, Verification, Schedule, Problem Logs, dll)* | All Plants | **Mida H** | Spv. QS | `signatures/mida.png` |
 
 ---
 
@@ -73,10 +74,11 @@ agar border atas dan bawah kedua tabel sejajar secara otomatis.
 
 Lokasi file: `public/signatures/`
 
-| File | Nama | Jabatan | Kolom | Area Menu |
+| File | Nama | Jabatan | Kolom | Area Menu / Plant |
 |---|---|---|---|---|
-| `arif.png` | Arief H | Spv. QC | Dibuat | Quality Control (Checksheet) |
-| `mida.png` | Mida H | Spv. QS | Dibuat | Quality System |
+| `arif.png` | Arief H | Spv. QC | Dibuat | Quality Control (Checksheet) — Karawang |
+| `suli.png` | Masuli | Spv. QC | Dibuat | Quality Control (Checksheet) — Jakarta |
+| `mida.png` | Mida H | Spv. QS | Dibuat | Quality System (Semua Plant) |
 | `iwan.png` | Iwan S | Asst. Mgr Quality | Diperiksa | Semua Area |
 | `desti.png` | Desti K | Mgr. Quality | Diketahui | Semua Area |
 

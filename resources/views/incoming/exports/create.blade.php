@@ -178,8 +178,13 @@
 
                                                             {{-- Tanda tangan Dibuat --}}
                                                             <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                                <img src="{{ asset('signatures/arif.png') }}" alt="Arief H"
-                                                                     style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                                @if(in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                                                    <img src="{{ asset('signatures/suli.png') }}" alt="Masuli"
+                                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                                @else
+                                                                    <img src="{{ asset('signatures/arif.png') }}" alt="Arief H"
+                                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                                @endif
                                                             </td>
 
                                                             {{-- Tanda tangan Diperiksa --}}
@@ -197,7 +202,7 @@
 
                                                         {{-- BARIS 2: Nama --}}
                                                         <tr>
-                                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Arief H</td>
+                                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">{{ in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']) ? 'Masuli' : 'Arief H' }}</td>
                                                             <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
                                                             <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
                                                         </tr>

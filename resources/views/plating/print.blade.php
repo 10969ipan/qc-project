@@ -129,20 +129,92 @@
 
 <body>
 
-    {{-- Header: Logo | Judul | Info Dokumen --}}
-    <table class="header-table">
+    {{-- Header: Logo | Judul | Info Dokumen + Signatures --}}
+    <table class="header-table" style="width:100%; border-collapse:collapse; border:1px solid #000; margin-bottom:8px;">
         <tr>
-            <td class="logo">
-                <img src="{{ asset('master item/ipp.jpg') }}"
-                     style="max-width: 75px; max-height: 50px; object-fit: contain;">
+            <td class="logo" style="width:75px; border:1px solid #000; padding:5px; text-align:center; vertical-align:middle;">
+                <img src="{{ asset('master item/ipp.jpg') }}" style="max-width:58px; max-height:44px; object-fit:contain;">
             </td>
-            <td class="title">{{ $docHeader['judul'] ?? 'LAPORAN CHECK SHEET PLATING' }}</td>
-            <td class="doc-info">
-                <table>
-                    <tr><td style="width: 70px;">No. Dokumen</td><td>: {{ $docHeader['no_dokumen'] ?? '-' }}</td></tr>
-                    <tr><td>Tgl. Terbit</td><td>: {{ $docHeader['tgl_terbit'] ?? '-' }}</td></tr>
-                    <tr><td>Revisi Ke</td><td>: {{ $docHeader['revisi'] ?? '-' }}</td></tr>
-                    <tr><td>Hal</td><td>: {{ $docHeader['halaman'] ?? '1/1' }}</td></tr>
+            <td class="title" style="border:1px solid #000; padding:5px 8px; text-align:center; vertical-align:middle; font-weight:bold; font-size:10pt; color:#000; text-transform:uppercase;">
+                {{ $docHeader['judul'] ?? 'LAPORAN CHECK SHEET PLATING' }}
+            </td>
+            <td style="width:1px; border:1px solid #000; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                    <tr style="height:100%;">
+
+                        {{-- ===== [3A] Tabel No. Dokumen ===== --}}
+                        <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                            <table style="border-collapse:collapse; border:1px solid #000; font-size:7.5pt; line-height:1.2; background:#fff; height:100%; width:100%;">
+                                <tr>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">{{ $docHeader['no_dokumen'] ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] ?? '1/1' }}</td>
+                                </tr>
+                            </table>
+                        </td>
+
+                        {{-- ===== [3B] Tabel Signatures ===== --}}
+                        <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                            <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:7pt; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:322px;">
+                                <thead>
+                                    <tr>
+                                        <th style="border:1px solid #000; padding:2px 2px; font-weight:600; color:#495057; background:#fff; width:22px;">Tgl.</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Dibuat</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diperiksa</th>
+                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diketahui</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td rowspan="3" style="border:1px solid #000; padding:2px; vertical-align:middle; text-align:center; width:22px;">
+                                            <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:6.5pt; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                06-Jan-26
+                                            </div>
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                            @if(in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                                <img src="{{ asset('signatures/suli.png') }}" alt="Masuli" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                            @else
+                                                <img src="{{ asset('signatures/arif.png') }}" alt="Arief H" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                            @endif
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                            <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                        </td>
+                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                            <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">{{ in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']) ? 'Masuli' : 'Arief H' }}</td>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Iwan S</td>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Desti K</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Spv. QC</td>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+
+                    </tr>
                 </table>
             </td>
         </tr>
