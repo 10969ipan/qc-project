@@ -51,11 +51,21 @@ agar border atas dan bawah kedua tabel sejajar secara otomatis.
 | **Lebar kolom signature** | `120px` | `100px` |
 | **Lebar kolom Tgl.** | `28px` | `22px` |
 | **Total lebar signature tabel** | `388px` | `322px` |
-| **Signature max-height** | `54px` | `46px` |
-| **Signature max-width** | `115px` | `92px` |
+| **Signature max-height** | `68px` | `58px` |
+| **Signature max-width** | `130px` | `110px` |
+| **Signature transform** | `scale(1.35)` | `scale(1.35)` |
 | **Tinggi sel signature** | `58px` | `48px` |
 | **Padding sel signature** | `4px` | `3px` |
 | **Judul alignment** | `<h1>` kiri | `<div>` rata tengah |
+
+---
+
+## Ketentuan Kolom Dibuat (QC vs QS)
+
+| Area / Menu | Nama | Jabatan | Asset File |
+|---|---|---|---|
+| **Quality Control (QC / Checksheet)**<br>*(Incoming, Sub Parts, In-Process, Checksheet, dll)* | **Arief H** | Spv. QC | `signatures/arif.png` |
+| **Quality System (QS)**<br>*(Kalibrasi, Verification, Schedule, Problem Logs, dll)* | **Mida H** | Spv. QS | `signatures/mida.png` |
 
 ---
 
@@ -63,14 +73,16 @@ agar border atas dan bawah kedua tabel sejajar secara otomatis.
 
 Lokasi file: `public/signatures/`
 
-| File | Nama | Jabatan | Kolom |
-|---|---|---|---|
-| `mida.png` | Mida H | Spv. QS | Dibuat |
-| `iwan.png` | Iwan S | Asst. Mgr Quality | Diperiksa |
-| `desti.png` | Desti K | Mgr. Quality | Diketahui |
+| File | Nama | Jabatan | Kolom | Area Menu |
+|---|---|---|---|---|
+| `arif.png` | Arief H | Spv. QC | Dibuat | Quality Control (Checksheet) |
+| `mida.png` | Mida H | Spv. QS | Dibuat | Quality System |
+| `iwan.png` | Iwan S | Asst. Mgr Quality | Diperiksa | Semua Area |
+| `desti.png` | Desti K | Mgr. Quality | Diketahui | Semua Area |
 
 > File signature harus berformat **PNG dengan background transparan**.
 > `mix-blend-mode: multiply` mengandalkan alpha channel PNG untuk menyatu dengan background putih.
+> `transform: scale(1.35); transform-origin: center;` membuat tanda tangan tampak sedikit melampaui kolom secara realistis tanpa merubah ukuran sel tabel.
 
 ---
 
@@ -79,10 +91,11 @@ Lokasi file: `public/signatures/`
 | # | Property | Alasan |
 |---|---|---|
 | 1 | `mix-blend-mode: multiply` pada `<img>` | Membuat background PNG putih transparan, tanda tangan terlihat bersih |
-| 2 | `padding: 0 !important` pada `<td>` wrapper kanan | Padding diatur di dalam tabel anak; jika ada di sini akan merusak alignment |
-| 3 | `table-layout: fixed` pada Signature Table | Memastikan kolom tetap pada lebar `<th width="...">` yang sudah ditentukan |
-| 4 | `height: 100%` pada kedua tabel anak | Membuat border atas-bawah No. Dokumen dan Signature sejajar |
-| 5 | `white-space: nowrap` pada baris jabatan | Mencegah "Asst. Mgr Quality" wrap ke baris kedua |
+| 2 | `transform: scale(1.35); transform-origin: center;` | Efek meluap keluar batas sel tanpa mengubah dimensi/lebar kolom tabel |
+| 3 | `padding: 0 !important` pada `<td>` wrapper kanan | Padding diatur di dalam tabel anak; jika ada di sini akan merusak alignment |
+| 4 | `table-layout: fixed` pada Signature Table | Memastikan kolom tetap pada lebar `<th width="...">` yang sudah ditentukan |
+| 5 | `height: 100%` pada kedua tabel anak | Membuat border atas-bawah No. Dokumen dan Signature sejajar |
+| 6 | `white-space: nowrap` pada baris jabatan | Mencegah "Asst. Mgr Quality" wrap ke baris kedua |
 
 ---
 
@@ -211,28 +224,29 @@ Gunakan template ini untuk file `index.blade.php`. Border color: `#dee2e6`.
                                     </td>
 
                                     {{-- Tanda tangan Dibuat --}}
-                                    {{-- mix-blend-mode:multiply WAJIB ada — jangan hapus --}}
+                                    {{-- Gunakan arif.png (Arief H / Spv. QC) untuk Checksheet / QC --}}
+                                    {{-- Gunakan mida.png (Mida H / Spv. QS) untuk Quality System --}}
                                     <td style="border:1px solid #dee2e6; padding:4px;
-                                               vertical-align:middle; height:58px; background:#fff;">
-                                        <img src="{{ asset('signatures/mida.png') }}" alt="Mida H"
-                                             style="max-height:54px; max-width:115px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                               vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                        <img src="{{ asset('signatures/arif.png') }}" alt="Arief H"
+                                             style="max-height:68px; max-width:130px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
 
                                     {{-- Tanda tangan Diperiksa --}}
                                     <td style="border:1px solid #dee2e6; padding:4px;
-                                               vertical-align:middle; height:58px; background:#fff;">
+                                               vertical-align:middle; height:58px; background:#fff; text-align:center;">
                                         <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S"
-                                             style="max-height:54px; max-width:115px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                             style="max-height:68px; max-width:130px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
 
                                     {{-- Tanda tangan Diketahui --}}
                                     <td style="border:1px solid #dee2e6; padding:4px;
-                                               vertical-align:middle; height:58px; background:#fff;">
+                                               vertical-align:middle; height:58px; background:#fff; text-align:center;">
                                         <img src="{{ asset('signatures/desti.png') }}" alt="Desti K"
-                                             style="max-height:54px; max-width:115px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                             style="max-height:68px; max-width:130px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
                                 </tr>
 
@@ -240,7 +254,7 @@ Gunakan template ini untuk file `index.blade.php`. Border color: `#dee2e6`.
                                 <tr>
                                     <td style="border:1px solid #dee2e6; padding:2px 6px;
                                                font-weight:600; font-size:0.63rem;
-                                               color:#212529; white-space:nowrap;">Mida H</td>
+                                               color:#212529; white-space:nowrap;">Arief H</td>
                                     <td style="border:1px solid #dee2e6; padding:2px 6px;
                                                font-weight:600; font-size:0.63rem;
                                                color:#212529; white-space:nowrap;">Iwan S</td>
@@ -252,7 +266,7 @@ Gunakan template ini untuk file `index.blade.php`. Border color: `#dee2e6`.
                                 {{-- BARIS 3: Jabatan (white-space:nowrap wajib) --}}
                                 <tr>
                                     <td style="border:1px solid #dee2e6; padding:2px 6px;
-                                               font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QS</td>
+                                               font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QC</td>
                                     <td style="border:1px solid #dee2e6; padding:2px 6px;
                                                font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
                                     <td style="border:1px solid #dee2e6; padding:2px 6px;
@@ -394,23 +408,26 @@ Gunakan template ini untuk file `print.blade.php`. Border color: `#000`.
                                         </div>
                                     </td>
 
+                                    {{-- Tanda tangan Dibuat --}}
+                                    {{-- Gunakan arif.png (Arief H / Spv. QC) untuk Checksheet / QC --}}
+                                    {{-- Gunakan mida.png (Mida H / Spv. QS) untuk Quality System --}}
                                     <td style="border:1px solid #000; padding:3px;
-                                               vertical-align:middle; height:48px; background:#fff;">
-                                        <img src="{{ asset('signatures/mida.png') }}" alt="Mida H"
-                                             style="max-height:46px; max-width:92px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                               vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                        <img src="{{ asset('signatures/arif.png') }}" alt="Arief H"
+                                             style="max-height:58px; max-width:110px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
                                     <td style="border:1px solid #000; padding:3px;
-                                               vertical-align:middle; height:48px; background:#fff;">
+                                               vertical-align:middle; height:48px; background:#fff; text-align:center;">
                                         <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S"
-                                             style="max-height:46px; max-width:92px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                             style="max-height:58px; max-width:110px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
                                     <td style="border:1px solid #000; padding:3px;
-                                               vertical-align:middle; height:48px; background:#fff;">
+                                               vertical-align:middle; height:48px; background:#fff; text-align:center;">
                                         <img src="{{ asset('signatures/desti.png') }}" alt="Desti K"
-                                             style="max-height:46px; max-width:92px;
-                                                    object-fit:contain; mix-blend-mode:multiply;">
+                                             style="max-height:58px; max-width:110px;
+                                                    object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                     </td>
                                 </tr>
 
@@ -418,7 +435,7 @@ Gunakan template ini untuk file `print.blade.php`. Border color: `#000`.
                                 <tr>
                                     <td style="border:1px solid #000; padding:1px 5px;
                                                font-weight:600; font-size:6.5pt;
-                                               color:#212529; white-space:nowrap;">Mida H</td>
+                                               color:#212529; white-space:nowrap;">Arief H</td>
                                     <td style="border:1px solid #000; padding:1px 5px;
                                                font-weight:600; font-size:6.5pt;
                                                color:#212529; white-space:nowrap;">Iwan S</td>
@@ -430,7 +447,7 @@ Gunakan template ini untuk file `print.blade.php`. Border color: `#000`.
                                 {{-- BARIS 3: Jabatan --}}
                                 <tr>
                                     <td style="border:1px solid #000; padding:1px 5px;
-                                               font-size:6.5pt; color:#495057; white-space:nowrap;">Spv. QS</td>
+                                               font-size:6.5pt; color:#495057; white-space:nowrap;">Spv. QC</td>
                                     <td style="border:1px solid #000; padding:1px 5px;
                                                font-size:6.5pt; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
                                     <td style="border:1px solid #000; padding:1px 5px;
