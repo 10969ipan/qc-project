@@ -75,14 +75,14 @@
                                                         06-Jan-26
                                                     </div>
                                                 </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
-                                                    <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                                 </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
-                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                                 </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff;">
-                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:54px; max-width:115px; object-fit:contain; mix-blend-mode:multiply;">
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                                 </td>
                                             </tr>
                                             <tr>

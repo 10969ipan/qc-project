@@ -166,14 +166,14 @@
                                                 06<br>-<br>Jan<br>-<br>26
                                             </div>
                                         </td>
-                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
-                                            <img src="{{ public_path('signatures/mida.png') }}" style="max-height: 38px; max-width: 58px;">
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff; text-align: center;">
+                                            <img src="{{ public_path('signatures/mida.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
                                         </td>
-                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
-                                            <img src="{{ public_path('signatures/iwan.png') }}" style="max-height: 38px; max-width: 65px;">
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff; text-align: center;">
+                                            <img src="{{ public_path('signatures/iwan.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
                                         </td>
-                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff;">
-                                            <img src="{{ public_path('signatures/desti.png') }}" style="max-height: 38px; max-width: 58px;">
+                                        <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff; text-align: center;">
+                                            <img src="{{ public_path('signatures/desti.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
                                         </td>
                                     </tr>
                                     <tr>
