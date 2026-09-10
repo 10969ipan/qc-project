@@ -9,6 +9,10 @@
         'halaman'    => '1/1'
     ]);
     $isVerification = request('view_mode') === 'verifikasi';
+
+    // Chunk data to 10 items per page
+    $chunks = $checksheets->isNotEmpty() ? $checksheets->chunk(10) : collect([collect([])]);
+    $totalPages = max(1, $chunks->count());
 @endphp
 <html lang="id">
 
@@ -30,6 +34,17 @@
             background: #fff !important;
             margin: 0;
             padding: 8mm 8mm 5mm 8mm;
+        }
+
+        /* ===== PAGE BREAK ===== */
+        .print-page {
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .print-page:last-child {
+            page-break-after: auto;
+            break-after: auto;
         }
 
         /* ===== HEADER DOKUMEN ===== */
@@ -141,425 +156,417 @@
 
 <body>
 
-    {{-- Header: Logo | Judul | Info Dokumen + Signatures --}}
-    <table class="header-table" style="width:100%; border-collapse:collapse; border:1px solid #000; margin-bottom:8px;">
-        <tr>
-            <td class="logo" style="width:75px; border:1px solid #000; padding:5px; text-align:center; vertical-align:middle;">
-                <img src="{{ asset('master item/ipp.jpg') }}" style="max-width:58px; max-height:44px; object-fit:contain;">
-            </td>
-            <td class="title" style="border:1px solid #000; padding:5px 8px; text-align:center; vertical-align:middle; font-weight:bold; font-size:10pt; color:#000; text-transform:uppercase;">
-                {{ $docHeader['judul'] ?? 'LAPORAN DATA CHECKSHEET FIRST PIECE APPROVAL' }}
-            </td>
-            <td style="width:1px; border:1px solid #000; padding:0 !important; vertical-align:top; white-space:nowrap;">
-                <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
-                    <tr style="height:100%;">
+    @php $globalRowIndex = 0; @endphp
 
-                        {{-- ===== [3A] Tabel No. Dokumen ===== --}}
-                        <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
-                            <table style="border-collapse:collapse; border:1px solid #000; font-size:7.5pt; line-height:1.2; background:#fff; height:100%; width:100%;">
-                                <tr>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
-                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">{{ $docHeader['no_dokumen'] ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
-                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
-                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
-                                    <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                    <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] ?? '1/1' }}</td>
-                                </tr>
-                            </table>
-                        </td>
-
-                        {{-- ===== [3B] Tabel Signatures ===== --}}
-                        <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
-                            <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:7pt; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:322px;">
-                                <thead>
-                                    <tr>
-                                        <th style="border:1px solid #000; padding:2px 2px; font-weight:600; color:#495057; background:#fff; width:22px;">Tgl.</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Dibuat</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diperiksa</th>
-                                        <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diketahui</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td rowspan="3" style="border:1px solid #000; padding:2px; vertical-align:middle; text-align:center; width:22px;">
-                                            <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:6.5pt; font-weight:400; margin:0 auto; color:#6c757d;">
-                                                06-Jan-26
-                                            </div>
-                                        </td>
-                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
-                                            @if(in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
-                                                <img src="{{ asset('signatures/suli.png') }}" alt="Masuli" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                            @else
-                                                <img src="{{ asset('signatures/arif.png') }}" alt="Arief H" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                            @endif
-                                        </td>
-                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
-                                            <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                        </td>
-                                        <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
-                                            <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">{{ in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']) ? 'Masuli' : 'Arief H' }}</td>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Iwan S</td>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Desti K</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Spv. QC</td>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
-                                        <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Mgr. Quality</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    {{-- Sub-header: Periode --}}
-    <div class="sub-header">
-        <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
-        &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Plant:</strong> {{ strtoupper($plantName ?? $headerPlantCode) }}
-        @if(request('item_id'))
-            &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Part:</strong> {{ \App\Models\Item::find(request('item_id'))->name ?? request('item_id') }}
-        @endif
-        @if(request('customer'))
-            &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Cust:</strong> {{ request('customer') }}
-        @endif
-    </div>
-
-    {{-- Tabel Data --}}
-    <table class="table">
-        <thead>
-            <tr>
-                <th rowspan="2">No</th>
-                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
-                <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
-                <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
-                <th rowspan="2" style="width: 25%;">Check Dimensi</th>
-                <th rowspan="2">Berat Part</th>
-                <th rowspan="2">Qty<br>(Total / Sampling)</th>
-                <th rowspan="2">OK</th>
-                <th rowspan="2">NG</th>
-                @if(!$isVerification)
-                    <th colspan="2">Detail NG</th>
-                @endif
-                <th rowspan="2">Judgment</th>
-                @if(!$isVerification)
-                    <th colspan="4">Approval Status</th>
-                @endif
-                <th rowspan="2">Keterangan</th>
-            </tr>
-            <tr>
-                @if(!$isVerification)
-                    <th>Pcs</th>
-                    <th>Jenis</th>
-                    <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
-                    <th style="font-size: 5.5px;">Supervisor QC</th>
-                    <th style="font-size: 5.5px;">Asst Mgr QC</th>
-                    <th style="font-size: 5.5px;">Manager QC</th>
-                @endif
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($checksheets as $checksheet)
-                @php
-                    $defectsData = is_array($checksheet->defects)
-                        ? $checksheet->defects
-                        : json_decode($checksheet->defects, true);
-                    $pcsLines  = [];
-                    $nameLines = [];
-
-                    if (is_array($defectsData)) {
-                        foreach ($defectsData as $d) {
-                            if (is_array($d) && isset($d['type'])) {
-                                $pcsLines[]  = $d['qty'] ?? 1;
-                                $nameLines[] = $d['type'];
-                            } elseif (is_string($d)) {
-                                $pcsLines[]  = 1;
-                                $nameLines[] = $d;
-                            }
-                        }
-                    }
-
-                    $dimensions = is_array($checksheet->dimension_check)
-                        ? $checksheet->dimension_check
-                        : json_decode($checksheet->dimension_check, true);
-                    $dimensions = $dimensions ?: [];
-
-                    $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
-                    $standards = [];
-                    if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
-                        foreach ($itemStandardsRaw as $idx => $std) {
-                            if (is_array($std)) {
-                                $pKey = (string)($std['point'] ?? ($idx + 1));
-                                $standards[$pKey] = [
-                                    'size' => $std['size'] ?? null,
-                                    'tolerance' => $std['tolerance'] ?? null,
-                                    'min' => $std['min'] ?? null,
-                                    'max' => $std['max'] ?? null,
-                                ];
-                            }
-                        }
-                    }
-                    if (empty($standards)) {
-                        $itemPartNumber = strtoupper(str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? '')));
-                        $standards = $partDimensionStandards[$itemPartNumber] ?? [];
-                    }
-
-                    $activePoints = [];
-                    foreach ($dimensions as $cavKey => $points) {
-                        if (is_array($points)) {
-                            foreach ($points as $pKey => $pVal) {
-                                if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
-                                    $activePoints[$pKey] = true;
-                                }
-                            }
-                        }
-                    }
-                    foreach ($standards as $pKey => $std) { $activePoints[$pKey] = true; }
-                    $activePoints = array_keys($activePoints);
-                    sort($activePoints);
-                    if (empty($activePoints)) { $activePoints = range(1, 5); }
-
-                    $actualMaxCavity = 0;
-                    foreach ($dimensions as $cavKey => $pts) {
-                        $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
-                        $actualMaxCavity = max($actualMaxCavity, $cavNum);
-                    }
-                    $displayMaxCavity = max(5, $actualMaxCavity);
-                    $pointCount = count($activePoints);
-                    $fontSize = 6.5;
-                    if ($pointCount > 20) $fontSize = 4.5;
-                    elseif ($pointCount > 10) $fontSize = 5.5;
-
-                    $weights = is_array($checksheet->part_weight) ? $checksheet->part_weight
-                        : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true)
-                        : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
-
-                    $sec = (int) ($checksheet->cycle_time ?? 0);
-                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
-                @endphp
+    @foreach($chunks as $chunkIndex => $chunk)
+        <div class="print-page">
+            {{-- Header: Logo | Judul | Info Dokumen + Signatures --}}
+            <table class="header-table" style="width:100%; border-collapse:collapse; border:1px solid #000; margin-bottom:8px;">
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td style="white-space: nowrap;">
-                        {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
+                    <td class="logo" style="width:75px; border:1px solid #000; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" style="max-width:58px; max-height:44px; object-fit:contain;">
                     </td>
-                    <td style="white-space: nowrap;">
-                        {{ $checksheet->created_at ? $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $checksheet->created_at ? $checksheet->created_at->format('H:i') : '-' }} ({{ $ctStr }})
+                    <td class="title" style="border:1px solid #000; padding:5px 8px; text-align:center; vertical-align:middle; font-weight:bold; font-size:10pt; color:#000; text-transform:uppercase;">
+                        {{ $docHeader['judul'] ?? 'LAPORAN DATA CHECKSHEET FIRST PIECE APPROVAL' }}
                     </td>
+                    <td style="width:1px; border:1px solid #000; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                        <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                            <tr style="height:100%;">
 
+                                {{-- ===== [3A] Tabel No. Dokumen ===== --}}
+                                <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                    <table style="border-collapse:collapse; border:1px solid #000; font-size:7.5pt; line-height:1.2; background:#fff; height:100%; width:100%;">
+                                        <tr>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                            <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">{{ $docHeader['no_dokumen'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                            <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                            <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                            <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ ($chunkIndex + 1) . ' / ' . $totalPages }}</td>
+                                        </tr>
+                                    </table>
+                                </td>
 
-                    {{-- Item Part / Part No / Customer Combined Column --}}
-                    <td style="text-align: left;">
-                        <div style="font-weight: bold; font-size: 8.5px; color: #000;">{{ $checksheet->item->name ?? '-' }}</div>
-                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->part_number ?? '-' }}</div>
-                        <div style="font-size: 7px; color: #000;">{{ $checksheet->item->customer ?? '-' }}</div>
-                    </td>
-
-                    {{-- Check Dimensi --}}
-                    <td style="padding:0; vertical-align:top;">
-                        @if(count($dimensions) > 0)
-                            <table class="dimension-table" style="table-layout:fixed; width:100%; font-size:{{ $fontSize }}px;">
-                                <thead>
-                                    <tr>
-                                        <th style="width:10%;">Cav</th>
-                                        @foreach($activePoints as $j)
-                                            <th>Ø{{ $j }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for($i = 1; $i <= $displayMaxCavity; $i++)
-                                        @php
-                                            $rowHasData = false;
-                                            foreach ($activePoints as $j) {
-                                                $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
-                                                if ($val !== null && $val !== '' && $val !== '-' && $val !== 0 && $val !== '0') {
-                                                    $rowHasData = true;
-                                                    break;
-                                                }
-                                            }
-                                        @endphp
-                                        @if($rowHasData)
+                                {{-- ===== [3B] Tabel Signatures ===== --}}
+                                <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                    <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:7pt; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:322px;">
+                                        <thead>
                                             <tr>
-                                                <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
-                                                @foreach($activePoints as $j)
-                                                    @php
-                                                        $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
-                                                        $isNG = false;
-                                                        
-                                                        $std = null;
-                                                        if (!empty($standards)) {
-                                                            if (isset($standards[$j])) {
-                                                                $std = $standards[$j];
-                                                            } else {
-                                                                foreach ($standards as $itemStd) {
-                                                                    if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
-                                                                        $std = $itemStd;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-
-                                                        if ($std && is_numeric($val)) {
-                                                            $fVal = (float)$val;
-                                                            $epsilon = 0.00001;
-
-                                                            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                                $minBound = (float)$std['min'];
-                                                                if ($fVal < ($minBound - $epsilon)) $isNG = true;
-                                                            }
-                                                            if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                                $maxBound = (float)$std['max'];
-                                                                if ($fVal > ($maxBound + $epsilon)) $isNG = true;
-                                                            }
-
-                                                            if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                                                                $szStr = (string)$std['size'];
-                                                                if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
-                                                                    $base = (float)$szStr;
-                                                                    $tol = (string)$std['tolerance'];
-                                                                    $lb = $base; $ub = $base;
-                                                                    
-                                                                    if (str_contains($tol, '/')) {
-                                                                        $parts = explode('/', $tol);
-                                                                        foreach ($parts as $p) {
-                                                                            $p = trim(str_replace(',', '.', $p));
-                                                                            $fv = (float)$p;
-                                                                            if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
-                                                                            elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
-                                                                        }
-                                                                    } elseif (str_starts_with($tol, '+')) {
-                                                                        $ub = $base + (float)substr($tol, 1);
-                                                                    } elseif (str_starts_with($tol, '-')) {
-                                                                        $lb = $base + (float)$tol;
-                                                                    } else {
-                                                                        $tv = (float)$tol;
-                                                                        $lb = $base - $tv; $ub = $base + $tv;
-                                                                    }
-                                                                    
-                                                                    if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) $isNG = true;
-                                                                }
-                                                            }
-
-                                                            if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
-                                                                $szStr = (string)$std['size'];
-                                                                if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
-                                                                    $op = $szStr[0];
-                                                                    $bound = (float)substr($szStr, 1);
-                                                                    if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
-                                                                    elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
-                                                                }
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    <td @if($isNG) style="font-weight:bold; color:#000;" @endif>{{ $val }}</td>
-                                                @endforeach
+                                                <th style="border:1px solid #000; padding:2px 2px; font-weight:600; color:#495057; background:#fff; width:22px;">Tgl.</th>
+                                                <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Dibuat</th>
+                                                <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diperiksa</th>
+                                                <th style="border:1px solid #000; padding:2px 4px; font-weight:600; color:#495057; background:#fff; width:100px;">Diketahui</th>
                                             </tr>
-                                        @endif
-                                    @endfor
-                                </tbody>
-                            </table>
-                        @else
-                            <div style="padding:2px; font-size:6px; color:#000;">-</div>
-                        @endif
-                    </td>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td rowspan="3" style="border:1px solid #000; padding:2px; vertical-align:middle; text-align:center; width:22px;">
+                                                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:6.5pt; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                        06-Jan-26
+                                                    </div>
+                                                </td>
+                                                <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                                    @if(in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                                        <img src="{{ asset('signatures/suli.png') }}" alt="Masuli" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    @else
+                                                        <img src="{{ asset('signatures/arif.png') }}" alt="Arief H" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    @endif
+                                                </td>
+                                                <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+                                                <td style="border:1px solid #000; padding:3px; vertical-align:middle; height:48px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:58px; max-width:110px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">{{ in_array(strtolower($headerPlantCode ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']) ? 'Masuli' : 'Arief H' }}</td>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Iwan S</td>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-weight:600; font-size:6.5pt; color:#212529; white-space:nowrap;">Desti K</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Spv. QC</td>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                <td style="border:1px solid #000; padding:1px 5px; font-size:6.5pt; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
 
-                    {{-- Berat Part --}}
-                    <td style="white-space: nowrap; font-size: 6.5px; color: #000;">
-                        @php
-                            $filteredWeights = array_filter($weights ?? [], fn($w) => $w !== null && $w !== '');
-                        @endphp
-                        @if(count($filteredWeights) > 0)
-                            @foreach($filteredWeights as $ci => $wv)
-                                CAV{{ $ci+1 }}: {{ $wv }}gr<br>
-                            @endforeach
-                        @else
-                            -
-                        @endif
-                    </td>
-
-                    <td style="white-space: nowrap;">
-                        {{ number_format($checksheet->total_qty) }} / {{ number_format($checksheet->sampling_qty) }} Pcs
-                    </td>
-                    <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ok }}</td>
-                    <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ng }}</td>
-
-                    @if(!$isVerification)
-                        <td style="font-size: 6.5px; color: #000;">
-                            {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
-                        </td>
-                        <td style="font-size: 6.5px; color: #000;">
-                            {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
-                        </td>
-                    @endif
-
-                    {{-- Judgment (Full Black Bold Text) --}}
-                    <td style="font-weight: bold; white-space: nowrap; color: #000;">
-                        {{ $checksheet->judgment }}
-                    </td>
-
-                    @if(!$isVerification)
-                        {{-- 4 Approval Columns: Full Black Bold Text --}}
-                        @foreach(['kashift_qc' => 'kashift_approved_at', 'supervisor_qc' => 'supervisor_approved_at', 'asst_manager_qc' => 'asst_manager_approved_at', 'manager_qc' => 'manager_approved_at'] as $field => $timeField)
-                            <td style="white-space: nowrap; font-size: 6.5px; vertical-align: middle; color: #000;">
-                                @if($checksheet->$field === 'REJECTED')
-                                    <div style="font-weight: bold; font-size: 7px; color: #000;">REJECTED</div>
-                                    <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
-                                        {{ getRejectorName($checksheet->rejection_remarks) }}
-                                        @if($checksheet->$timeField)
-                                            <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
-                                        @endif
-                                    </div>
-                                @elseif($checksheet->$field)
-                                    <div style="font-weight: bold; font-size: 7px; color: #000;">APPROVED</div>
-                                    <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
-                                        {{ $checksheet->$field }}
-                                        @if($checksheet->$timeField)
-                                            <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
-                                        @endif
-                                    </div>
-                                @else
-                                    <div style="font-weight: bold; font-size: 7px; color: #000;">PENDING</div>
-                                @endif
-                            </td>
-                        @endforeach
-                    @endif
-
-                    <td style="text-align:left; font-size:7px; min-width:70px; word-break: break-word; color: #000;">
-                        @if($checksheet->rejection_remarks)
-                            <span>REJECTED: {{ $checksheet->rejection_remarks }}</span>
-                        @else
-                            {{ $checksheet->remarks ?? '-' }}
-                        @endif
+                            </tr>
+                        </table>
                     </td>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </table>
 
-    {{-- Footer --}}
-    <div class="print-footer" id="printFooter">
-        <span id="footerDateTime"></span>
-    </div>
+            {{-- Sub-header: Periode --}}
+            <div class="sub-header">
+                <strong>Periode:</strong> {{ $startDate }} s/d {{ $endDate }}
+                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Plant:</strong> {{ strtoupper($plantName ?? $headerPlantCode) }}
+                @if(request('item_id'))
+                    &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Part:</strong> {{ \App\Models\Item::find(request('item_id'))->name ?? request('item_id') }}
+                @endif
+                @if(request('customer'))
+                    &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Cust:</strong> {{ request('customer') }}
+                @endif
+            </div>
+
+            {{-- Tabel Data --}}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">No</th>
+                        <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                        <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                        <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
+                        <th rowspan="2" style="width: 25%;">Check Dimensi</th>
+                        <th rowspan="2">Qty<br>(Total / Sampling)</th>
+                        <th rowspan="2">OK</th>
+                        <th rowspan="2">NG</th>
+                        @if(!$isVerification)
+                            <th colspan="2">Detail NG</th>
+                        @endif
+                        <th rowspan="2">Judgment</th>
+                        @if(!$isVerification)
+                            <th colspan="4">Approval Status</th>
+                        @endif
+                        <th rowspan="2">Keterangan</th>
+                    </tr>
+                    <tr>
+                        @if(!$isVerification)
+                            <th>Pcs</th>
+                            <th>Jenis</th>
+                            <th style="font-size: 5.5px;">{{ $headerPlantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                            <th style="font-size: 5.5px;">Supervisor QC</th>
+                            <th style="font-size: 5.5px;">Asst Mgr QC</th>
+                            <th style="font-size: 5.5px;">Manager QC</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($chunk as $checksheet)
+                        @php
+                            $globalRowIndex++;
+                            $defectsData = is_array($checksheet->defects)
+                                ? $checksheet->defects
+                                : json_decode($checksheet->defects, true);
+                            $pcsLines  = [];
+                            $nameLines = [];
+
+                            if (is_array($defectsData)) {
+                                foreach ($defectsData as $d) {
+                                    if (is_array($d) && isset($d['type'])) {
+                                        $pcsLines[]  = $d['qty'] ?? 1;
+                                        $nameLines[] = $d['type'];
+                                    } elseif (is_string($d)) {
+                                        $pcsLines[]  = 1;
+                                        $nameLines[] = $d;
+                                    }
+                                }
+                            }
+
+                            $dimensions = is_array($checksheet->dimension_check)
+                                ? $checksheet->dimension_check
+                                : json_decode($checksheet->dimension_check, true);
+                            $dimensions = $dimensions ?: [];
+
+                            $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
+                            $standards = [];
+                            if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+                                foreach ($itemStandardsRaw as $idx => $std) {
+                                    if (is_array($std)) {
+                                        $pKey = (string)($std['point'] ?? ($idx + 1));
+                                        $standards[$pKey] = [
+                                            'size' => $std['size'] ?? null,
+                                            'tolerance' => $std['tolerance'] ?? null,
+                                            'min' => $std['min'] ?? null,
+                                            'max' => $std['max'] ?? null,
+                                        ];
+                                    }
+                                }
+                            }
+                            if (empty($standards)) {
+                                $itemPartNumber = strtoupper(str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? '')));
+                                $standards = $partDimensionStandards[$itemPartNumber] ?? [];
+                            }
+
+                            $activePoints = [];
+                            foreach ($dimensions as $cavKey => $points) {
+                                if (is_array($points)) {
+                                    foreach ($points as $pKey => $pVal) {
+                                        if ($pVal !== null && $pVal !== '' && $pVal !== '-' && $pVal !== 0 && $pVal !== '0') {
+                                            $activePoints[$pKey] = true;
+                                        }
+                                    }
+                                }
+                            }
+                            foreach ($standards as $pKey => $std) { $activePoints[$pKey] = true; }
+                            $activePoints = array_keys($activePoints);
+                            sort($activePoints);
+                            if (empty($activePoints)) { $activePoints = range(1, 5); }
+
+                            $actualMaxCavity = 0;
+                            foreach ($dimensions as $cavKey => $pts) {
+                                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                                $actualMaxCavity = max($actualMaxCavity, $cavNum);
+                            }
+                            $displayMaxCavity = max(5, $actualMaxCavity);
+                            $pointCount = count($activePoints);
+                            $fontSize = 6.5;
+                            if ($pointCount > 20) $fontSize = 4.5;
+                            elseif ($pointCount > 10) $fontSize = 5.5;
+
+                            $weights = is_array($checksheet->part_weight) ? $checksheet->part_weight
+                                : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true)
+                                : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
+
+                            $sec = (int) ($checksheet->cycle_time ?? 0);
+                            $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                        @endphp
+                        <tr>
+                            <td>{{ $globalRowIndex }}</td>
+                            <td style="white-space: nowrap;">
+                                {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
+                            </td>
+                            <td style="white-space: nowrap;">
+                                {{ $checksheet->created_at ? $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $checksheet->created_at ? $checksheet->created_at->format('H:i') : '-' }} ({{ $ctStr }})
+                            </td>
+
+                            {{-- Item Part / Part No / Customer Combined Column --}}
+                            <td style="text-align: left;">
+                                <div style="font-weight: bold; font-size: 8.5px; color: #000;">{{ $checksheet->item->name ?? '-' }}</div>
+                                <div style="font-size: 7px; color: #000;">{{ $checksheet->item->part_number ?? '-' }}</div>
+                                <div style="font-size: 7px; color: #000;">{{ $checksheet->item->customer ?? '-' }}</div>
+                            </td>
+
+                            {{-- Check Dimensi --}}
+                            <td style="padding:0; vertical-align:top;">
+                                @if(count($dimensions) > 0)
+                                    <table class="dimension-table" style="table-layout:fixed; width:100%; font-size:{{ $fontSize }}px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:10%;">Cav</th>
+                                                @foreach($activePoints as $j)
+                                                    <th>Ø{{ $j }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for($i = 1; $i <= $displayMaxCavity; $i++)
+                                                @php
+                                                    $rowHasData = false;
+                                                    foreach ($activePoints as $j) {
+                                                        $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null));
+                                                        if ($val !== null && $val !== '' && $val !== '-' && $val !== 0 && $val !== '0') {
+                                                            $rowHasData = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if($rowHasData)
+                                                    <tr>
+                                                        <td style="font-weight:bold; background:#f2f2f2;">{{ $i }}</td>
+                                                        @foreach($activePoints as $j)
+                                                            @php
+                                                                $val = $dimensions['cav'.$i][$j] ?? ($dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-'));
+                                                                $isNG = false;
+                                                                
+                                                                $std = null;
+                                                                if (!empty($standards)) {
+                                                                    if (isset($standards[$j])) {
+                                                                        $std = $standards[$j];
+                                                                    } else {
+                                                                        foreach ($standards as $itemStd) {
+                                                                            if (isset($itemStd['point']) && (string)$itemStd['point'] === (string)$j) {
+                                                                                $std = $itemStd;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                if ($std && is_numeric($val)) {
+                                                                    $fVal = (float)$val;
+                                                                    $epsilon = 0.00001;
+
+                                                                    if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                                                                        $minBound = (float)$std['min'];
+                                                                        if ($fVal < ($minBound - $epsilon)) $isNG = true;
+                                                                    }
+                                                                    if (!$isNG && ($std['max'] ?? null) !== null && $std['max'] !== '') {
+                                                                        $maxBound = (float)$std['max'];
+                                                                        if ($fVal > ($maxBound + $epsilon)) $isNG = true;
+                                                                    }
+
+                                                                    if (!$isNG && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                                                                        $szStr = (string)$std['size'];
+                                                                        if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                                                            $base = (float)$szStr;
+                                                                            $tol = (string)$std['tolerance'];
+                                                                            $lb = $base; $ub = $base;
+                                                                            
+                                                                            if (str_contains($tol, '/')) {
+                                                                                $parts = explode('/', $tol);
+                                                                                foreach ($parts as $p) {
+                                                                                    $p = trim(str_replace(',', '.', $p));
+                                                                                    $fv = (float)$p;
+                                                                                    if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                                                                    elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                                                                                }
+                                                                            } elseif (str_starts_with($tol, '+')) {
+                                                                                $ub = $base + (float)substr($tol, 1);
+                                                                            } elseif (str_starts_with($tol, '-')) {
+                                                                                $lb = $base + (float)$tol;
+                                                                            } else {
+                                                                                $tv = (float)$tol;
+                                                                                $lb = $base - $tv; $ub = $base + $tv;
+                                                                            }
+                                                                            
+                                                                            if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) $isNG = true;
+                                                                        }
+                                                                    }
+
+                                                                    if (!$isNG && ($std['size'] ?? null) !== null && $std['size'] !== '') {
+                                                                        $szStr = (string)$std['size'];
+                                                                        if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                                                            $op = $szStr[0];
+                                                                            $bound = (float)substr($szStr, 1);
+                                                                            if ($op === '+' && $fVal < ($bound - $epsilon)) $isNG = true;
+                                                                            elseif ($op === '-' && $fVal > ($bound + $epsilon)) $isNG = true;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            <td @if($isNG) style="font-weight:bold; color:#000;" @endif>{{ $val }}</td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endif
+                                            @endfor
+                                        </tbody>
+                                    </table>
+                                @else
+                                    <div style="padding:2px; font-size:6px; color:#000;">-</div>
+                                @endif
+                            </td>
+
+
+                            <td style="white-space: nowrap;">
+                                {{ number_format($checksheet->total_qty) }} / {{ number_format($checksheet->sampling_qty) }} Pcs
+                            </td>
+                            <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ok }}</td>
+                            <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ng }}</td>
+
+                            @if(!$isVerification)
+                                <td style="font-size: 6.5px; color: #000;">
+                                    {!! count($pcsLines) > 0 ? implode('<br>', $pcsLines) : '-' !!}
+                                </td>
+                                <td style="font-size: 6.5px; color: #000;">
+                                    {!! count($nameLines) > 0 ? implode('<br>', $nameLines) : '-' !!}
+                                </td>
+                            @endif
+
+                            {{-- Judgment (Full Black Bold Text) --}}
+                            <td style="font-weight: bold; white-space: nowrap; color: #000;">
+                                {{ $checksheet->judgment }}
+                            </td>
+
+                            @if(!$isVerification)
+                                {{-- 4 Approval Columns: Full Black Bold Text --}}
+                                @foreach(['kashift_qc' => 'kashift_approved_at', 'supervisor_qc' => 'supervisor_approved_at', 'asst_manager_qc' => 'asst_manager_approved_at', 'manager_qc' => 'manager_approved_at'] as $field => $timeField)
+                                    <td style="white-space: nowrap; font-size: 6.5px; vertical-align: middle; color: #000;">
+                                        @if($checksheet->$field === 'REJECTED')
+                                            <div style="font-weight: bold; font-size: 7px; color: #000;">REJECTED</div>
+                                            <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                                {{ getRejectorName($checksheet->rejection_remarks) }}
+                                                @if($checksheet->$timeField)
+                                                    <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                                @endif
+                                            </div>
+                                        @elseif($checksheet->$field)
+                                            <div style="font-weight: bold; font-size: 7px; color: #000;">APPROVED</div>
+                                            <div style="font-size: 5.5px; color: #000; line-height: 1.1;">
+                                                {{ $checksheet->$field }}
+                                                @if($checksheet->$timeField)
+                                                    <br>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/y H:i') }}
+                                                @endif
+                                            </div>
+                                        @else
+                                            <div style="font-weight: bold; font-size: 7px; color: #000;">PENDING</div>
+                                        @endif
+                                    </td>
+                                @endforeach
+                            @endif
+
+                            <td style="text-align:left; font-size:7px; min-width:70px; word-break: break-word; color: #000;">
+                                @if($checksheet->rejection_remarks)
+                                    <span>REJECTED: {{ $checksheet->rejection_remarks }}</span>
+                                @else
+                                    {{ $checksheet->remarks ?? '-' }}
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            {{-- Footer --}}
+            <div class="print-footer">
+                <span class="footerDateTime"></span>
+            </div>
+        </div>
+    @endforeach
 
     <script>
         (function () {
@@ -567,7 +574,10 @@
             var pad = function(n){ return n < 10 ? '0' + n : n; };
             var dateStr = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear()
                         + '  ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-            document.getElementById('footerDateTime').textContent = 'Dicetak: ' + dateStr;
+            var elements = document.querySelectorAll('.footerDateTime');
+            elements.forEach(function(el) {
+                el.textContent = 'Dicetak: ' + dateStr;
+            });
         })();
 
         window.onload = function () {
