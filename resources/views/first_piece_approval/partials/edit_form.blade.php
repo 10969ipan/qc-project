@@ -6,12 +6,9 @@
     @php
         $defectsArr = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true) ?? [];
     @endphp
-    {{-- Preserve filter parameters (scalar only, excluding form fields) --}}
-    @php
-        $formFields = ['item_id', 'date', 'shift', 'code_machine', 'category', 'total_qty', 'sampling_qty', 'total_ok', 'total_ng', 'judgment', 'operator_initials', 'part_weight', 'remarks', 'next_proses', 'dimensions', 'defect_types', 'defect_quantities', '_token', '_method', 'id'];
-    @endphp
-    @foreach(request()->all() as $key => $value)
-        @if(!in_array($key, $formFields) && is_scalar($value))
+    {{-- Preserve all filter and pagination parameters for redirect --}}
+    @foreach(request()->except(['_token', '_method', 'id']) as $key => $value)
+        @if(!is_array($value) && $value !== null && $value !== '')
             <input type="hidden" name="redirect_params[{{ $key }}]" value="{{ $value }}">
         @endif
     @endforeach
