@@ -1480,5 +1480,194 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // ==========================================
+        // MANAJEMEN HEADER DOKUMEN (DOCUMENT HEADERS)
+        // ==========================================
+        function loadDocumentHeaders() {
+            if (!window.settingsConfig || !window.settingsConfig.var_13) return;
+            $.ajax({
+                url: window.settingsConfig.var_13,
+                type: 'GET',
+                success: function(headers) {
+                    const tbody = $('#documentHeadersTable tbody');
+                    tbody.empty();
+
+                    const moduleLabels = {
+                        'master_data': 'Master Data Item',
+                        'in_process': 'In-Process Checksheet',
+                        'first_piece_approval': 'First Piece Approval (FPA)',
+                        'sub_assy': 'Sub Assy',
+                        'sortir': 'Sortir',
+                        'plating': 'Plating',
+                        'painting': 'Painting',
+                        'double_tape': 'Double Tape',
+                        'cross_cut': 'Cross-Cut',
+                        'cross_cut_painting': 'Cross-Cut Painting',
+                        'incoming_parts': 'Incoming Part',
+                        'incoming_materials': 'Incoming Material',
+                        'incoming_sub_parts': 'Incoming Sub-Part',
+                        'incoming_chemicals': 'Incoming Chemical',
+                        'incoming_exports': 'Incoming Export',
+                        'master_alat_ukur': 'Master Alat Ukur',
+                        'hasil_verifikasi_alat_ukur': 'Hasil Verifikasi Alat Ukur',
+                        'kakotora': 'Kakotora / Laporan NG',
+                        'customer_claim': 'List Claim Customer',
+                        'master_standard_performance_test': 'Master Standar Plating',
+                        'thickness': 'Thickness Test',
+                        'corrodkote': 'Corrodkote Test',
+                        'cass': 'CASS Test',
+                        'salt_spray': 'Salt Spray Test',
+                        'porecount': 'Porecount Test'
+                    };
+
+                    if (!headers || headers.length === 0) {
+                        tbody.append('<tr><td colspan="7" class="text-center py-4 text-muted small">Belum ada header dokumen kustom yang disimpan.</td></tr>');
+                        return;
+                    }
+
+                    headers.forEach(function(item) {
+                        let parsed = {};
+                        try {
+                            parsed = (typeof item.value === 'string') ? JSON.parse(item.value) : item.value;
+                        } catch (e) {
+                            parsed = {};
+                        }
+
+                        const moduleName = moduleLabels[item.key] || item.key;
+                        const plantBadge = (item.plant_code === 'jakarta' || item.plant_code === 'jkt')
+                            ? '<span class="badge badge-pill badge-info px-2 py-1">Jakarta</span>'
+                            : '<span class="badge badge-pill badge-primary px-2 py-1">Karawang</span>';
+
+                        const tr = `
+                            <tr>
+                                <td><h6 class="mb-0 font-weight-bold text-dark" style="font-size:0.85rem;">${moduleName}</h6><small class="text-muted">${item.key}</small></td>
+                                <td class="text-center">${plantBadge}</td>
+                                <td><strong class="text-dark">${parsed.no_dokumen || '-'}</strong></td>
+                                <td class="text-center">${parsed.tgl_terbit || '-'}</td>
+                                <td class="text-center">${parsed.revisi || '-'}</td>
+                                <td class="text-center">${parsed.halaman || '-'}</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm edit-doc-header"
+                                            data-id="${item.id}"
+                                            data-key="${item.key}"
+                                            data-plant="${item.plant_code}"
+                                            data-nodok="${parsed.no_dokumen || ''}"
+                                            data-tgl="${parsed.tgl_terbit || ''}"
+                                            data-revisi="${parsed.revisi || ''}"
+                                            data-halaman="${parsed.halaman || ''}"
+                                            title="Edit Header">
+                                            <i class="fas fa-pen text-primary" style="font-size:0.7rem;"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm delete-doc-header ml-1"
+                                            data-id="${item.id}"
+                                            data-key="${moduleName}"
+                                            title="Hapus Header">
+                                            <i class="fas fa-trash text-danger" style="font-size:0.7rem;"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.append(tr);
+                    });
+                },
+                error: function() {
+                    $('#documentHeadersTable tbody').html('<tr><td colspan="7" class="text-center py-4 text-danger small">Gagal memuat data header dokumen.</td></tr>');
+                }
+            });
+        }
+
+        // Open Add Modal
+        $(document).on('click', '#btnAddDocumentHeader', function() {
+            $('#formDocumentHeader')[0].reset();
+            $('#doc_header_id').val('');
+            $('#documentHeaderModalTitle').html('<i class="fas fa-file-alt mr-2"></i>Kustomisasi Header Dokumen');
+            $('#modalAddDocumentHeader').modal('show');
         });
+
+        // Open Edit Modal
+        $(document).on('click', '.edit-doc-header', function() {
+            const btn = $(this);
+            $('#doc_header_id').val(btn.data('id'));
+            $('#doc_header_key').val(btn.data('key'));
+            $('#doc_header_plant_code').val(btn.data('plant'));
+            $('#doc_header_no_dokumen').val(btn.data('nodok'));
+            $('#doc_header_tgl_terbit').val(btn.data('tgl'));
+            $('#doc_header_revisi').val(btn.data('revisi'));
+            $('#doc_header_halaman').val(btn.data('halaman'));
+            $('#documentHeaderModalTitle').html('<i class="fas fa-pen mr-2"></i>Edit Header Dokumen');
+            $('#modalAddDocumentHeader').modal('show');
+        });
+
+        // Submit Header Form
+        $(document).on('submit', '#formDocumentHeader', function(e) {
+            e.preventDefault();
+            const formData = {
+                _token: window.settingsConfig.var_1,
+                id: $('#doc_header_id').val(),
+                key: $('#doc_header_key').val(),
+                plant_code: $('#doc_header_plant_code').val(),
+                no_dokumen: $('#doc_header_no_dokumen').val(),
+                tgl_terbit: $('#doc_header_tgl_terbit').val(),
+                revisi: $('#doc_header_revisi').val(),
+                halaman: $('#doc_header_halaman').val(),
+            };
+
+            $.ajax({
+                url: window.settingsConfig.var_14,
+                type: 'POST',
+                data: formData,
+                success: function(res) {
+                    $('#modalAddDocumentHeader').modal('hide');
+                    Swal.fire('Berhasil', res.message || 'Header dokumen berhasil disimpan.', 'success');
+                    loadDocumentHeaders();
+                },
+                error: function(xhr) {
+                    const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menyimpan header dokumen.';
+                    Swal.fire('Gagal', msg, 'error');
+                }
+            });
+        });
+
+        // Delete Header
+        $(document).on('click', '.delete-doc-header', function() {
+            const id = $(this).data('id');
+            const keyName = $(this).data('key');
+
+            Swal.fire({
+                title: 'Hapus Header Dokumen?',
+                text: `Kustomisasi header untuk "${keyName}" akan dihapus dan kembali ke nilai default bawaan sistem.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    $.ajax({
+                        url: `${window.settingsConfig.var_15}/${id}`,
+                        type: 'DELETE',
+                        data: { _token: window.settingsConfig.var_1 },
+                        success: function(r) {
+                            Swal.fire('Terhapus!', r.message || 'Header dokumen berhasil dihapus.', 'success');
+                            loadDocumentHeaders();
+                        },
+                        error: function() {
+                            Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus data.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Load document headers on page load and when tab is shown
+        if ($('#header-dokumen').length) {
+            loadDocumentHeaders();
+        }
+        $('a[href="#header-dokumen"]').on('shown.bs.tab', function() {
+            loadDocumentHeaders();
+        });
+
+});
+
 

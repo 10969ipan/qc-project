@@ -43,7 +43,7 @@
                     <a class="nav-link settings-sidebar-item" id="permissions-tab" data-toggle="pill" href="#permissions" role="tab" aria-controls="permissions" aria-selected="false">
                         <span>Hak Akses Modul</span>
                     </a>
-
+                    
                 </div>
             </div>
         </div>
@@ -294,6 +294,43 @@
                                     </div>
                                 </div>
                             @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Header Dokumen -->
+            <div class="tab-pane fade" id="header-dokumen" role="tabpanel" aria-labelledby="header-dokumen-tab">
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-4 d-flex justify-content-between align-items-center border-bottom-0 px-4">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark mb-1" style="font-size: 1.1rem; letter-spacing: -0.3px;">Manajemen Header Dokumen</h6>
+                            <p class="text-muted small mb-0">Kustomisasi No. Dokumen, Tgl. Terbit, Revisi, dan Halaman per Modul & Plant</p>
+                        </div>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm btn-sm-modern h-100 py-2" id="btnAddDocumentHeader">
+                            <i class="fas fa-plus mr-2"></i> Tambah Header
+                        </button>
+                    </div>
+                    <div class="card-body px-4 pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle custom-table table-minimalist mb-0 w-100" id="documentHeadersTable">
+                                <thead class="bg-light text-muted">
+                                    <tr>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Modul / Laporan</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Plant</th>
+                                        <th class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">No. Dokumen</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Tgl. Terbit</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Revisi / Tgl</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Halaman</th>
+                                        <th class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted small">Memuat data header dokumen...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -616,7 +653,8 @@
                     </div>
                 </div>
             </div>
-        </div>
+
+                    </div>
     </div>
     <!-- Modal Add User -->
     <div class="modal fade" id="modalAddUser" tabindex="-1" role="dialog" aria-hidden="true">
@@ -916,7 +954,8 @@
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-dark">Pilih Modul / Laporan</label>
                             <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3" required>
-                                <option value="">-- Pilih Modul --</option>
+                                <option value="">-- Pilih Modul / Laporan --</option>
+                                <option value="master_data">Master Data Item</option>
                                 <option value="master_alat_ukur">Master Alat Ukur</option>
                                 <option value="hasil_verifikasi_alat_ukur">Hasil Verifikasi Alat Ukur</option>
                                 @foreach($qcModules as $val => $label)
@@ -1033,5 +1072,5 @@
     <script src="{{ asset('js/vendor/moment.min.js') }}"></script>
     <script src="{{ asset('js/vendor/Sortable.min.js') }}"></script>
     <script src="{{ asset('js/vendor/moment-id.min.js') }}"></script>
-    <script src="{{ asset('js/settings/index.js') }}"></script>
+    <script src="{{ asset('js/settings/index.js') }}?v={{ time() }}"></script>
 @endpush

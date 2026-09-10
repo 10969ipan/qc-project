@@ -481,7 +481,11 @@
                         <tr class="text-center">
                             <th rowspan="2" class="align-middle">Item Part</th>
                             <th rowspan="2" class="align-middle">Tanggal / Shift</th>
-                            <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
+                            @if(in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
+                            @else
+                                <th rowspan="2" class="align-middle">Qty Check</th>
+                            @endif
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
                             <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
                             <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
