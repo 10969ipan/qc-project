@@ -2123,6 +2123,10 @@ class InProcessCreate {
     }
 
     getSampleSize(lotSize) {
+        const plant = (this.config && this.config.plantContext) ? String(this.config.plantContext).toLowerCase() : '';
+        if (plant.includes('karawang') || plant.includes('krw') || plant === '1' || plant === 'karawang') {
+            return lotSize; // Fullcheck (100% check) - tidak ada sampling untuk Plant Karawang
+        }
         if (lotSize >= 500001) return 1250;
         if (lotSize >= 150001) return 800;
         if (lotSize >= 35001) return 500;

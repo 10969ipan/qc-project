@@ -491,7 +491,11 @@
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
                             <th rowspan="2" class="align-middle">Berat Part</th>
-                            <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
+                            @if(in_array(strtolower($plantContext ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
+                            @else
+                                <th rowspan="2" class="align-middle text-nowrap">Total Qty</th>
+                            @endif
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
@@ -845,7 +849,11 @@
                                 </td>
 
                                 <td class="align-middle text-nowrap">
-                                    <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span>
+                                    @if(in_array(strtolower($plantContext ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                        <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }}</span> / <span class="text-muted">{{ number_format($checksheet->sampling_qty) }} Pcs</span>
+                                    @else
+                                        <span class="font-weight-bold">{{ number_format($checksheet->total_qty) }} Pcs</span>
+                                    @endif
                                 </td>
                                 @php
                                     // Hitung effective OK/NG:

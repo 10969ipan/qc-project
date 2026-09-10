@@ -1129,7 +1129,7 @@
                 qrUniqueUrl: "{{ route('items.check-qr-unique') }}",
                 pdfUrlPattern: "{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}",
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
-                plantContext: "{{ request('plant') ?? auth()->user()->plant_id }}",
+                plantContext: "{{ $plantCode }}",
                 useQueue: {{ $plantCode === 'karawang' ? 'true' : 'false' }},
                 partDimensionStandards: {!! $partDimensionStandards !!}
             });

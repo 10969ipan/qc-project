@@ -829,7 +829,7 @@
     <script id="fpa-create-data" type="application/json"
         data-pdf-worker-src="{{ asset('js/vendor/pdf.worker.min.js') }}"
         data-pdf-route-pattern="{{ route('items.pdf', ['id' => 'ID_PLACEHOLDER', 'index' => 'INDEX_PLACEHOLDER']) }}"
-        data-current-plant="{{ request('plant') ?? auth()->user()->plant_id }}">
+        data-current-plant="{{ $plantCode }}">
         @json($partDimensionStandards)
     </script>
     <script>

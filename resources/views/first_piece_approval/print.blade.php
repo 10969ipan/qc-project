@@ -272,7 +272,11 @@
                         <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
                         <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
                         <th rowspan="2" style="width: 25%;">Check Dimensi</th>
-                        <th rowspan="2">Qty<br>(Total / Sampling)</th>
+                        @if(in_array(strtolower($headerPlantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                            <th rowspan="2">Qty<br>(Total / Sampling)</th>
+                        @else
+                            <th rowspan="2">Total Qty</th>
+                        @endif
                         <th rowspan="2">OK</th>
                         <th rowspan="2">NG</th>
                         @if(!$isVerification)
@@ -503,7 +507,11 @@
 
 
                             <td style="white-space: nowrap;">
-                                {{ number_format($checksheet->total_qty) }} / {{ number_format($checksheet->sampling_qty) }} Pcs
+                                @if(in_array(strtolower($headerPlantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                    {{ number_format($checksheet->total_qty) }} / {{ number_format($checksheet->sampling_qty) }} Pcs
+                                @else
+                                    {{ number_format($checksheet->total_qty) }} Pcs
+                                @endif
                             </td>
                             <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ok }}</td>
                             <td style="font-weight: bold; color: #000;">{{ $checksheet->total_ng }}</td>
