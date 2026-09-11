@@ -461,7 +461,7 @@ class StandardPerformanceTestController extends Controller
             $std = StandardPerformanceTest::find($request->standard_performance_test_id);
             $partName = $std ? $std->part_name : 'Part';
             ActivityLogger::log('created', $reportTrial, "Menambahkan Laporan Durability Plating (Data 2 Trial): {$partName} (Lot: {$request->lot_no})");
-            return redirect()->back()->with('success', 'Data 2 berhasil disimpan.');
+            return redirect()->back()->with('success', 'Data berhasil disimpan.');
         }
 
         // Data 1 (Regular / Actual)

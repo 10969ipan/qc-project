@@ -2771,6 +2771,9 @@
             </div>
             <form id="formAddData" action="{{ route('standard-performance-tests.thickness.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
+                @if(!empty($isTrial))
+                    <input type="hidden" name="is_trial" value="1">
+                @endif
                 <div class="modal-body px-4 py-4" style="background-color: #f8fafc; max-height: 70vh; overflow-y: auto;">
                     
                     <!-- Batch Metadata Header Card -->
@@ -2835,9 +2838,9 @@
                         </div>
                     </div>
 
+                    @if(!$isTrial)
                     <!-- Horizontal 2-Column Split: DATA 1 & DATA 2 -->
                     <div class="row">
-                        <!-- DATA 1 Column (Left) -->
                         <!-- DATA 1 Column (Left) -->
                         <div class="col-md-6">
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
@@ -2909,7 +2912,6 @@
                         </div>
 
                         <!-- DATA 2 Column (Right) -->
-                        <!-- DATA 2 Column (Right) -->
                         <div class="col-md-6">
                             <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
                                 <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
@@ -2979,6 +2981,75 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Single Column: DATA 2 ONLY -->
+                    <div class="card border shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0;">
+                        <div class="card-header bg-white text-dark py-2 px-3 font-weight-bold" style="font-size:0.85rem; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
+                            HASIL PENGUJIAN
+                        </div>
+                        <div class="card-body p-3">
+                            @if($testType == 'corrodkote')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Time (hrs) Aktual</label>
+                                <input type="text" name="actual_corrodkote_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_corrodkote" id="new_standar_jam_corrodkote" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual % Corrosion</label>
+                                <input type="text" name="aktual_corrosion" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            @elseif($testType == 'cass')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                <input type="text" name="actual_cass_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_cass" id="new_standar_jam_cass" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual RN</label>
+                                <input type="text" name="aktual_rn" class="form-control form-control-sm border-0 shadow-sm" placeholder="Aktual RN">
+                            </div>
+                            @elseif($testType == 'salt_spray')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Waktu Test Aktual (Hours)</label>
+                                <input type="text" name="actual_salt_spray_waktu" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Standar Jam</label>
+                                <input type="text" name="standar_jam_salt_spray" id="new_standar_jam_salt" class="form-control form-control-sm border-0 shadow-sm auto-calc-jam">
+                            </div>
+                            @elseif($testType == 'porecount')
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Aktual</label>
+                                <input type="text" name="actual_porecount" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                            @endif
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
+                                <select name="result_judgment" class="form-control form-control-sm border-0 shadow-sm">
+                                    <option value="-">-</option>
+                                    <option value="OK">OK</option>
+                                    @if($testType == 'salt_spray')
+                                        <option value="NG - White Rust">NG - White Rust</option>
+                                        <option value="NG - Red Rust">NG - Red Rust</option>
+                                    @else
+                                        <option value="NG">NG</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="small font-weight-bold text-gray-700">Description / Keterangan</label>
+                                <textarea name="description" class="form-control form-control-sm border-0 shadow-sm" rows="2" placeholder="Keterangan Data 2..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Evidence Upload (3 Slots: Before, After Data 1, After Data 2) -->
                     <div class="mb-3">
@@ -3049,7 +3120,7 @@
                                         <small style="font-size:0.72rem;">Belum ada foto</small>
                                     </div>
                                     <div class="card-footer py-2 px-2 bg-white" style="border-top:1px solid #e2e8f0;">
-                                        <input type="file" name="evidence_after_trial" id="input_new_evidence_after_trial" class="form-control-file" style="font-size:0.68rem;" accept="image/*">
+                                        <input type="file" name="{{ !$isTrial ? 'evidence_after_trial' : 'evidence_after' }}" id="input_new_evidence_after_trial" class="form-control-file" style="font-size:0.68rem;" accept="image/*">
                                     </div>
                                 </div>
                             </div>
@@ -3059,7 +3130,7 @@
                 <div class="modal-footer bg-white border-top py-3 px-4" style="border-radius: 0 0 12px 12px;">
                     <button type="button" class="btn btn-light border btn-sm px-4 font-weight-bold" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm">
-                        <i class="fas fa-save mr-1"></i> Simpan Data 1 & 2
+                        <i class="fas fa-save mr-1"></i> {{ !$isTrial ? 'Simpan Data 1 & 2' : 'Simpan Data 2' }}
                     </button>
                 </div>
             </form>
