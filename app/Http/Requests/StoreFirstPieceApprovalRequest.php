@@ -11,6 +11,21 @@ class StoreFirstPieceApprovalRequest extends FormRequest
         return auth()->check() && !in_array(auth()->user()->role, ['manager', 'asst_manager']);
     }
 
+    protected function prepareForValidation()
+    {
+        $samplingQty = is_numeric($this->sampling_qty) ? (int) $this->sampling_qty : 0;
+        $totalNg = is_numeric($this->total_ng) ? (int) $this->total_ng : 0;
+        $totalOk = is_numeric($this->total_ok) ? (int) $this->total_ok : max(0, $samplingQty - $totalNg);
+        $judgment = in_array($this->judgment, ['OK', 'NG']) ? $this->judgment : ($totalNg > 0 ? 'NG' : 'OK');
+
+        $this->merge([
+            'sampling_qty' => $samplingQty,
+            'total_ok' => $totalOk,
+            'total_ng' => $totalNg,
+            'judgment' => $judgment,
+        ]);
+    }
+
     public function rules(): array
     {
         return [

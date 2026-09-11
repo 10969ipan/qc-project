@@ -1402,6 +1402,18 @@ class FpaCreate {
                 return false;
             }
 
+            const sQty = parseInt(samplingQty) || 0;
+            const nQty = parseInt($("#total_ng").val()) || 0;
+            if (!$("#total_ng").val()) {
+                $("#total_ng").val(nQty);
+            }
+            if (!$("#total_ok").val()) {
+                $("#total_ok").val(Math.max(0, sQty - nQty));
+            }
+            if (!$("#judgmentSelect").val() && !$("#judgment").val()) {
+                $("#judgmentSelect, #judgment").val(nQty > 0 ? "NG" : "OK");
+            }
+
             // 5. Validasi: NG harus pilih Next Proses (Kecuali jika defect HANYA Dimensi)
             const isDimensiType = (t) => !!t && /dimensi|dimension/i.test(t.trim());
             let isOnlyDimensi = true;

@@ -16,12 +16,21 @@ class StoreInProcessChecksheetRequest extends FormRequest
      */
     protected function prepareForValidation()
     {
+        $samplingQty = is_numeric($this->sampling_qty) ? (int) $this->sampling_qty : 0;
+        $totalNg = is_numeric($this->total_ng) ? (int) $this->total_ng : 0;
+        $totalOk = is_numeric($this->total_ok) ? (int) $this->total_ok : max(0, $samplingQty - $totalNg);
+        $judgment = in_array($this->judgment, ['OK', 'NG']) ? $this->judgment : ($totalNg > 0 ? 'NG' : 'OK');
+
         $this->merge([
             'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
             'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
             'part_code' => !empty($this->part_code) ? $this->part_code : null,
             'supplier_id' => !empty($this->supplier_id) ? $this->supplier_id : null,
             'sap_code' => !empty($this->sap_code) ? $this->sap_code : null,
+            'sampling_qty' => $samplingQty,
+            'total_ok' => $totalOk,
+            'total_ng' => $totalNg,
+            'judgment' => $judgment,
         ]);
     }
 
@@ -109,6 +118,11 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'date.required' => 'Tanggal wajib diisi.',
             'shift.required' => 'Shift wajib dipilih.',
             'code_machine.required' => 'Kode mesin wajib diisi.',
+            'total_qty.required' => 'Total Qty wajib diisi.',
+            'sampling_qty.required' => 'Sampling Qty wajib diisi.',
+            'total_ok.required' => 'Total OK wajib diisi.',
+            'total_ng.required' => 'Total NG wajib diisi.',
+            'judgment.required' => 'Result Judgment (OK/NG) wajib ditentukan.',
             'judgment.in' => 'Judgment harus OK atau NG.',
             'unique_code_id.unique' => 'QR Code / Label ini sudah pernah di-scan dan disimpan sebelumnya. Gunakan label yang berbeda.',
         ];
