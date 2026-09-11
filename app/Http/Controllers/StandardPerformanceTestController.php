@@ -1497,9 +1497,14 @@ class StandardPerformanceTestController extends Controller
     {
         $mappings = [
             'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
+            'supervisor_qc' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
             'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'SPV Plating'],
             'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager Quality'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager Quality'],
             'asst_manager_plating' => ['field' => 'asst_manager_plating', 'time' => 'asst_manager_plating_approved_at', 'label' => 'Asst Manager Plating'],
+            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager Quality'],
+            'manager_qc' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager Quality'],
+            'manager_plating' => ['field' => 'manager_plating', 'time' => 'manager_plating_approved_at', 'label' => 'Manager Plating'],
         ];
         return $mappings[$type] ?? null;
     }

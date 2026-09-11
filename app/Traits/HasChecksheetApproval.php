@@ -291,7 +291,7 @@ trait HasChecksheetApproval
             if (!$type) {
                 return response()->json(['success' => false, 'message' => 'Admin harus memilih level approval.'], 422);
             }
-        } elseif (\App\Helpers\AppMenu::checkPermission(\Route::currentRouteName(), 'approve_all')) {
+        } elseif (in_array($user->role, ['kashift', 'kashift_qc', 'karu_qc', 'kashift_plating', 'supervisor', 'supervisor_qc', 'supervisor_plating', 'asst_manager', 'asst_manager_qc', 'asst_manager_plating', 'manager', 'manager_qc', 'manager_plating']) || \App\Helpers\AppMenu::checkPermission(\Route::currentRouteName(), 'approve_all')) {
             $type = $user->role;
         }
 

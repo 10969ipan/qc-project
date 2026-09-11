@@ -23,29 +23,32 @@
                     $hasPendingApproval = true;
                     break;
                 }
-            } elseif (in_array($userRole, ['kashift', 'kashift_qc', 'karu_qc', 'kashift_plating'])) {
-                $field = property_exists($cs, 'kashift_qc') || isset($cs->kashift_qc) ? 'kashift_qc' : (isset($cs->karu_qc) ? 'karu_qc' : 'kashift_qc');
-                if (empty($cs->$field) || $cs->$field === 'REJECTED') {
-                    $hasPendingApproval = true;
-                    break;
+            } else {
+                $field = null;
+                if ($userRole === 'asst_manager_plating') {
+                    $field = 'asst_manager_plating';
+                } elseif (in_array($userRole, ['asst_manager', 'asst_manager_qc'])) {
+                    $field = (isset($cs->asst_manager_qc) || property_exists($cs, 'asst_manager_qc')) ? 'asst_manager_qc' : (isset($cs->asst_manager) ? 'asst_manager' : 'asst_manager_qc');
+                } elseif ($userRole === 'supervisor_plating') {
+                    $field = 'supervisor_plating';
+                } elseif (in_array($userRole, ['supervisor', 'supervisor_qc'])) {
+                    $field = (isset($cs->supervisor_qc) || property_exists($cs, 'supervisor_qc')) ? 'supervisor_qc' : (isset($cs->supervisor) ? 'supervisor' : 'supervisor_qc');
+                } elseif ($userRole === 'manager_plating') {
+                    $field = 'manager_plating';
+                } elseif (in_array($userRole, ['manager', 'manager_qc'])) {
+                    $field = (isset($cs->manager_qc) || property_exists($cs, 'manager_qc')) ? 'manager_qc' : (isset($cs->manager) ? 'manager' : 'manager_qc');
+                } elseif ($userRole === 'kashift_plating') {
+                    $field = 'kashift_plating';
+                } elseif (in_array($userRole, ['kashift', 'kashift_qc', 'karu_qc'])) {
+                    $field = (isset($cs->kashift_qc) || property_exists($cs, 'kashift_qc')) ? 'kashift_qc' : (isset($cs->karu_qc) ? 'karu_qc' : 'kashift_qc');
                 }
-            } elseif (in_array($userRole, ['supervisor', 'supervisor_plating', 'supervisor_qc'])) {
-                $field = isset($cs->supervisor_qc) ? 'supervisor_qc' : (isset($cs->supervisor_plating) ? 'supervisor_plating' : 'supervisor_qc');
-                if (empty($cs->$field) || $cs->$field === 'REJECTED') {
-                    $hasPendingApproval = true;
-                    break;
-                }
-            } elseif (in_array($userRole, ['asst_manager', 'asst_manager_plating', 'asst_manager_qc'])) {
-                $field = isset($cs->asst_manager_qc) ? 'asst_manager_qc' : (isset($cs->asst_manager_plating) ? 'asst_manager_plating' : 'asst_manager_qc');
-                if (empty($cs->$field) || $cs->$field === 'REJECTED') {
-                    $hasPendingApproval = true;
-                    break;
-                }
-            } elseif (in_array($userRole, ['manager', 'manager_plating'])) {
-                $field = isset($cs->manager_qc) ? 'manager_qc' : (isset($cs->manager_plating) ? 'manager_plating' : 'manager_qc');
-                if (empty($cs->$field) || $cs->$field === 'REJECTED') {
-                    $hasPendingApproval = true;
-                    break;
+
+                if ($field) {
+                    $val = $cs->$field ?? null;
+                    if (empty($val) || $val === 'REJECTED') {
+                        $hasPendingApproval = true;
+                        break;
+                    }
                 }
             }
         }
