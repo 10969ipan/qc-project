@@ -1700,6 +1700,23 @@ class StandardPerformanceTestController extends Controller
                 });
             }
 
+            // If get_ids mode, return list of pending IDs only
+            if ($request->boolean('get_ids')) {
+                $pendingIds = $query->where(function($q) use ($field) {
+                    $q->whereNull($field)->orWhere($field, 'REJECTED');
+                })->pluck('id')->toArray();
+
+                return response()->json([
+                    'success' => true,
+                    'ids' => $pendingIds,
+                    'total' => count($pendingIds),
+                ]);
+            }
+
+            if ($request->filled('ids') && is_array($request->input('ids'))) {
+                $query->whereIn('id', $request->input('ids'));
+            }
+
             $reportsToApprove = $query->where(function($q) use ($field) {
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
             })->get();

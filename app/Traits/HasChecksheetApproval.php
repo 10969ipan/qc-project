@@ -511,6 +511,15 @@ trait HasChecksheetApproval
             $checksheetIds = $query->pluck('id')->toArray();
             $approvedCount = count($checksheetIds);
 
+            if ($request->boolean('get_ids')) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => true,
+                    'ids' => $checksheetIds,
+                    'total' => $approvedCount,
+                ]);
+            }
+
             if ($approvedCount > 0) {
                 $updateData = [
                     $field => $user->name,
