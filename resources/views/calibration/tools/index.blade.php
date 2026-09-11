@@ -298,6 +298,15 @@
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahAlat" title="Tambah Alat">
                     <i class="fas fa-plus fa-sm"></i>
                 </button>
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                <button type="button" 
+                    class="btn btn-sm shadow-sm rounded-pill px-3 no-loader d-flex align-items-center" 
+                    style="background-color: #7c3aed; color: white;"
+                    data-toggle="modal" data-target="#modalHiddenTools" 
+                    title="Kelola Item Tersembunyi">
+                    <i class="fas fa-eye-slash fa-sm mr-1"></i> Kelola Item
+                </button>
+                @endif
             </div>
         </form>
 
@@ -332,10 +341,26 @@
                 </thead>
                 <tbody>
                     @foreach($tools as $index => $tool)
-                        <tr>
+                        @php
+                            $isHiddenTool = in_array($tool->id, $hiddenToolIds ?? []);
+                            $isOverdueHiddenTool = (($hideOverdueTools ?? '0') == '1' && $tool->status_kalibrasi === 'overdue');
+                            $isRowHidden = $isHiddenTool || $isOverdueHiddenTool;
+                        @endphp
+                        <tr class="{{ $isRowHidden ? 'bg-light-hidden' : '' }}" style="{{ $isRowHidden ? 'opacity: 0.65; background-color: #fff7ed !important;' : '' }}">
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $tool->bagian }}</td>
-                            <td class="text-left font-weight-bold">{{ $tool->name_alat }}</td>
+                            <td class="text-left font-weight-bold">
+                                {{ $tool->name_alat }}
+                                @if($isHiddenTool)
+                                    <span class="badge badge-warning text-dark ml-1" style="font-size: 0.52rem; padding: 1px 4px;" title="Alat ini disembunyikan dari pengguna non-admin">
+                                        <i class="fas fa-eye-slash fa-xs mr-1"></i>HIDDEN ITEM
+                                    </span>
+                                @elseif($isOverdueHiddenTool)
+                                    <span class="badge badge-danger ml-1" style="font-size: 0.52rem; padding: 1px 4px;" title="Alat berstatus Overdue ini disembunyikan dari pengguna non-admin">
+                                        <i class="fas fa-eye-slash fa-xs mr-1"></i>OVERDUE HIDDEN
+                                    </span>
+                                @endif
+                            </td>
                             <td>{{ $tool->merk ?? '-' }}</td>
                             <td>{{ $tool->serial_number }}</td>
                             <td>{{ $tool->range }}</td>
@@ -520,6 +545,139 @@
 @include('calibration.tools.modals')
 @include('calibration.tools.modal_verif')
 
+@if(auth()->check() && auth()->user()->role === 'admin')
+    <!-- Modal Kelola Item Tersembunyi Master Alat Ukur (Admin Only) -->
+    <div class="modal fade" id="modalHiddenTools" tabindex="-1" role="dialog" aria-labelledby="modalHiddenToolsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <style>
+                    #tableHiddenTools .custom-control-input:checked ~ .custom-control-label::before {
+                        background-color: #7c3aed !important;
+                        border-color: #7c3aed !important;
+                    }
+                    #tableHiddenTools tbody tr:hover {
+                        background-color: #f5f3ff !important;
+                    }
+                </style>
+                <form action="{{ route('calibration.tools.hidden_tools') }}" method="POST" id="formHiddenTools" class="no-loader">
+                    @csrf
+                    <input type="hidden" name="plant" value="{{ $plantCode }}">
+                    
+                    <!-- Header -->
+                    <div class="modal-header bg-white py-3 px-4" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0;">
+                        <h5 class="modal-title font-weight-bold" id="modalHiddenToolsLabel" style="font-size: 1.05rem; color: #7c3aed;">
+                            <i class="fas fa-eye-slash mr-2" style="color: #7c3aed;"></i>Kelola Item Tersembunyi Alat Ukur
+                        </h5>
+                        <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Body -->
+                    <div class="modal-body bg-light px-4 py-4" style="max-height: 70vh; overflow-y: auto;">
+                        <!-- Banner Petunjuk -->
+                        <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #e2e8f0 !important;">
+                            <div class="card-body p-3 bg-white">
+                                <div class="d-flex align-items-center text-gray-700 small">
+                                    <i class="fas fa-shield-alt fa-lg mr-3" style="color: #7c3aed;"></i>
+                                    <div>
+                                        <strong class="text-dark">Keamanan Data:</strong> Fitur ini <u>hanya menyembunyikan (filter tampilan)</u> dari pengguna non-admin dan <strong>SAMA SEKALI TIDAK MENGHAPUS DATA</strong> dari database. Tool dapat dimunculkan kembali kapan saja untuk semua pengguna dengan melepas centang.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Option Sembunyikan Baris Overdue -->
+                        <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; border: 1px solid #fee2e2 !important; background-color: #fff5f5;">
+                            <div class="card-body p-3">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" name="hide_overdue_tools" value="1" class="custom-control-input" id="switchHideOverdueTools" {{ ($hideOverdueTools ?? '0') == '1' ? 'checked' : '' }}>
+                                    <label class="custom-control-label font-weight-bold text-danger" for="switchHideOverdueTools" style="font-size: 0.86rem; cursor: pointer;">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Sembunyikan Khusus Alat Ukur yang Berstatus Overdue (Telat Kalibrasi)
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted mt-1" style="font-size: 0.76rem; line-height: 1.3;">
+                                    Jika diaktifkan, <strong>semua alat ukur yang berstatus Overdue (Telat Kalibrasi)</strong> akan disembunyikan dari pengguna non-admin pada halaman Master Alat Ukur & Jadwal Kalibrasi.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Card Tabel & Pencarian -->
+                        <div class="card border-0 shadow-sm mb-1" style="border-radius: 10px; border: 1px solid #e2e8f0 !important; overflow: hidden;">
+                            <div class="card-header bg-white py-3 px-3 border-bottom d-flex align-items-center justify-content-between flex-wrap" style="border-bottom: 1px solid #e2e8f0 !important; gap: 10px;">
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                                    <div class="input-group input-group-sm" style="width: 210px;">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-light border-right-0" style="border-color: #cbd5e1;"><i class="fas fa-search text-muted"></i></span>
+                                        </div>
+                                        <input type="text" id="searchHiddenModalTool" class="form-control border-left-0" style="border-color: #cbd5e1; font-size: 0.8rem;" placeholder="Cari Nama Alat / Seri / Bagian...">
+                                    </div>
+                                    <div style="width: 165px;">
+                                        <select id="filterStatusModalTool" class="form-control form-control-sm" style="border-color: #cbd5e1; font-size: 0.78rem;">
+                                            <option value="">Semua Status</option>
+                                            <option value="overdue">Overdue Only</option>
+                                            <option value="calibrated">Terkalibrasi (OK)</option>
+                                            <option value="broken">Broken (Rusak)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 shadow-xs" id="btnSelectOverdueHidden" style="font-size: 0.75rem; color: #dc2626; border: 1px solid #fca5a5; background-color: #fef2f2;" title="Centang otomatis semua alat ukur yang berstatus Overdue">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Centang Tool Overdue
+                                    </button>
+                                    <button type="button" class="btn btn-sm rounded-pill px-3 shadow-xs" id="btnSelectAllHiddenTool" style="font-size: 0.75rem; color: #7c3aed; border: 1px solid #7c3aed; background-color: #f5f3ff;">
+                                        <i class="fas fa-check-square mr-1"></i>Centang Semua
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs" id="btnUnselectAllHiddenTool" style="font-size: 0.75rem;">
+                                        <i class="fas fa-square mr-1"></i>Hapus Centang
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0 bg-white">
+                                <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                                    <table class="table table-hover table-striped mb-0" id="tableHiddenTools">
+                                        <thead class="bg-light sticky-top" style="z-index: 10; border-bottom: 2px solid #e2e8f0;">
+                                            <tr>
+                                                <th style="width: 65px; background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="text-center py-2 font-weight-bold text-uppercase">Hide</th>
+                                                <th style="width: 130px; background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Status</th>
+                                                <th style="width: 120px; background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Bagian</th>
+                                                <th style="background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Nama Alat</th>
+                                                <th style="background-color: #f8fafc; color: #475569; font-size: 0.72rem; letter-spacing: 0.5px;" class="py-2 font-weight-bold text-uppercase">Merk / No. Seri</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyHiddenTools">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-4">
+                                                    <i class="fas fa-spinner fa-spin mr-2 text-primary"></i> Memuat data alat ukur...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="modal-footer bg-white py-3 px-4" style="border-top: 2px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+                        <div class="mr-auto d-flex align-items-center">
+                            <span class="badge border px-3 py-2 shadow-xs" style="background-color: #fef2f2; border-color: #fecaca !important; color: #dc2626; font-size: 0.78rem;" id="countSelectedHiddenTool">
+                                <i class="fas fa-eye-slash mr-1" style="color: #dc2626;"></i> Total Tool Tersembunyi: <strong style="color: #dc2626;">{{ count($hiddenToolIds ?? []) }}</strong>
+                            </span>
+                        </div>
+                        <button type="button" class="btn btn-secondary shadow-sm rounded-pill px-4" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Batal
+                        </button>
+                        <button type="submit" class="btn shadow-sm rounded-pill px-4 text-white font-weight-bold" style="background-color: #7c3aed; border: none; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;">
+                            <i class="fas fa-save mr-1"></i>Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
+
 {{-- Inline Auto-Calc Script --}}
 <script id="calibration-tools-data" type="application/json"
     data-plant-code="{{ $plantCode }}"
@@ -556,6 +714,129 @@
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/calibration/calibration-tools.js') }}?v={{ time() }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function sortHiddenToolTableRows() {
+                var tbody = $('#tableHiddenTools tbody');
+                var rows = tbody.find('tr.hidden-tool-row').get();
+                rows.sort(function(a, b) {
+                    var aChecked = $(a).find('.chk-hidden-tool').is(':checked') ? 1 : 0;
+                    var bChecked = $(b).find('.chk-hidden-tool').is(':checked') ? 1 : 0;
+                    if (aChecked !== bChecked) {
+                        return bChecked - aChecked;
+                    }
+                    var aName = $(a).find('td:nth-child(4)').text().trim().toLowerCase();
+                    var bName = $(b).find('td:nth-child(4)').text().trim().toLowerCase();
+                    return aName.localeCompare(bName);
+                });
+                $.each(rows, function(index, row) {
+                    tbody.append(row);
+                });
+            }
+
+            function filterHiddenModalToolTable() {
+                var query = $('#searchHiddenModalTool').val().toLowerCase().trim();
+                var statusFilter = $('#filterStatusModalTool').val();
+
+                $('#tableHiddenTools tbody tr.hidden-tool-row').each(function() {
+                    var searchData = $(this).data('search') || '';
+                    var status = $(this).attr('data-status');
+
+                    var matchSearch = searchData.indexOf(query) !== -1;
+                    var matchStatus = true;
+                    if (statusFilter) {
+                        matchStatus = (status === statusFilter);
+                    }
+
+                    if (matchSearch && matchStatus) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            }
+
+            $('#searchHiddenModalTool').on('input', filterHiddenModalToolTable);
+            $('#filterStatusModalTool').on('change', filterHiddenModalToolTable);
+
+            function updateHiddenToolCount() {
+                var cnt = $('.chk-hidden-tool:checked').length;
+                $('#countSelectedHiddenTool strong').text(cnt);
+            }
+
+            var hiddenToolsLoaded = false;
+            $('#modalHiddenTools').on('show.bs.modal', function () {
+                if (!hiddenToolsLoaded) {
+                    $('#tbodyHiddenTools').html('<tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2 text-primary"></i> Memuat data alat ukur...</td></tr>');
+                    fetch("{{ route('calibration.tools.hidden_tools_data', ['plant' => $plantCode]) }}")
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data.success) {
+                                $('#tbodyHiddenTools').html(data.html);
+                                if (data.hide_overdue_tools == '1') {
+                                    $('#switchHideOverdueTools').prop('checked', true);
+                                }
+                                hiddenToolsLoaded = true;
+                                updateHiddenToolCount();
+                                sortHiddenToolTableRows();
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Error loading hidden tools data:', err);
+                            $('#tbodyHiddenTools').html('<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-1"></i> Gagal memuat data alat ukur. Silakan coba lagi.</td></tr>');
+                        });
+                }
+            });
+
+            $(document).on('change', '.chk-hidden-tool', function() {
+                updateHiddenToolCount();
+                sortHiddenToolTableRows();
+            });
+
+            $('#btnSelectAllHiddenTool').on('click', function() {
+                $('#tableHiddenTools tbody tr.hidden-tool-row:visible .chk-hidden-tool').prop('checked', true);
+                updateHiddenToolCount();
+                sortHiddenToolTableRows();
+            });
+
+            $('#btnUnselectAllHiddenTool').on('click', function() {
+                $('#tableHiddenTools tbody tr.hidden-tool-row:visible .chk-hidden-tool').prop('checked', false);
+                updateHiddenToolCount();
+                sortHiddenToolTableRows();
+            });
+
+            $('#btnSelectOverdueHidden').on('click', function() {
+                $('#switchHideOverdueTools').prop('checked', true);
+                var countChecked = 0;
+                $('#tableHiddenTools tbody tr.hidden-tool-row[data-is-overdue="1"]').each(function() {
+                    var chk = $(this).find('.chk-hidden-tool');
+                    if (!chk.is(':checked')) {
+                        chk.prop('checked', true);
+                        countChecked++;
+                    }
+                });
+                updateHiddenToolCount();
+                sortHiddenToolTableRows();
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: countChecked > 0 ? (countChecked + ' alat ukur Overdue dicentang & opsi sembunyikan alat Overdue diaktifkan') : 'Semua alat ukur Overdue sudah dicentang & opsi sembunyikan alat Overdue diaktifkan',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                }
+            });
+
+            $('#modalHiddenTools').on('shown.bs.modal', function() {
+                sortHiddenToolTableRows();
+            });
+        });
+    </script>
 
     <script>
     // PDF Modal Handler

@@ -13,6 +13,8 @@ Route::prefix('calibration')->name('calibration.')->group(function () {
     Route::get('tools', [CalibrationController::class, 'toolsIndex'])->name('tools.index');
     Route::get('tools/export-pdf', [CalibrationController::class, 'toolsPdf'])->name('tools.pdf');
     Route::get('tools/print', [CalibrationController::class, 'toolsPrint'])->name('tools.print');
+    Route::post('tools/hidden-tools', [CalibrationController::class, 'updateHiddenTools'])->name('tools.hidden_tools');
+    Route::get('tools/hidden-tools-data', [CalibrationController::class, 'getHiddenToolsModalData'])->name('tools.hidden_tools_data');
     Route::post('tools', [CalibrationController::class, 'toolsStore'])->name('tools.store');
     Route::get('tools/{id}/edit', [CalibrationController::class, 'toolsEdit'])->name('tools.edit');
     Route::put('tools/{id}', [CalibrationController::class, 'toolsUpdate'])->name('tools.update');

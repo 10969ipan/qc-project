@@ -6,6 +6,7 @@ use App\Models\CalibrationTool;
 use App\Models\CalibrationToolLog;
 use App\Models\CalibrationVerification;
 use App\Models\Plant;
+use App\Models\GeneralSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -129,6 +130,13 @@ class CalibrationController extends Controller
 
         $tools = $query->get();
 
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plant ? $plant->id : null);
+        $tools = $tools->filter(function ($t) use ($hiddenToolIds, $hideOverdueTools) {
+            if (in_array($t->id, $hiddenToolIds)) return false;
+            if ($hideOverdueTools == '1' && $t->status_kalibrasi === 'overdue') return false;
+            return true;
+        });
+
         return view('calibration.schedule.index', compact('tools', 'plantCode', 'year'));
     }
 
@@ -236,7 +244,16 @@ class CalibrationController extends Controller
             }
         }
 
-        return $query->get();
+        $tools = $query->get();
+
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plant ? $plant->id : null);
+        $tools = $tools->filter(function ($t) use ($hiddenToolIds, $hideOverdueTools) {
+            if (in_array($t->id, $hiddenToolIds)) return false;
+            if ($hideOverdueTools == '1' && $t->status_kalibrasi === 'overdue') return false;
+            return true;
+        });
+
+        return $tools;
     }
 
     public function toolsIndex(Request $request)
@@ -265,6 +282,8 @@ class CalibrationController extends Controller
         $availableYears = array_unique($availableYears);
         sort($availableYears);
 
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plant ? $plant->id : null);
+
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
 
@@ -277,11 +296,20 @@ class CalibrationController extends Controller
             });
         }
 
+        // Apply Non-Admin Hidden Tools Filter
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            $tools = $tools->filter(function ($t) use ($hiddenToolIds, $hideOverdueTools) {
+                if (in_array($t->id, $hiddenToolIds)) return false;
+                if ($hideOverdueTools == '1' && $t->status_kalibrasi === 'overdue') return false;
+                return true;
+            });
+        }
+
         // Fetch unique names and sections for filters
         $uniqueNames = CalibrationTool::where('plant_id', $plant->id)->distinct()->orderBy('name_alat')->pluck('name_alat');
         $uniqueBagian = CalibrationTool::where('plant_id', $plant->id)->distinct()->orderBy('bagian')->pluck('bagian');
 
-        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears', 'uniqueNames', 'uniqueBagian'));
+        return view('calibration.tools.index', compact('tools', 'plantCode', 'year', 'availableYears', 'uniqueNames', 'uniqueBagian', 'hiddenToolIds', 'hideOverdueTools'));
     }
 
     public function toolsPdf(Request $request)
@@ -289,6 +317,8 @@ class CalibrationController extends Controller
         $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
         $plant = Plant::where('code', $plantCode)->first();
         $year = $request->input('year', 'all');
+
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plant ? $plant->id : null);
 
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
@@ -299,6 +329,15 @@ class CalibrationController extends Controller
             $tools = $tools->filter(function($t) use ($statusFilter) {
                 if ($statusFilter === 'calibrated') return in_array($t->status_kalibrasi, ['calibrated', 'due_soon']);
                 return $t->status_kalibrasi === $statusFilter;
+            });
+        }
+
+        // Apply Non-Admin Hidden Tools Filter
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            $tools = $tools->filter(function ($t) use ($hiddenToolIds, $hideOverdueTools) {
+                if (in_array($t->id, $hiddenToolIds)) return false;
+                if ($hideOverdueTools == '1' && $t->status_kalibrasi === 'overdue') return false;
+                return true;
             });
         }
 
@@ -315,6 +354,8 @@ class CalibrationController extends Controller
         $plant = Plant::where('code', $plantCode)->first();
         $year = $request->input('year', 'all');
 
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plant ? $plant->id : null);
+
         $query = $this->getToolsQuery($request, $plant, $year);
         $tools = $query->get();
 
@@ -327,7 +368,109 @@ class CalibrationController extends Controller
             });
         }
 
+        // Apply Non-Admin Hidden Tools Filter
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            $tools = $tools->filter(function ($t) use ($hiddenToolIds, $hideOverdueTools) {
+                if (in_array($t->id, $hiddenToolIds)) return false;
+                if ($hideOverdueTools == '1' && $t->status_kalibrasi === 'overdue') return false;
+                return true;
+            });
+        }
+
         return view('calibration.tools.print', compact('tools', 'plantCode', 'year', 'plant', 'request'));
+    }
+
+    private function getHiddenToolsSettings($plantId)
+    {
+        $setting = GeneralSetting::where('key', 'hidden_tools_calibration')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hiddenToolIds = [];
+        if ($setting && !empty($setting->value)) {
+            $decoded = json_decode($setting->value, true);
+            if (is_array($decoded)) {
+                $hiddenToolIds = array_values(array_filter($decoded));
+            }
+        }
+
+        $settingOverdue = GeneralSetting::where('key', 'hide_overdue_tools_calibration')
+            ->where('plant_code', $plantId ?? 'global')
+            ->first();
+
+        $hideOverdueTools = ($settingOverdue && $settingOverdue->value == '1') ? '1' : '0';
+
+        return [$hiddenToolIds, $hideOverdueTools];
+    }
+
+    public function getHiddenToolsModalData(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $plantId = $plant ? $plant->id : null;
+
+        [$hiddenToolIds, $hideOverdueTools] = $this->getHiddenToolsSettings($plantId);
+
+        $allTools = CalibrationTool::where('plant_id', $plant->id)
+            ->orderBy('name_alat')
+            ->get();
+
+        $sortedAllTools = $allTools->sortByDesc(function ($tool) use ($hiddenToolIds) {
+            return in_array($tool->id, $hiddenToolIds ?? []);
+        });
+
+        $html = view('calibration.tools.partials.hidden_tools_rows', compact('sortedAllTools', 'hiddenToolIds'))->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'count_hidden' => count($hiddenToolIds),
+            'hide_overdue_tools' => $hideOverdueTools
+        ]);
+    }
+
+    public function updateHiddenTools(Request $request)
+    {
+        $plantCode = $request->input('plant', auth()->user()->plant ? auth()->user()->plant->code : 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        $plantId = $plant ? $plant->id : null;
+
+        $hiddenToolIds = $request->input('hidden_tool_ids', []);
+        $hideOverdueTools = $request->has('hide_overdue_tools') ? '1' : '0';
+
+        if (!is_array($hiddenToolIds)) {
+            $hiddenToolIds = [];
+        }
+
+        $hiddenToolIds = array_values(array_unique(array_filter($hiddenToolIds)));
+
+        GeneralSetting::updateOrCreate(
+            [
+                'key' => 'hidden_tools_calibration',
+                'plant_code' => $plantId ?? 'global',
+            ],
+            [
+                'category' => 'calibration_hidden_tools',
+                'value' => json_encode($hiddenToolIds),
+                'description' => 'Hidden Tool IDs for Calibration Master'
+            ]
+        );
+
+        GeneralSetting::updateOrCreate(
+            [
+                'key' => 'hide_overdue_tools_calibration',
+                'plant_code' => $plantId ?? 'global',
+            ],
+            [
+                'category' => 'calibration_hidden_tools',
+                'value' => $hideOverdueTools,
+                'description' => 'Option to hide overdue calibration tools for non-admins'
+            ]
+        );
+
+        ActivityLogger::log('updated', null, "Memperbarui konfigurasi alat tersembunyi Kalibrasi (Hidden Tools: " . count($hiddenToolIds) . ", Hide Overdue: {$hideOverdueTools})");
+
+        return redirect()->back()->with('success', 'Konfigurasi alat tersembunyi kalibrasi berhasil diperbarui.');
     }
 
     private function getToolsQuery(Request $request, $plant, $year)
