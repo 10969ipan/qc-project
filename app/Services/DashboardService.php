@@ -105,36 +105,35 @@ class DashboardService extends BaseService
         $plantCode = $plantReq ?: ($plantId ? Plant::where('id', $plantId)->value('code') : 'karawang');
         $plantCode = strtolower($plantCode ?: 'karawang');
 
-        $cacheKey = "dashboard_data_{$authRole}_{$plantId}_{$plantCode}_{$year}_{$month}";
+        $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
+        $isDualView = in_array($authRole, $dualViewRoles);
+
+        $cacheKey = $isDualView 
+            ? "dashboard_stats_dual_{$plantCode}_{$year}_{$month}"
+            : "dashboard_stats_single_{$authRole}_{$plantId}_{$year}_{$month}";
+
         self::trackDashboardCacheKey($cacheKey);
         // 1. Ringkasan Statistik Approval (Ter-cache 1 jam)
-        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout, $plantCode) {
-            $combinedStats = $this->calculateApprovalStats('all', false, null, $month, $year);
-            $dailyCombinedStats = $this->calculateApprovalStats('all', true);
-
-            $statsJakarta = null;
-            $statsKarawang = null;
-            $dailyStatsJakarta = null;
-            $dailyStatsKarawang = null;
-
-            $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
-
-            $dailyStatsSubAssy = null;
-            $dailyStatsInProcess = null;
-
-            if (in_array($authRole, $dualViewRoles)) {
-                $statsJakarta = $this->calculateApprovalStats('jakarta', false, null, $month, $year);
-                $statsKarawang = $this->calculateApprovalStats('karawang', false, null, $month, $year);
-                
-                $dailyStatsJakarta = $this->calculateApprovalStats('jakarta', true);
-                $dailyStatsKarawang = $this->calculateApprovalStats('karawang', true);
-
-                $targetPlant = $plantCode ?: 'karawang';
-                $dailyStatsSubAssy = $this->calculateApprovalStats($targetPlant, true, 'sub_assy');
-                $dailyStatsInProcess = $this->calculateApprovalStats($targetPlant, true, 'in_process');
+        $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout, $plantCode, $isDualView) {
+            if ($isDualView) {
+                $allStats = $this->calculateAllApprovalStatsConsolidated($month, $year, $plantCode, $authRole);
+                $combinedStats      = $allStats['combinedStats'];
+                $dailyCombinedStats = $allStats['dailyCombinedStats'];
+                $statsJakarta       = $allStats['statsJakarta'];
+                $statsKarawang      = $allStats['statsKarawang'];
+                $dailyStatsJakarta  = $allStats['dailyStatsJakarta'];
+                $dailyStatsKarawang = $allStats['dailyStatsKarawang'];
+                $dailyStatsSubAssy  = $allStats['dailyStatsSubAssy'];
+                $dailyStatsInProcess= $allStats['dailyStatsInProcess'];
             } else {
-                $dailyStatsSubAssy = $this->calculateApprovalStats(null, true, 'sub_assy');
-                $dailyStatsInProcess = $this->calculateApprovalStats(null, true, 'in_process');
+                $combinedStats      = $this->calculateApprovalStats('all', false, null, $month, $year);
+                $dailyCombinedStats = $this->calculateApprovalStats('all', true);
+                $statsJakarta       = null;
+                $statsKarawang      = null;
+                $dailyStatsJakarta  = null;
+                $dailyStatsKarawang = null;
+                $dailyStatsSubAssy  = $this->calculateApprovalStats(null, true, 'sub_assy');
+                $dailyStatsInProcess= $this->calculateApprovalStats(null, true, 'in_process');
             }
 
             $activeReport = MonthlyReport::where('is_active', true)->first();
@@ -150,15 +149,15 @@ class DashboardService extends BaseService
         });
 
         // 2. Kartu Monitoring Stasiun/Meja (Ter-cache 10 menit)
-        $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
-        $isDualView = in_array($authRole, $dualViewRoles);
-
         $targetPlantForMonitoring = request('plant') ?? auth()->user()->plant_id;
         if (!$targetPlantForMonitoring || $targetPlantForMonitoring == 'total' || $targetPlantForMonitoring == \App\Models\Plant::resolveId('total')) {
             $targetPlantForMonitoring = 'karawang';
         }
 
-        $monitoringKey = "dashboard_monitoring_{$authRole}_{$plantId}_" . $targetPlantForMonitoring;
+        $monitoringKey = $isDualView
+            ? "dashboard_monitoring_dual_{$targetPlantForMonitoring}"
+            : "dashboard_monitoring_single_{$plantId}_{$targetPlantForMonitoring}";
+
         self::trackDashboardCacheKey($monitoringKey);
         $monitoringData = Cache::remember($monitoringKey, now()->addMinutes(10), function () use ($isDualView, $targetPlantForMonitoring) {
             $productionJakarta = [];
@@ -224,6 +223,210 @@ class DashboardService extends BaseService
         if ($total === 0) return 100.0; // If no data, consider it 100% (not blocking)
         
         return round((($stats['approved'] + $stats['rejected']) / $total) * 100, 2);
+    }
+
+    /**
+     * Calculate all approval statistics in a single consolidated pass (9 DB queries total instead of 54)
+     */
+    private function calculateAllApprovalStatsConsolidated($month, $year, $plantCode, $authRole): array
+    {
+        $jakartaPlantId  = Plant::resolveId('jakarta');
+        $karawangPlantId = Plant::resolveId('karawang');
+
+        $targetPlantId = ($plantCode === 'jakarta') ? $jakartaPlantId : (($plantCode === 'karawang') ? $karawangPlantId : null);
+
+        $carbon = \Carbon\Carbon::create($year, $month, 1);
+        $monthStartDate = $carbon->copy()->startOfMonth()->toDateString();
+        $monthEndDate   = $carbon->copy()->endOfMonth()->toDateString();
+
+        $monthStartStart = $monthStartDate . ' 00:00:00';
+        $monthEndEnd     = $monthEndDate . ' 23:59:59';
+
+        $targetDate     = now()->subDay()->toDateString();
+        $targetDateStart= $targetDate . ' 00:00:00';
+        $targetDateEnd  = $targetDate . ' 23:59:59';
+
+        $lateThreshold = now()->subHours(24);
+
+        $combinedStats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $dailyCombinedStats = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $statsJakarta = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $statsKarawang = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $dailyStatsJakarta = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $dailyStatsKarawang = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $dailyStatsSubAssy = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+        $dailyStatsInProcess = ['pending' => 0, 'approved' => 0, 'rejected' => 0, 'pending_late' => 0];
+
+        $models = [
+            [SubAssyChecksheet::class, 'sub_assy', null],
+            [SortirChecksheet::class, 'sub_assy', 'sub_assy'],
+            [InProcessChecksheet::class, 'in_process', null],
+            [FirstPieceApproval::class, 'in_process', null],
+            [\App\Models\PaintingChecksheet::class, 'general', null],
+            [CrossCutChecksheet::class, 'general', null],
+            [CrossCutPaintingChecksheet::class, 'general', null],
+            [DoubleTapeChecksheet::class, 'general', null],
+            [PlatingChecksheet::class, 'general', null],
+        ];
+
+        foreach ($models as [$modelClass, $category, $sourceTypeFilter]) {
+            $table = (new $modelClass)->getTable();
+            $tableCols = $this->getTableColumns($table);
+
+            $potentialColumns = ['kashift_qc', 'karu_qc', 'supervisor_qc'];
+            $sigCols = array_values(array_intersect($potentialColumns, $tableCols));
+            if (empty($sigCols)) continue;
+
+            $dateColumn = 'date';
+            if (in_array('check_date', $tableCols, true)) {
+                $dateColumn = 'check_date';
+            } elseif (in_array('production_datetime', $tableCols, true)) {
+                $dateColumn = 'production_datetime';
+            }
+            $isDateTime = ($dateColumn === 'production_datetime');
+
+            $query = DB::table($table);
+
+            if ($sourceTypeFilter && in_array('source_type', $tableCols, true)) {
+                $query->where('source_type', $sourceTypeFilter);
+            }
+
+            if (in_array('qrcode', $tableCols, true)) {
+                $query->where(function ($q) use ($tableCols) {
+                    $q->where(function ($sub) {
+                        $sub->whereNull('qrcode')->orWhere('qrcode', '');
+                    });
+                    if (in_array('unique_code_id', $tableCols, true)) {
+                        $q->where(function ($sub) {
+                            $sub->whereNull('unique_code_id')->orWhere('unique_code_id', '');
+                        });
+                    }
+                    if (in_array('scan_method', $tableCols, true)) {
+                        $q->where(function ($sub) {
+                            $sub->whereNull('scan_method')->orWhere('scan_method', 'manual');
+                        });
+                    }
+                });
+            } elseif (in_array('entry_method', $tableCols, true)) {
+                $query->whereIn('entry_method', ['regular', 'manual']);
+            }
+
+            if ($isDateTime) {
+                $monthCond = "{$dateColumn} >= '{$monthStartStart}' AND {$dateColumn} <= '{$monthEndEnd}'";
+                $dailyCond = "{$dateColumn} >= '{$targetDateStart}' AND {$dateColumn} <= '{$targetDateEnd}'";
+            } else {
+                $monthCond = "{$dateColumn} >= '{$monthStartDate}' AND {$dateColumn} <= '{$monthEndDate}'";
+                $dailyCond = "{$dateColumn} = '{$targetDate}'";
+            }
+
+            $query->whereRaw("(({$monthCond}) OR ({$dailyCond}))");
+
+            $selects = [];
+
+            $jktCond = "plant_id = " . DB::getPdo()->quote($jakartaPlantId);
+            $krwCond = "plant_id = " . DB::getPdo()->quote($karawangPlantId);
+
+            foreach ($sigCols as $col) {
+                $isRej = "{$col} = 'REJECTED'";
+                $isApp = "({$col} IS NOT NULL AND {$col} != '' AND {$col} != 'REJECTED')";
+                $isPnd = "({$col} IS NULL OR {$col} = '')";
+                $isLat = "({$col} IS NULL OR {$col} = '') AND created_at < '{$lateThreshold}'";
+
+                // Combined Monthly (All plants)
+                $selects[] = "SUM(CASE WHEN {$monthCond} AND {$isRej} THEN 1 ELSE 0 END) as m_all_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$monthCond} AND {$isApp} THEN 1 ELSE 0 END) as m_all_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$monthCond} AND {$isPnd} THEN 1 ELSE 0 END) as m_all_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$monthCond} AND {$isLat} THEN 1 ELSE 0 END) as m_all_{$col}_lat";
+
+                // Combined Daily (All plants)
+                $selects[] = "SUM(CASE WHEN {$dailyCond} AND {$isRej} THEN 1 ELSE 0 END) as d_all_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$dailyCond} AND {$isApp} THEN 1 ELSE 0 END) as d_all_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$dailyCond} AND {$isPnd} THEN 1 ELSE 0 END) as d_all_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$dailyCond} AND {$isLat} THEN 1 ELSE 0 END) as d_all_{$col}_lat";
+
+                // Jakarta Monthly
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$monthCond} AND {$isRej} THEN 1 ELSE 0 END) as m_jkt_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$monthCond} AND {$isApp} THEN 1 ELSE 0 END) as m_jkt_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$monthCond} AND {$isPnd} THEN 1 ELSE 0 END) as m_jkt_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$monthCond} AND {$isLat} THEN 1 ELSE 0 END) as m_jkt_{$col}_lat";
+
+                // Jakarta Daily
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$dailyCond} AND {$isRej} THEN 1 ELSE 0 END) as d_jkt_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$dailyCond} AND {$isApp} THEN 1 ELSE 0 END) as d_jkt_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$dailyCond} AND {$isPnd} THEN 1 ELSE 0 END) as d_jkt_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$jktCond} AND {$dailyCond} AND {$isLat} THEN 1 ELSE 0 END) as d_jkt_{$col}_lat";
+
+                // Karawang Monthly
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$monthCond} AND {$isRej} THEN 1 ELSE 0 END) as m_krw_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$monthCond} AND {$isApp} THEN 1 ELSE 0 END) as m_krw_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$monthCond} AND {$isPnd} THEN 1 ELSE 0 END) as m_krw_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$monthCond} AND {$isLat} THEN 1 ELSE 0 END) as m_krw_{$col}_lat";
+
+                // Karawang Daily
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$dailyCond} AND {$isRej} THEN 1 ELSE 0 END) as d_krw_{$col}_rej";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$dailyCond} AND {$isApp} THEN 1 ELSE 0 END) as d_krw_{$col}_app";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$dailyCond} AND {$isPnd} THEN 1 ELSE 0 END) as d_krw_{$col}_pnd";
+                $selects[] = "SUM(CASE WHEN {$krwCond} AND {$dailyCond} AND {$isLat} THEN 1 ELSE 0 END) as d_krw_{$col}_lat";
+            }
+
+            $row = $query->selectRaw(implode(', ', $selects))->first();
+            if (!$row) continue;
+
+            foreach ($sigCols as $col) {
+                // Combined Monthly
+                $combinedStats['rejected']     += (int) ($row->{"m_all_{$col}_rej"} ?? 0);
+                $combinedStats['approved']     += (int) ($row->{"m_all_{$col}_app"} ?? 0);
+                $combinedStats['pending']      += (int) ($row->{"m_all_{$col}_pnd"} ?? 0);
+                $combinedStats['pending_late'] += (int) ($row->{"m_all_{$col}_lat"} ?? 0);
+
+                // Combined Daily
+                $dailyCombinedStats['rejected']     += (int) ($row->{"d_all_{$col}_rej"} ?? 0);
+                $dailyCombinedStats['approved']     += (int) ($row->{"d_all_{$col}_app"} ?? 0);
+                $dailyCombinedStats['pending']      += (int) ($row->{"d_all_{$col}_pnd"} ?? 0);
+                $dailyCombinedStats['pending_late'] += (int) ($row->{"d_all_{$col}_lat"} ?? 0);
+
+                // Jakarta Monthly & Daily (Jakarta only shows sub_assy, in_process, painting)
+                if ($category === 'sub_assy' || $category === 'in_process' || $modelClass === \App\Models\PaintingChecksheet::class) {
+                    $statsJakarta['rejected']     += (int) ($row->{"m_jkt_{$col}_rej"} ?? 0);
+                    $statsJakarta['approved']     += (int) ($row->{"m_jkt_{$col}_app"} ?? 0);
+                    $statsJakarta['pending']      += (int) ($row->{"m_jkt_{$col}_pnd"} ?? 0);
+                    $statsJakarta['pending_late'] += (int) ($row->{"m_jkt_{$col}_lat"} ?? 0);
+
+                    $dailyStatsJakarta['rejected']     += (int) ($row->{"d_jkt_{$col}_rej"} ?? 0);
+                    $dailyStatsJakarta['approved']     += (int) ($row->{"d_jkt_{$col}_app"} ?? 0);
+                    $dailyStatsJakarta['pending']      += (int) ($row->{"d_jkt_{$col}_pnd"} ?? 0);
+                    $dailyStatsJakarta['pending_late'] += (int) ($row->{"d_jkt_{$col}_lat"} ?? 0);
+                }
+
+                // Karawang Monthly & Daily
+                $statsKarawang['rejected']     += (int) ($row->{"m_krw_{$col}_rej"} ?? 0);
+                $statsKarawang['approved']     += (int) ($row->{"m_krw_{$col}_app"} ?? 0);
+                $statsKarawang['pending']      += (int) ($row->{"m_krw_{$col}_pnd"} ?? 0);
+                $statsKarawang['pending_late'] += (int) ($row->{"m_krw_{$col}_lat"} ?? 0);
+
+                $dailyStatsKarawang['rejected']     += (int) ($row->{"d_krw_{$col}_rej"} ?? 0);
+                $dailyStatsKarawang['approved']     += (int) ($row->{"d_krw_{$col}_app"} ?? 0);
+                $dailyStatsKarawang['pending']      += (int) ($row->{"d_krw_{$col}_pnd"} ?? 0);
+                $dailyStatsKarawang['pending_late'] += (int) ($row->{"d_krw_{$col}_lat"} ?? 0);
+
+                // Daily Stats Sub-Assy / In-Process for target plant
+                if ($category === 'sub_assy') {
+                    $targetPrefix = ($targetPlantId === $jakartaPlantId) ? 'd_jkt' : (($targetPlantId === $karawangPlantId) ? 'd_krw' : 'd_all');
+                    $dailyStatsSubAssy['rejected']     += (int) ($row->{"{$targetPrefix}_{$col}_rej"} ?? 0);
+                    $dailyStatsSubAssy['approved']     += (int) ($row->{"{$targetPrefix}_{$col}_app"} ?? 0);
+                    $dailyStatsSubAssy['pending']      += (int) ($row->{"{$targetPrefix}_{$col}_pnd"} ?? 0);
+                    $dailyStatsSubAssy['pending_late'] += (int) ($row->{"{$targetPrefix}_{$col}_lat"} ?? 0);
+                } elseif ($category === 'in_process') {
+                    $targetPrefix = ($targetPlantId === $jakartaPlantId) ? 'd_jkt' : (($targetPlantId === $karawangPlantId) ? 'd_krw' : 'd_all');
+                    $dailyStatsInProcess['rejected']     += (int) ($row->{"{$targetPrefix}_{$col}_rej"} ?? 0);
+                    $dailyStatsInProcess['approved']     += (int) ($row->{"{$targetPrefix}_{$col}_app"} ?? 0);
+                    $dailyStatsInProcess['pending']      += (int) ($row->{"{$targetPrefix}_{$col}_pnd"} ?? 0);
+                    $dailyStatsInProcess['pending_late'] += (int) ($row->{"{$targetPrefix}_{$col}_lat"} ?? 0);
+                }
+            }
+        }
+
+        return compact('combinedStats', 'statsJakarta', 'statsKarawang', 'dailyCombinedStats', 'dailyStatsJakarta', 'dailyStatsKarawang', 'dailyStatsSubAssy', 'dailyStatsInProcess');
     }
 
     /**
