@@ -129,10 +129,30 @@
         border-bottom: none !important;
     }
 
+    #checksheetTable .table-dimension-minimalist td:first-child,
+    #checksheetTable .table-dimension-minimalist th:first-child {
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist td:not(:first-child),
+    #checksheetTable .table-dimension-minimalist th:not(:first-child) {
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+    }
+
     #checksheetTable .table-dimension-minimalist .text-std-header { 
         color: #64748b !important; 
         font-weight: 600 !important; 
         background-color: #f1f5f9 !important; 
+        font-size: 0.52rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        line-height: 1.0 !important;
+        letter-spacing: -0.2px !important;
+        padding: 2px 1px !important;
     }
 </style>
     @php
@@ -625,14 +645,23 @@
                                                         }
                                                     @endphp
                                                     @if($hasTolData)
-                                                        <tr>
-                                                            @foreach ($activePoints as $j)
-                                                                <td class="dim-header text-std-header">
-                                                                    {{ isset($standards[$j]) ? '±' . ($standards[$j]['tolerance'] ?? '-') : '-' }}
-                                                                </td>
-                                                            @endforeach
-                                                        </tr>
-                                                    @endif
+                                                         <tr>
+                                                             @foreach ($activePoints as $j)
+                                                                 @php
+                                                                     $tolVal = isset($standards[$j]['tolerance']) ? trim((string)$standards[$j]['tolerance']) : '';
+                                                                     if ($tolVal !== '' && $tolVal !== '-') {
+                                                                         $tolVal = str_replace([' / ', ' /', '/ '], '/', $tolVal);
+                                                                         if (!preg_match('/^[±+\-\s]/u', $tolVal) && !str_contains($tolVal, '/')) {
+                                                                             $tolVal = '±' . $tolVal;
+                                                                         }
+                                                                     } else {
+                                                                         $tolVal = '-';
+                                                                     }
+                                                                 @endphp
+                                                                 <td class="dim-header text-std-header">{{ $tolVal }}</td>
+                                                             @endforeach
+                                                         </tr>
+                                                     @endif
 
                                                     {{-- Baris Header Utama Point --}}
                                                     <tr>

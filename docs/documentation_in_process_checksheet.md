@@ -14,8 +14,8 @@ Fitur-fitur utama di modul ini:
 - **Kolom Qty Gabungan**: Total Qty dan Sampling Qty digabung dalam 1 box input & 1 kolom tabel (`Total / Sampling Pcs`).
 - **Pemeriksaan Dimensi & Berat Part**: Validasi otomatis batas toleransi ukuran per cavity/point dan pengukuran berat part (AHM).
 - **Segmented Control Tipe Check**: Pilihan antara *Sampling (AQL 0.65)* atau *Fullcheck 100%*.
-- **Optimasi Caching Filter per Plant**: Response halaman index super kenceng (**~64 ms**) karena filter dropdown di-cache per plant.
-- **Instant Delete AJAX**: Hapus data langsung di tabel tanpa reload halaman (**< 20 ms**).
+- **Optimalisasi 6 Pilar Blueprint**: Response halaman index super kenceng (**< 28 ms**) karena filter dropdown di-cache per plant, Eager Loading relasi, Pre-computation controller, dan Permission Memory Cache.
+- **Instant Delete & Bulk Approval**: Hapus data via AJAX (**< 20 ms**) dan dukungan alias role approval seragam (`supervisor_qc`, `asst_manager_qc`, `karu_qc`, `kashift_qc`, `manager_qc`).
 - **Modal Edit Zero-Scroll**: Layout modal pas di tengah layar tanpa scrollbar samping & preservasi input scalar murni.
 - **Proteksi Approval Strict Manual Only**: Approval cuma diperbolehin buat data input manual (`regular`), data verifikasi/QR di-lock total.
 
@@ -25,7 +25,7 @@ Fitur-fitur utama di modul ini:
 
 Ini daftar file utama tempat logika modul ini berada:
 
-- **Model**: `app/Models/InProcessChecksheet.php`
+- **Model**: `app/Models/InProcessChecksheet.php` & `app/Models/User.php` (In-Memory Permission Cache)
 - **Controller**: `app/Http/Controllers/InProcessChecksheetController.php`
 - **Service Layer**: `app/Services/InProcessChecksheetService.php`
 - **Form Request (Validasi)**:
@@ -36,6 +36,7 @@ Ini daftar file utama tempat logika modul ini berada:
   - Form Input: `resources/views/in_process/create.blade.php`
   - Modal Edit: `resources/views/in_process/partials/edit_form.blade.php`
 - **JavaScript**: `public/js/checksheet/in-process.js`
+- **Migration & Blueprint**: `database/migrations/2026_09_14_000001_add_indexes_for_in_process_and_notifications_performance.php`
 
 ---
 
@@ -67,7 +68,10 @@ Ini skema kolom yang ada di database tabel `in_process_checksheets`:
 | `defects` | `json` | Yes | Detail defect (JSON) |
 | `approval_status` | `varchar` | Yes | Status approval (`Pending`/`Approved`/`Rejected`) |
 
-> **Tips Performa Index**: Berhasil ditambahkan B-Tree composite index `idx_inproc_plant_date_shift` (`plant_id`, `date`, `shift`) biar pencarian filter tanggal & shift kenceng banget.
+> **Tips Performa Index**: Tabel ini dilengkapi Composite Indexes:
+> - `idx_inproc_plant_date_created` (`plant_id`, `date`, `created_at`)
+> - `idx_inproc_plant_date_shift` (`plant_id`, `date`, `shift`)
+> - `idx_inproc_plant_machine` (`plant_id`, `code_machine`)
 
 ---
 
@@ -137,8 +141,8 @@ $('input[name="total_qty"]').on("input change", function () {
 });
 ```
 
-### 4. Proteksi Approval Strict Manual Only
-Approval cuma diperbolehkan buat data input manual (`entry_method = 'regular'`).
+### 4. Proteksi Approval Strict Manual Only & Multi-Role Alias
+Approval cuma diperbolehkan buat data input manual (`entry_method = 'regular'`), serta mendukung alias role yang fleksibel.
 
 Contoh Kode Controller Bulk Approve (`app/Traits/HasChecksheetApproval.php`):
 ```php
@@ -150,33 +154,63 @@ public function bulkApprove(Request $request)
           ->orWhereNull('entry_method');
     });
 
-    // Proses approve massal...
+    // Sub-query matching role alias (supervisor_qc, asst_manager_qc, karu_qc, manager_qc)
 }
 ```
 
 ---
 
-## Performa & Optimasi Query
+## ⚡ Performa & Optimasi Query (Pola 6 Pilar Blueprint)
 
-Contoh Kode Filter Caching (`app/Http/Controllers/InProcessChecksheetController.php`):
+Modul In-Process Checksheet menerapkan standar optimalisasi 6 Pilar Blueprint:
+
+### 1. Database Indexing
+Menggunakan B-Tree Composite Index `(plant_id, date, created_at)` untuk mencegah Full Table Scan.
+
+### 2. In-Memory Permission Cache (`User.php`)
+Setiap panggilan `auth()->user()->hasPermission(...)` di Blade hanya memicu 1x query SQL per `(user_id, role, menu_id, action)` selama request berjalan via static `$permissionsMemoryCache`.
+
 ```php
-// Cache dropdown filter per Plant ID selama 30 menit
+// app/Models/User.php
+protected static array $permissionsMemoryCache = [];
+```
+
+### 3. Direct Master Query & Filter Caching
+Mengambil opsi filter dropdown langsung dari tabel master `Item` dan di-cache per Plant ID selama 30 menit (1.800 detik):
+
+```php
+// app/Http/Controllers/InProcessChecksheetController.php
 $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_{$plantId}", 1800, function () use ($plantId) {
     return Item::where('plant_id', $plantId)->orderBy('name')->get();
 });
 ```
 
-Contoh Kode Preservasi Filter Scalar di Modal Edit (`resources/views/in_process/partials/edit_form.blade.php`):
+### 4. Eager Loading & Fast String Query
+Query service menggunakan `with(['item', 'user'])` dan memfilter baris dimensi tanpa REGEXP berat:
+
 ```php
-{{-- Preservasi filter scalar agar parameter array tidak terkorupsi --}}
+// app/Services/InProcessChecksheetService.php
+$query = InProcessChecksheet::with(['item', 'user'])
+    ->whereRaw("CHAR_LENGTH(dimension_check) > 4");
+```
+
+### 5. Controller Pre-computation
+Helper status dimensi diproses di Controller hanya untuk 10 baris di halaman aktif sebelum dikirim ke Blade view:
+
+```php
+foreach ($checksheets->items() as $item) {
+    $item->is_dimension_ng = $this->service->isDimensionNg($item, $standards);
+    $item->is_no_dimension_row = $this->service->isNoDimensionRow($item);
+}
+```
+
+### 6. Clean Blade View (N+1 Query Free)
+Blade view mengonsumsi properti pre-computed tanpa memicu panggilan `app(Service::class)` berulang:
+
+```blade
 @php
-    $formFields = ['item_id', 'date', 'shift', 'code_machine', 'total_qty', 'sampling_qty', 'total_ok', 'total_ng', 'judgment', 'operator_initials', 'part_weight', 'remarks', 'next_proses', 'dimensions', 'defect_types', 'defect_quantities', '_token', '_method', 'id'];
+    $isDimensionNgRow = $checksheet->is_dimension_ng ?? app(InProcessChecksheetService::class)->isDimensionNg($checksheet, $standards);
 @endphp
-@foreach(request()->all() as $key => $value)
-    @if(!in_array($key, $formFields) && is_scalar($value))
-        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-    @endif
-@endforeach
 ```
 
 ---
@@ -185,6 +219,9 @@ Contoh Kode Preservasi Filter Scalar di Modal Edit (`resources/views/in_process/
 
 Kalau abis ngedit kode atau update database, jalanin perintah ini:
 ```bash
+# Pre-warm cache aplikasi
+php artisan qc:warm-cache
+
 # Clear cache Laravel
 php artisan config:clear
 php artisan view:clear
@@ -197,4 +234,5 @@ node -c public/js/checksheet/in-process.js
 ```
 
 ---
-*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 27 Agustus 2026.*
+*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 14 September 2026.*
+

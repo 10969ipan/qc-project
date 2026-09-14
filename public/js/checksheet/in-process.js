@@ -791,9 +791,14 @@ class InProcessCreate {
                             }
                         },
                         error: function (xhr) {
-                            const msg = xhr.responseJSON && xhr.responseJSON.message
-                                ? xhr.responseJSON.message
-                                : "Gagal menyimpan data.";
+                            let msg = "Gagal menyimpan data.";
+                            if (xhr.responseJSON) {
+                                if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === "object") {
+                                    msg = Object.values(xhr.responseJSON.errors).flat().join("\n");
+                                } else if (xhr.responseJSON.message) {
+                                    msg = xhr.responseJSON.message;
+                                }
+                            }
                             reject(new Error(msg));
                         }
                     });
@@ -2543,13 +2548,28 @@ class InProcessCreate {
                                 }
                             });
                         }
+                    } else {
+                        const errorMsg = response.message || "Gagal menyimpan data.";
+                        Swal.fire({
+                            icon: "error",
+                            title: "Gagal Menyimpan",
+                            text: errorMsg,
+                        });
+                        saveBtn.prop("disabled", false).html(originalHtml);
                     }
                 },
                 error: function (xhr) {
-                    const errorMsg =
-                        xhr.responseJSON && xhr.responseJSON.message
-                            ? xhr.responseJSON.message
-                            : "Gagal menyimpan data.";
+                    let errorMsg = "Gagal menyimpan data.";
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === "object") {
+                            errorMsg = Object.values(xhr.responseJSON.errors).flat().join("\n");
+                        } else if (xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                    } else if (xhr.statusText) {
+                        errorMsg = `Gagal menyimpan data (${xhr.status}: ${xhr.statusText})`;
+                    }
+
                     if (errorMsg.toLowerCase().includes("duplicate") || errorMsg.toLowerCase().includes("sudah pernah")) {
                         window.playAppAudio('duplicate_saved');
                         Swal.fire({

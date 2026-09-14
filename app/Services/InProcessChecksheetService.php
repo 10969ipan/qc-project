@@ -663,7 +663,7 @@ class InProcessChecksheetService extends BaseService
         DB::beginTransaction();
         try {
             // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, (int) $data['item_id']);
+            $data = $this->validateDimensions($data, $data['item_id']);
 
             // Process defects
             $defects = $this->processDefects($data);
@@ -703,18 +703,21 @@ class InProcessChecksheetService extends BaseService
             ]);
 
             // Clear manual machine status override
-            \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
-                [
-                    'plant_id' => $checksheet->plant_id,
-                    'type' => 'machine',
-                    'number' => (int) $checksheet->code_machine,
-                ],
-                [
-                    'status' => 'normal',
-                    'description' => 'Automatically cleared by checksheet input',
-                    'created_by' => 'System'
-                ]
-            );
+            $machineNum = (int) preg_replace('/\D/', '', (string) $checksheet->code_machine);
+            if ($machineNum > 0) {
+                \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
+                    [
+                        'plant_id' => $checksheet->plant_id,
+                        'type' => 'machine',
+                        'number' => $machineNum,
+                    ],
+                    [
+                        'status' => 'normal',
+                        'description' => 'Automatically cleared by checksheet input',
+                        'created_by' => 'System'
+                    ]
+                );
+            }
 
             DB::commit();
 
@@ -766,7 +769,7 @@ class InProcessChecksheetService extends BaseService
     }
 
     /**
-     * Update in-process checksheet
+     * Update checksheet
      * 
      * @param int $id
      * @param array $data
@@ -776,11 +779,6 @@ class InProcessChecksheetService extends BaseService
     {
         DB::beginTransaction();
         try {
-            $checksheet = InProcessChecksheet::findOrFail($id);
-
-            // Validate dimensions and auto-set judgment
-            $data = $this->validateDimensions($data, (int) $data['item_id']);
-
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 

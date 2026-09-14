@@ -142,7 +142,9 @@
 
     #checksheetTable .table-dimension-minimalist td:not(:first-child),
     #checksheetTable .table-dimension-minimalist th:not(:first-child) {
-        min-width: 34px !important;
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
     }
 
     #checksheetTable .table-dimension-minimalist .dim-header {
@@ -153,6 +155,15 @@
         font-size: 0.55rem !important;
         border-bottom: 1px solid #e2e8f0 !important;
         line-height: 1 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .text-std-header {
+        font-size: 0.52rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        line-height: 1.0 !important;
+        letter-spacing: -0.2px !important;
+        padding: 2px 1px !important;
     }
 
     #checksheetTable .table-dimension-minimalist .dim-data {
@@ -882,7 +893,18 @@
                                                              <tr>
                                                                  <td class="dim-header text-std-header">Tol</td>
                                                                  @foreach ($activePoints as $j)
-                                                                     <td class="dim-header text-std-header">{{ (isset($standards[$j]['tolerance']) && $standards[$j]['tolerance'] !== null && $standards[$j]['tolerance'] !== '') ? '±' . $standards[$j]['tolerance'] : '-' }}</td>
+                                                                     @php
+                                                                         $tolVal = isset($standards[$j]['tolerance']) ? trim((string)$standards[$j]['tolerance']) : '';
+                                                                         if ($tolVal !== '' && $tolVal !== '-') {
+                                                                             $tolVal = str_replace([' / ', ' /', '/ '], '/', $tolVal);
+                                                                             if (!preg_match('/^[±+\-\s]/u', $tolVal) && !str_contains($tolVal, '/')) {
+                                                                                 $tolVal = '±' . $tolVal;
+                                                                             }
+                                                                         } else {
+                                                                             $tolVal = '-';
+                                                                         }
+                                                                     @endphp
+                                                                     <td class="dim-header text-std-header">{{ $tolVal }}</td>
                                                                  @endforeach
                                                              </tr>
                                                          @endif
