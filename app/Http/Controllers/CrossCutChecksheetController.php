@@ -35,11 +35,22 @@ class CrossCutChecksheetController extends Controller
     {
         $mappings = [
             'karu_qc' => ['field' => 'karu_qc', 'time' => 'karu_qc_approved_at', 'label' => 'Karu QC'],
+            'kashift_qc' => ['field' => 'karu_qc', 'time' => 'karu_qc_approved_at', 'label' => 'Karu QC'],
+            'kashift' => ['field' => 'karu_qc', 'time' => 'karu_qc_approved_at', 'label' => 'Karu QC'],
+
             'kashift_plating' => ['field' => 'kashift_plating', 'time' => 'kashift_plating_approved_at', 'label' => 'Kashift Plating'],
+
             'supervisor_plating' => ['field' => 'supervisor_plating', 'time' => 'supervisor_plating_approved_at', 'label' => 'Supervisor Plating'],
-            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'], // Mapped 'supervisor' to 'supervisor_qc'
+            'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
+            'supervisor_qc' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'SPV Quality'],
+
             'asst_manager_plating' => ['field' => 'asst_manager_plating', 'time' => 'asst_manager_plating_approved_at', 'label' => 'Asst Manager Plating'],
             'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
+
+            'manager_plating' => ['field' => 'manager_plating', 'time' => 'manager_plating_approved_at', 'label' => 'Manager Plating'],
+            'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager QC'],
+            'manager_qc' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager QC'],
         ];
         return $mappings[$type] ?? null;
     }
@@ -681,22 +692,39 @@ class CrossCutChecksheetController extends Controller
 
     protected function applySequentialApprovalFilter($query, $type)
     {
-        $sequence = [
-            'karu_qc' => 'karu_qc',
-            'kashift_plating' => 'kashift_plating',
-            'supervisor' => 'supervisor_qc',
-            'supervisor_plating' => 'supervisor_plating',
-            'asst_manager' => 'asst_manager_qc',
-            'asst_manager_plating' => 'asst_manager_plating'
+        $stepOrder = [
+            'karu_qc' => 1,
+            'kashift_qc' => 1,
+            'kashift' => 1,
+            'kashift_plating' => 2,
+            'supervisor' => 3,
+            'supervisor_qc' => 3,
+            'supervisor_plating' => 4,
+            'asst_manager' => 5,
+            'asst_manager_qc' => 5,
+            'asst_manager_plating' => 6,
+            'manager' => 7,
+            'manager_qc' => 7,
+            'manager_plating' => 7,
         ];
 
-        $keys = array_keys($sequence);
-        $currentIndex = array_search($type, $keys);
+        $sequence = [
+            1 => 'karu_qc',
+            2 => 'kashift_plating',
+            3 => 'supervisor_qc',
+            4 => 'supervisor_plating',
+            5 => 'asst_manager_qc',
+            6 => 'asst_manager_plating'
+        ];
+
+        $currentStep = $stepOrder[$type] ?? 0;
         
-        if ($currentIndex > 0) {
-            for ($i = $currentIndex - 1; $i >= 0; $i--) {
-                $prevField = $sequence[$keys[$i]];
-                $query->whereNotNull($prevField)->where($prevField, '!=', 'REJECTED');
+        if ($currentStep > 1) {
+            for ($i = 1; $i < $currentStep; $i++) {
+                if (isset($sequence[$i])) {
+                    $prevField = $sequence[$i];
+                    $query->whereNotNull($prevField)->where($prevField, '!=', 'REJECTED');
+                }
             }
         }
     }

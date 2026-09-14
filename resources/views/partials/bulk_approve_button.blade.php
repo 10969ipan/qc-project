@@ -40,7 +40,11 @@
                 } elseif ($userRole === 'kashift_plating') {
                     $field = 'kashift_plating';
                 } elseif (in_array($userRole, ['kashift', 'kashift_qc', 'karu_qc'])) {
-                    $field = (isset($cs->kashift_qc) || property_exists($cs, 'kashift_qc')) ? 'kashift_qc' : (isset($cs->karu_qc) ? 'karu_qc' : 'kashift_qc');
+                    if (isset($cs->karu_qc) || property_exists($cs, 'karu_qc')) {
+                        $field = 'karu_qc';
+                    } else {
+                        $field = (isset($cs->kashift_qc) || property_exists($cs, 'kashift_qc')) ? 'kashift_qc' : (isset($cs->karu_qc) ? 'karu_qc' : 'kashift_qc');
+                    }
                 }
 
                 if ($field) {
