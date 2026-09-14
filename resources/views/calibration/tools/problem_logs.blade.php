@@ -167,6 +167,7 @@
                                                     <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
                                                 </tr>
                                             </thead>
+                                            @php $isJkt = in_array(strtolower($plantCode ?? ''), ['jakarta', 'jkt']); @endphp
                                             <tbody>
                                                 <tr>
                                                     <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
@@ -175,7 +176,7 @@
                                                         </div>
                                                     </td>
                                                     <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                        <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                        <img src="{{ asset($isJkt ? 'signatures/suli.png' : 'signatures/mida.png') }}" alt="{{ $isJkt ? 'Masuli' : 'Mida H' }}" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
                                                     </td>
                                                     <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
                                                         <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
@@ -185,12 +186,12 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Mida H</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">{{ $isJkt ? 'Masuli' : 'Mida H' }}</td>
                                                     <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
                                                     <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
                                                 </tr>
                                                 <tr>
-                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QS</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">{{ $isJkt ? 'Spv. QC' : 'Spv. QS' }}</td>
                                                     <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
                                                     <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
                                                 </tr>

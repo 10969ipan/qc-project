@@ -1,6 +1,7 @@
 <!DOCTYPE html>
     @php
         $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+        $isJkt = in_array(strtolower($headerPlantCode), ['jakarta', 'jkt']);
         $docHeader = \App\Models\GeneralSetting::getDocHeader('hasil_verifikasi', $headerPlantCode, [
             'no_dokumen' => strtolower($headerPlantCode) === 'jakarta' ? 'QC-JKT-F-238' : 'QC-KRW-F-238',
             'tgl_terbit' => '14/07/2025',
@@ -214,7 +215,7 @@
                                             </div>
                                         </td>
                                         <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff; text-align: center;">
-                                            <img src="{{ public_path('signatures/mida.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
+                                            <img src="{{ public_path($isJkt ? 'signatures/suli.png' : 'signatures/mida.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
                                         </td>
                                         <td style="border: 1px solid #000; padding: 1px; vertical-align: middle; height: 40px; background: #fff; text-align: center;">
                                             <img src="{{ public_path('signatures/iwan.png') }}" style="max-height: 48px; max-width: 75px; transform: scale(1.35); transform-origin: center;">
@@ -224,12 +225,12 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Mida H</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">{{ $isJkt ? 'Masuli' : 'Mida H' }}</td>
                                         <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Iwan S</td>
                                         <td style="border: 1px solid #000; padding: 0px 1px; font-weight: 600; font-size: 4.5pt; line-height: 1.0;">Desti K</td>
                                     </tr>
                                     <tr>
-                                        <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Spv. QS</td>
+                                        <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">{{ $isJkt ? 'Spv. QC' : 'Spv. QS' }}</td>
                                         <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Asst. Mgr Quality</td>
                                         <td style="border: 1px solid #000; padding: 0px 1px; font-size: 4.2pt; line-height: 1.0; color: #444;">Mgr. Quality</td>
                                     </tr>

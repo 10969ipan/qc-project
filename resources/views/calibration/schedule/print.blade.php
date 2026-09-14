@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 @php
     $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
+    $isJkt = in_array(strtolower($headerPlantCode), ['jakarta', 'jkt']);
     $docHeader = \App\Models\GeneralSetting::getDocHeader('schedule_kalibrasi', $headerPlantCode, [
         'no_dokumen' => strtolower($headerPlantCode) === 'jakarta' ? 'QC-JKT-F-052' : 'QC-KRW-F-052',
         'tgl_terbit' => '25/03/2015',
@@ -91,7 +92,7 @@
                                                 </div>
                                             </td>
                                             <td style="border: 1px solid #000; padding: 3px; vertical-align: middle; height: 48px; background: #fff; text-align: center;">
-                                                <img src="{{ asset('signatures/mida.png') }}" alt="Mida H" style="max-height: 58px; max-width: 110px; object-fit: contain; mix-blend-mode: multiply; transform: scale(1.35); transform-origin: center;">
+                                                <img src="{{ asset($isJkt ? 'signatures/suli.png' : 'signatures/mida.png') }}" alt="{{ $isJkt ? 'Masuli' : 'Mida H' }}" style="max-height: 58px; max-width: 110px; object-fit: contain; mix-blend-mode: multiply; transform: scale(1.35); transform-origin: center;">
                                             </td>
                                             <td style="border: 1px solid #000; padding: 3px; vertical-align: middle; height: 48px; background: #fff; text-align: center;">
                                                 <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height: 58px; max-width: 110px; object-fit: contain; mix-blend-mode: multiply; transform: scale(1.35); transform-origin: center;">
@@ -101,12 +102,12 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td style="border: 1px solid #000; padding: 1px 5px; font-weight: 600; font-size: 6.5pt; color: #212529; white-space: nowrap;">Mida H</td>
+                                            <td style="border: 1px solid #000; padding: 1px 5px; font-weight: 600; font-size: 6.5pt; color: #212529; white-space: nowrap;">{{ $isJkt ? 'Masuli' : 'Mida H' }}</td>
                                             <td style="border: 1px solid #000; padding: 1px 5px; font-weight: 600; font-size: 6.5pt; color: #212529; white-space: nowrap;">Iwan S</td>
                                             <td style="border: 1px solid #000; padding: 1px 5px; font-weight: 600; font-size: 6.5pt; color: #212529; white-space: nowrap;">Desti K</td>
                                         </tr>
                                         <tr>
-                                            <td style="border: 1px solid #000; padding: 1px 5px; font-size: 6.5pt; color: #495057; white-space: nowrap;">Spv. QS</td>
+                                            <td style="border: 1px solid #000; padding: 1px 5px; font-size: 6.5pt; color: #495057; white-space: nowrap;">{{ $isJkt ? 'Spv. QC' : 'Spv. QS' }}</td>
                                             <td style="border: 1px solid #000; padding: 1px 5px; font-size: 6.5pt; color: #495057; white-space: nowrap;">Asst. Mgr Quality</td>
                                             <td style="border: 1px solid #000; padding: 1px 5px; font-size: 6.5pt; color: #495057; white-space: nowrap;">Mgr. Quality</td>
                                         </tr>
