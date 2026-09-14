@@ -240,6 +240,12 @@ class InProcessChecksheetController extends Controller
 
         $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
 
+        // Pre-compute row helper flags for the current page items to avoid calling service methods inside Blade loop
+        foreach ($checksheets->items() as $c) {
+            $c->is_dimension_ng = $this->inProcessService->isDimensionNg($c, $partDimensionStandards);
+            $c->is_no_dimension_row = $this->inProcessService->isNoDimensionRow($c);
+        }
+
         return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines', 'hiddenItemIds', 'allItems', 'ngItemIds', 'hideNgRows', 'hideNoDimensionRows'));
     }
 

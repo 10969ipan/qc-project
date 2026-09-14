@@ -29,10 +29,16 @@ class NotificationController extends Controller
             ->where('created_at', '>=', $sevenDaysAgo);
 
         // Filter by plant for non-admin users
+        $hasNotifPlantCol = \Illuminate\Support\Facades\Schema::hasColumn('notifications', 'notif_plant_id');
         if ($user->role !== 'admin') {
-            $query->where(function ($q) use ($user) {
-                $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
-                    ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+            $query->where(function ($q) use ($user, $hasNotifPlantCol) {
+                if ($hasNotifPlantCol) {
+                    $q->where('notif_plant_id', $user->plant_id)
+                        ->orWhereNull('notif_plant_id');
+                } else {
+                    $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
+                        ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+                }
             });
         }
 
@@ -127,9 +133,14 @@ class NotificationController extends Controller
 
         // Apply same plant filter for unread count
         if ($user->role !== 'admin') {
-            $unreadCountQuery->where(function ($q) use ($user) {
-                $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
-                    ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+            $unreadCountQuery->where(function ($q) use ($user, $hasNotifPlantCol) {
+                if ($hasNotifPlantCol) {
+                    $q->where('notif_plant_id', $user->plant_id)
+                        ->orWhereNull('notif_plant_id');
+                } else {
+                    $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
+                        ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+                }
             });
         }
 

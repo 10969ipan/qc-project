@@ -79,11 +79,18 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    protected static array $permissionsMemoryCache = [];
+
     /**
      * Check if user has permission for a specific menu and action
      */
     public function hasPermission($menuId, $action = 'view')
     {
+        $cacheKey = "{$this->id}_{$this->role}_{$menuId}_{$action}";
+        if (array_key_exists($cacheKey, static::$permissionsMemoryCache)) {
+            return static::$permissionsMemoryCache[$cacheKey];
+        }
+
         // 1. Check User Specific Override
         $userPerm = \App\Models\UserPermission::where('user_id', $this->id)
             ->where('menu_id', $menuId)
@@ -91,7 +98,9 @@ class User extends Authenticatable
         
         if ($userPerm) {
             $field = "can_{$action}";
-            return (bool) ($userPerm->$field ?? false);
+            $res = (bool) ($userPerm->$field ?? false);
+            static::$permissionsMemoryCache[$cacheKey] = $res;
+            return $res;
         }
 
         // 2. Fallback to Role Permission
@@ -101,9 +110,12 @@ class User extends Authenticatable
         
         if ($rolePerm) {
             $field = "can_{$action}";
-            return (bool) ($rolePerm->$field ?? false);
+            $res = (bool) ($rolePerm->$field ?? false);
+            static::$permissionsMemoryCache[$cacheKey] = $res;
+            return $res;
         }
 
+        static::$permissionsMemoryCache[$cacheKey] = false;
         return false;
     }
 }

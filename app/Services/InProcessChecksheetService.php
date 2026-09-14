@@ -181,7 +181,7 @@ class InProcessChecksheetService extends BaseService
                             ->where('in_process_checksheets.dimension_check', '!=', '{}')
                             ->where('in_process_checksheets.dimension_check', '!=', 'null')
                             ->where('in_process_checksheets.dimension_check', '!=', '""')
-                            ->whereRaw("CAST(in_process_checksheets.dimension_check AS CHAR) REGEXP '[0-9]'");
+                            ->whereRaw("in_process_checksheets.dimension_check REGEXP '[0-9]'");
                     });
                 });
             }

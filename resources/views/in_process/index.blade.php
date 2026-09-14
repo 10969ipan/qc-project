@@ -596,9 +596,9 @@
                         @foreach($checksheets as $checksheet)
                             @php
                                 $isHiddenItem = in_array($checksheet->item_id, $hiddenItemIds ?? []);
-                                $isDimensionNgRow = app(\App\Services\InProcessChecksheetService::class)->isDimensionNg($checksheet, $partDimensionStandards);
+                                $isDimensionNgRow = $checksheet->is_dimension_ng ?? app(\App\Services\InProcessChecksheetService::class)->isDimensionNg($checksheet, $partDimensionStandards);
                                 $isHiddenNgRow = (($hideNgRows ?? '0') == '1' && $isDimensionNgRow);
-                                $isNoDimensionRow = app(\App\Services\InProcessChecksheetService::class)->isNoDimensionRow($checksheet);
+                                $isNoDimensionRow = $checksheet->is_no_dimension_row ?? app(\App\Services\InProcessChecksheetService::class)->isNoDimensionRow($checksheet);
                                 $isHiddenNoDimensionRow = (($hideNoDimensionRows ?? '0') == '1' && $isNoDimensionRow);
                                 $isRowHidden = $isHiddenItem || $isHiddenNgRow || $isHiddenNoDimensionRow;
                             @endphp
