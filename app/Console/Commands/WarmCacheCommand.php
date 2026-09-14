@@ -33,15 +33,7 @@ class WarmCacheCommand extends Command
     {
         $this->info('Starting QC Project cache warming...');
 
-        // 1. Warm Maintenance Menus List
-        Cache::remember('maintenance_menus_list', 300, function () {
-            return AppMenu::where('is_active', true)
-                ->where('is_maintenance', true)
-                ->get(['route', 'maintenance_message']);
-        });
-        $this->info('  [✓] Maintenance routes cached.');
-
-        // 2. Warm Next Processes Active List
+        // 1. Warm Next Processes Active List
         Cache::remember('next_processes_active', 1800, function () {
             return NextProcess::where('is_active', true)->orderBy('plant_id')->orderBy('order')->get();
         });
