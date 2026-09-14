@@ -41,11 +41,11 @@ return new class extends Migration
                 ");
             }
 
-            $indexes2 = DB::select("SHOW INDEX FROM in_process_checksheets WHERE Key_name = 'idx_inproc_plant_entry_scan'");
-            if (empty($indexes2)) {
+            $indexes2 = DB::select("SHOW INDEX FROM in_process_checksheets WHERE Key_name = 'idx_inproc_plant_scan_method'");
+            if (empty($indexes2) && Schema::hasColumn('in_process_checksheets', 'scan_method')) {
                 DB::statement("
                     ALTER TABLE in_process_checksheets
-                    ADD INDEX idx_inproc_plant_entry_scan (plant_id, entry_method, scan_method)
+                    ADD INDEX idx_inproc_plant_scan_method (plant_id, scan_method)
                 ");
             }
         }
@@ -74,9 +74,9 @@ return new class extends Migration
                 DB::statement("ALTER TABLE in_process_checksheets DROP INDEX idx_inproc_plant_date_created");
             }
 
-            $indexes2 = DB::select("SHOW INDEX FROM in_process_checksheets WHERE Key_name = 'idx_inproc_plant_entry_scan'");
+            $indexes2 = DB::select("SHOW INDEX FROM in_process_checksheets WHERE Key_name = 'idx_inproc_plant_scan_method'");
             if (!empty($indexes2)) {
-                DB::statement("ALTER TABLE in_process_checksheets DROP INDEX idx_inproc_plant_entry_scan");
+                DB::statement("ALTER TABLE in_process_checksheets DROP INDEX idx_inproc_plant_scan_method");
             }
         }
     }
