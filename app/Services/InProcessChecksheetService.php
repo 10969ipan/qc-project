@@ -120,8 +120,7 @@ class InProcessChecksheetService extends BaseService
     public function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
     {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
-        /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = InProcessChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = InProcessChecksheet::with(['item', 'user'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
@@ -163,26 +162,40 @@ class InProcessChecksheetService extends BaseService
                 });
             }
 
+            $viewMode = $filters['view_mode'] ?? null;
+            $entryMethod = $filters['entry_method'] ?? null;
+            $isVerificationMode = ($viewMode === 'verifikasi' || $entryMethod === 'verification' || $entryMethod === 'qr');
+
             if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
-                $query->where(function($q) {
-                    $q->where(function($sub) {
-                        $sub->whereNotNull('in_process_checksheets.qrcode')
-                            ->where('in_process_checksheets.qrcode', '!=', '');
-                    })
-                    ->orWhere(function($sub) {
-                        $sub->whereNotNull('in_process_checksheets.unique_code_id')
-                            ->where('in_process_checksheets.unique_code_id', '!=', '');
-                    })
-                    ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera'])
-                    ->orWhere(function($sub) {
-                        $sub->whereNotNull('in_process_checksheets.dimension_check')
+                $query->where(function($q) use ($isVerificationMode) {
+                    if ($isVerificationMode) {
+                        $q->where(function($sub) {
+                            $sub->whereNotNull('in_process_checksheets.qrcode')
+                                ->where('in_process_checksheets.qrcode', '!=', '');
+                        })
+                        ->orWhere(function($sub) {
+                            $sub->whereNotNull('in_process_checksheets.unique_code_id')
+                                ->where('in_process_checksheets.unique_code_id', '!=', '');
+                        })
+                        ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera'])
+                        ->orWhere(function($sub) {
+                            $sub->whereNotNull('in_process_checksheets.dimension_check')
+                                ->where('in_process_checksheets.dimension_check', '!=', '')
+                                ->where('in_process_checksheets.dimension_check', '!=', '[]')
+                                ->where('in_process_checksheets.dimension_check', '!=', '{}')
+                                ->where('in_process_checksheets.dimension_check', '!=', 'null')
+                                ->where('in_process_checksheets.dimension_check', '!=', '""')
+                                ->whereRaw("CHAR_LENGTH(in_process_checksheets.dimension_check) > 4");
+                        });
+                    } else {
+                        $q->whereNotNull('in_process_checksheets.dimension_check')
                             ->where('in_process_checksheets.dimension_check', '!=', '')
                             ->where('in_process_checksheets.dimension_check', '!=', '[]')
                             ->where('in_process_checksheets.dimension_check', '!=', '{}')
                             ->where('in_process_checksheets.dimension_check', '!=', 'null')
                             ->where('in_process_checksheets.dimension_check', '!=', '""')
                             ->whereRaw("CHAR_LENGTH(in_process_checksheets.dimension_check) > 4");
-                    });
+                    }
                 });
             }
         }

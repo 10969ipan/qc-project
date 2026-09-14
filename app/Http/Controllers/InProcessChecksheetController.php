@@ -195,29 +195,29 @@ class InProcessChecksheetController extends Controller
             return $this->getConsolidatedStandards();
         });
 
-        // Data for filters (Cached per plant to avoid 4x subquery scans over 28,000+ rows on every page load)
-        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
-            $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
+        // Data for filters (Direct Item query cached per plant to avoid subquery scans over 28,000+ rows)
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v3_{$plantId}", 3600, function () use ($plantId) {
+            return Item::where(function($q) use ($plantId) {
+                if (!empty($plantId)) {
+                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+                }
+            })->orderBy('name')->get();
         });
 
         // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
         $allItems = collect();
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v2_{$plantId}", 1800, function () use ($plantId) {
-            $usedItemIds = InProcessChecksheet::where('plant_id', $plantId)
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $usedItemIds)
-                ->whereNotNull('customer')
-                ->where('customer', '!=', '')
-                ->distinct()
-                ->pluck('customer')
-                ->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v3_{$plantId}", 3600, function () use ($plantId) {
+            return Item::where(function($q) use ($plantId) {
+                if (!empty($plantId)) {
+                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+                }
+            })
+            ->whereNotNull('customer')
+            ->where('customer', '!=', '')
+            ->distinct()
+            ->pluck('customer')
+            ->sort();
         });
 
         $initials = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_init_{$plantId}", 1800, function () use ($plantId) {
