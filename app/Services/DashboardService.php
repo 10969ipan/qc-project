@@ -216,13 +216,14 @@ class DashboardService extends BaseService
      */
     public function getDailyApprovalRate($plantId): float
     {
-        // Using existing calculation logic but specifically for daily stats
-        $stats = $this->calculateApprovalStats($plantId, true);
-        
-        $total = $stats['approved'] + $stats['rejected'] + $stats['pending'];
-        if ($total === 0) return 100.0; // If no data, consider it 100% (not blocking)
-        
-        return round((($stats['approved'] + $stats['rejected']) / $total) * 100, 2);
+        return Cache::remember("daily_approval_rate_{$plantId}", 120, function () use ($plantId) {
+            $stats = $this->calculateApprovalStats($plantId, true);
+            
+            $total = $stats['approved'] + $stats['rejected'] + $stats['pending'];
+            if ($total === 0) return 100.0; // If no data, consider it 100% (not blocking)
+            
+            return round((($stats['approved'] + $stats['rejected']) / $total) * 100, 2);
+        });
     }
 
     /**

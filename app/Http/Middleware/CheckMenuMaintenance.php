@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Models\AppMenu;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckMenuMaintenance
@@ -21,23 +22,27 @@ class CheckMenuMaintenance
             return $next($request);
         }
 
+        $maintenanceMenus = Cache::remember('maintenance_menus_list', 300, function () {
+            return AppMenu::where('is_active', true)
+                ->where('is_maintenance', true)
+                ->get(['route', 'maintenance_message']);
+        });
+
+        if ($maintenanceMenus->isEmpty()) {
+            return $next($request);
+        }
+
         $currentRoute = $request->route() ? $request->route()->getName() : null;
         $currentPath = $request->path();
 
-        // Find the menu entry that matches current route or path
-        $menu = AppMenu::where('is_active', true)
-            ->where('is_maintenance', true)
-            ->where(function($q) use ($currentRoute, $currentPath) {
-                if ($currentRoute) {
-                    $q->where('route', $currentRoute);
-                }
-                $q->orWhere('route', $currentPath)
-                  ->orWhere('route', '/' . $currentPath);
-            })
-            ->first();
+        $matchingMenu = $maintenanceMenus->first(function ($menu) use ($currentRoute, $currentPath) {
+            if ($currentRoute && $menu->route === $currentRoute) return true;
+            if ($menu->route === $currentPath || $menu->route === '/' . $currentPath) return true;
+            return false;
+        });
 
-        if ($menu) {
-            $message = $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.';
+        if ($matchingMenu) {
+            $message = $matchingMenu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.';
             
             if ($request->ajax()) {
                 return response()->json(['status' => 'maintenance', 'message' => $message], 403);
@@ -49,3 +54,4 @@ class CheckMenuMaintenance
         return $next($request);
     }
 }
+

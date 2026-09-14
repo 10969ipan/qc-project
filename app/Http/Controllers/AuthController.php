@@ -78,7 +78,10 @@ class AuthController extends Controller
                 \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget('login_credentials'));
             }
 
-            $role = Auth::user()->role;
+            // Pre-warm dashboard stats for immediate response on redirect
+            try {
+                app(\App\Services\DashboardService::class)->getDashboardData();
+            } catch (\Throwable $e) {}
 
             session()->flash('success', 'Selamat datang kembali, ' . Auth::user()->name . '!');
             return redirect('/dashboard');
