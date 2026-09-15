@@ -779,6 +779,12 @@ class InProcessChecksheetService extends BaseService
     {
         DB::beginTransaction();
         try {
+            $query = InProcessChecksheet::query();
+            if (auth()->check() && auth()->user()->role === 'admin') {
+                $query->withoutGlobalScope('plant');
+            }
+            $checksheet = $query->findOrFail($id);
+
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 

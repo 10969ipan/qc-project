@@ -579,7 +579,7 @@ class InProcessCreate {
             total_ng: $('input[name="total_ng"]').val(),
             judgment: $('#judgmentSelect').val(),
             next_proses: $('#nextProses').val(),
-            cycle_time: $('#cycleTimeInput').val(),
+            cycle_time: $('#cycleTimeInput').val() || this.totalSeconds || 0,
             dimensions: dimensions,
             part_weight: part_weights,
             defect_types: defect_types,
@@ -1325,6 +1325,8 @@ class InProcessCreate {
                 .attr("disabled", true)
                 .html('<i class="fas fa-clock"></i> Running...');
             this.unlockInputs();
+            this.updateTimerDisplay();
+            if (this.timerInterval) clearInterval(this.timerInterval);
             this.timerInterval = setInterval(() => {
                 this.totalSeconds++;
                 this.updateTimerDisplay();
@@ -1352,6 +1354,10 @@ class InProcessCreate {
             const selectedOption = $(this).find("option:selected");
             const itemId = $(this).val();
             if (!itemId) return;
+
+            if (!_this.timerRunning) {
+                _this.startTimer();
+            }
 
             const itemMachineMap = JSON.parse(localStorage.getItem('inprocess_item_machine_map') || '{}');
             if (itemMachineMap[itemId]) {
@@ -2465,11 +2471,11 @@ class InProcessCreate {
                 return false;
             }
 
-            if (_this.timerRunning) {
+            if (_this.timerInterval) {
                 clearInterval(_this.timerInterval);
-                _this.timerRunning = false;
-                $("#cycleTimeInput").val(_this.totalSeconds);
             }
+            _this.timerRunning = false;
+            $("#cycleTimeInput").val(_this.totalSeconds || 0);
 
             // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0 (Kecuali Dimensi yang sudah dicek)
             $(".defect-row").each(function () {

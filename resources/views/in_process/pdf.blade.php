@@ -250,12 +250,19 @@
         </thead>
         <tbody>
             @foreach($checksheets as $checksheet)
+                @php
+                    $sec = (int) ($checksheet->cycle_time ?? 0);
+                    if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time) && $checksheet->item->standard_cycle_time > 0) {
+                        $sct = (float) $checksheet->item->standard_cycle_time;
+                        $sec = (int) round($sct * 60);
+                    }
+                @endphp
                 <tr class="text-center">
                     <td class="col-compact">{{ $loop->iteration }}</td>
                     <td class="col-compact">{{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }}</td>
-                    <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format('H:i') }}</td>
+                    <td class="col-compact">{{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }}</td>
                     <td class="col-compact">{{ $checksheet->created_at->format('H:i') }}</td>
-                    <td class="col-compact">{{ $checksheet->cycle_time ?? '-' }}</td>
+                    <td class="col-compact">{{ $sec > 0 ? $sec : '-' }}</td>
                     <td class="col-compact">{{ $checksheet->shift }}</td>
                     <td class="col-info">{{ $checksheet->item->name ?? '-' }}</td>
                     <td class="col-info">{{ $checksheet->item->part_number ?? '-' }}</td>

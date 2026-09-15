@@ -645,6 +645,10 @@
                                 </td>
                                  @php
                                      $sec = (int) ($checksheet->cycle_time ?? 0);
+                                     if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time) && $checksheet->item->standard_cycle_time > 0) {
+                                         $sct = (float) $checksheet->item->standard_cycle_time;
+                                         $sec = (int) round($sct * 60);
+                                     }
                                      $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
                                  @endphp
                                  <td class="align-middle text-nowrap">
