@@ -415,6 +415,7 @@ class InProcessCreate {
         this.scanLockTimeout = null;
         this.lastScanTimestamp = null; // Untuk menghitung cycle_time dari gap antar scan hardware
         this.lastSubmitTimestamp = null; // Untuk menghitung cycle_time dari gap antar submission manual
+        this.pageLoadTimestamp = Date.now(); // Untuk fallback submission pertama jika timer belum jalan
 
         this.defectItems = [];
 
@@ -1325,6 +1326,13 @@ class InProcessCreate {
         const _this = this;
         $("#startTimerBtn").click(function () {
             _this.startTimer();
+        });
+
+        // Auto-start timer ketika operator mengetik/memilih input apapun di form
+        $(document).on("input change", '#checksheetForm input:not([type="hidden"]), #checksheetForm select, #checksheetForm textarea', function () {
+            if (!_this.timerRunning) {
+                _this.startTimer();
+            }
         });
     }
 
@@ -2511,14 +2519,17 @@ class InProcessCreate {
             }
             _this.timerRunning = false;
 
-            // Hitung cycle_time akhir: prioritaskan timer aktif, fallback ke gap antar submission (manual/scan)
+            // Hitung cycle_time akhir: prioritaskan timer aktif, fallback ke gap antar submission / page load
             let finalCycleTime = _this.totalSeconds || 0;
             const submitNow = Date.now();
-            if (finalCycleTime <= 0 && _this.lastSubmitTimestamp) {
-                const gapSec = Math.round((submitNow - _this.lastSubmitTimestamp) / 1000);
-                if (gapSec >= 2 && gapSec <= 28800) {
-                    finalCycleTime = gapSec;
-                    console.log(`Cycle time manual dari gap submission: ${gapSec}s`);
+            if (finalCycleTime <= 0) {
+                const refTime = _this.lastSubmitTimestamp || _this.pageLoadTimestamp;
+                if (refTime) {
+                    const gapSec = Math.round((submitNow - refTime) / 1000);
+                    if (gapSec >= 2 && gapSec <= 28800) {
+                        finalCycleTime = gapSec;
+                        console.log(`Cycle time manual dari gap submission/page load: ${gapSec}s`);
+                    }
                 }
             }
             _this.lastSubmitTimestamp = submitNow;

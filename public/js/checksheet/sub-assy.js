@@ -380,6 +380,8 @@ class SubAssyCreate {
         this.timerInterval = null;
         this.totalSeconds = 0;
         this.timerRunning = false;
+        this.pageLoadTimestamp = Date.now();
+        this.lastSubmitTimestamp = null;
         this.isFullcheckMode = false;
         this.currentPdfIndex = 0;
         this.totalPdfFiles = 0;
@@ -2047,11 +2049,23 @@ class SubAssyCreate {
             return false;
         }
 
+        let finalCycleTime = this.totalSeconds || 0;
+        const submitNow = Date.now();
+        if (finalCycleTime <= 0) {
+            const refTime = this.lastSubmitTimestamp || this.pageLoadTimestamp;
+            if (refTime) {
+                const gapSec = Math.round((submitNow - refTime) / 1000);
+                if (gapSec >= 2 && gapSec <= 28800) {
+                    finalCycleTime = gapSec;
+                }
+            }
+        }
+        this.lastSubmitTimestamp = submitNow;
         if (this.timerRunning) {
             clearInterval(this.timerInterval);
             this.timerRunning = false;
-            $("#cycleTimeInput").val(this.totalSeconds);
         }
+        $("#cycleTimeInput").val(finalCycleTime > 0 ? finalCycleTime : 0);
 
         const saveBtn = $("#saveBtn");
         const originalHtml = saveBtn.html();

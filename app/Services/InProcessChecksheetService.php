@@ -674,10 +674,11 @@ class InProcessChecksheetService extends BaseService
             $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id);
             $cycleTime = (isset($data['cycle_time']) && (int)$data['cycle_time'] > 0) ? (int)$data['cycle_time'] : null;
 
+            // Fallback 1: Gap dari checksheet sebelumnya pada mesin yang sama (maksimal 8 jam / 28800s)
             if (!$cycleTime && !empty($data['code_machine'])) {
                 $prev = InProcessChecksheet::where('plant_id', $plantId)
                     ->where('code_machine', $data['code_machine'])
-                    ->whereDate('created_at', now()->toDateString())
+                    ->where('created_at', '<', now())
                     ->latest('created_at')
                     ->first();
 
@@ -685,6 +686,17 @@ class InProcessChecksheetService extends BaseService
                     $gap = now()->diffInSeconds($prev->created_at);
                     if ($gap >= 2 && $gap <= 28800) {
                         $cycleTime = (int) $gap;
+                    }
+                }
+            }
+
+            // Fallback 2: Standard Cycle Time dari Master Item
+            if (!$cycleTime && !empty($data['item_id'])) {
+                $itemObj = Item::find($data['item_id']);
+                if ($itemObj && !empty($itemObj->standard_cycle_time)) {
+                    $sct = (float) $itemObj->standard_cycle_time;
+                    if ($sct > 0) {
+                        $cycleTime = ($sct < 30) ? (int) round($sct * 60) : (int) round($sct);
                     }
                 }
             }

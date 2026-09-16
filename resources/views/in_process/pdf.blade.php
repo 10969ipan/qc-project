@@ -285,7 +285,7 @@
                         $nextInLoop = $checksheets[$loop->index + 1] ?? null;
                         if ($nextInLoop && $nextInLoop->created_at && $checksheet->created_at) {
                             $gap = $checksheet->created_at->diffInSeconds($nextInLoop->created_at);
-                            if ($gap >= 2 && $gap <= 1800 && $nextInLoop->created_at->isSameDay($checksheet->created_at)) {
+                            if ($gap >= 2 && $gap <= 28800 && $nextInLoop->created_at->isSameDay($checksheet->created_at)) {
                                 $sec = (int) $gap;
                             }
                         }
