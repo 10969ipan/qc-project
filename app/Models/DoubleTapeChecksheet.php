@@ -73,10 +73,4 @@ class DoubleTapeChecksheet extends Model
     {
         return $this->belongsTo(Plant::class);
     }
-
-    protected static function booted()
-    {
-        static::saved(fn() => \App\Services\DashboardService::clearDashboardCache());
-        static::deleted(fn() => \App\Services\DashboardService::clearDashboardCache());
-    }
 }

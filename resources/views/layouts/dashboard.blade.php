@@ -551,9 +551,34 @@
             </script>
             <script>
                 (function() {
+                    const cacheKey = 'qc_dashboard_cache_v1';
                     const statsEl = document.getElementById('dashboard-stats');
+                    let freshStats = null;
                     if (statsEl) {
-                        window.__DASHBOARD__ = JSON.parse(statsEl.textContent);
+                        try {
+                            freshStats = JSON.parse(statsEl.textContent);
+                        } catch(e) {}
+                    }
+
+                    if (freshStats) {
+                        window.__DASHBOARD__ = freshStats;
+                        try {
+                            localStorage.setItem(cacheKey, JSON.stringify({
+                                timestamp: Date.now(),
+                                stats: freshStats
+                            }));
+                        } catch(e) {}
+                    } else {
+                        // Fallback to local device cache if server response is missing stats
+                        try {
+                            const cached = localStorage.getItem(cacheKey);
+                            if (cached) {
+                                const parsed = JSON.parse(cached);
+                                if (parsed && parsed.stats) {
+                                    window.__DASHBOARD__ = parsed.stats;
+                                }
+                            }
+                        } catch(e) {}
                     }
                 })();
             </script>
