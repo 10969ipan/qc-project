@@ -1327,13 +1327,6 @@ class InProcessCreate {
         $("#startTimerBtn").click(function () {
             _this.startTimer();
         });
-
-        // Auto-start timer ketika operator mengetik/memilih input apapun di form
-        $(document).on("input change", '#checksheetForm input:not([type="hidden"]), #checksheetForm select, #checksheetForm textarea', function () {
-            if (!_this.timerRunning) {
-                _this.startTimer();
-            }
-        });
     }
 
     startTimer() {
@@ -1377,10 +1370,6 @@ class InProcessCreate {
             const selectedOption = $(this).find("option:selected");
             const itemId = $(this).val();
             if (!itemId) return;
-
-            if (!_this.timerRunning) {
-                _this.startTimer();
-            }
 
             const itemMachineMap = JSON.parse(localStorage.getItem('inprocess_item_machine_map') || '{}');
             if (itemMachineMap[itemId]) {
@@ -2594,7 +2583,6 @@ class InProcessCreate {
                             }).then(() => {
                                 _this.resetForm();
                                 _this.restorePersistentFields();
-                                _this.startTimer();
                             });
                         } else {
                             Swal.fire({
@@ -2669,20 +2657,8 @@ class InProcessCreate {
             .removeAttr("disabled")
             .html('<i class="fas fa-play"></i> Start');
 
-        const queue = JSON.parse(localStorage.getItem('inprocess_scan_buffer') || '[]');
-        if (this.config.useQueue) {
-            // Karawang: lanjutkan berdasarkan antrian
-            if (queue.length > 0) {
-                this.startTimer();
-            } else {
-                this.lockInputs();
-                $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan');
-            }
-        } else {
-            // Jakarta: langsung lock & siap scan berikutnya
-            this.lockInputs();
-            $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan');
-        }
+        this.lockInputs();
+        $("#saveBtn").prop("disabled", true).html('<i class="fas fa-save fa-sm"></i> Simpan');
 
         $("#addDefectBtn").hide();
         $(".defect-row").not(":first").remove();
