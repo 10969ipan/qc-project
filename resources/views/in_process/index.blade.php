@@ -643,17 +643,72 @@
                                 <td class="align-middle text-nowrap">
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                                 </td>
-                                 @php
-                                     $sec = (int) ($checksheet->cycle_time ?? 0);
-                                     if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time) && $checksheet->item->standard_cycle_time > 0) {
-                                         $sct = (float) $checksheet->item->standard_cycle_time;
-                                         $sec = (int) round($sct * 60);
-                                     }
-                                     $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
-                                 @endphp
-                                 <td class="align-middle text-nowrap">
-                                     {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
-                                 </td>
+                                  @php
+                                      $sec = 0;
+                                      $rawCt = $checksheet->cycle_time ?? null;
+
+                                      // 1. Parse cycle_time if explicitly present
+                                      if ($rawCt !== null && $rawCt !== '' && $rawCt !== '-') {
+                                          if (is_numeric($rawCt)) {
+                                              $val = (float) $rawCt;
+                                              if ($val > 0) {
+                                                  $sec = ($val < 30 && (floor($val) != $val)) ? (int) round($val * 60) : (int) round($val);
+                                              }
+                                          } elseif (is_string($rawCt) && str_contains($rawCt, ':')) {
+                                              $parts = array_map('intval', explode(':', trim($rawCt)));
+                                              if (count($parts) === 3) {
+                                                  $sec = $parts[0] * 3600 + $parts[1] * 60 + $parts[2];
+                                              } elseif (count($parts) === 2) {
+                                                  $sec = $parts[0] * 60 + $parts[1];
+                                              }
+                                          } elseif (is_string($rawCt) && preg_match('/^(\d+)\s*(s|sec|m|min)?$/i', trim($rawCt), $m)) {
+                                              $num = (int) $m[1];
+                                              $unit = strtolower($m[2] ?? 's');
+                                              $sec = str_starts_with($unit, 'm') ? ($num * 60) : $num;
+                                          }
+                                      }
+
+                                      // 2. Fallback: Derive gap from earlier checksheet in collection (desc order)
+                                      if ($sec <= 0 && isset($checksheets) && isset($loop)) {
+                                          $nextInLoop = $checksheets[$loop->index + 1] ?? null;
+                                          if ($nextInLoop && $nextInLoop->created_at && $checksheet->created_at) {
+                                              $gap = $checksheet->created_at->diffInSeconds($nextInLoop->created_at);
+                                              if ($gap >= 2 && $gap <= 1800 && $nextInLoop->created_at->isSameDay($checksheet->created_at)) {
+                                                  $sec = (int) $gap;
+                                              }
+                                          }
+                                      }
+
+                                      // 3. Fallback: Use Item's standard_cycle_time
+                                      if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time)) {
+                                          $sct = (float) $checksheet->item->standard_cycle_time;
+                                          if ($sct > 0) {
+                                              $sec = ($sct < 30) ? (int) round($sct * 60) : (int) round($sct);
+                                          }
+                                      }
+
+                                      // Format Cycle Time text
+                                      if ($sec >= 3600) {
+                                          $ctStr = floor($sec / 3600) . 'h ' . floor(($sec % 3600) / 60) . 'm';
+                                      } elseif ($sec >= 60) {
+                                          $m = floor($sec / 60);
+                                          $s = $sec % 60;
+                                          $ctStr = $m . 'm' . ($s > 0 ? ' ' . $s . 's' : '');
+                                      } elseif ($sec > 0) {
+                                          $ctStr = $sec . 's';
+                                      } else {
+                                          $ctStr = '-';
+                                      }
+                                  @endphp
+                                  <td class="align-middle text-nowrap">
+                                      @if($sec > 0 && $checksheet->created_at)
+                                          {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                      @elseif($checksheet->created_at)
+                                          {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">(-)</span>
+                                      @else
+                                          -
+                                      @endif
+                                  </td>
                                 @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager', 'supervisor_plating', 'manager_plating', 'oshef']))
                                     <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
                                 @endif
@@ -725,9 +780,7 @@
                                             $itemPartNumber = str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? ''));
                                             $itemPartNumber = strtoupper($itemPartNumber);
                                             $standards = $partDimensionStandards[$itemPartNumber] ?? [];
-                                        }
-
-                                        // Temukan titik aktif (kolom yang memiliki data atau ditentukan dalam standar)
+                                        }                                        // Temukan titik aktif (hanya kolom yang memiliki data input pengukuran)
                                         $activePoints = [];
                                         foreach ($dimensions as $cavKey => $points) {
                                             if (is_array($points)) {
@@ -747,11 +800,10 @@
                                                 }
                                             }
                                         }
-                                        foreach ($standards as $pKey => $std) {
-                                            $activePoints[$pKey] = true;
-                                        }
                                         $activePoints = array_keys($activePoints);
-                                        sort($activePoints);
+                                        usort($activePoints, function($a, $b) {
+                                            return (int)$a <=> (int)$b;
+                                        });
 
                                         // Titik default jika tidak ditemukan
                                         if (empty($activePoints)) {
@@ -861,9 +913,34 @@
                                                 break;
                                             }
                                         }
+
+                                        $hasShoot1Data = false;
+                                        for ($i = 1; $i <= $displayMaxCavity; $i++) {
+                                            foreach ($activePoints as $j) {
+                                                $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? null));
+                                                $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
+                                                if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
+                                                    $hasShoot1Data = true;
+                                                    break 2;
+                                                }
+                                            }
+                                        }
+
+                                        $hasShoot2Data = false;
+                                        for ($i = 1; $i <= $displayMaxCavity; $i++) {
+                                            foreach ($activePoints as $j) {
+                                                $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? null));
+                                                $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
+                                                if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
+                                                    $hasShoot2Data = true;
+                                                    break 2;
+                                                }
+                                            }
+                                        }
                                     @endphp
-                                     @if($hasUserInputs)
+                                     @if($hasUserInputs && ($hasShoot1Data || $hasShoot2Data))
                                          <div>
+                                             @if($hasShoot1Data)
                                              <!-- SHOOT 1 TABLE (ATAS) -->
                                              <div class="mb-2">
                                                  <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 1:</small>
@@ -924,7 +1001,7 @@
                                                              @php
                                                                  $rowHasData1 = false;
                                                                  foreach ($activePoints as $j) {
-                                                                     $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null);
+                                                                     $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? null));
                                                                      $v1 = is_array($valCheck) ? ($valCheck['p1'] ?? ($valCheck['s1'] ?? ($valCheck[0] ?? null))) : $valCheck;
                                                                      if ($v1 !== null && $v1 !== '' && $v1 !== '-' && $v1 !== 0 && $v1 !== '0') {
                                                                          $rowHasData1 = true;
@@ -937,7 +1014,7 @@
                                                                      <td class="dim-data font-weight-bold">{{ $i }}</td>
                                                                      @foreach ($activePoints as $j)
                                                                          @php
-                                                                             $valRaw = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
+                                                                             $valRaw = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? '-'));
                                                                              $val1 = is_array($valRaw) ? ($valRaw['p1'] ?? ($valRaw['s1'] ?? ($valRaw[0] ?? '-'))) : $valRaw;
                                                                              $std = $standards[$j] ?? ($standards["$j"] ?? null);
                                                                              $isNG1 = $checkValueNG($val1, $std);
@@ -953,7 +1030,9 @@
                                                      </tbody>
                                                  </table>
                                              </div>
+                                             @endif
 
+                                             @if($hasShoot2Data)
                                              <!-- SHOOT 2 TABLE (BAWAH) -->
                                              <div class="mt-2">
                                                  <small class="font-weight-bold text-muted d-block mb-1" style="font-size: 0.65rem;">Shoot 2:</small>
@@ -971,7 +1050,7 @@
                                                              @php
                                                                  $rowHasData2 = false;
                                                                  foreach ($activePoints as $j) {
-                                                                     $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? null);
+                                                                     $valCheck = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? null));
                                                                      $v2 = is_array($valCheck) ? ($valCheck['p2'] ?? ($valCheck['s2'] ?? ($valCheck[1] ?? null))) : null;
                                                                      if ($v2 !== null && $v2 !== '' && $v2 !== '-' && $v2 !== 0 && $v2 !== '0') {
                                                                          $rowHasData2 = true;
@@ -984,7 +1063,7 @@
                                                                      <td class="dim-data font-weight-bold">{{ $i }}</td>
                                                                      @foreach ($activePoints as $j)
                                                                          @php
-                                                                             $valRaw = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? '-');
+                                                                             $valRaw = $dimensions[$i][$j] ?? ($dimensions["$i"][$j] ?? ($dimensions['cav'.$i][$j] ?? '-'));
                                                                              $val2 = is_array($valRaw) ? ($valRaw['p2'] ?? ($valRaw['s2'] ?? ($valRaw[1] ?? '-'))) : '-';
                                                                              $std = $standards[$j] ?? ($standards["$j"] ?? null);
                                                                              $isNG2 = $checkValueNG($val2, $std);
@@ -1000,7 +1079,8 @@
                                                      </tbody>
                                                  </table>
                                              </div>
-                                        </div>
+                                             @endif
+                                        </div>           </div>
                                     @else
                                         <div class="px-2 py-1 text-center text-nowrap">
                                             <span class="text-dark font-weight-bold" style="font-size: 0.68rem; white-space: nowrap;">
@@ -1255,6 +1335,9 @@
                                             <i class="fas fa-exclamation-triangle"></i> REJECTED
                                         </div>
                                         <small class="text-muted">{{ $checksheet->rejection_remarks }}</small>
+                                        @if($checksheet->remarks)
+                                            <br><small class="text-secondary font-italic">Ket: {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->remarks)) !!}</small>
+                                        @endif
                                     @else
                                         @php
                                             // defects disimpan sebagai [['type'=>'Dimensi','qty'=>1], ...]
@@ -1272,6 +1355,7 @@
                                                 }
                                             }
                                             $isOnlyDimensiDefect = $hasAnyQtyDefect && !$hasNonDimensiDefect;
+                                            $remarksText = trim($checksheet->remarks ?? '');
                                         @endphp
                                         @if($checksheet->next_proses && !$isOnlyDimensiDefect)
                                             <div class="mb-1">
@@ -1287,7 +1371,11 @@
                                                 @endif
                                             </div>
                                         @endif
-                                        {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->remarks)) !!}
+                                        @if(!empty($remarksText))
+                                            {!! str_replace('[SORTIR_CLOSED]', '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle"></i> STATUS: CLOSE</span>', e($checksheet->remarks)) !!}
+                                        @elseif(!$checksheet->next_proses || $isOnlyDimensiDefect)
+                                            -
+                                        @endif
                                     @endif
                                 </td>
 

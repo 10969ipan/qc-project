@@ -671,8 +671,26 @@ class InProcessChecksheetService extends BaseService
             // Process dimensions
             $dimensionCheck = $this->processDimensions($data['dimensions'] ?? null);
 
+            $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id);
+            $cycleTime = (isset($data['cycle_time']) && (int)$data['cycle_time'] > 0) ? (int)$data['cycle_time'] : null;
+
+            if (!$cycleTime && !empty($data['code_machine'])) {
+                $prev = InProcessChecksheet::where('plant_id', $plantId)
+                    ->where('code_machine', $data['code_machine'])
+                    ->whereDate('created_at', now()->toDateString())
+                    ->latest('created_at')
+                    ->first();
+
+                if ($prev && $prev->created_at) {
+                    $gap = now()->diffInSeconds($prev->created_at);
+                    if ($gap >= 2 && $gap <= 1800) {
+                        $cycleTime = (int) $gap;
+                    }
+                }
+            }
+
             $checksheet = InProcessChecksheet::create([
-                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
+                'plant_id' => $plantId,
                 'user_id' => auth()->id(),
                 'item_id' => $data['item_id'],
                 'date' => $data['date'],
@@ -686,7 +704,7 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
-                'cycle_time' => $data['cycle_time'] ?? null,
+                'cycle_time' => $cycleTime,
                 'defects' => json_encode($defects),
                 'part_weight' => $data['part_weight'] ?? null,
                 'qrcode' => $data['qrcode'] ?? null,
@@ -802,7 +820,7 @@ class InProcessChecksheetService extends BaseService
                 'total_ng' => $data['total_ng'],
                 'judgment' => $data['judgment'],
                 'operator_initials' => $data['operator_initials'] ?? null,
-                'remarks' => $data['remarks'] ?? null,
+                'remarks' => $data['remarks'] ?? $data['description'] ?? null,
                 'dimension_check' => $dimensionCheck,
                 'defects' => $defects,
                 'part_weight' => $data['part_weight'] ?? null,

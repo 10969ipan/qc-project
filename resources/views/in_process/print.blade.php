@@ -354,9 +354,10 @@
                             }
                         }
                     }
-                    foreach ($standards as $pKey => $std) { $activePoints[$pKey] = true; }
                     $activePoints = array_keys($activePoints);
-                    sort($activePoints);
+                    usort($activePoints, function($a, $b) {
+                        return (int)$a <=> (int)$b;
+                    });
                     if (empty($activePoints)) { $activePoints = range(1, 5); }
 
                     $actualMaxCavity = 0;
@@ -366,12 +367,57 @@
                     }
                     $displayMaxCavity = max(5, $actualMaxCavity);
 
-                    $sec = (int) ($checksheet->cycle_time ?? 0);
-                    if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time) && $checksheet->item->standard_cycle_time > 0) {
-                        $sct = (float) $checksheet->item->standard_cycle_time;
-                        $sec = (int) round($sct * 60);
+                    $sec = 0;
+                    $rawCt = $checksheet->cycle_time ?? null;
+
+                    if ($rawCt !== null && $rawCt !== '' && $rawCt !== '-') {
+                        if (is_numeric($rawCt)) {
+                            $val = (float) $rawCt;
+                            if ($val > 0) {
+                                $sec = ($val < 30 && (floor($val) != $val)) ? (int) round($val * 60) : (int) round($val);
+                            }
+                        } elseif (is_string($rawCt) && str_contains($rawCt, ':')) {
+                            $parts = array_map('intval', explode(':', trim($rawCt)));
+                            if (count($parts) === 3) {
+                                $sec = $parts[0] * 3600 + $parts[1] * 60 + $parts[2];
+                            } elseif (count($parts) === 2) {
+                                $sec = $parts[0] * 60 + $parts[1];
+                            }
+                        } elseif (is_string($rawCt) && preg_match('/^(\d+)\s*(s|sec|m|min)?$/i', trim($rawCt), $m)) {
+                            $num = (int) $m[1];
+                            $unit = strtolower($m[2] ?? 's');
+                            $sec = str_starts_with($unit, 'm') ? ($num * 60) : $num;
+                        }
                     }
-                    $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+
+                    if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time)) {
+                        $sct = (float) $checksheet->item->standard_cycle_time;
+                        if ($sct > 0) {
+                            $sec = ($sct < 30) ? (int) round($sct * 60) : (int) round($sct);
+                        }
+                    }
+
+                    if ($sec <= 0 && isset($checksheets) && isset($loop)) {
+                        $nextInLoop = $checksheets[$loop->index + 1] ?? null;
+                        if ($nextInLoop && $nextInLoop->created_at && $checksheet->created_at) {
+                            $gap = $checksheet->created_at->diffInSeconds($nextInLoop->created_at);
+                            if ($gap >= 2 && $gap <= 1800 && $nextInLoop->created_at->isSameDay($checksheet->created_at)) {
+                                $sec = (int) $gap;
+                            }
+                        }
+                    }
+
+                    if ($sec >= 3600) {
+                        $ctStr = floor($sec / 3600) . 'h ' . floor(($sec % 3600) / 60) . 'm';
+                    } elseif ($sec >= 60) {
+                        $m = floor($sec / 60);
+                        $s = $sec % 60;
+                        $ctStr = $m . 'm' . ($s > 0 ? ' ' . $s . 's' : '');
+                    } elseif ($sec > 0) {
+                        $ctStr = $sec . 's';
+                    } else {
+                        $ctStr = '-';
+                    }
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
@@ -379,7 +425,13 @@
                         {{ \Carbon\Carbon::parse($checksheet->date)->format('d/m/y') }} / {{ $checksheet->shift }} / {{ $checksheet->user->initials ?? $checksheet->operator_initials ?? '-' }}
                     </td>
                     <td style="white-space: nowrap;">
-                        {{ $checksheet->created_at ? $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $checksheet->created_at ? $checksheet->created_at->format('H:i') : '-' }} ({{ $ctStr }})
+                        @if($sec > 0 && $checksheet->created_at)
+                            {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} ({{ $ctStr }})
+                        @elseif($checksheet->created_at)
+                            {{ $checksheet->created_at->format('H:i') }} (-)
+                        @else
+                            -
+                        @endif
                     </td>
 
                     {{-- Item Part / Part No / Customer Combined Column --}}

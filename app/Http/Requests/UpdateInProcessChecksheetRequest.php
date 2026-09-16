@@ -33,6 +33,10 @@ class UpdateInProcessChecksheetRequest extends FormRequest
                 'defect_quantities' => $quantities,
             ]);
         }
+
+        if ($this->has('description') && !$this->has('remarks')) {
+            $this->merge(['remarks' => $this->description]);
+        }
     }
 
     public function rules(): array
@@ -66,6 +70,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'judgment' => 'required|in:OK,NG',
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
+            'description' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'part_weight' => 'nullable|array',
             'part_weight.*' => 'nullable|numeric|min:0',

@@ -413,6 +413,8 @@ class InProcessCreate {
 
         this.isProcessingScan = false;
         this.scanLockTimeout = null;
+        this.lastScanTimestamp = null; // Untuk menghitung cycle_time dari gap antar scan hardware
+        this.lastSubmitTimestamp = null; // Untuk menghitung cycle_time dari gap antar submission manual
 
         this.defectItems = [];
 
@@ -516,6 +518,16 @@ class InProcessCreate {
             return false;
         }
 
+        // Stop timer dan ambil cycle_time sebelum reset form
+        // Gunakan this.totalSeconds langsung agar tidak terdampak bug string "0" truthy
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        this.timerRunning = false;
+        const capturedCycleTime = this.totalSeconds > 0 ? this.totalSeconds : 0;
+        $("#cycleTimeInput").val(capturedCycleTime);
+
         // Collect dimensions (supporting P1 and P2 dual pass)
         const dimensions = {};
         $('.dimension-input').each(function () {
@@ -574,12 +586,12 @@ class InProcessCreate {
             total_qty: $('input[name="total_qty"]').val(),
             sampling_qty: $('input[name="sampling_qty"]').val(),
             operator_initials: $('input[name="operator_initials"]').val(),
-            remarks: $('textarea[name="remarks"]').val(),
+            remarks: $('textarea[name="remarks"]').val() || $('input[name="description"]').val() || "",
             total_ok: $('input[name="total_ok"]').val(),
             total_ng: $('input[name="total_ng"]').val(),
             judgment: $('#judgmentSelect').val(),
             next_proses: $('#nextProses').val(),
-            cycle_time: $('#cycleTimeInput').val() || this.totalSeconds || 0,
+            cycle_time: capturedCycleTime,
             dimensions: dimensions,
             part_weight: part_weights,
             defect_types: defect_types,
@@ -591,7 +603,7 @@ class InProcessCreate {
         queue.push(item);
         localStorage.setItem('inprocess_scan_buffer', JSON.stringify(queue));
 
-        // Reset and restore
+        // Reset form (resetForm() otomatis restart timer jika queue masih ada)
         this.resetForm();
         this.restorePersistentFields();
 
@@ -1653,6 +1665,26 @@ class InProcessCreate {
                 return;
             }
 
+            // Hitung cycle_time dari selisih timestamp scan sebelumnya
+            // Karena auto-submit terjadi dalam 100ms, timer belum sempat tick
+            const now = Date.now();
+            if (this.lastScanTimestamp) {
+                const gapSeconds = Math.round((now - this.lastScanTimestamp) / 1000);
+                // Hanya pakai gap jika masuk akal (2 detik - 30 menit)
+                if (gapSeconds >= 2 && gapSeconds <= 1800) {
+                    this.totalSeconds = gapSeconds;
+                    $("#cycleTimeInput").val(gapSeconds);
+                    console.log(`Cycle time dari gap scan: ${gapSeconds}s`);
+                } else {
+                    // Gap tidak masuk akal, fallback ke timer yang berjalan
+                    $("#cycleTimeInput").val(this.totalSeconds > 0 ? this.totalSeconds : 0);
+                }
+            } else {
+                // Scan pertama: tidak ada referensi sebelumnya
+                $("#cycleTimeInput").val(this.totalSeconds > 0 ? this.totalSeconds : 0);
+            }
+            this.lastScanTimestamp = now;
+
             // Auto start timer if scan occurs
             if (!this.timerRunning) {
                 this.startTimer();
@@ -2475,7 +2507,20 @@ class InProcessCreate {
                 clearInterval(_this.timerInterval);
             }
             _this.timerRunning = false;
-            $("#cycleTimeInput").val(_this.totalSeconds || 0);
+
+            // Hitung cycle_time akhir: prioritaskan timer aktif, fallback ke gap antar submission (manual/scan)
+            let finalCycleTime = _this.totalSeconds || 0;
+            const submitNow = Date.now();
+            if (finalCycleTime <= 0 && _this.lastSubmitTimestamp) {
+                const gapSec = Math.round((submitNow - _this.lastSubmitTimestamp) / 1000);
+                if (gapSec >= 2 && gapSec <= 1800) {
+                    finalCycleTime = gapSec;
+                    console.log(`Cycle time manual dari gap submission: ${gapSec}s`);
+                }
+            }
+            _this.lastSubmitTimestamp = submitNow;
+            _this.lastScanTimestamp = submitNow;
+            $("#cycleTimeInput").val(finalCycleTime > 0 ? finalCycleTime : 0);
 
             // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0 (Kecuali Dimensi yang sudah dicek)
             $(".defect-row").each(function () {

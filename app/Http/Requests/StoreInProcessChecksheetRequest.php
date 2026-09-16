@@ -21,6 +21,8 @@ class StoreInProcessChecksheetRequest extends FormRequest
         $totalOk = is_numeric($this->total_ok) ? (int) $this->total_ok : max(0, $samplingQty - $totalNg);
         $judgment = in_array($this->judgment, ['OK', 'NG']) ? $this->judgment : ($totalNg > 0 ? 'NG' : 'OK');
 
+        $remarks = !empty($this->remarks) ? $this->remarks : (!empty($this->description) ? $this->description : null);
+
         $this->merge([
             'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
             'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
@@ -31,6 +33,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'total_ok' => $totalOk,
             'total_ng' => $totalNg,
             'judgment' => $judgment,
+            'remarks' => $remarks,
         ]);
     }
 
@@ -76,6 +79,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'judgment' => 'required|in:OK,NG',
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
+            'description' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'part_weight' => 'nullable|array',
             'part_weight.*' => 'nullable|numeric|min:0',
