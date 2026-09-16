@@ -532,8 +532,9 @@ class SortirCreate {
                 this.formInputs.prop('disabled', false);
                 $('#checksheetForm').removeClass('inputs-locked');
 
+                this.timerStartTimestamp = Date.now() - ((this.totalSeconds || 0) * 1000);
+                if (this.timerInterval) clearInterval(this.timerInterval);
                 this.timerInterval = setInterval(() => {
-                    this.totalSeconds++;
                     this.updateTimerDisplay();
                 }, 1000);
             }
@@ -541,6 +542,9 @@ class SortirCreate {
     }
 
     updateTimerDisplay() {
+        if (this.timerStartTimestamp) {
+            this.totalSeconds = Math.max(0, Math.floor((Date.now() - this.timerStartTimestamp) / 1000));
+        }
         var hours = Math.floor(this.totalSeconds / 3600);
         var minutes = Math.floor((this.totalSeconds % 3600) / 60);
         var seconds = this.totalSeconds % 60;

@@ -1331,6 +1331,7 @@ class InProcessCreate {
     startTimer() {
         if (!this.timerRunning) {
             this.timerRunning = true;
+            this.timerStartTimestamp = Date.now() - ((this.totalSeconds || 0) * 1000);
             $("#startTimerBtn")
                 .removeClass("btn-success")
                 .addClass("btn-secondary")
@@ -1340,13 +1341,15 @@ class InProcessCreate {
             this.updateTimerDisplay();
             if (this.timerInterval) clearInterval(this.timerInterval);
             this.timerInterval = setInterval(() => {
-                this.totalSeconds++;
                 this.updateTimerDisplay();
             }, 1000);
         }
     }
 
     updateTimerDisplay() {
+        if (this.timerRunning && this.timerStartTimestamp) {
+            this.totalSeconds = Math.max(0, Math.floor((Date.now() - this.timerStartTimestamp) / 1000));
+        }
         const hours = Math.floor(this.totalSeconds / 3600);
         const minutes = Math.floor((this.totalSeconds % 3600) / 60);
         const seconds = this.totalSeconds % 60;
@@ -2646,6 +2649,7 @@ class InProcessCreate {
         $("#code_machine").val("").trigger("change");
         clearInterval(this.timerInterval);
         this.timerRunning = false;
+        this.timerStartTimestamp = null;
         this.totalSeconds = 0;
         this.updateTimerDisplay();
         $("#startTimerBtn")

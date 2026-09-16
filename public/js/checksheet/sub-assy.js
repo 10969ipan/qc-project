@@ -1694,6 +1694,9 @@ class SubAssyCreate {
     }
 
     updateTimerDisplay() {
+        if (this.timerRunning && this.timerStartTimestamp) {
+            this.totalSeconds = Math.max(0, Math.floor((Date.now() - this.timerStartTimestamp) / 1000));
+        }
         const h = Math.floor(this.totalSeconds / 3600);
         const m = Math.floor((this.totalSeconds % 3600) / 60);
         const s = this.totalSeconds % 60;
@@ -1705,6 +1708,7 @@ class SubAssyCreate {
     startTimer() {
         if (!this.timerRunning) {
             this.timerRunning = true;
+            this.timerStartTimestamp = Date.now() - ((this.totalSeconds || 0) * 1000);
             $("#startTimerBtn")
                 .removeClass("btn-success")
                 .addClass("btn-secondary")
@@ -1713,8 +1717,8 @@ class SubAssyCreate {
             $("#saveBtn").prop("disabled", false);
             this.formInputs.prop("disabled", false);
             $("#checksheetForm").removeClass("inputs-locked");
+            if (this.timerInterval) clearInterval(this.timerInterval);
             this.timerInterval = setInterval(() => {
-                this.totalSeconds++;
                 this.updateTimerDisplay();
             }, 1000);
         }
