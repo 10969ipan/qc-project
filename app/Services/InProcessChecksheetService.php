@@ -683,7 +683,7 @@ class InProcessChecksheetService extends BaseService
 
                 if ($prev && $prev->created_at) {
                     $gap = now()->diffInSeconds($prev->created_at);
-                    if ($gap >= 2 && $gap <= 1800) {
+                    if ($gap >= 2 && $gap <= 28800) {
                         $cycleTime = (int) $gap;
                     }
                 }

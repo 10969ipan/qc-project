@@ -670,10 +670,23 @@
 
                                       // 2. Fallback: Derive gap from earlier checksheet in collection (desc order)
                                       if ($sec <= 0 && isset($checksheets) && isset($loop)) {
-                                          $nextInLoop = $checksheets[$loop->index + 1] ?? null;
-                                          if ($nextInLoop && $nextInLoop->created_at && $checksheet->created_at) {
-                                              $gap = $checksheet->created_at->diffInSeconds($nextInLoop->created_at);
-                                              if ($gap >= 2 && $gap <= 1800 && $nextInLoop->created_at->isSameDay($checksheet->created_at)) {
+                                          $prevChecksheet = null;
+                                          if (!empty($checksheet->code_machine)) {
+                                              $prevChecksheet = $checksheets->slice($loop->index + 1)->first(function ($c) use ($checksheet) {
+                                                  return $c->code_machine == $checksheet->code_machine
+                                                      && $c->created_at
+                                                      && $checksheet->created_at
+                                                      && $c->created_at->isSameDay($checksheet->created_at)
+                                                      && $c->created_at->lt($checksheet->created_at);
+                                              });
+                                          }
+                                          if (!$prevChecksheet) {
+                                              $prevChecksheet = $checksheets[$loop->index + 1] ?? null;
+                                          }
+
+                                          if ($prevChecksheet && $prevChecksheet->created_at && $checksheet->created_at) {
+                                              $gap = $checksheet->created_at->diffInSeconds($prevChecksheet->created_at);
+                                              if ($gap >= 2 && $gap <= 28800 && $prevChecksheet->created_at->isSameDay($checksheet->created_at)) {
                                                   $sec = (int) $gap;
                                               }
                                           }

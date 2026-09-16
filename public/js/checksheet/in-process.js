@@ -1670,8 +1670,8 @@ class InProcessCreate {
             const now = Date.now();
             if (this.lastScanTimestamp) {
                 const gapSeconds = Math.round((now - this.lastScanTimestamp) / 1000);
-                // Hanya pakai gap jika masuk akal (2 detik - 30 menit)
-                if (gapSeconds >= 2 && gapSeconds <= 1800) {
+                // Hanya pakai gap jika masuk akal (2 detik - 8 jam)
+                if (gapSeconds >= 2 && gapSeconds <= 28800) {
                     this.totalSeconds = gapSeconds;
                     $("#cycleTimeInput").val(gapSeconds);
                     console.log(`Cycle time dari gap scan: ${gapSeconds}s`);
@@ -2513,7 +2513,7 @@ class InProcessCreate {
             const submitNow = Date.now();
             if (finalCycleTime <= 0 && _this.lastSubmitTimestamp) {
                 const gapSec = Math.round((submitNow - _this.lastSubmitTimestamp) / 1000);
-                if (gapSec >= 2 && gapSec <= 1800) {
+                if (gapSec >= 2 && gapSec <= 28800) {
                     finalCycleTime = gapSec;
                     console.log(`Cycle time manual dari gap submission: ${gapSec}s`);
                 }
