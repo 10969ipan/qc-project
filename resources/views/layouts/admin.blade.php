@@ -1596,6 +1596,7 @@
 
     @stack('fusioncharts')
     @stack('scripts')
+    <script src="{{ asset('js/vendor/instant-navigation.js') }}" defer></script>
 
 </body>
 
