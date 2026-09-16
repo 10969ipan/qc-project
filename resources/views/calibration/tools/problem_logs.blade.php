@@ -111,6 +111,15 @@
         font-size: 0.7rem !important;
     }
 </style>
+    @php
+        $defaultNoDok = strtolower($plantCode) === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215';
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('laporan_problem_alat_ukur', $plantCode, [
+            'no_dokumen' => $defaultNoDok,
+            'tgl_terbit' => '28/11/2019',
+            'revisi'     => '0 / -',
+            'halaman'    => '1 / 1',
+        ]);
+    @endphp
     <div class="container-fluid">
         <div class="card shadow mb-2">
             <div class="card-body p-0">
@@ -136,23 +145,23 @@
                                                 <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
                                                 <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
                                                 <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">
-                                                    {{ strtolower($plantCode) === 'jakarta' ? 'QC-JKT-F-0215' : 'QC-KRW-F-0215' }}
+                                                    {{ $docHeader['no_dokumen'] ?? $defaultNoDok }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
                                                 <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">28/11/2019</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '28/11/2019' }}</td>
                                             </tr>
                                             <tr>
                                                 <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
                                                 <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">0 / -</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '0 / -' }}</td>
                                             </tr>
                                             <tr>
                                                 <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
                                                 <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">1 / 1</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] ?? '1 / 1' }}</td>
                                             </tr>
                                         </table>
                                     </td>

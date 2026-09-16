@@ -43,7 +43,12 @@
                     <a class="nav-link settings-sidebar-item" id="permissions-tab" data-toggle="pill" href="#permissions" role="tab" aria-controls="permissions" aria-selected="false">
                         <span>Hak Akses Modul</span>
                     </a>
-                    
+                    @if(in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'superadmin', 'administrator']))
+                    <a class="nav-link settings-sidebar-item" id="backup-restore-tab" data-toggle="pill" href="#backup-restore" role="tab" aria-controls="backup-restore" aria-selected="false">
+                        <span><i class="fas fa-database text-warning mr-1"></i> Backup & Restore</span>
+                    </a>
+                    @endif
+
                 </div>
             </div>
         </div>
@@ -654,7 +659,146 @@
                 </div>
             </div>
 
+            @if(in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'superadmin', 'administrator']))
+            <!-- Tab: Backup & Restore -->
+            <div class="tab-pane fade" id="backup-restore" role="tabpanel" aria-labelledby="backup-restore-tab">
+                <!-- Section 1: Full System Backup & Restore -->
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-database text-warning mr-2"></i>Full System Backup & Restore</h6>
+                            <small class="text-muted">Pencadangan dan pemulihan seluruh database (.sql)</small>
+                        </div>
+                        <button type="button" id="btnCreateFullBackup" class="btn btn-warning rounded-pill px-4 shadow-sm btn-sm-modern font-weight-bold">
+                            <i class="fas fa-download mr-1"></i> Backup Database Now
+                        </button>
                     </div>
+                    <div class="card-body pt-0">
+                        <!-- Form Restore SQL -->
+                        <div class="p-3 mb-4 rounded-lg bg-light border">
+                            <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-upload text-primary mr-2"></i>Restore Database (.sql)</h6>
+                            <p class="small text-muted mb-3">Unggah file backup .sql untuk mengembalikan seluruh isi database. <strong>Sistem secara otomatis akan membuat snapshot backup cadangan sebelum memulihkan data.</strong></p>
+                            <form id="formRestoreFullBackup" class="ajax-form no-loader d-flex align-items-center flex-wrap" enctype="multipart/form-data">
+                                @csrf
+                                <input type="file" name="backup_file" id="backupSqlFile" accept=".sql,.txt" class="form-control-file border p-2 rounded bg-white mr-3 mb-2" required style="max-width: 400px;">
+                                <button type="submit" id="btnRestoreFullBackup" class="btn btn-danger rounded-pill px-4 shadow-sm mb-2">
+                                    <i class="fas fa-sync-alt mr-1"></i> Restore Database
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Tabel Riwayat Backup -->
+                        <h6 class="font-weight-bold text-dark mb-3">Daftar File Backup Database</h6>
+                        <div class="table-responsive">
+                            <table class="table table-borderless custom-table table-minimalist w-100" id="tableBackups">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Nama File</th>
+                                        <th>Tipe</th>
+                                        <th>Ukuran</th>
+                                        <th>Waktu Dibuat</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyTableBackups">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">Memuat file backup...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Per-Menu (Modular) Backup & Restore -->
+                <div class="card shadow border-0 rounded-lg mb-4 slide-in">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-cubes text-info mr-2"></i>Per-Menu (Modular) Backup & Restore</h6>
+                        <small class="text-muted">Pencadangan dan pemulihan terisolasi per fitur/modul tanpa mengganggu menu lainnya (JSON Format)</small>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="row">
+                            <!-- Export Modul -->
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 rounded-lg border bg-light h-100">
+                                    <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-file-export text-success mr-2"></i>Export Data Per-Menu</h6>
+                                    <p class="small text-muted mb-3">Pilih modul yang ingin di-backup data tabelnya.</p>
+                                    <form id="formExportModule" action="{{ route('admin.backup.export-module', 'sub_assy') }}" method="GET">
+                                        <div class="form-group mb-3">
+                                            <label class="small font-weight-bold text-dark">Pilih Modul</label>
+                                            <select id="selectExportModule" class="form-control rounded-pill border-0 bg-white shadow-sm" onchange="document.getElementById('formExportModule').action = '{{ url('admin/backup/export-module') }}/' + this.value;">
+                                                <option value="all">⭐ SEMUA MODUL & SEMUA DATA (Complete System JSON)</option>
+                                                <option value="kakotora">Record Kakotora</option>
+                                                <option value="sub_assy">Checksheet Sub-Assy</option>
+                                                <option value="in_process">Checksheet In-Process</option>
+                                                <option value="cross_cut">Checksheet Cross Cut</option>
+                                                <option value="painting">Checksheet Painting</option>
+                                                <option value="plating">Checksheet Plating</option>
+                                                <option value="double_tape">Checksheet Double Tape</option>
+                                                <option value="first_piece">First Piece Approval (FPA)</option>
+                                                <option value="sortir">Checksheet Sortir</option>
+                                                <option value="durability">Laporan Durability Plating</option>
+                                                <option value="incoming">Data Incoming (Parts/Materials/Sub-Parts/Chemicals)</option>
+                                                <option value="items">Master Items & Kategori</option>
+                                                <option value="categories">Master Kategori</option>
+                                                <option value="calibration">Alat Ukur & Kalibrasi</option>
+                                                <option value="customer_claims">Customer Claims & Records</option>
+                                                <option value="settings_system">Pengaturan Sistem & Layout</option>
+                                                <option value="users">Data User & Hak Akses</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm btn-block">
+                                            <i class="fas fa-file-download mr-1"></i> Export Data Modul (.JSON)
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Import Modul -->
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 rounded-lg border bg-light h-100">
+                                    <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-file-import text-primary mr-2"></i>Import / Restore Data Per-Menu</h6>
+                                    <p class="small text-muted mb-3">Unggah file .JSON hasil export modul untuk mengembalikan data spesifik tersebut.</p>
+                                    <form id="formImportModule" class="ajax-form no-loader" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="form-group mb-3">
+                                            <label class="small font-weight-bold text-dark">File Modul (.JSON)</label>
+                                            <input type="file" name="module_file" accept=".json" class="form-control-file border p-2 rounded bg-white w-100" required>
+                                        </div>
+                                        <button type="submit" id="btnImportModule" class="btn btn-primary rounded-pill px-4 shadow-sm btn-block">
+                                            <i class="fas fa-upload mr-1"></i> Import Data Modul
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabel Riwayat Backup Per-Menu -->
+                        <hr class="my-4">
+                        <h6 class="font-weight-bold text-dark mb-3">Daftar File Backup Per-Menu (JSON)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-borderless custom-table table-minimalist w-100" id="tableMenuBackups">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Nama File</th>
+                                        <th>Tipe Modul</th>
+                                        <th>Ukuran</th>
+                                        <th>Waktu Dibuat</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyTableMenuBackups">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">Memuat file backup per-menu...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+        </div>
     </div>
     <!-- Modal Add User -->
     <div class="modal fade" id="modalAddUser" tabindex="-1" role="dialog" aria-hidden="true">
@@ -958,6 +1102,7 @@
                                 <option value="master_data">Master Data Item</option>
                                 <option value="master_alat_ukur">Master Alat Ukur</option>
                                 <option value="hasil_verifikasi_alat_ukur">Hasil Verifikasi Alat Ukur</option>
+                                <option value="laporan_problem_alat_ukur">Laporan Problem Alat Ukur</option>
                                 @foreach($qcModules as $val => $label)
                                     <option value="{{ $val }}">{{ $label }}</option>
                                 @endforeach
