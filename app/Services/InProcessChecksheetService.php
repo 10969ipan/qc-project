@@ -701,25 +701,6 @@ class InProcessChecksheetService extends BaseService
                 }
             }
 
-            // Fallback 3: Estimasi cycle_time dari jumlah input dimensi / sampling qty yang diisi jika cycle_time masih 0/null
-            if (!$cycleTime) {
-                $dimCount = 0;
-                $dims = $data['dimensions'] ?? $data['dimension_check'] ?? [];
-                if (is_array($dims)) {
-                    array_walk_recursive($dims, function($v) use (&$dimCount) {
-                        if ($v !== null && $v !== '' && $v !== '-') {
-                            $dimCount++;
-                        }
-                    });
-                }
-                if ($dimCount > 0) {
-                    $cycleTime = max(15, (int) ($dimCount * 4));
-                } else {
-                    $samplingQty = (int) ($data['sampling_qty'] ?? 0);
-                    $cycleTime = $samplingQty > 0 ? max(15, (int) ($samplingQty * 5)) : 30;
-                }
-            }
-
             $checksheet = InProcessChecksheet::create([
                 'plant_id' => $plantId,
                 'user_id' => auth()->id(),

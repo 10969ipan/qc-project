@@ -23,6 +23,14 @@ class StoreInProcessChecksheetRequest extends FormRequest
 
         $remarks = !empty($this->remarks) ? $this->remarks : (!empty($this->description) ? $this->description : null);
 
+        $dimensions = $this->dimensions;
+        if (is_string($dimensions)) {
+            $decoded = json_decode($dimensions, true);
+            if (is_array($decoded)) {
+                $dimensions = $decoded;
+            }
+        }
+
         $this->merge([
             'unique_code_id' => !empty($this->unique_code_id) ? $this->unique_code_id : null,
             'qrcode' => !empty($this->qrcode) ? $this->qrcode : null,
@@ -34,6 +42,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'total_ng' => $totalNg,
             'judgment' => $judgment,
             'remarks' => $remarks,
+            'dimensions' => $dimensions,
         ]);
     }
 
@@ -80,7 +89,7 @@ class StoreInProcessChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'description' => 'nullable|string',
-            'dimensions' => 'nullable|array',
+            'dimensions' => 'nullable',
             'part_weight' => 'nullable|array',
             'part_weight.*' => 'nullable|numeric|min:0',
             'cycle_time' => 'nullable|integer',

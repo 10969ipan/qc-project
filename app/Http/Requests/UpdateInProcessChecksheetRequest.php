@@ -37,6 +37,13 @@ class UpdateInProcessChecksheetRequest extends FormRequest
         if ($this->has('description') && !$this->has('remarks')) {
             $this->merge(['remarks' => $this->description]);
         }
+
+        if ($this->has('dimensions') && is_string($this->dimensions)) {
+            $decoded = json_decode($this->dimensions, true);
+            if (is_array($decoded)) {
+                $this->merge(['dimensions' => $decoded]);
+            }
+        }
     }
 
     public function rules(): array
@@ -71,7 +78,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'operator_initials' => 'nullable|string',
             'remarks' => 'nullable|string',
             'description' => 'nullable|string',
-            'dimensions' => 'nullable|array',
+            'dimensions' => 'nullable',
             'part_weight' => 'nullable|array',
             'part_weight.*' => 'nullable|numeric|min:0',
             'cycle_time' => 'nullable|integer',

@@ -520,26 +520,16 @@ class InProcessCreate {
         }
 
         // Stop timer dan ambil cycle_time sebelum reset form
+        // Gunakan this.totalSeconds langsung agar tidak terdampak bug string "0" truthy
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
         this.timerRunning = false;
-
-        let capturedCycleTime = this.totalSeconds > 0 ? this.totalSeconds : 0;
-        const submitNow = Date.now();
-        if (capturedCycleTime <= 0) {
-            const refTime = this.lastSubmitTimestamp || this.pageLoadTimestamp;
-            if (refTime) {
-                const gapSec = Math.round((submitNow - refTime) / 1000);
-                if (gapSec >= 2 && gapSec <= 28800) {
-                    capturedCycleTime = gapSec;
-                }
-            }
-        }
-        this.lastSubmitTimestamp = submitNow;
-        this.lastScanTimestamp = submitNow;
+        const capturedCycleTime = this.totalSeconds > 0 ? this.totalSeconds : 0;
         $("#cycleTimeInput").val(capturedCycleTime);
+
+
 
         // Collect dimensions (supporting P1 and P2 dual pass)
         const dimensions = {};
@@ -2577,22 +2567,22 @@ class InProcessCreate {
                 .html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
 
             const formData = new FormData(this);
+            formData.set("cycle_time", finalCycleTime > 0 ? finalCycleTime : 0);
+
+            // Prune empty dimension inputs to prevent PHP max_input_vars limit truncation when cavity/point counts are large
+            for (const [key, value] of Array.from(formData.entries())) {
+                if (key.startsWith("dimensions[") && (value === "" || value === null || value === undefined)) {
+                    formData.delete(key);
+                }
+            }
             $.ajax({
                 url: $(this).attr("action"),
                 method: "POST",
                 data: formData,
                 processData: false,
                 contentType: false,
-                dataType: "json",
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json"
-                },
                 success: function (response) {
-                    if (typeof response === "string") {
-                        try { response = JSON.parse(response); } catch (e) {}
-                    }
-                    if (response && (response.success || response.status === "success")) {
+                    if (response.success) {
                         if (isHardwareScan) {
                             Swal.fire({
                                 icon: "success",
@@ -2622,7 +2612,7 @@ class InProcessCreate {
                             });
                         }
                     } else {
-                        const errorMsg = (response && response.message) ? response.message : "Gagal menyimpan data.";
+                        const errorMsg = response.message || "Gagal menyimpan data.";
                         Swal.fire({
                             icon: "error",
                             title: "Gagal Menyimpan",
@@ -2632,20 +2622,6 @@ class InProcessCreate {
                     }
                 },
                 error: function (xhr) {
-                    if (xhr.status === 200) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Berhasil",
-                            text: "Data Berhasil Disimpan",
-                            timer: 1200,
-                            showConfirmButton: false,
-                        }).then(() => {
-                            _this.resetForm();
-                            _this.restorePersistentFields();
-                        });
-                        return;
-                    }
-
                     let errorMsg = "Gagal menyimpan data.";
                     if (xhr.responseJSON) {
                         if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === "object") {
@@ -2653,7 +2629,7 @@ class InProcessCreate {
                         } else if (xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;
                         }
-                    } else if (xhr.statusText && xhr.status !== 200) {
+                    } else if (xhr.statusText) {
                         errorMsg = `Gagal menyimpan data (${xhr.status}: ${xhr.statusText})`;
                     }
 

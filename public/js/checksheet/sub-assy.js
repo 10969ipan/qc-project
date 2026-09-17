@@ -2082,16 +2082,8 @@ class SubAssyCreate {
             data: formData,
             processData: false,
             contentType: false,
-            dataType: "json",
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "Accept": "application/json"
-            },
             success: function (response) {
-                if (typeof response === "string") {
-                    try { response = JSON.parse(response); } catch (e) {}
-                }
-                if (response && (response.success || response.status === "success")) {
+                if (response.success) {
                     Swal.fire({
                         icon: "success",
                         title: isHardwareScan ? "QR Berhasil Discan" : "Berhasil",
@@ -2105,23 +2097,14 @@ class SubAssyCreate {
                             window.location.href = response.index_url;
                         else {
                             _this.resetState();
+                            if (isHardwareScan) {
+                                _this.startTimer();
+                            }
                         }
                     });
                 }
             },
             error: function (xhr) {
-                if (xhr.status === 200) {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Berhasil",
-                        text: "Data Berhasil Disimpan",
-                        timer: 1500,
-                        showConfirmButton: false,
-                    }).then(() => {
-                        _this.resetState();
-                    });
-                    return;
-                }
                 console.error("Save Error:", xhr);
                 let errorMsg = "Gagal menyimpan data.";
 
