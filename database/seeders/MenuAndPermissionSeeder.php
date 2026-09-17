@@ -262,15 +262,18 @@ class MenuAndPermissionSeeder extends Seeder
 
         foreach ($roles as $role) {
             foreach ($allMenus as $menu) {
+                $isVerifikasi = ($menu->name === 'VERIFIKASI' || ($menu->parent && $menu->parent->name === 'VERIFIKASI'));
+                $isAdmin = ($role === 'admin');
+
                 RolePermission::create([
                     'role' => $role,
                     'menu_id' => $menu->id,
-                    'can_view' => true, 
-                    'can_input' => in_array($role, ['admin', 'supervisor', 'inspector', 'kashift']),
-                    'can_edit' => in_array($role, ['admin', 'supervisor']),
-                    'can_delete' => $role === 'admin',
-                    'can_approve' => in_array($role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']),
-                    'can_export' => true,
+                    'can_view' => $isVerifikasi ? $isAdmin : true, 
+                    'can_input' => $isVerifikasi ? $isAdmin : in_array($role, ['admin', 'supervisor', 'inspector', 'kashift']),
+                    'can_edit' => $isVerifikasi ? $isAdmin : in_array($role, ['admin', 'supervisor']),
+                    'can_delete' => $isVerifikasi ? $isAdmin : ($role === 'admin'),
+                    'can_approve' => $isVerifikasi ? $isAdmin : in_array($role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']),
+                    'can_export' => $isVerifikasi ? $isAdmin : true,
                 ]);
             }
         }

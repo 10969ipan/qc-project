@@ -71,27 +71,22 @@ return new class extends Migration
                 $categoryId = $categoryMenu->id;
             }
 
-            // Assign permissions for Category Menu to all roles if not already set
+            // Assign/Update permissions for Category Menu to all roles (default: only admin is active)
             foreach ($roles as $role) {
-                $exists = DB::table('role_permissions')
-                    ->where('menu_id', $categoryId)
-                    ->where('role', $role)
-                    ->exists();
-
-                if (!$exists) {
-                    DB::table('role_permissions')->insert([
-                        'menu_id' => $categoryId,
-                        'role' => $role,
-                        'can_view' => true,
-                        'can_input' => in_array($role, ['admin', 'supervisor', 'inspector', 'kashift']),
-                        'can_edit' => in_array($role, ['admin', 'supervisor']),
-                        'can_delete' => $role === 'admin',
-                        'can_approve' => in_array($role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']),
-                        'can_export' => true,
+                $isAdmin = ($role === 'admin');
+                DB::table('role_permissions')->updateOrInsert(
+                    ['menu_id' => $categoryId, 'role' => $role],
+                    [
+                        'can_view' => $isAdmin,
+                        'can_input' => $isAdmin,
+                        'can_edit' => $isAdmin,
+                        'can_delete' => $isAdmin,
+                        'can_approve' => $isAdmin,
+                        'can_export' => $isAdmin,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
-                }
+                    ]
+                );
             }
 
             // Submenus to insert
@@ -123,27 +118,22 @@ return new class extends Migration
                     $subId = $subItem->id;
                 }
 
-                // Assign permissions for Submenu to all roles if not already set
+                // Assign/Update permissions for Submenu to all roles (default: only admin is active)
                 foreach ($roles as $role) {
-                    $exists = DB::table('role_permissions')
-                        ->where('menu_id', $subId)
-                        ->where('role', $role)
-                        ->exists();
-
-                    if (!$exists) {
-                        DB::table('role_permissions')->insert([
-                            'menu_id' => $subId,
-                            'role' => $role,
-                            'can_view' => true,
-                            'can_input' => in_array($role, ['admin', 'supervisor', 'inspector', 'kashift']),
-                            'can_edit' => in_array($role, ['admin', 'supervisor']),
-                            'can_delete' => $role === 'admin',
-                            'can_approve' => in_array($role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift']),
-                            'can_export' => true,
+                    $isAdmin = ($role === 'admin');
+                    DB::table('role_permissions')->updateOrInsert(
+                        ['menu_id' => $subId, 'role' => $role],
+                        [
+                            'can_view' => $isAdmin,
+                            'can_input' => $isAdmin,
+                            'can_edit' => $isAdmin,
+                            'can_delete' => $isAdmin,
+                            'can_approve' => $isAdmin,
+                            'can_export' => $isAdmin,
                             'created_at' => now(),
                             'updated_at' => now(),
-                        ]);
-                    }
+                        ]
+                    );
                 }
             }
         }
