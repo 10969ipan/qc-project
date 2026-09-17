@@ -91,7 +91,12 @@ class VerificationToolController extends Controller
             });
         }
         if ($request->filled('tool_status')) {
-            $query->where('tool_status', $request->tool_status);
+            $statusVal = strtoupper($request->tool_status);
+            if ($statusVal === 'NON-AKTIF' || $statusVal === 'TIDAK AKTIF') {
+                $query->whereIn('tool_status', ['NON-AKTIF', 'TIDAK AKTIF']);
+            } else {
+                $query->where('tool_status', $statusVal);
+            }
         }
 
         $tools = $query->orderBy('name_part')->paginate(10)->appends($request->all());
@@ -102,7 +107,10 @@ class VerificationToolController extends Controller
         $verificationTypes = ['INTERNAL', 'EXTERNAL'];
         $drawings = ['ADA', 'TIDAK ADA'];
         $judgments = ['BELUM', 'OK', 'NG'];
-        $statuses = ['AKTIF', 'TIDAK AKTIF'];
+        $statuses = VerificationTool::where('plant_id', $plant->id)->whereNotNull('tool_status')->distinct()->pluck('tool_status')->filter()->values();
+        if ($statuses->isEmpty()) {
+            $statuses = collect(['AKTIF', 'NON-AKTIF']);
+        }
 
         return view('verifications.tools.index', compact(
             'tools', 'plantCode', 'toolTypes', 'customers', 

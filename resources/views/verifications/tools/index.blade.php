@@ -473,10 +473,10 @@
                                         <div class="col-6">
                                             <div class="form-group mb-2">
                                                 <label class="small font-weight-bold text-gray-700">Status Alat</label>
-                                                <select name="tool_status" class="form-control form-control-sm border-0 shadow-sm" required>
-                                                    <option value="AKTIF">AKTIF</option>
-                                                    <option value="TIDAK AKTIF">TIDAK AKTIF</option>
-                                                </select>
+                                                 <select name="tool_status" class="form-control form-control-sm border-0 shadow-sm" required>
+                                                     <option value="AKTIF">AKTIF</option>
+                                                     <option value="NON-AKTIF">NON-AKTIF</option>
+                                                 </select>
                                             </div>
                                         </div>
                                     </div>
@@ -598,10 +598,10 @@
                                         <div class="col-6">
                                             <div class="form-group mb-2">
                                                 <label class="small font-weight-bold text-gray-700">Status Alat</label>
-                                                <select name="tool_status" id="edit_tool_status" class="form-control form-control-sm border-0 shadow-sm" required>
-                                                    <option value="AKTIF">AKTIF</option>
-                                                    <option value="TIDAK AKTIF">TIDAK AKTIF</option>
-                                                </select>
+                                                 <select name="tool_status" id="edit_tool_status" class="form-control form-control-sm border-0 shadow-sm" required>
+                                                     <option value="AKTIF">AKTIF</option>
+                                                     <option value="NON-AKTIF">NON-AKTIF</option>
+                                                 </select>
                                             </div>
                                         </div>
                                     </div>
