@@ -2593,8 +2593,16 @@ class InProcessCreate {
                 data: formData,
                 processData: false,
                 contentType: false,
+                dataType: "json",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json"
+                },
                 success: function (response) {
-                    if (response.success) {
+                    if (typeof response === "string") {
+                        try { response = JSON.parse(response); } catch (e) {}
+                    }
+                    if (response && (response.success || response.status === "success")) {
                         if (isHardwareScan) {
                             Swal.fire({
                                 icon: "success",
@@ -2624,7 +2632,7 @@ class InProcessCreate {
                             });
                         }
                     } else {
-                        const errorMsg = response.message || "Gagal menyimpan data.";
+                        const errorMsg = (response && response.message) ? response.message : "Gagal menyimpan data.";
                         Swal.fire({
                             icon: "error",
                             title: "Gagal Menyimpan",
@@ -2634,6 +2642,20 @@ class InProcessCreate {
                     }
                 },
                 error: function (xhr) {
+                    if (xhr.status === 200) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Berhasil",
+                            text: "Data Berhasil Disimpan",
+                            timer: 1200,
+                            showConfirmButton: false,
+                        }).then(() => {
+                            _this.resetForm();
+                            _this.restorePersistentFields();
+                        });
+                        return;
+                    }
+
                     let errorMsg = "Gagal menyimpan data.";
                     if (xhr.responseJSON) {
                         if (xhr.responseJSON.errors && typeof xhr.responseJSON.errors === "object") {
@@ -2641,7 +2663,7 @@ class InProcessCreate {
                         } else if (xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;
                         }
-                    } else if (xhr.statusText) {
+                    } else if (xhr.statusText && xhr.status !== 200) {
                         errorMsg = `Gagal menyimpan data (${xhr.status}: ${xhr.statusText})`;
                     }
 
