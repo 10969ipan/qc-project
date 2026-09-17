@@ -419,6 +419,7 @@ class SubAssyCreate {
             this.initHardwareScanner();
             this.initLinePersistence();
             this.initPDFReference();
+            this.initAutoStartTimerOnInput();
             this.calculateTotalNG();
             this.updateJudgment();
         });
@@ -1724,6 +1725,15 @@ class SubAssyCreate {
                 this.updateTimerDisplay();
             }, 1000);
         }
+    }
+
+    initAutoStartTimerOnInput() {
+        const _this = this;
+        $(document).on("focus input change", "#checksheetForm input, #checksheetForm select, #checksheetForm textarea", function () {
+            if (!_this.timerRunning && $(this).attr('id') !== 'sapCodeInput') {
+                _this.startTimer();
+            }
+        });
     }
 
     showToast(msg, color) {

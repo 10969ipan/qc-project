@@ -434,6 +434,7 @@ class InProcessCreate {
         this.initPDFReference();
         this.initHardwareScanner();
         this.initMachinePersistence();
+        this.initAutoStartTimerOnInput();
 
         // Fitur antrian scan sementara HANYA untuk Karawang
         if (this.config.useQueue) {
@@ -520,13 +521,25 @@ class InProcessCreate {
         }
 
         // Stop timer dan ambil cycle_time sebelum reset form
-        // Gunakan this.totalSeconds langsung agar tidak terdampak bug string "0" truthy
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
         this.timerRunning = false;
-        const capturedCycleTime = this.totalSeconds > 0 ? this.totalSeconds : 0;
+
+        let capturedCycleTime = this.totalSeconds > 0 ? this.totalSeconds : 0;
+        const submitNow = Date.now();
+        if (capturedCycleTime <= 0) {
+            const refTime = this.lastSubmitTimestamp || this.pageLoadTimestamp;
+            if (refTime) {
+                const gapSec = Math.round((submitNow - refTime) / 1000);
+                if (gapSec >= 2 && gapSec <= 28800) {
+                    capturedCycleTime = gapSec;
+                }
+            }
+        }
+        this.lastSubmitTimestamp = submitNow;
+        this.lastScanTimestamp = submitNow;
         $("#cycleTimeInput").val(capturedCycleTime);
 
         // Collect dimensions (supporting P1 and P2 dual pass)
@@ -1326,6 +1339,15 @@ class InProcessCreate {
         const _this = this;
         $("#startTimerBtn").click(function () {
             _this.startTimer();
+        });
+    }
+
+    initAutoStartTimerOnInput() {
+        const _this = this;
+        $(document).on("focus input change", ".dimension-input, input[name='part_weight[]'], select[name='shift'], #code_machine, #itemSelect, .defect-qty", function () {
+            if (!_this.timerRunning) {
+                _this.startTimer();
+            }
         });
     }
 
