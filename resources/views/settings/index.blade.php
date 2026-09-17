@@ -723,7 +723,7 @@
                                 <div class="p-3 rounded-lg border bg-light h-100">
                                     <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-file-export text-success mr-2"></i>Export Data Per-Menu</h6>
                                     <p class="small text-muted mb-3">Pilih modul yang ingin di-backup data tabelnya.</p>
-                                    <form id="formExportModule" action="{{ route('admin.backup.export-module', 'sub_assy') }}" method="GET">
+                                    <form id="formExportModule" action="{{ url('admin/backup/export-module/sub_assy') }}" method="GET">
                                         <div class="form-group mb-3">
                                             <label class="small font-weight-bold text-dark">Pilih Modul</label>
                                             <select id="selectExportModule" class="form-control rounded-pill border-0 bg-white shadow-sm" onchange="document.getElementById('formExportModule').action = '{{ url('admin/backup/export-module') }}/' + this.value;">
