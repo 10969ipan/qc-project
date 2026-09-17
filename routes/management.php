@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MonthlyReportController;
 use App\Http\Controllers\CustomerClaimController;
 use App\Http\Controllers\CustomerClaimRecordController;
+use App\Http\Controllers\BackupController;
 
 Route::middleware(['auth'])->group(function () {
     // Master Data Management (Admin & Staff)
@@ -61,6 +62,17 @@ Route::middleware(['auth'])->group(function () {
         
         // Activity Logs
         Route::get('settings/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('settings.activity_logs');
+        
+        // Backup & Restore Management (Strictly Admin Only)
+        Route::middleware(['role:admin'])->prefix('backup')->name('backup.')->group(function () {
+            Route::get('/', [BackupController::class, 'index'])->name('index');
+            Route::post('/full', [BackupController::class, 'createFullBackup'])->name('full');
+            Route::get('/download/{filename}', [BackupController::class, 'downloadBackup'])->name('download');
+            Route::delete('/{filename}', [BackupController::class, 'deleteBackup'])->name('delete');
+            Route::post('/restore-full', [BackupController::class, 'restoreFullBackup'])->name('restore-full');
+            Route::get('/export-module/{module}', [BackupController::class, 'exportModuleData'])->name('export-module');
+            Route::post('/import-module', [BackupController::class, 'importModuleData'])->name('import-module');
+        });
         
         // Monthly Reports
         Route::resource('monthly-reports', MonthlyReportController::class);

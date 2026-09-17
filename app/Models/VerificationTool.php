@@ -15,19 +15,27 @@ class VerificationTool extends Model
     protected $fillable = [
         'name_part',
         'no_part',
+        'part_code',
         'tool_type',
         'customer',
         'quantity',
         'verification_frequency',
+        'planned_verification_date',
         'calibration_history',
         'verification_type',
         'drawing',
+        'drawing_path',
+        'dimension_standards',
         'tool_judgment',
         'tool_status',
         'verification_date_remarks',
         'certification_path',
         'plant_id',
         'status',
+    ];
+
+    protected $casts = [
+        'dimension_standards' => 'array',
     ];
 
     public function plant()

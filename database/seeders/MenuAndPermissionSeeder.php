@@ -72,6 +72,16 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Incoming Part', 'route' => 'incoming.parts.index', 'order' => 5],
                                 ]
                             ],
+                            [
+                                'name' => 'VERIFIKASI',
+                                'icon' => 'fas fa-tools',
+                                'order' => 5,
+                                'children' => [
+                                    ['name' => 'Jadwal Verifikasi', 'route' => 'verifications.schedule.index', 'order' => 1],
+                                    ['name' => 'Hasil Verif', 'route' => 'verifications.verifications.index', 'order' => 2],
+                                    ['name' => 'Daftar Alat', 'route' => 'verifications.tools.index', 'order' => 3],
+                                ]
+                            ],
                         ]
                     ],
                     [
@@ -134,6 +144,16 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Incoming Sub-Part', 'route' => 'incoming.sub_parts.index', 'order' => 12],
                                     ['name' => 'Incoming Export', 'route' => 'incoming.exports.index', 'order' => 13],
                                     ['name' => 'Incoming Chemical', 'route' => 'incoming.chemicals.index', 'order' => 14],
+                                ]
+                            ],
+                            [
+                                'name' => 'VERIFIKASI',
+                                'icon' => 'fas fa-tools',
+                                'order' => 5,
+                                'children' => [
+                                    ['name' => 'Jadwal Verifikasi', 'route' => 'verifications.schedule.index', 'order' => 1],
+                                    ['name' => 'Hasil Verif', 'route' => 'verifications.verifications.index', 'order' => 2],
+                                    ['name' => 'Daftar Alat', 'route' => 'verifications.tools.index', 'order' => 3],
                                 ]
                             ],
                         ]

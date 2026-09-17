@@ -92,4 +92,16 @@ class Item extends Model
         // If category ID (UUID string)
         return $query->where('category_id', $category);
     }
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('fpa_standards');
+            \Illuminate\Support\Facades\Cache::forget('in_proc_standards');
+        });
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('fpa_standards');
+            \Illuminate\Support\Facades\Cache::forget('in_proc_standards');
+        });
+    }
 }

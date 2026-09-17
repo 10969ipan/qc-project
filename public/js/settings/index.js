@@ -1480,6 +1480,290 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // ==================== BACKUP & RESTORE HANDLERS ====================
+        function loadBackupFiles() {
+            const dbContainer = $('#bodyTableBackups');
+            const menuContainer = $('#bodyTableMenuBackups');
+            if (dbContainer.length === 0) return;
+            
+            dbContainer.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2 text-warning"></i>Memuat daftar file backup database...</td></tr>');
+            if (menuContainer.length > 0) {
+                menuContainer.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2 text-warning"></i>Memuat daftar file backup per-menu...</td></tr>');
+            }
+            
+            $.ajax({
+                url: '/admin/backup',
+                type: 'GET',
+                cache: false,
+                success: function(res) {
+                    if (res.status === 'success' && res.backups) {
+                        let dbHtml = '';
+                        let menuHtml = '';
+                        let dbCount = 0;
+                        let menuCount = 0;
+
+                        res.backups.forEach(function(item) {
+                            const isSnapshot = item.filename.includes('pre_restore');
+                            const typeBadge = isSnapshot ? '<span class="badge badge-warning font-weight-bold">Pre-Restore Snapshot</span>' : 
+                                             (item.type === 'Per-Menu' ? '<span class="badge badge-info">Per-Menu JSON</span>' : '<span class="badge badge-success">Full Database</span>');
+                            
+                            const rowHtml = `
+                                <tr>
+                                    <td class="font-weight-bold text-dark"><i class="fas fa-file-code text-secondary mr-2"></i>${item.filename}</td>
+                                    <td>${typeBadge}</td>
+                                    <td><span class="badge badge-light border px-2 py-1">${item.size}</span></td>
+                                    <td class="small text-muted">${item.created_at}</td>
+                                    <td class="text-center">
+                                        <a href="/admin/backup/download/${encodeURIComponent(item.filename)}" class="btn btn-sm btn-outline-primary rounded-circle mr-1" title="Download File">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle btn-delete-backup" data-filename="${item.filename}" title="Hapus Backup">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+
+                            if (item.type === 'Full Database') {
+                                dbHtml += rowHtml;
+                                dbCount++;
+                            } else {
+                                menuHtml += rowHtml;
+                                menuCount++;
+                            }
+                        });
+
+                        if (dbCount > 0) {
+                            dbContainer.html(dbHtml);
+                        } else {
+                            dbContainer.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-info-circle mr-2"></i>Belum ada file backup database tersimpan. Klik "Backup Database Now" di atas untuk membuat backup baru.</td></tr>');
+                        }
+
+                        if (menuContainer.length > 0) {
+                            if (menuCount > 0) {
+                                menuContainer.html(menuHtml);
+                            } else {
+                                menuContainer.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-info-circle mr-2"></i>Belum ada file backup per-menu tersimpan. Pilih modul di atas lalu klik "Export Data Modul" untuk membuat backup baru.</td></tr>');
+                            }
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Backup load error:', xhr);
+                    dbContainer.html('<tr><td colspan="5" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat data backup database.</td></tr>');
+                    if (menuContainer.length > 0) {
+                        menuContainer.html('<tr><td colspan="5" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat data backup per-menu.</td></tr>');
+                    }
+                }
+            });
+        }
+
+        // Export Per-Menu auto refresh list
+        $(document).on('submit', '#formExportModule', function() {
+            setTimeout(loadBackupFiles, 1500);
+        });
+
+        // Auto load when tab shown or clicked
+        $(document).on('click', '#backup-restore-tab', function() {
+            setTimeout(loadBackupFiles, 100);
+        });
+        $('#backup-restore-tab').on('shown.bs.tab', function() {
+            loadBackupFiles();
+        });
+        if ($('#backup-restore').hasClass('show') || $('#backup-restore').hasClass('active') || localStorage.getItem('settingsActiveTab') === '#backup-restore') {
+            loadBackupFiles();
+        }
+
+        // 1. Create Full Backup (Event Delegated)
+        $(document).on('click', '#btnCreateFullBackup', function(e) {
+            e.preventDefault();
+            const btn = $(this);
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses Backup...');
+
+            $.ajax({
+                url: '/admin/backup/full',
+                type: 'POST',
+                data: { _token: window.settingsConfig.var_1 },
+                success: function(res) {
+                    btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Backup Database Now');
+                    if (res.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Backup Berhasil!',
+                            text: res.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        loadBackupFiles();
+                    } else {
+                        Swal.fire('Gagal Backup', res.message || 'Terjadi kesalahan.', 'error');
+                    }
+                },
+                error: function(xhr) {
+                    btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Backup Database Now');
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal membuat backup database.';
+                    Swal.fire('Gagal Backup', msg, 'error');
+                }
+            });
+        });
+
+        // 2. Delete Backup File (Event Delegated)
+        $(document).on('click', '.btn-delete-backup', function(e) {
+            e.preventDefault();
+            const filename = $(this).data('filename');
+            
+            Swal.fire({
+                title: 'Hapus File Backup?',
+                text: `File "${filename}" akan dihapus secara permanen.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/admin/backup/' + encodeURIComponent(filename),
+                        type: 'DELETE',
+                        data: { _token: window.settingsConfig.var_1 },
+                        success: function(res) {
+                            Swal.fire('Terhapus', res.message, 'success');
+                            loadBackupFiles();
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Gagal Hapus', 'Terjadi kesalahan saat menghapus file.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // 3. Restore Full Backup (Form Submit with Validation & Snapshot)
+        $(document).on('submit', '#formRestoreFullBackup', function(e) {
+            e.preventDefault();
+            $('#global-loader').hide();
+            const form = this;
+            const fileInput = $('#backupSqlFile')[0];
+
+            // Validasi File
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                Swal.fire('Peringatan', 'Silakan pilih file database (.sql) terlebih dahulu!', 'warning');
+                return false;
+            }
+
+            const fileName = fileInput.files[0].name;
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (ext !== 'sql' && ext !== 'txt') {
+                Swal.fire('Format Salah', 'File yang diunggah harus berformat .sql!', 'error');
+                return false;
+            }
+
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Restore Database System?',
+                text: 'Sistem akan otomatis membuat PRE-RESTORE SNAPSHOT cadangan data saat ini sebelum memulihkan database.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                confirmButtonText: 'Ya, Restore Sekarang',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memulihkan Database...',
+                        text: 'Membuat snapshot otomatis & memulihkan data. Mohon tunggu...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: '/admin/backup/restore-full',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire('Restore Berhasil!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Gagal Restore', res.message || 'Terjadi kesalahan.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Terjadi kesalahan sistem saat memulihkan database.';
+                            Swal.fire('Gagal Restore', msg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // 4. Import Per-Menu JSON (Form Submit with Validation)
+        $(document).on('submit', '#formImportModule', function(e) {
+            e.preventDefault();
+            $('#global-loader').hide();
+            const form = this;
+            const fileInput = $(form).find('input[type="file"]')[0];
+
+            // Validasi File
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                Swal.fire('Peringatan', 'Silakan pilih file modul (.json) terlebih dahulu!', 'warning');
+                return false;
+            }
+
+            const fileName = fileInput.files[0].name;
+            const ext = fileName.split('.').pop().toLowerCase();
+            if (ext !== 'json') {
+                Swal.fire('Format Salah', 'File yang diunggah harus berformat .json!', 'error');
+                return false;
+            }
+
+            const formData = new FormData(form);
+
+            Swal.fire({
+                title: 'Restore Data Modul Ini?',
+                text: 'Data dari file JSON akan dimasukkan/diperbarui ke dalam database untuk modul tersebut.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Impor Data',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Mengimpor Data Modul...',
+                        text: 'Mohon tunggu...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: '/admin/backup/import-module',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(res) {
+                            if (res.status === 'success') {
+                                Swal.fire('Impor Berhasil!', res.message, 'success').then(() => {
+                                    form.reset();
+                                    loadBackupFiles();
+                                });
+                            } else {
+                                Swal.fire('Gagal Impor', res.message || 'Terjadi kesalahan.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal mengimpor data modul.';
+                            Swal.fire('Gagal Impor', msg, 'error');
+                        }
+                    });
+                }
+            });
+        });
+
         // ==========================================
         // MANAJEMEN HEADER DOKUMEN (DOCUMENT HEADERS)
         // ==========================================

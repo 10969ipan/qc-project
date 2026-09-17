@@ -1,13 +1,21 @@
 # Panduan Optimalisasi Performa Halaman & Query (Optimization Blueprint)
 
-Dokumen ini berisi standar dan pola optimalisasi (*optimization blueprint*) yang diterapkan pada menu **Checksheet In-Process** dan **Notification API**. Pola ini dapat diterapkan secara bertahap pada menu-menu lain di aplikasi (misalnya: *Plating, Cross Cut, Sortir, Painting, Incoming Parts*, dll.).
+Dokumen ini berisi standar dan pola optimalisasi (*optimization blueprint*) lengkap yang diterapkan pada menu **Checksheet In-Process** dan **Notification API**. Pola ini berfungsi sebagai acuan untuk menerapkan optimalisasi pada menu-menu lain di aplikasi (seperti: *Plating, Cross Cut, Sortir, Painting, Sub Assy, Incoming Parts*, dll.).
 
 ---
 
-## 🚀 5 Pilar Utama Optimalisasi
+## 🚀 6 Pilar Utama Optimalisasi
 
 ```
-[1. Database Indexing] ──► [2. Permission Memory-Cache] ──► [3. Eliminasi CAST/JSON_EXTRACT] ──► [4. Controller Pre-Computation] ──► [5. Blade Cleanup]
+┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
+│ 1. Database Indexing    │ ──► │ 2. Permission Cache     │ ──► │ 3. Direct Master Query  │
+└─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
+             │                                                               │
+             ▼                                                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
+│ 4. Eager Loading &      │ ──► │ 5. Controller           │ ──► │ 6. Blade Cleanup        │
+│    Fast String Query    │     │    Pre-computation      │     │    (N+1 Query Free)     │
+└─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
 ```
 
 ---
@@ -15,7 +23,7 @@ Dokumen ini berisi standar dan pola optimalisasi (*optimization blueprint*) yang
 ### Pilar 1: Database Indexing & Virtual Column (Safe & Non-Destructive)
 
 #### Masalah:
-Query filter berulang pada kolom `plant_id`, `date`, `created_at`, `entry_method`, atau `scan_method` yang tidak memiliki *Composite Index* memaksa MySQL membaca seluruh baris data (*Full Table Scan*).
+Query filter berulang pada kolom `plant_id`, `date`, `created_at`, atau `scan_method` yang tidak memiliki *Composite Index* memaksa MySQL membaca seluruh baris data (*Full Table Scan* di 28.000+ baris).
 
 #### Solusi:
 Buat Migration Laravel baru yang menambahkan *Composite Index* B-Tree dan *Virtual Generated Column* tanpa mengubah/menghapus data asli.
@@ -31,20 +39,43 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('nama_tabel')) {
-            $indexes1 = DB::select("SHOW INDEX FROM nama_tabel WHERE Key_name = 'idx_tabel_plant_date'");
+        // 1. Virtual Column & Index pada tabel notifications
+        if (Schema::hasTable('notifications')) {
+            $columns = DB::select("SHOW COLUMNS FROM notifications LIKE 'notif_plant_id'");
+            if (empty($columns)) {
+                DB::statement("
+                    ALTER TABLE notifications
+                    ADD COLUMN notif_plant_id VARCHAR(50) GENERATED ALWAYS AS (JSON_UNQUOTE(JSON_EXTRACT(data, '$.plant_id'))) VIRTUAL
+                ");
+            }
+
+            $indexes = DB::select("SHOW INDEX FROM notifications WHERE Key_name = 'idx_notif_user_plant_lookup'");
+            if (empty($indexes)) {
+                DB::statement("
+                    ALTER TABLE notifications
+                    ADD INDEX idx_notif_user_plant_lookup (user_id, is_read, notif_plant_id, created_at)
+                ");
+            }
+        }
+
+        // 2. Composite Performance Indexes pada tabel utama
+        if (Schema::hasTable('nama_tabel_checksheet')) {
+            $indexes1 = DB::select("SHOW INDEX FROM nama_tabel_checksheet WHERE Key_name = 'idx_tabel_plant_date_created'");
             if (empty($indexes1)) {
-                DB::statement("ALTER TABLE nama_tabel ADD INDEX idx_tabel_plant_date (plant_id, date, created_at)");
+                DB::statement("
+                    ALTER TABLE nama_tabel_checksheet
+                    ADD INDEX idx_tabel_plant_date_created (plant_id, date, created_at)
+                ");
             }
         }
     }
 
     public function down(): void
     {
-        if (Schema::hasTable('nama_tabel')) {
-            $indexes1 = DB::select("SHOW INDEX FROM nama_tabel WHERE Key_name = 'idx_tabel_plant_date'");
+        if (Schema::hasTable('nama_tabel_checksheet')) {
+            $indexes1 = DB::select("SHOW INDEX FROM nama_tabel_checksheet WHERE Key_name = 'idx_tabel_plant_date_created'");
             if (!empty($indexes1)) {
-                DB::statement("ALTER TABLE nama_tabel DROP INDEX idx_tabel_plant_date");
+                DB::statement("ALTER TABLE nama_tabel_checksheet DROP INDEX idx_tabel_plant_date_created");
             }
         }
     }
@@ -56,7 +87,7 @@ return new class extends Migration
 ### Pilar 2: In-Memory Request Caching untuk Permissions (`User.php`)
 
 #### Masalah:
-Metode `auth()->user()->hasPermission($menuId, $action)` dipanggil belasan hingga puluhan kali dalam 1 siklus render halaman Blade untuk mengecek tombol *Export, Edit, Delete*. Hal ini memicu puluhan query SQL yang sama persis (`SELECT * FROM user_permissions...`).
+Metode `auth()->user()->hasPermission($menuId, $action)` dipanggil belasan hingga puluhan kali dalam 1 siklus render halaman Blade untuk mengecek tombol *Export, Edit, Delete*. Hal ini memicu puluhan query SQL berulang yang sama persis (`SELECT * FROM user_permissions...`).
 
 #### Solusi:
 Tambahkan `$permissionsMemoryCache` static array pada [app/Models/User.php](file:///d:/laragon/www/qc-project/app/Models/User.php) agar query hanya berjalan 1x per `(user_id, role, menu_id, action)` selama request berlangsung.
@@ -104,41 +135,83 @@ public function hasPermission($menuId, $action = 'view')
 
 ---
 
-### Pilar 3: Optimalisasi Query JSON & REGEXP
+### Pilar 3: Direct Master Query untuk Dropdown Filter Option
 
 #### Masalah:
-- `JSON_EXTRACT(data, '$.plant_id')` di klausa WHERE memicu *Full Table Scan*.
-- `CAST(kolom_text AS CHAR) REGEXP` mematikan query optimizer engine MySQL.
+Mengisi opsi dropdown filter (seperti *Part Name* dan *Customer*) menggunakan `NamaChecksheet::where('plant_id', $plantId)->pluck('item_id')->distinct()` yang memindai puluhan ribu baris tabel checksheet. Hal ini memakan waktu **5-10 detik** saat cache terhapus.
 
 #### Solusi:
-- Gunakan virtual generated column `notif_plant_id` yang ter-indeks jika menyaring data JSON.
-- Gunakan `kolom REGEXP '[0-9]'` langsung tanpa pembungkus `CAST(... AS CHAR)`.
+Ambil data dropdown langsung dari tabel master `items` (`Item::where(...)->get()`). Tabel `items` hanya berisi ratusan baris, sehingga query selesai dalam **1 milidetik** (1.000x lebih cepat).
 
 ```php
-// Contoh pada NotificationController.php
-$hasNotifPlantCol = Schema::hasColumn('notifications', 'notif_plant_id');
-if ($user->role !== 'admin') {
-    $query->where(function ($q) use ($user, $hasNotifPlantCol) {
-        if ($hasNotifPlantCol) {
-            $q->where('notif_plant_id', $user->plant_id)
-                ->orWhereNull('notif_plant_id');
-        } else {
-            $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
-                ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
+// app/Http/Controllers/NamaController.php
+
+$items = \Illuminate\Support\Facades\Cache::remember("filter_items_{$plantId}", 3600, function () use ($plantId) {
+    return Item::where(function($q) use ($plantId) {
+        if (!empty($plantId)) {
+            $q->where('plant_id', $plantId)->orWhereNull('plant_id');
         }
-    });
+    })->orderBy('name')->get();
+});
+
+$customers = \Illuminate\Support\Facades\Cache::remember("filter_cust_{$plantId}", 3600, function () use ($plantId) {
+    return Item::where(function($q) use ($plantId) {
+        if (!empty($plantId)) {
+            $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+        }
+    })
+    ->whereNotNull('customer')
+    ->where('customer', '!=', '')
+    ->distinct()
+    ->pluck('customer')
+    ->sort();
+});
+```
+
+---
+
+### Pilar 4: Eager Loading Relasi & Fast String Query (`Service.php`)
+
+#### Masalah:
+1. Pengecekan data dimensi menggunakan `CAST(dimension_check AS CHAR) REGEXP '[0-9]'` mematikan optimasi engine MySQL dan memakan CPU server.
+2. Tidak mengikutsertakan relasi `user` pada query utama memicu N+1 Query di Blade.
+
+#### Solusi:
+1. Gunakan Eager Loading `with(['item', 'user'])`.
+2. Ganti ekspresi berat dengan `CHAR_LENGTH(dimension_check) > 4` yang diproses dalam fraction milidetik.
+
+```php
+// app/Services/NamaService.php
+
+public function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
+{
+    // Eager load relasi item dan user sekaligus
+    $query = NamaChecksheet::with(['item', 'user'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+
+    // Filter baris berdimensi super cepat tanpa REGEXP CPU load
+    if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
+        $query->whereNotNull('dimension_check')
+              ->where('dimension_check', '!=', '')
+              ->where('dimension_check', '!=', '[]')
+              ->where('dimension_check', '!=', '{}')
+              ->where('dimension_check', '!=', 'null')
+              ->where('dimension_check', '!=', '""')
+              ->whereRaw("CHAR_LENGTH(dimension_check) > 4");
+    }
+
+    return $query;
 }
 ```
 
 ---
 
-### Pilar 4: Pre-computation di Level Controller
+### Pilar 5: Controller Pre-computation untuk Item Halaman Aktif
 
 #### Masalah:
-Memanggil method Service kompleks (seperti kalkulasi NG dimensi / no-dimension row) di dalam `@foreach` tabel Blade menyebabkan instansiasi service dan penafsiran JSON berulang kali di layer view.
+Memanggil method Service kompleks (seperti kalkulasi NG dimensi / status baris) di dalam `@foreach` tabel Blade menyebabkan instansiasi service `app(...)` dan penafsiran JSON berulang kali pada layer view.
 
 #### Solusi:
-Hitung status/flag helper di Controller **hanya untuk data paginasi aktif** (misal 10-20 baris) sebelum dikirim ke Blade view.
+Hitung status/flag helper di Controller **hanya untuk 10 baris item di halaman aktif** sebelum dikirim ke Blade view.
 
 ```php
 // app/Http/Controllers/NamaController.php
@@ -156,7 +229,7 @@ return view('nama_menu.index', compact('checksheets', ...));
 
 ---
 
-### Pilar 5: Cleanup Blade View
+### Pilar 6: Blade View Cleanup (N+1 Query Free)
 
 #### Solusi:
 Gunakan properti pre-computed di Blade dengan *fallback safe operator* (`??`).
@@ -166,15 +239,28 @@ Gunakan properti pre-computed di Blade dengan *fallback safe operator* (`??`).
 
 @foreach($checksheets as $checksheet)
     @php
-        $isDimensionNgRow = $checksheet->is_dimension_ng ?? app(InProcessChecksheetService::class)->isDimensionNg($checksheet, $standards);
-        $isNoDimensionRow = $checksheet->is_no_dimension_row ?? app(InProcessChecksheetService::class)->isNoDimensionRow($checksheet);
+        $isDimensionNgRow = $checksheet->is_dimension_ng ?? app(NamaService::class)->isDimensionNg($checksheet, $standards);
+        $isNoDimensionRow = $checksheet->is_no_dimension_row ?? app(NamaService::class)->isNoDimensionRow($checksheet);
         $isRowHidden = $isHiddenItem || ($hideNgRows == '1' && $isDimensionNgRow) || ($hideNoDimensionRows == '1' && $isNoDimensionRow);
     @endphp
     <tr class="{{ $isRowHidden ? 'bg-light-hidden' : '' }}">
+        <td>{{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}</td>
         ...
     </tr>
 @endforeach
 ```
+
+---
+
+## 📋 Checklist Penerapan pada Menu Baru
+
+Saat hendak mengoptimalisasi menu baru (misal: *Plating, Cross Cut, Sortir, Painting, Incoming Parts*):
+
+- [ ] **Step 1**: Buat Migration B-Tree Composite Index untuk `(plant_id, date, created_at)` pada tabel menu tersebut.
+- [ ] **Step 2**: Pastikan method `buildFilteredQuery()` di Service menggunakan `with(['item', 'user'])`.
+- [ ] **Step 3**: Ganti query subquery `distinct()->pluck()` di Controller dengan query master `Item::get()`.
+- [ ] **Step 4**: Tambahkan perulangan pre-computation `foreach ($checksheets->items() as $c)` di Controller sebelum `return view()`.
+- [ ] **Step 5**: Ganti pemanggilan `app(Service::class)` di dalam Blade `@foreach` dengan `$c->properti_precomputed ?? app(...)`.
 
 ---
 
