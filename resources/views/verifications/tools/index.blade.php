@@ -255,10 +255,15 @@
                         </a>
                     </div>
 
-                    <!-- Tombol Tambah Alat (Kanan, Rata Tengah Atas-Bawah) -->
-                    <div class="ml-auto align-self-center my-auto">
-                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm font-weight-bold" data-toggle="modal"
-                            data-target="#modalTambahAlat">
+                    <!-- Tombol Action (Kanan, Rata Tengah Atas-Bawah) -->
+                    <div class="ml-auto align-self-center my-auto d-flex align-items-center" style="gap: 6px;">
+                        <a href="{{ route('verifications.tools.template', ['plant' => $plantCode]) }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-sm font-weight-bold" title="Download Template Excel">
+                            <i class="fas fa-download fa-sm mr-1"></i> Template
+                        </a>
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalImportToolsExcel" title="Import Master Data dari File Excel">
+                            <i class="fas fa-file-excel fa-sm mr-1"></i> Import Excel
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalTambahAlat">
                             <i class="fas fa-plus-circle fa-sm mr-1"></i> Tambah Alat
                         </button>
                     </div>
@@ -797,11 +802,75 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Import Excel Master Alat Verifikasi -->
+        <div class="modal fade" id="modalImportToolsExcel" tabindex="-1" role="dialog" aria-labelledby="modalImportToolsExcelLabel" aria-hidden="true" style="z-index: 1060;">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 0.75rem;">
+                    <div class="modal-header bg-success text-white py-3">
+                        <h5 class="modal-title font-weight-bold" id="modalImportToolsExcelLabel" style="font-size: 0.95rem;">
+                            <i class="fas fa-file-excel mr-2"></i> Import Master Data Alat Verifikasi
+                        </h5>
+                        <button type="button" class="close text-white opacity-8" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ route('verifications.tools.import') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="plant" value="{{ $plantCode }}">
+                        <div class="modal-body p-4">
+                            <div class="alert alert-info py-2 px-3 mb-3 border-0 shadow-sm" style="border-radius: 0.5rem; font-size: 0.78rem;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-info-circle fa-lg mr-2 text-info"></i>
+                                    <div>
+                                        Gunakan template resmi <strong>.xlsx</strong> agar struktur data sesuai. Sistem akan otomatis membaca sheet pertama.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700 mb-1">Pilih File Excel (.xlsx / .xls)</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="importToolsFile" name="file" accept=".xlsx, .xls" required onchange="updateToolsFileName(this)">
+                                    <label class="custom-file-label font-weight-normal text-muted" for="importToolsFile" id="importToolsFileLabel">Pilih file Excel...</label>
+                                </div>
+                                <small class="text-muted mt-1 d-block" style="font-size: 0.68rem;">Ukuran file maksimal: 10 MB</small>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700 mb-1">Opsi Penanganan Duplikat</label>
+                                <select name="duplicate_action" class="form-control form-control-sm" style="border-radius: 0.35rem;">
+                                    <option value="update" selected>Update Data Lama (Upsert berdasarkan Nama & No Part)</option>
+                                    <option value="skip">Lewati / Skip (Abaikan jika data sudah ada)</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small text-muted font-weight-bold">Belum punya template?</span>
+                                <a href="{{ route('verifications.tools.template', ['plant' => $plantCode]) }}" class="btn btn-outline-info btn-sm rounded-pill px-3 font-weight-bold" style="font-size: 0.72rem;">
+                                    <i class="fas fa-download mr-1"></i> Unduh Template Excel
+                                </a>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light py-2 px-4" style="border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
+                            <button type="button" class="btn btn-secondary btn-sm px-3 rounded-pill" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-success btn-sm px-4 rounded-pill font-weight-bold shadow-sm">
+                                <i class="fas fa-upload mr-1"></i> Start Import
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('scripts')
 <script>
+    function updateToolsFileName(input) {
+        let fileName = input.files[0] ? input.files[0].name : 'Pilih file Excel...';
+        $('#importToolsFileLabel').text(fileName);
+    }
     @if(session('success'))
         Swal.fire({
             icon: 'success',

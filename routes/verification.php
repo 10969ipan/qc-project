@@ -12,6 +12,8 @@ Route::middleware(['auth'])->group(function () {
         // Tool Master Data
         Route::get('/tools', [VerificationToolController::class, 'toolsIndex'])->name('tools.index');
         Route::post('/tools', [VerificationToolController::class, 'toolsStore'])->name('tools.store');
+        Route::post('/tools/import', [VerificationToolController::class, 'toolsImportExcel'])->name('tools.import');
+        Route::get('/tools/template', [VerificationToolController::class, 'downloadToolsTemplate'])->name('tools.template');
         Route::get('/tools/{id}/edit', [VerificationToolController::class, 'toolsEdit'])->name('tools.edit');
         Route::put('/tools/{id}', [VerificationToolController::class, 'toolsUpdate'])->name('tools.update');
         Route::delete('/tools/{id}', [VerificationToolController::class, 'toolsDestroy'])->name('tools.destroy');

@@ -534,4 +534,276 @@ class VerificationToolController extends Controller
             return redirect()->back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Download Excel template for Verification Tools Master Data
+     */
+    /**
+     * Download Template / Export Master Data Verification Tools (.xlsx)
+     */
+    public function downloadToolsTemplate(Request $request)
+    {
+        $plantCode = $request->input('plant', 'jakarta');
+        $plant = Plant::where('code', $plantCode)->first();
+        if (!$plant) {
+            $plantId = Plant::resolveId($plantCode);
+            $plant = Plant::find($plantId);
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Master Alat Verifikasi');
+
+        // Headers
+        $headers = [
+            'A1' => 'Nama Part',
+            'B1' => 'No Part / Model',
+            'C1' => 'Part Code',
+            'D1' => 'Jenis Alat',
+            'E1' => 'Customer',
+            'F1' => 'Qty',
+            'G1' => 'Frekuensi',
+            'H1' => 'Jenis Verifikasi',
+            'I1' => 'Drawing',
+            'J1' => 'Tanggal Rencana Verifikasi',
+            'K1' => 'Status',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        // Header Styling
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '2563EB'] // Primary Blue
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CBD5E1'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        // Fetch actual data for the current plant if available
+        $tools = $plant ? VerificationTool::where('plant_id', $plant->id)->orderBy('name_part', 'asc')->get() : collect();
+
+        $rowNum = 2;
+        if ($tools->count() > 0) {
+            foreach ($tools as $tool) {
+                $sheet->setCellValue('A' . $rowNum, $tool->name_part);
+                $sheet->setCellValue('B' . $rowNum, $tool->no_part);
+                $sheet->setCellValue('C' . $rowNum, $tool->part_code);
+                $sheet->setCellValue('D' . $rowNum, $tool->tool_type);
+                $sheet->setCellValue('E' . $rowNum, $tool->customer);
+                $sheet->setCellValue('F' . $rowNum, $tool->quantity);
+                $sheet->setCellValue('G' . $rowNum, $tool->verification_frequency);
+                $sheet->setCellValue('H' . $rowNum, $tool->verification_type);
+                $sheet->setCellValue('I' . $rowNum, $tool->drawing);
+                $sheet->setCellValue('J' . $rowNum, $tool->planned_verification_date ? \Carbon\Carbon::parse($tool->planned_verification_date)->format('Y-m-d') : '');
+                $sheet->setCellValue('K' . $rowNum, $tool->tool_status ?? 'AKTIF');
+                $rowNum++;
+            }
+        } else {
+            // Sample Data Rows fallback if no tools exist
+            $sampleData = [
+                ['SPRING SEAT', '51402-K2VG-N000', 'P-0012', 'JIG CHECKER', 'AHM', 1, '1 Bulan', 'INTERNAL', 'ADA', '2026-10-15', 'AKTIF'],
+                ['STAY COMP', '64301-K0W-N000', 'P-0045', 'PLUG GAUGE', 'YIMM', 2, '3 Bulan', 'EKSTERNAL', 'TIDAK', '2026-11-01', 'AKTIF'],
+            ];
+            foreach ($sampleData as $row) {
+                $colIndex = 'A';
+                foreach ($row as $val) {
+                    $sheet->setCellValue($colIndex . $rowNum, $val);
+                    $colIndex++;
+                }
+                $rowNum++;
+            }
+        }
+
+        // Data Validation Dropdowns for Data Consistency
+        $createValidation = function ($formula) {
+            $validation = new \PhpOffice\PhpSpreadsheet\Cell\DataValidation();
+            $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
+            $validation->setAllowBlank(true);
+            $validation->setShowInputMessage(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setShowDropDown(true);
+            $validation->setErrorTitle('Pilihan Tidak Valid');
+            $validation->setError('Pilihlah salah satu nilai dari daftar dropdown.');
+            $validation->setFormula1('"' . $formula . '"');
+            return $validation;
+        };
+
+        $valFreq = $createValidation('1 Bulan,2 Bulan,3 Bulan,6 Bulan,1 Tahun,2 Tahun');
+        $valVerifType = $createValidation('INTERNAL,EKSTERNAL');
+        $valDrawing = $createValidation('ADA,TIDAK');
+        $valStatus = $createValidation('AKTIF,NON-AKTIF');
+
+        $maxValidationRow = max(500, $rowNum + 50);
+        for ($r = 2; $r <= $maxValidationRow; $r++) {
+            $sheet->getCell('G' . $r)->setDataValidation(clone $valFreq);
+            $sheet->getCell('H' . $r)->setDataValidation(clone $valVerifType);
+            $sheet->getCell('I' . $r)->setDataValidation(clone $valDrawing);
+            $sheet->getCell('K' . $r)->setDataValidation(clone $valStatus);
+        }
+
+        // Auto width for columns
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'Template_Master_Alat_Verifikasi_' . strtoupper($plantCode) . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
+     * Import Master Data Verification Tools from Excel (.xlsx)
+     */
+    public function toolsImportExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240',
+            'plant' => 'required|string',
+            'duplicate_action' => 'nullable|string|in:update,skip',
+        ]);
+
+        $plantCode = $request->plant;
+        $plant = Plant::where('code', $plantCode)->first();
+        if (!$plant) {
+            $plantId = Plant::resolveId($plantCode);
+            $plant = Plant::find($plantId);
+        }
+
+        if (!$plant) {
+            return redirect()->back()->with('error', 'Plant tidak ditemukan.');
+        }
+
+        $duplicateAction = $request->input('duplicate_action', 'update');
+
+        try {
+            $file = $request->file('file');
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
+            $spreadsheet = $reader->load($file->getRealPath());
+
+            // Always use active sheet (first sheet)
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, true);
+            $totalRows = count($rows);
+
+            $createdCount = 0;
+            $updatedCount = 0;
+            $skippedCount = 0;
+
+            for ($r = 2; $r <= $totalRows; $r++) {
+                $namePart = trim((string)($rows[$r]['A'] ?? ''));
+                $noPart = trim((string)($rows[$r]['B'] ?? ''));
+
+                if (empty($namePart) && empty($noPart)) {
+                    continue;
+                }
+
+                if (empty($namePart) || empty($noPart)) {
+                    continue; // Mandatory fields missing
+                }
+
+                $partCode = trim((string)($rows[$r]['C'] ?? '')) ?: null;
+                $toolType = strtoupper(trim((string)($rows[$r]['D'] ?? 'JIG CHECKER'))) ?: 'JIG CHECKER';
+                $customer = trim((string)($rows[$r]['E'] ?? '')) ?: '-';
+                $quantity = is_numeric($rows[$r]['F'] ?? null) ? (int)$rows[$r]['F'] : 1;
+                $freq = trim((string)($rows[$r]['G'] ?? '1 Tahun')) ?: '1 Tahun';
+                $verificationType = strtoupper(trim((string)($rows[$r]['H'] ?? 'INTERNAL'))) ?: 'INTERNAL';
+                $drawing = strtoupper(trim((string)($rows[$r]['I'] ?? 'ADA'))) ?: 'ADA';
+                $plannedDateRaw = trim((string)($rows[$r]['J'] ?? '')) ?: null;
+                $toolStatus = strtoupper(trim((string)($rows[$r]['K'] ?? 'AKTIF'))) ?: 'AKTIF';
+
+                // Format planned date if available
+                $plannedDate = null;
+                if (!empty($plannedDateRaw)) {
+                    try {
+                        if (is_numeric($plannedDateRaw)) {
+                            $plannedDate = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($plannedDateRaw)->format('Y-m-d');
+                        } else {
+                            $plannedDate = \Carbon\Carbon::parse($plannedDateRaw)->format('Y-m-d');
+                        }
+                    } catch (\Exception $e) {
+                        $plannedDate = null;
+                    }
+                }
+
+                // Check existing tool
+                $existing = VerificationTool::where('plant_id', $plant->id)
+                    ->where('name_part', $namePart)
+                    ->where('no_part', $noPart)
+                    ->first();
+
+                if ($existing && $duplicateAction === 'skip') {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $toolData = [
+                    'plant_id' => $plant->id,
+                    'name_part' => $namePart,
+                    'no_part' => $noPart,
+                    'part_code' => $partCode,
+                    'tool_type' => $toolType,
+                    'customer' => $customer,
+                    'quantity' => $quantity,
+                    'verification_frequency' => $freq,
+                    'verification_type' => $verificationType,
+                    'drawing' => $drawing,
+                    'tool_status' => $toolStatus,
+                ];
+
+                if (!empty($plannedDate)) {
+                    $toolData['planned_verification_date'] = $plannedDate;
+                }
+
+                if ($existing) {
+                    $existing->update($toolData);
+                    $tool = $existing;
+                    $updatedCount++;
+                } else {
+                    $tool = VerificationTool::create($toolData);
+                    $createdCount++;
+                }
+
+                // Automatically update Verification Schedule if planned_verification_date is present
+                if (!empty($plannedDate)) {
+                    $this->syncPlannedDateSchedule($tool, $plannedDate);
+                }
+            }
+
+            ActivityLogger::log('imported', null, "Import Master Data Alat Verifikasi: {$createdCount} dibuat, {$updatedCount} diupdate, {$skippedCount} dilewati.");
+
+            $msg = "Import berhasil! {$createdCount} alat baru dibuat, {$updatedCount} diupdate";
+            if ($skippedCount > 0) {
+                $msg .= ", {$skippedCount} dilewati";
+            }
+            $msg .= '.';
+
+            return redirect()->back()->with('success', $msg);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
+        }
+    }
 }
