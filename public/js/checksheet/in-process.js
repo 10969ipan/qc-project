@@ -434,7 +434,6 @@ class InProcessCreate {
         this.initPDFReference();
         this.initHardwareScanner();
         this.initMachinePersistence();
-        this.initAutoStartTimerOnInput();
 
         // Fitur antrian scan sementara HANYA untuk Karawang
         if (this.config.useQueue) {
@@ -1339,15 +1338,6 @@ class InProcessCreate {
         const _this = this;
         $("#startTimerBtn").click(function () {
             _this.startTimer();
-        });
-    }
-
-    initAutoStartTimerOnInput() {
-        const _this = this;
-        $(document).on("focus input change", ".dimension-input, input[name='part_weight[]'], select[name='shift'], #code_machine, #itemSelect, .defect-qty", function () {
-            if (!_this.timerRunning) {
-                _this.startTimer();
-            }
         });
     }
 
