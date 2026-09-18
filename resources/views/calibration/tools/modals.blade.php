@@ -253,8 +253,11 @@
                     <div class="form-group row align-items-center mb-0">
                         <label class="col-sm-2 col-form-label small font-weight-bold">Sertifikasi</label>
                         <div class="col-sm-10">
-                            <input type="file" name="certification" class="form-control-file" accept=".pdf">
-                            <div id="edit_existing_cert" class="mt-1"></div>
+                            <input type="file" name="certification" id="edit_tool_cert_file" class="form-control-file" accept=".pdf">
+                            <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
+                            <input type="hidden" name="delete_certification" id="edit_tool_delete_certification" value="0">
+                            <div id="edit_existing_cert" class="mt-2"></div>
+                            <div id="edit_tool_selected_pdf_preview" class="mt-2"></div>
                         </div>
                     </div>
                 </div>

@@ -898,10 +898,33 @@
                 $('#edit_frekuensi_kalibrasi').val(tool.frekuensi_kalibrasi);
                 $('#edit_riwayat_kalibrasi').val(tool.riwayat_kalibrasi || '');
                 $('#edit_jenis_kalibrasi').val(tool.jenis_kalibrasi);
-                
-                $('#edit_existing_cert').html(tool.certification_path 
-                    ? `<a href="/storage/${tool.certification_path}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Sertifikat</a>` 
-                    : '');
+                $('#edit_tool_delete_certification').val('0');
+                if ($('#edit_tool_cert_file').length) $('#edit_tool_cert_file').val('');
+                if ($('#edit_tool_selected_pdf_preview').length) $('#edit_tool_selected_pdf_preview').html('');
+
+                function renderEditToolPdfBadge(certUrl) {
+                    if (certUrl) {
+                        var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
+                        $('#edit_existing_cert').data('certUrl', certUrl).html(`
+                            <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
+                            <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">
+                                <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.1rem;"></i>
+                                <span class="text-truncate mr-2 flex-grow-1 small font-weight-bold text-dark" style="min-width:0;" title="${filename}">${filename}</span>
+                                <a href="${certUrl}" target="_blank" class="badge badge-info border-0 px-2 py-1 flex-shrink-0" style="cursor: pointer; text-decoration:none;" title="Lihat PDF">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </a>
+                                <button type="button" class="badge badge-danger border-0 px-2 py-1 flex-shrink-0" id="btn_delete_edit_tool_pdf" style="cursor: pointer;" title="Hapus PDF">
+                                    <i class="fas fa-trash-alt mr-1"></i>Hapus
+                                </button>
+                            </div>
+                        `);
+                    } else {
+                        $('#edit_existing_cert').data('certUrl', '').html('');
+                    }
+                }
+
+                var certUrl = tool.certification_path ? `/storage/${tool.certification_path}` : null;
+                renderEditToolPdfBadge(certUrl);
 
                 let schHtml = '';
                 if (tool.schedules && tool.schedules.length > 0) {
@@ -924,6 +947,82 @@
             }
         });
     };
+
+    $(document).on('click', '#btn_delete_edit_tool_pdf', function () {
+        $('#edit_tool_delete_certification').val('1');
+        $('#edit_existing_cert').html(`
+            <div class="alert alert-warning py-1 px-2 mb-0 d-flex align-items-center justify-content-between small shadow-xs rounded mt-1">
+                <span><i class="fas fa-exclamation-triangle mr-1"></i> File tersimpan akan dihapus saat disimpan.</span>
+                <button type="button" class="btn btn-sm btn-link text-dark font-weight-bold p-0 text-decoration-none" id="btn_undo_delete_edit_tool_pdf">
+                    <i class="fas fa-undo mr-1"></i> Batal Hapus
+                </button>
+            </div>
+        `);
+    });
+
+    $(document).on('click', '#btn_undo_delete_edit_tool_pdf', function () {
+        $('#edit_tool_delete_certification').val('0');
+        var certUrl = $('#edit_existing_cert').data('certUrl');
+        if (certUrl) {
+            var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
+            $('#edit_existing_cert').html(`
+                <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
+                <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">
+                    <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.1rem;"></i>
+                    <span class="text-truncate mr-2 flex-grow-1 small font-weight-bold text-dark" style="min-width:0;" title="${filename}">${filename}</span>
+                    <a href="${certUrl}" target="_blank" class="badge badge-info border-0 px-2 py-1 flex-shrink-0" style="cursor: pointer; text-decoration:none;" title="Lihat PDF">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </a>
+                    <button type="button" class="badge badge-danger border-0 px-2 py-1 flex-shrink-0" id="btn_delete_edit_tool_pdf" style="cursor: pointer;" title="Hapus PDF">
+                        <i class="fas fa-trash-alt mr-1"></i>Hapus
+                    </button>
+                </div>
+            `);
+        }
+    });
+
+    function renderSelectedToolPdfCard(file) {
+        var container = $('#edit_tool_selected_pdf_preview');
+        if (file) {
+            var objectUrl = URL.createObjectURL(file);
+            container.data('objectUrl', objectUrl).html(`
+                <label class="small font-weight-bold mb-1 d-block text-muted">File dipilih (1):</label>
+                <div class="d-flex align-items-center p-2 border rounded bg-white shadow-sm" style="gap:8px; font-size:0.78rem;">
+                    <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.3rem;"></i>
+                    <span class="text-truncate flex-grow-1 font-weight-bold text-dark" style="max-width: 180px;" title="${file.name}">${file.name}</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 font-weight-bold d-flex align-items-center btn-preview-selected-tool" data-url="${objectUrl}" style="font-size:0.75rem;">
+                        <i class="fas fa-eye mr-1"></i> Preview
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 font-weight-bold d-flex align-items-center btn-remove-selected-tool" style="font-size:0.75rem;">
+                        <i class="fas fa-times mr-1"></i> Hapus
+                    </button>
+                </div>
+            `);
+        } else {
+            var oldUrl = container.data('objectUrl');
+            if (oldUrl) URL.revokeObjectURL(oldUrl);
+            container.data('objectUrl', '').html('');
+        }
+    }
+
+    $(document).on('change', '#edit_tool_cert_file', function () {
+        if (this.files && this.files.length > 0) {
+            $('#edit_tool_delete_certification').val('0');
+            renderSelectedToolPdfCard(this.files[0]);
+        } else {
+            renderSelectedToolPdfCard(null);
+        }
+    });
+
+    $(document).on('click', '.btn-preview-selected-tool', function () {
+        var url = $(this).data('url');
+        if (url) window.open(url, '_blank');
+    });
+
+    $(document).on('click', '.btn-remove-selected-tool', function () {
+        $('#edit_tool_cert_file').val('');
+        renderSelectedToolPdfCard(null);
+    });
 </script>
 @endpush
 

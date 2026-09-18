@@ -732,7 +732,7 @@ class CalibrationController extends Controller
         ]);
 
         $tool = CalibrationTool::findOrFail($id);
-        $data = $request->except(['certification', 'plant', 'schedule_planning']);
+        $data = $request->except(['certification', 'delete_certification', 'plant', 'schedule_planning']);
 
         // Use the first schedule as the main schedule_planning for legacy purposes
         $data['schedule_planning'] = !empty($request->schedule_planning) ? $request->schedule_planning[0] : null;
@@ -751,6 +751,11 @@ class CalibrationController extends Controller
             $filename = time() . '_' . $file->getClientOriginalName();
             $path = $file->storeAs('calibration/tools', $filename, 'public');
             $data['certification_path'] = $path;
+        } elseif ($request->input('delete_certification') == '1') {
+            if ($tool->certification_path) {
+                Storage::disk('public')->delete($tool->certification_path);
+            }
+            $data['certification_path'] = null;
         }
 
         // Removal of strtoupper logic for jenis_kalibrasi as per user request for case-sensitive data
@@ -1702,7 +1707,7 @@ class CalibrationController extends Controller
             $oldToolId = $verification->tool_id;
             $newToolId = $request->tool_id;
             
-            $data = $request->except(['certification', 'plant', '_token', '_method']);
+            $data = $request->except(['certification', 'delete_certification', 'plant', '_token', '_method']);
 
             if ($request->hasFile('certification')) {
                 if (!Storage::disk('public')->exists('calibration/verifications')) {
@@ -1718,6 +1723,11 @@ class CalibrationController extends Controller
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('calibration/verifications', $filename, 'public');
                 $data['certification_path'] = $path;
+            } elseif ($request->input('delete_certification') == '1') {
+                if ($verification->certification_path) {
+                    Storage::disk('public')->delete($verification->certification_path);
+                }
+                $data['certification_path'] = null;
             }
 
             $verification->update($data);

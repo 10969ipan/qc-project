@@ -751,7 +751,10 @@
                                         <div class="form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Upload PDF Baru (Sertifikat)</label>
                                             <input type="file" name="certification" id="edit_cert_file" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" accept=".pdf">
+                                            <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
+                                            <input type="hidden" name="delete_certification" id="edit_delete_certification" value="0">
                                             <div id="edit_existing_pdf" class="mt-2"></div>
+                                            <div id="edit_selected_pdf_preview" class="mt-2"></div>
                                         </div>
                                 </div>
                             </div>
@@ -965,6 +968,8 @@
                                         <div class="form-group mb-0">
                                             <label class="small font-weight-bold text-gray-700">Upload PDF (Sertifikat)</label>
                                             <input type="file" name="certification" id="modal_cert_file" class="form-control-file border-0 p-1 shadow-sm rounded bg-white" accept=".pdf">
+                                            <small class="text-muted text-xs d-block mt-1">Upload PDF referensi dokumen part. Max 10MB.</small>
+                                            <div id="modal_selected_pdf_preview" class="mt-2"></div>
                                         </div>
                                 </div>
                             </div>

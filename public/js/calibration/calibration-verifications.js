@@ -181,12 +181,34 @@ $(document).ready(function () {
                     $('#edit_riwayat_kalibrasi').val(v.tool.riwayat_kalibrasi || '-');
                 }
 
-                if (v.certification_path) {
-                    var certUrl = response.certification_url || `/storage/${v.certification_path}`;
-                    $('#edit_existing_pdf').html(`<a href="${certUrl}" target="_blank" class="badge badge-info"><i class="fas fa-file-pdf mr-1"></i> Lihat Sertifikat</a>`);
-                } else {
-                    $('#edit_existing_pdf').html('');
+                // Reset delete certification flag, file input, and preview area
+                $('#edit_delete_certification').val('0');
+                $('#edit_cert_file').val('');
+                $('#edit_selected_pdf_preview').html('');
+
+                function renderEditPdfBadge(certUrl) {
+                    if (certUrl) {
+                        var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
+                        $('#edit_existing_pdf').data('certUrl', certUrl).html(`
+                            <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
+                            <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">
+                                <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.1rem;"></i>
+                                <span class="text-truncate mr-2 flex-grow-1 small font-weight-bold text-dark" style="min-width:0;" title="${filename}">${filename}</span>
+                                <a href="${certUrl}" target="_blank" class="badge badge-info border-0 px-2 py-1 flex-shrink-0" style="cursor: pointer; text-decoration:none;" title="Lihat PDF">
+                                    <i class="fas fa-eye mr-1"></i>View
+                                </a>
+                                <button type="button" class="badge badge-danger border-0 px-2 py-1 flex-shrink-0" id="btn_delete_edit_pdf" style="cursor: pointer;" title="Hapus PDF">
+                                    <i class="fas fa-trash-alt mr-1"></i>Hapus
+                                </button>
+                            </div>
+                        `);
+                    } else {
+                        $('#edit_existing_pdf').data('certUrl', '').html('');
+                    }
                 }
+
+                var currentCertUrl = v.certification_path ? (response.certification_url || `/storage/${v.certification_path}`) : null;
+                renderEditPdfBadge(currentCertUrl);
 
                 var rowsHtml = '';
                 var nilaiAlat = Array.isArray(v.nilai_alat) ? v.nilai_alat : [v.nilai_alat];
@@ -386,5 +408,103 @@ $(document).ready(function () {
                 btn.prop('disabled', false).html(originalHtml);
             }
         });
+    });
+
+    // PDF Delete & Undo Delete for File Tersimpan
+    $(document).on('click', '#btn_delete_edit_pdf', function () {
+        $('#edit_delete_certification').val('1');
+        $('#edit_existing_pdf').html(`
+            <div class="alert alert-warning py-1 px-2 mb-0 d-flex align-items-center justify-content-between small shadow-xs rounded mt-1">
+                <span><i class="fas fa-exclamation-triangle mr-1"></i> File tersimpan akan dihapus saat disimpan.</span>
+                <button type="button" class="btn btn-sm btn-link text-dark font-weight-bold p-0 text-decoration-none" id="btn_undo_delete_edit_pdf">
+                    <i class="fas fa-undo mr-1"></i> Batal Hapus
+                </button>
+            </div>
+        `);
+    });
+
+    $(document).on('click', '#btn_undo_delete_edit_pdf', function () {
+        $('#edit_delete_certification').val('0');
+        var certUrl = $('#edit_existing_pdf').data('certUrl');
+        if (certUrl) {
+            var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
+            $('#edit_existing_pdf').html(`
+                <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
+                <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">
+                    <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.1rem;"></i>
+                    <span class="text-truncate mr-2 flex-grow-1 small font-weight-bold text-dark" style="min-width:0;" title="${filename}">${filename}</span>
+                    <a href="${certUrl}" target="_blank" class="badge badge-info border-0 px-2 py-1 flex-shrink-0" style="cursor: pointer; text-decoration:none;" title="Lihat PDF">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </a>
+                    <button type="button" class="badge badge-danger border-0 px-2 py-1 flex-shrink-0" id="btn_delete_edit_pdf" style="cursor: pointer;" title="Hapus PDF">
+                        <i class="fas fa-trash-alt mr-1"></i>Hapus
+                    </button>
+                </div>
+            `);
+        }
+    });
+
+    // Helper to render "File dipilih (1):" preview card matching Master Data style
+    function renderSelectedPdfCard(file, containerId) {
+        var container = $('#' + containerId);
+        if (file) {
+            var objectUrl = URL.createObjectURL(file);
+            container.data('objectUrl', objectUrl).html(`
+                <label class="small font-weight-bold mb-1 d-block text-muted">File dipilih (1):</label>
+                <div class="d-flex align-items-center p-2 border rounded bg-white shadow-sm" style="gap:8px; font-size:0.78rem;">
+                    <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.3rem;"></i>
+                    <span class="text-truncate flex-grow-1 font-weight-bold text-dark" style="max-width: 180px;" title="${file.name}">${file.name}</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 font-weight-bold d-flex align-items-center btn-preview-selected" data-url="${objectUrl}" style="font-size:0.75rem;">
+                        <i class="fas fa-eye mr-1"></i> Preview
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 font-weight-bold d-flex align-items-center btn-remove-selected" data-container="${containerId}" style="font-size:0.75rem;">
+                        <i class="fas fa-times mr-1"></i> Hapus
+                    </button>
+                </div>
+            `);
+        } else {
+            var oldUrl = container.data('objectUrl');
+            if (oldUrl) URL.revokeObjectURL(oldUrl);
+            container.data('objectUrl', '').html('');
+        }
+    }
+
+    // Edit Modal file input change
+    $(document).on('change', '#edit_cert_file', function () {
+        if (this.files && this.files.length > 0) {
+            $('#edit_delete_certification').val('0');
+            renderSelectedPdfCard(this.files[0], 'edit_selected_pdf_preview');
+        } else {
+            renderSelectedPdfCard(null, 'edit_selected_pdf_preview');
+        }
+    });
+
+    // Create Modal file input change
+    $(document).on('change', '#modal_cert_file', function () {
+        if (this.files && this.files.length > 0) {
+            renderSelectedPdfCard(this.files[0], 'modal_selected_pdf_preview');
+        } else {
+            renderSelectedPdfCard(null, 'modal_selected_pdf_preview');
+        }
+    });
+
+    // Preview newly selected PDF
+    $(document).on('click', '.btn-preview-selected', function () {
+        var url = $(this).data('url');
+        if (url) {
+            window.open(url, '_blank');
+        }
+    });
+
+    // Remove newly selected PDF
+    $(document).on('click', '.btn-remove-selected', function () {
+        var containerId = $(this).data('container');
+        if (containerId === 'edit_selected_pdf_preview') {
+            $('#edit_cert_file').val('');
+            renderSelectedPdfCard(null, 'edit_selected_pdf_preview');
+        } else if (containerId === 'modal_selected_pdf_preview') {
+            $('#modal_cert_file').val('');
+            renderSelectedPdfCard(null, 'modal_selected_pdf_preview');
+        }
     });
 });
