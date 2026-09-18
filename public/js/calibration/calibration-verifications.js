@@ -186,10 +186,10 @@ $(document).ready(function () {
                 $('#edit_cert_file').val('');
                 $('#edit_selected_pdf_preview').html('');
 
-                function renderEditPdfBadge(certUrl) {
+                function renderEditPdfBadge(certUrl, certName) {
                     if (certUrl) {
-                        var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
-                        $('#edit_existing_pdf').data('certUrl', certUrl).html(`
+                        var filename = certName || (v.certification_path ? v.certification_path.split('/').pop().replace(/^\d+_/, '') : 'Sertifikat.pdf');
+                        $('#edit_existing_pdf').data('certUrl', certUrl).data('certName', filename).html(`
                             <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
                             <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">
                                 <i class="fas fa-file-pdf text-danger flex-shrink-0" style="font-size: 1.1rem;"></i>
@@ -203,12 +203,13 @@ $(document).ready(function () {
                             </div>
                         `);
                     } else {
-                        $('#edit_existing_pdf').data('certUrl', '').html('');
+                        $('#edit_existing_pdf').data('certUrl', '').data('certName', '').html('');
                     }
                 }
 
                 var currentCertUrl = v.certification_path ? (response.certification_url || `/storage/${v.certification_path}`) : null;
-                renderEditPdfBadge(currentCertUrl);
+                var currentCertName = response.certification_name || (v.certification_path ? v.certification_path.split('/').pop().replace(/^\d+_/, '') : null);
+                renderEditPdfBadge(currentCertUrl, currentCertName);
 
                 var rowsHtml = '';
                 var nilaiAlat = Array.isArray(v.nilai_alat) ? v.nilai_alat : [v.nilai_alat];
@@ -426,8 +427,9 @@ $(document).ready(function () {
     $(document).on('click', '#btn_undo_delete_edit_pdf', function () {
         $('#edit_delete_certification').val('0');
         var certUrl = $('#edit_existing_pdf').data('certUrl');
+        var certName = $('#edit_existing_pdf').data('certName');
         if (certUrl) {
-            var filename = certUrl.split('/').pop() || 'Sertifikat.pdf';
+            var filename = certName || certUrl.split('/').pop().replace(/^\d+_/, '') || 'Sertifikat.pdf';
             $('#edit_existing_pdf').html(`
                 <label class="small font-weight-bold mb-1 d-block text-muted">File tersimpan:</label>
                 <div class="d-flex align-items-center p-2 border rounded bg-light x-small shadow-xs" style="overflow:hidden; gap:8px;">

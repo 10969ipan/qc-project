@@ -686,7 +686,8 @@ class CalibrationController extends Controller
             return response()->json([
                 'tool' => $tool,
                 'plantCode' => $plantCode,
-                'certification_url' => $tool->certification_path ? route('calibration.tools.serve-pdf', $tool->id) : null
+                'certification_url' => $tool->certification_path ? route('calibration.tools.serve-pdf', $tool->id) : null,
+                'certification_name' => $tool->certification_path ? preg_replace('/^\d+_/', '', basename($tool->certification_path)) : null
             ]);
         }
         return view('calibration.tools.edit', compact('tool', 'plantCode'));
@@ -1649,7 +1650,8 @@ class CalibrationController extends Controller
                 'verification' => $verification,
                 'tools' => $tools,
                 'plantCode' => $plantCode,
-                'certification_url' => $verification->certification_path ? route('calibration.verifications.serve-pdf', $verification->id) : null
+                'certification_url' => $verification->certification_path ? route('calibration.verifications.serve-pdf', $verification->id) : null,
+                'certification_name' => $verification->certification_path ? preg_replace('/^\d+_/', '', basename($verification->certification_path)) : null
             ]);
         }
 
