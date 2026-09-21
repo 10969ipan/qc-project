@@ -126,8 +126,12 @@ class SubAssyChecksheetController extends Controller
         // Data for filters (Cached per plant to avoid 4x subquery scans over 44,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
+            return Item::byCategory('Sub Assy')->where(function($q) use ($plantId) {
+                if (!empty($plantId)) {
+                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+                }
+            })->orderBy('name')->get();
         });
 
         $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_{$plantId}", 1800, function () use ($plantId) {
@@ -450,7 +454,7 @@ class SubAssyChecksheetController extends Controller
         if ($request->has('page')) {
             $checksheets = $query->paginate(10)->getCollection();
         } else {
-            $checksheets = $query->limit(10)->get();
+            $checksheets = $query->get();
         }
 
         // Plant info for header
@@ -505,10 +509,11 @@ class SubAssyChecksheetController extends Controller
             $filters['entry_method'] = 'regular';
         }
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['search']) && 
+            empty($filters['shift'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -528,8 +533,8 @@ class SubAssyChecksheetController extends Controller
             $plantName = $user->plant->name;
         }
 
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         return view('sub_assy.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

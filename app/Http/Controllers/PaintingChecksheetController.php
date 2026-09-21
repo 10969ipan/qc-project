@@ -149,10 +149,10 @@ class PaintingChecksheetController extends Controller
         $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = $plantCode;
 
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['search']) && empty($filters['qr_raw'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -161,11 +161,8 @@ class PaintingChecksheetController extends Controller
         $plantModel = \App\Models\Plant::find(\App\Models\Plant::resolveId($plantCode));
         $plantName = $plantModel ? $plantModel->name : ucfirst($plantCode);
 
-        $dispStart = $filters['start_date'];
-        $dispEnd = $filters['end_date'];
-
-        $startDate = \Carbon\Carbon::parse($dispStart)->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($dispEnd)->format('d/m/Y');
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         return view('painting.print', compact('checksheets', 'plantName', 'plantCode', 'startDate', 'endDate'));
     }

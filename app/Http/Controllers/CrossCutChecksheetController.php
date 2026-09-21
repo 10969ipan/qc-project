@@ -610,10 +610,10 @@ class CrossCutChecksheetController extends Controller
         }
 
         // Default ke hari ini jika tidak ada filter tanggal
-        if (empty($filters['start_date'])) {
+        if (empty($filters['start_date']) && empty($filters['end_date']) && 
+            empty($filters['item_id']) && empty($filters['operator_initials']) && 
+            empty($filters['customer']) && empty($filters['search'])) {
             $filters['start_date'] = now()->toDateString();
-        }
-        if (empty($filters['end_date'])) {
             $filters['end_date'] = now()->toDateString();
         }
 
@@ -621,8 +621,8 @@ class CrossCutChecksheetController extends Controller
 
         $plantCode = strtolower($request->input('plant', auth()->user()->plant_id == 1 ? 'karawang' : 'jakarta'));
         $plantName = \App\Models\Plant::resolveName($plantCode);
-        $startDate = \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y');
-        $endDate   = \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y');
+        $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
+        $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';
 
         $selectedItem = null;
         if ($request->filled('item_id')) {

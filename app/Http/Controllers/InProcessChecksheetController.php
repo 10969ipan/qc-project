@@ -196,8 +196,8 @@ class InProcessChecksheetController extends Controller
         });
 
         // Data for filters (Direct Item query cached per plant to avoid subquery scans over 28,000+ rows)
-        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v3_{$plantId}", 3600, function () use ($plantId) {
-            return Item::where(function($q) use ($plantId) {
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v4_{$plantId}", 3600, function () use ($plantId) {
+            return Item::byCategory('INPROSES')->where(function($q) use ($plantId) {
                 if (!empty($plantId)) {
                     $q->where('plant_id', $plantId)->orWhereNull('plant_id');
                 }
@@ -657,7 +657,7 @@ class InProcessChecksheetController extends Controller
             // Default to all matches for export
             $checksheets = $query->get();
         }
-        $items = Item::orderBy('name')->get();
+        $items = Item::byCategory('INPROSES')->orderBy('name')->get();
 
         $partDimensionStandards = $this->getConsolidatedStandards();
 
@@ -817,32 +817,36 @@ class InProcessChecksheetController extends Controller
 
         $hideNoDimensionRows = ($settingNoDimRows && $settingNoDimRows->value == '1') ? '1' : '0';
 
-        if (!empty($hiddenItemIds)) {
-            $filters['hidden_item_ids'] = $hiddenItemIds;
-        }
-        if ($hideNgRows == '1') {
-            $filters['hide_ng_rows'] = '1';
-        }
-        if ($hideNoDimensionRows == '1') {
-            $filters['hide_no_dimension_rows'] = '1';
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            if (!empty($hiddenItemIds)) {
+                $filters['hidden_item_ids'] = $hiddenItemIds;
+            }
+            if ($hideNgRows == '1') {
+                $filters['hide_ng_rows'] = '1';
+            }
+            if ($hideNoDimensionRows == '1') {
+                $filters['hide_no_dimension_rows'] = '1';
+            }
         }
 
         $checksheets = $this->inProcessService->buildFilteredQuery($filters)->latest()->get();
 
         $partDimensionStandards = $this->getConsolidatedStandards();
 
-        if (!empty($hiddenItemIds) || $hideNgRows === '1' || $hideNoDimensionRows === '1') {
-            $checksheets = $checksheets->reject(function ($c) use ($hiddenItemIds, $hideNgRows, $hideNoDimensionRows, $partDimensionStandards) {
-                $isHiddenItem = !empty($hiddenItemIds) && in_array($c->item_id, $hiddenItemIds);
-                $isNgRow = ($hideNgRows === '1') && (
-                    in_array($c->judgment, ['NG', 'NG Dimensi']) ||
-                    ($c->total_ng ?? 0) > 0 ||
-                    $this->inProcessService->isDimensionNg($c, $partDimensionStandards)
-                );
-                $isNoDimRow = ($hideNoDimensionRows === '1') && $this->inProcessService->isNoDimensionRow($c);
+        if (auth()->check() && auth()->user()->role !== 'admin') {
+            if (!empty($hiddenItemIds) || $hideNgRows === '1' || $hideNoDimensionRows === '1') {
+                $checksheets = $checksheets->reject(function ($c) use ($hiddenItemIds, $hideNgRows, $hideNoDimensionRows, $partDimensionStandards) {
+                    $isHiddenItem = !empty($hiddenItemIds) && in_array($c->item_id, $hiddenItemIds);
+                    $isNgRow = ($hideNgRows === '1') && (
+                        in_array($c->judgment, ['NG', 'NG Dimensi']) ||
+                        ($c->total_ng ?? 0) > 0 ||
+                        $this->inProcessService->isDimensionNg($c, $partDimensionStandards)
+                    );
+                    $isNoDimRow = ($hideNoDimensionRows === '1') && $this->inProcessService->isNoDimensionRow($c);
 
-                return $isHiddenItem || $isNgRow || $isNoDimRow;
-            });
+                    return $isHiddenItem || $isNgRow || $isNoDimRow;
+                });
+            }
         }
 
         $user = auth()->user();
