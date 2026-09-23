@@ -411,7 +411,6 @@
                     </div>
                 </div>
 
-                @if(auth()->check() && auth()->user()->role === 'admin')
                 <!-- 6. Field: Line / Mesin -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Line / Mesin</label>
@@ -426,7 +425,6 @@
                         </select>
                     </div>
                 </div>
-                @endif
 
                 <!-- Tombol Filter & Reset (Di Samping Line/Mesin dengan 2x Space) -->
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
@@ -493,9 +491,7 @@
                             <th rowspan="2" class="align-middle">No</th>
                             <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / Cycle Time)</th>
-                            @if(auth()->check() && auth()->user()->role === 'admin')
-                                <th rowspan="2" class="align-middle">No Mesin</th>
-                            @endif
+                            <th rowspan="2" class="align-middle">No Mesin</th>
                             <th rowspan="2" class="align-middle text-nowrap">Kategori</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
                             <th rowspan="2" class="align-middle">Item Part / Part No</th>
@@ -541,9 +537,7 @@
                                  <td class="align-middle text-nowrap">
                                      {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                  </td>
-                                @if(auth()->check() && auth()->user()->role === 'admin')
-                                    <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
-                                @endif
+                                <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
                                 <td class="align-middle text-nowrap text-uppercase">{{ $checksheet->category ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
@@ -602,11 +596,10 @@
                                                 }
                                             }
                                         }
-                                        foreach ($standards as $pKey => $std) {
-                                            $activePoints[$pKey] = true;
-                                        }
                                         $activePoints = array_keys($activePoints);
-                                        sort($activePoints);
+                                        usort($activePoints, function($a, $b) {
+                                            return (int)$a <=> (int)$b;
+                                        });
 
                                         // Default points if none found
                                         if (empty($activePoints)) {
@@ -841,8 +834,7 @@
                                             </table>
                                         </div>
                                     @else
-                                        <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN
-                                            DIMENSI</span>
+                                        <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN DIMENSI</span>
                                     @endif
                                 </td>
 
