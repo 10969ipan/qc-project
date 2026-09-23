@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Incoming Export')
+@section('title', 'Outgoing Export')
 
 @section('content')
 <style>
@@ -126,7 +126,7 @@
                         <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
                             <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800"
                                 style="font-size:0.85rem; letter-spacing:0.3px;">
-                                LAPORAN DATA INCOMING EXPORT
+                                LAPORAN DATA OUTGOING EXPORT
                             </h1>
                         </td>
 
@@ -640,13 +640,13 @@
         </div>
     </div>
 
-    {{-- Modal Edit Incoming Export --}}
+    {{-- Modal Edit Outgoing Export --}}
     <div class="modal fade" id="editExportModal" tabindex="-1" role="dialog" aria-labelledby="editExportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content" style="border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.1); border:0;">
                 <div class="modal-header" style="background:#fff; padding: 0.75rem 1.5rem; border-radius:12px 12px 0 0; border-bottom:1px solid #e2e8f0;">
                     <h5 class="modal-title font-weight-bold" id="editExportModalLabel">
-                        <i class="fas fa-edit mr-2 text-primary"></i> Edit Data Incoming Export
+                        <i class="fas fa-edit mr-2 text-primary"></i> Edit Data Outgoing Export
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>

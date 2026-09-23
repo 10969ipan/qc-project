@@ -211,6 +211,7 @@ class NotificationService
                 return route('incoming.materials.index', $params);
             case 'Incoming Sub-Part':
                 return route('incoming.sub_parts.index', $params);
+            case 'Outgoing Export':
             case 'Incoming Export':
                 return route('incoming.exports.index', $params);
             case 'Incoming Chemical':

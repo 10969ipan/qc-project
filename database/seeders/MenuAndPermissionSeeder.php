@@ -122,7 +122,7 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Incoming Part', 'route' => 'incoming.parts.create', 'order' => 10],
                                     ['name' => 'Incoming Material', 'route' => 'incoming.materials.create', 'order' => 11],
                                     ['name' => 'Incoming Sub-Part', 'route' => 'incoming.sub_parts.create', 'order' => 12],
-                                    ['name' => 'Incoming Export', 'route' => 'incoming.exports.create', 'order' => 13],
+                                    ['name' => 'Outgoing Export', 'route' => 'incoming.exports.create', 'order' => 13],
                                     ['name' => 'Incoming Chemical', 'route' => 'incoming.chemicals.create', 'order' => 14],
                                 ]
                             ],
@@ -142,7 +142,7 @@ class MenuAndPermissionSeeder extends Seeder
                                     ['name' => 'Incoming Part', 'route' => 'incoming.parts.index', 'order' => 10],
                                     ['name' => 'Incoming Material', 'route' => 'incoming.materials.index', 'order' => 11],
                                     ['name' => 'Incoming Sub-Part', 'route' => 'incoming.sub_parts.index', 'order' => 12],
-                                    ['name' => 'Incoming Export', 'route' => 'incoming.exports.index', 'order' => 13],
+                                    ['name' => 'Outgoing Export', 'route' => 'incoming.exports.index', 'order' => 13],
                                     ['name' => 'Incoming Chemical', 'route' => 'incoming.chemicals.index', 'order' => 14],
                                 ]
                             ],

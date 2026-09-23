@@ -1791,7 +1791,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'incoming_materials': 'Incoming Material',
                         'incoming_sub_parts': 'Incoming Sub-Part',
                         'incoming_chemicals': 'Incoming Chemical',
-                        'incoming_exports': 'Incoming Export',
+                        'incoming_exports': 'Outgoing Export',
                         'master_alat_ukur': 'Master Alat Ukur',
                         'hasil_verifikasi_alat_ukur': 'Hasil Verifikasi Alat Ukur',
                         'kakotora': 'Kakotora / Laporan NG',

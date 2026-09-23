@@ -14,7 +14,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Checksheet Incoming Export</title>
+    <title>Laporan Checksheet Outgoing Export</title>
     <style>
         @page {
             size: A4 landscape;
@@ -94,7 +94,7 @@
             {{-- ===== [2] KOLOM JUDUL ===== --}}
             <td class="title" style="border:1px solid #000 !important; padding:5px; text-align:center; vertical-align:middle;">
                 <div style="font-size:11pt; font-weight:700; color:#000; text-align:center; margin-bottom:2px;">
-                    LAPORAN DATA CHECKSHEET INCOMING EXPORT
+                    LAPORAN DATA CHECKSHEET OUTGOING EXPORT
                 </div>
             </td>
 

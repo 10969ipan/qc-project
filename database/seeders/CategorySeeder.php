@@ -20,6 +20,7 @@ class CategorySeeder extends Seeder
             'Incoming Part',
             'Incoming Material',
             'Incoming Sub-Part',
+            'Outgoing Export',
             'Incoming Export',
             'Incoming Chemical',
         ];

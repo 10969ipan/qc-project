@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Incoming Export')
+@section('title', 'Edit Outgoing Export')
 
 @section('content')
     <div class="container-fluid">
@@ -15,7 +15,7 @@
     @endphp
     <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold text-primary">Edit Data Incoming Export</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Edit Data Outgoing Export</h6>
                 <a href="{{ route('incoming.exports.index') }}" class="btn btn-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>

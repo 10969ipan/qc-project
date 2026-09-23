@@ -152,13 +152,13 @@ class IncomingExportService extends BaseService
             \Illuminate\Support\Facades\Cache::forget("incoming_exports_filters_" . md5(json_encode([$checksheet->plant_id])));
 
             if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding($checksheet, 'Incoming Export');
+                $this->notificationService->notifyNGFinding($checksheet, 'Outgoing Export');
             }
 
             return ['checksheet' => $checksheet];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal membuat checksheet Incoming Export', ['error' => $e->getMessage()]);
+            Log::error('Gagal membuat checksheet Outgoing Export', ['error' => $e->getMessage()]);
             throw $e;
         }
     }
@@ -197,7 +197,7 @@ class IncomingExportService extends BaseService
             return $checksheet;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal memperbarui checksheet Incoming Export', ['error' => $e->getMessage()]);
+            Log::error('Gagal memperbarui checksheet Outgoing Export', ['error' => $e->getMessage()]);
             throw $e;
         }
     }

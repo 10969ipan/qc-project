@@ -1,12 +1,12 @@
-# Documentation: Modul Incoming Export Checksheet
+# Documentation: Modul Outgoing Export Checksheet
 
-Halo! Ini catatan panduan simpel buat modul **Incoming Export Checksheet**. Dokumen ini dibuat biar temen-temen developer bisa cepet paham gimana modul inspeksi barang kedatangan ekspor ini dibuat beserta contoh kodenya.
+Halo! Ini catatan panduan simpel buat modul **Outgoing Export Checksheet**. Dokumen ini dibuat biar temen-temen developer bisa cepet paham gimana modul inspeksi barang ekspor ini dibuat beserta contoh kodenya.
 
 ---
 
 ## Ringkasan Singkat (TL;DR)
 
-Modul **Incoming Export** dipake buat pencatatan dan persetujuan (*approval*) hasil inspeksi barang kedatangan ekspor.
+Modul **Outgoing Export** dipake buat pencatatan dan persetujuan (*approval*) hasil inspeksi barang ekspor.
 
 Fitur utama di modul ini:
 - **Entri Form Checksheet Kompleks**: Pencatatan data identitas lot, supplier, invoice, customer, qty, sampling, OK/NG, dan detail defect.

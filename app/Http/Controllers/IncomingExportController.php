@@ -87,7 +87,7 @@ class IncomingExportController extends Controller
 
         $cacheKey = "incoming_exports_filters_" . md5(json_encode([$plantId]));
         $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+            $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
             $jakartaPlantId = Plant::resolveId('jakarta');
             $karawangPlantId = Plant::resolveId('karawang');
             $plantIds = array_unique(array_filter([$plantId, $jakartaPlantId, $karawangPlantId]));
@@ -108,7 +108,7 @@ class IncomingExportController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
         $query = Item::byCategory($categories)->orderBy('name');
 
         $jakartaPlantId = Plant::resolveId('jakarta');
@@ -132,9 +132,9 @@ class IncomingExportController extends Controller
             $result = $this->checksheetService->createChecksheet($request->validated());
             $checksheet = $result['checksheet'] ?? null;
             if ($checksheet) {
-                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Incoming Export baru: {$checksheet->item->name}");
+                ActivityLogger::log('created', $checksheet, "Menambahkan checksheet Outgoing Export baru: {$checksheet->item->name}");
             }
-            $message = 'Data Incoming Export berhasil disimpan.';
+            $message = 'Data Outgoing Export berhasil disimpan.';
             $plantInput = $request->get('plant') ?? $request->get('plant_id') ?? auth()->user()->plant_id;
             $plantCode = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
             $plantCode = strtolower($plantCode ?: 'karawang');
@@ -163,7 +163,7 @@ class IncomingExportController extends Controller
     public function edit($id)
     {
         $checksheet = IncomingExport::findOrFail($id);
-        $categories = ['Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
         $jakartaPlantId = Plant::resolveId('jakarta');
         $karawangPlantId = Plant::resolveId('karawang');
         $plantIds = array_unique(array_filter([$checksheet->plant_id, $jakartaPlantId, $karawangPlantId]));
@@ -180,8 +180,8 @@ class IncomingExportController extends Controller
     {
         $this->checksheetService->updateChecksheet($id, $request->validated());
         $checksheet = IncomingExport::find($id);
-        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Incoming Export: {$checksheet->item->name}");
-        return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Incoming Export berhasil diperbarui.');
+        ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet Outgoing Export: {$checksheet->item->name}");
+        return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Outgoing Export berhasil diperbarui.');
     }
 
     public function destroy(Request $request, $id)
@@ -189,8 +189,8 @@ class IncomingExportController extends Controller
         $checksheet = IncomingExport::find($id);
         $itemName = $checksheet ? $checksheet->item->name : 'Unknown';
         $this->checksheetService->deleteChecksheet($id);
-        ActivityLogger::log('deleted', null, "Menghapus checksheet Incoming Export: {$itemName}");
-        return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Incoming Export berhasil dihapus.');
+        ActivityLogger::log('deleted', null, "Menghapus checksheet Outgoing Export: {$itemName}");
+        return redirect()->route('incoming.exports.index', $request->query())->with('success', 'Outgoing Export berhasil dihapus.');
     }
 
     public function exportPdf(Request $request)
@@ -211,7 +211,7 @@ class IncomingExportController extends Controller
         $pdf = Pdf::loadView('incoming.exports.pdf', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download('Incoming_Export_' . date('Ymd_His') . '.pdf');
+        return $pdf->download('Outgoing_Export_' . date('Ymd_His') . '.pdf');
     }
 
     public function printView(Request $request)

@@ -87,6 +87,7 @@ class NotificationController extends Controller
                     case 'Incoming Sub-Part':
                         $data['url'] = route('incoming.sub_parts.index', $params);
                         break;
+                    case 'Outgoing Export':
                     case 'Incoming Export':
                         $data['url'] = route('incoming.exports.index', $params);
                         break;

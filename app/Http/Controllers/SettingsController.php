@@ -66,7 +66,7 @@ class SettingsController extends Controller
             'incoming_materials' => 'Incoming Material',
             'incoming_sub_parts' => 'Incoming Sub-Part',
             'incoming_chemicals' => 'Incoming Chemical',
-            'incoming_exports' => 'Incoming Export',
+            'incoming_exports' => 'Outgoing Export',
             'sub_assy' => 'Sub Assy',
             'sortir' => 'Sortir',
             'plating' => 'Plating',

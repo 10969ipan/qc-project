@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Input Data Incoming Export')
+@section('title', 'Input Data Outgoing Export')
 
 @push('styles')
 <style>
@@ -117,7 +117,7 @@
                                 <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
                                     <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800"
                                         style="font-size:0.85rem; letter-spacing:0.3px;">
-                                        CHECK SHEET INCOMING EXPORT
+                                        CHECK SHEET OUTGOING EXPORT
                                     </h1>
                                 </td>
 
@@ -373,7 +373,7 @@
             <div class="card shadow mb-4 d-none" id="tempQueueCard">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center bg-light">
                     <h6 class="m-0 font-weight-bold text-gray-800">
-                        Daftar Antrian Scan Incoming Export
+                        Daftar Antrian Scan Outgoing Export
                     </h6>
                     <span class="badge badge-secondary px-3 py-2 font-weight-bold" id="queueBadge" style="font-size: 0.8rem; background-color: #eaecf4; color: #5a5c69;">0 Data</span>
                 </div>
