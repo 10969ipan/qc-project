@@ -191,21 +191,144 @@ $(document).ready(function () {
     handleDeleteBtn('btn_delete_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap',
         'edit_evidence_after_trial_empty', 'edit_evidence_after_trial_time', 'input_evidence_after_trial', 'delete_evidence_after_trial');
 
-    // Live preview when new file chosen — also show X and mark hasNewFile
-    function bindLivePreview(inputId, previewId, wrapId, emptyId, deleteBtnId) {
-        $('#' + inputId).off('change.preview').on('change.preview', function () {
-            var file = this.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#' + previewId).attr('src', e.target.result);
+    function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.75) {
+        return new Promise((resolve) => {
+            if (!file || !file.type || !file.type.startsWith('image/')) {
+                return resolve(file);
+            }
+            if (file.size <= 250 * 1024) {
+                return resolve(file);
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        if (width > height) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        } else {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                            const compressedFile = new File([blob], newName, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
+    }
+
+    // Smart X button: if new file staged → cancel & restore original; else → delete DB photo
+    function handleDeleteBtn(btnId, previewId, wrapId, emptyId, timeId, inputId, deleteFlagId) {
+        $('#' + btnId).on('click', function () {
+            var d = $(this).data();
+            $('#' + inputId).closest('.card-footer').find('.compress-info').remove();
+            if (d.hasNewFile) {
+                // Cancel new selection → restore original
+                $('#' + inputId).val('');
+                $(this).data('hasNewFile', false);
+                if (d.originalUrl) {
+                    $('#' + previewId).attr('src', d.originalUrl);
                     $('#' + wrapId).show();
                     $('#' + emptyId).hide();
-                    $('#' + deleteBtnId).data('hasNewFile', true)
-                        .removeClass('d-none').css('display', 'flex');
-                };
-                reader.readAsDataURL(file);
+                    $('#' + deleteFlagId).val('0');
+                } else {
+                    $('#' + wrapId).hide();
+                    $('#' + emptyId).css('display', 'flex');
+                    $(this).addClass('d-none').css('display', '');
+                }
+            } else {
+                // Delete existing DB photo
+                $('#' + inputId).val('');
+                $('#' + wrapId).hide();
+                $('#' + emptyId).css('display', 'flex');
+                $(this).addClass('d-none').css('display', '');
+                $('#' + deleteFlagId).val('1');
             }
+        });
+    }
+    handleDeleteBtn('btn_delete_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap',
+        'edit_evidence_before_empty', 'edit_evidence_before_time', 'input_evidence_before', 'delete_evidence_before');
+    handleDeleteBtn('btn_delete_evidence_after', 'edit_evidence_after_preview', 'edit_evidence_after_preview_wrap',
+        'edit_evidence_after_empty', 'edit_evidence_after_time', 'input_evidence_after', 'delete_evidence_after');
+    handleDeleteBtn('btn_delete_evidence_after_trial', 'edit_evidence_after_trial_preview', 'edit_evidence_after_trial_preview_wrap',
+        'edit_evidence_after_trial_empty', 'edit_evidence_after_trial_time', 'input_evidence_after_trial', 'delete_evidence_after_trial');
+
+    // Live preview when new file chosen — automatically compress image before preview/upload
+    function bindLivePreview(inputId, previewId, wrapId, emptyId, deleteBtnId) {
+        $('#' + inputId).off('change.preview').on('change.preview', async function () {
+            var input = this;
+            var file = input.files ? input.files[0] : null;
+            if (!file) return;
+
+            var $cardFooter = $(input).closest('.card-footer');
+            var $infoSpan = $cardFooter.find('.compress-info');
+            if (!$infoSpan.length) {
+                $infoSpan = $('<small class="compress-info text-info font-weight-bold d-block mt-1" style="font-size:0.65rem;"></small>');
+                $cardFooter.append($infoSpan);
+            }
+
+            var origSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+            if (file.type && file.type.startsWith('image/') && file.size > 250 * 1024) {
+                $infoSpan.html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengompresi foto...');
+                try {
+                    var compressedFile = await compressImage(file);
+                    if (window.DataTransfer) {
+                        var dt = new DataTransfer();
+                        dt.items.add(compressedFile);
+                        input.files = dt.files;
+                        file = compressedFile;
+                    }
+                    var compSizeKB = (file.size / 1024).toFixed(0);
+                    var compSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    var displaySize = file.size > 1024 * 1024 ? compSizeMB + ' MB' : compSizeKB + ' KB';
+                    $infoSpan.removeClass('text-danger text-info').addClass('text-success')
+                        .html('<i class="fas fa-compress-alt mr-1"></i> Ukuran: ' + origSizeMB + ' MB ➔ ' + displaySize);
+                } catch (err) {
+                    console.error('Compression error:', err);
+                    $infoSpan.html('<i class="fas fa-info-circle mr-1"></i> Ukuran: ' + origSizeMB + ' MB');
+                }
+            } else if (file.size <= 250 * 1024) {
+                $infoSpan.removeClass('text-danger text-info').addClass('text-muted')
+                    .html('<i class="fas fa-check-circle mr-1"></i> Ukuran: ' + (file.size / 1024).toFixed(0) + ' KB');
+            }
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#' + previewId).attr('src', e.target.result);
+                $('#' + wrapId).show();
+                $('#' + emptyId).hide();
+                $('#' + deleteBtnId).data('hasNewFile', true)
+                    .removeClass('d-none').css('display', 'flex');
+            };
+            reader.readAsDataURL(file);
         });
     }
     bindLivePreview('input_evidence_before', 'edit_evidence_before_preview', 'edit_evidence_before_preview_wrap', 'edit_evidence_before_empty', 'btn_delete_evidence_before');
@@ -220,6 +343,7 @@ $(document).ready(function () {
     function handleNewDataDeleteBtn(btnId, previewId, wrapId, emptyId, inputId) {
         $('#' + btnId).on('click', function () {
             $('#' + inputId).val('');
+            $('#' + inputId).closest('.card-footer').find('.compress-info').remove();
             $('#' + wrapId).hide();
             $('#' + emptyId).css('display', 'flex');
             $(this).addClass('d-none').css('display', '');

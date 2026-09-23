@@ -3504,7 +3504,7 @@
             });
 
             $(document).on('change', 'input[type="file"]', function() {
-                var maxMB = 15;
+                var maxMB = 50;
                 var maxBytes = maxMB * 1024 * 1024;
                 if (this.files && this.files[0]) {
                     var file = this.files[0];
@@ -3513,12 +3513,12 @@
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'warning',
-                                title: 'Ukuran Foto Terlalu Besar!',
-                                text: 'Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB. Silakan kompres foto atau pilih berkas yang lebih kecil.',
+                                title: 'Ukuran Berkas Terlalu Besar!',
+                                text: 'Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB.',
                                 confirmButtonColor: '#e74a3b'
                             });
                         } else {
-                            alert('Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB. Silakan kompres foto.');
+                            alert('Ukuran berkas ' + file.name + ' (' + fileSizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB.');
                         }
                         $(this).val('');
                     }
