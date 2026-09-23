@@ -22,7 +22,7 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 0;
+            margin: 8mm 8mm 6mm 8mm;
         }
 
         * { box-sizing: border-box; }
@@ -33,7 +33,7 @@
             color: #000 !important;
             background: #fff !important;
             margin: 0;
-            padding: 8mm 8mm 5mm 8mm;
+            padding: 0;
         }
 
         /* ===== PAGE BREAK ===== */
@@ -270,6 +270,7 @@
                         <th rowspan="2">No</th>
                         <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
                         <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
+                        <th rowspan="2">No Mesin</th>
                         <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
                         <th rowspan="2" style="width: 25%;">Check Dimensi</th>
                         @if(in_array(strtolower($headerPlantCode ?? 'karawang'), ['jakarta', 'jkt']))
@@ -387,6 +388,7 @@
                             <td style="white-space: nowrap;">
                                 {{ $checksheet->created_at ? $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $checksheet->created_at ? $checksheet->created_at->format('H:i') : '-' }} ({{ $ctStr }})
                             </td>
+                            <td style="white-space: nowrap;">{{ $checksheet->code_machine ?? '-' }}</td>
 
                             {{-- Item Part / Part No / Customer Combined Column --}}
                             <td style="text-align: left;">
