@@ -1491,8 +1491,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 menuContainer.html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2 text-warning"></i>Memuat daftar file backup per-menu...</td></tr>');
             }
             
+            const backupBaseUrl = (window.settingsConfig && window.settingsConfig.var_backup) ? window.settingsConfig.var_backup : '/admin/backup';
+            
             $.ajax({
-                url: '/admin/backup',
+                url: backupBaseUrl,
                 type: 'GET',
                 cache: false,
                 success: function(res) {
@@ -1514,7 +1516,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <td><span class="badge badge-light border px-2 py-1">${item.size}</span></td>
                                     <td class="small text-muted">${item.created_at}</td>
                                     <td class="text-center">
-                                        <a href="/admin/backup/download/${encodeURIComponent(item.filename)}" class="btn btn-sm btn-outline-primary rounded-circle mr-1" title="Download File">
+                                        <a href="${backupBaseUrl}/download/${encodeURIComponent(item.filename)}" class="btn btn-sm btn-outline-primary rounded-circle mr-1" title="Download File">
                                             <i class="fas fa-download"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-outline-danger rounded-circle btn-delete-backup" data-filename="${item.filename}" title="Hapus Backup">
@@ -1574,34 +1576,110 @@ document.addEventListener('DOMContentLoaded', function() {
             loadBackupFiles();
         }
 
-        // 1. Create Full Backup (Event Delegated)
+        // 1. Create Full Backup (With Dynamic Progress Bar & Status Updates)
         $(document).on('click', '#btnCreateFullBackup', function(e) {
             e.preventDefault();
             const btn = $(this);
             btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses Backup...');
 
+            const progressContainer = $('#backupProgressContainer');
+            const progressBar = $('#backupProgressBar');
+            const progressStatus = $('#backupProgressStatus');
+            const progressPercent = $('#backupProgressPercent');
+            const progressDetail = $('#backupProgressDetail');
+
+            // Reset & Tampilkan Progress Bar Container
+            progressContainer.removeClass('d-none').hide().fadeIn(300);
+            progressBar.removeClass('bg-success bg-danger').addClass('bg-warning progress-bar-animated progress-bar-striped').css('width', '5%').text('5%');
+            progressPercent.removeClass('badge-success badge-danger').addClass('badge-warning').text('5%');
+            progressStatus.html('<i class="fas fa-spinner fa-spin text-warning mr-2"></i>Memulai proses backup database...');
+            progressDetail.html('<i class="fas fa-info-circle mr-1 text-info"></i>Menyiapkan koneksi database dan skema tabel...');
+
+            let currentProgress = 5;
+            const progressTimer = setInterval(function() {
+                if (currentProgress < 90) {
+                    const increment = Math.floor(Math.random() * 8) + 4; // Tambah 4-12% per interval
+                    currentProgress = Math.min(currentProgress + increment, 90);
+                    
+                    progressBar.css('width', currentProgress + '%').text(currentProgress + '%');
+                    progressPercent.text(currentProgress + '%');
+
+                    if (currentProgress < 30) {
+                        progressStatus.html('<i class="fas fa-cog fa-spin text-warning mr-2"></i>Mengekstrak skema & tabel database...');
+                        progressDetail.html('<i class="fas fa-table mr-1"></i>Membaca struktur tabel dan indeks database...');
+                    } else if (currentProgress < 60) {
+                        progressStatus.html('<i class="fas fa-database fa-spin text-warning mr-2"></i>Menulis data record SQL...');
+                        progressDetail.html('<i class="fas fa-file-code mr-1"></i>Membentuk instruksi INSERT data secara bertahap...');
+                    } else if (currentProgress < 85) {
+                        progressStatus.html('<i class="fas fa-save fa-spin text-warning mr-2"></i>Menyimpan file backup ke storage...');
+                        progressDetail.html('<i class="fas fa-hdd mr-1"></i>Menulis file .sql ke folder cadangan...');
+                    } else {
+                        progressStatus.html('<i class="fas fa-check-circle text-warning mr-2"></i>Finalisasi penyelesaian file backup...');
+                        progressDetail.html('<i class="fas fa-shield-alt mr-1"></i>Memverifikasi kelengkapan file backup...');
+                    }
+                }
+            }, 350);
+
+            const backupBaseUrl = (window.settingsConfig && window.settingsConfig.var_backup) ? window.settingsConfig.var_backup : '/admin/backup';
             $.ajax({
-                url: '/admin/backup/full',
+                url: backupBaseUrl + '/full',
                 type: 'POST',
+                timeout: 0, // Unlimited timeout for large database dumps
                 data: { _token: window.settingsConfig.var_1 },
                 success: function(res) {
+                    clearInterval(progressTimer);
                     btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Backup Database Now');
+
                     if (res.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Backup Berhasil!',
-                            text: res.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
+                        // Set progress bar 100% (Sukses)
+                        progressBar.removeClass('bg-warning progress-bar-animated progress-bar-striped').addClass('bg-success').css('width', '100%').text('100%');
+                        progressPercent.removeClass('badge-warning').addClass('badge-success').text('100%');
+                        progressStatus.html('<i class="fas fa-check-circle text-success mr-2"></i>Backup Database Selesai Ditulis! (100%)');
+                        progressDetail.html(`<i class="fas fa-file-download mr-1 text-success"></i>File: <strong>${res.filename}</strong> (${res.size})`);
+
+                        if (res.is_large) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Backup Berhasil (File > 2GB)',
+                                html: `File backup <strong>${res.filename}</strong> berhasil dibuat dengan ukuran <strong>${res.size}</strong>.<br><br><small class="text-muted"><i class="fas fa-info-circle mr-1"></i>Catatan: Karena ukuran file melebihi 2GB, jika ingin memulihkan data di kemudian hari disarankan menggunakan fitur <strong>Import Data Modul</strong> atau perintah terminal CLI MySQL.</small>`,
+                                showConfirmButton: true
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Backup Berhasil!',
+                                html: `File backup database <strong>${res.filename}</strong> (${res.size}) berhasil dibuat.`,
+                                timer: 2500,
+                                showConfirmButton: false
+                            });
+                        }
+
                         loadBackupFiles();
+
+                        setTimeout(function() {
+                            progressContainer.fadeOut(600, function() {
+                                $(this).addClass('d-none').show();
+                            });
+                        }, 4000);
                     } else {
+                        progressBar.removeClass('bg-warning progress-bar-animated progress-bar-striped').addClass('bg-danger').css('width', '100%').text('Error');
+                        progressPercent.removeClass('badge-warning').addClass('badge-danger').text('Gagal');
+                        progressStatus.html('<i class="fas fa-times-circle text-danger mr-2"></i>Gagal Membuat Backup');
+                        progressDetail.html(`<span class="text-danger">${res.message || 'Terjadi kesalahan.'}</span>`);
+
                         Swal.fire('Gagal Backup', res.message || 'Terjadi kesalahan.', 'error');
                     }
                 },
                 error: function(xhr) {
+                    clearInterval(progressTimer);
                     btn.prop('disabled', false).html('<i class="fas fa-download mr-1"></i> Backup Database Now');
+
+                    progressBar.removeClass('bg-warning progress-bar-animated progress-bar-striped').addClass('bg-danger').css('width', '100%').text('Error');
+                    progressPercent.removeClass('badge-warning').addClass('badge-danger').text('Gagal');
+                    progressStatus.html('<i class="fas fa-times-circle text-danger mr-2"></i>Terjadi Kesalahan Sistem');
                     const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal membuat backup database.';
+                    progressDetail.html(`<span class="text-danger">${msg}</span>`);
+
                     Swal.fire('Gagal Backup', msg, 'error');
                 }
             });
@@ -1622,8 +1700,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    const backupBaseUrl = (window.settingsConfig && window.settingsConfig.var_backup) ? window.settingsConfig.var_backup : '/admin/backup';
                     $.ajax({
-                        url: '/admin/backup/' + encodeURIComponent(filename),
+                        url: backupBaseUrl + '/' + encodeURIComponent(filename),
                         type: 'DELETE',
                         data: { _token: window.settingsConfig.var_1 },
                         success: function(res) {
@@ -1658,6 +1737,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
+            const fileSize = fileInput.files[0].size;
+            const maxBytes = 2 * 1024 * 1024 * 1024; // 2GB
+            if (fileSize > maxBytes) {
+                const sizeGB = (fileSize / (1024 * 1024 * 1024)).toFixed(2);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ukuran File Melebihi Batas (> 2GB)',
+                    html: `File yang Anda pilih berukuran <strong>${sizeGB} GB</strong>.<br><br>Unggahan HTTP browser dibatasi maksimal 2GB. Disarankan menggunakan <strong>Import Data Modul (.JSON)</strong> atau mengeksekusi file SQL langsung via terminal/CLI MySQL server.`,
+                    confirmButtonText: 'Saya Mengerti'
+                });
+                return false;
+            }
+
             const formData = new FormData(form);
 
             Swal.fire({
@@ -1677,8 +1769,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         didOpen: () => Swal.showLoading()
                     });
 
+                    const backupBaseUrl = (window.settingsConfig && window.settingsConfig.var_backup) ? window.settingsConfig.var_backup : '/admin/backup';
                     $.ajax({
-                        url: '/admin/backup/restore-full',
+                        url: backupBaseUrl + '/restore-full',
                         type: 'POST',
                         data: formData,
                         processData: false,
@@ -1739,8 +1832,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         didOpen: () => Swal.showLoading()
                     });
 
+                    const backupBaseUrl = (window.settingsConfig && window.settingsConfig.var_backup) ? window.settingsConfig.var_backup : '/admin/backup';
                     $.ajax({
-                        url: '/admin/backup/import-module',
+                        url: backupBaseUrl + '/import-module',
                         type: 'POST',
                         data: formData,
                         processData: false,

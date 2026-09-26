@@ -20,9 +20,11 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // Check if user's role is in the allowed roles list
-        // Middleware parameters come as an array when using ...$roles
-        if (!in_array(Auth::user()->role, $roles)) {
+        // Check if user's role is in the allowed roles list (case-insensitive)
+        $userRole = strtolower(trim(Auth::user()->role ?? ''));
+        $allowedRoles = array_map('strtolower', array_map('trim', $roles));
+
+        if (!in_array($userRole, $allowedRoles)) {
             // Jika role tidak sesuai, lempar 403 Forbidden atau redirect
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }

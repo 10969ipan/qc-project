@@ -14,9 +14,13 @@ class BackupController extends Controller
 
     public function __construct()
     {
-        // Directory initialization
-        if (!Storage::disk('local')->exists($this->backupDir)) {
-            Storage::disk('local')->makeDirectory($this->backupDir);
+        // Safe directory initialization
+        try {
+            if (!Storage::disk('local')->exists($this->backupDir)) {
+                Storage::disk('local')->makeDirectory($this->backupDir);
+            }
+        } catch (\Throwable $e) {
+            Log::error('BackupController directory initialization error: ' . $e->getMessage());
         }
     }
 
@@ -25,28 +29,42 @@ class BackupController extends Controller
      */
     public function index()
     {
-        $files = Storage::disk('local')->files($this->backupDir);
-        $backups = [];
-
-        foreach ($files as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'sql' || pathinfo($file, PATHINFO_EXTENSION) === 'json') {
-                $backups[] = [
-                    'filename' => basename($file),
-                    'path' => $file,
-                    'size' => $this->formatBytes(Storage::disk('local')->size($file)),
-                    'created_at' => date('Y-m-d H:i:s', Storage::disk('local')->lastModified($file)),
-                    'type' => str_contains(basename($file), 'module_') ? 'Per-Menu' : 'Full Database',
-                ];
+        try {
+            if (!Storage::disk('local')->exists($this->backupDir)) {
+                Storage::disk('local')->makeDirectory($this->backupDir);
             }
+
+            $files = Storage::disk('local')->files($this->backupDir);
+            $backups = [];
+
+            foreach ($files as $file) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if ($ext === 'sql' || $ext === 'json') {
+                    $backups[] = [
+                        'filename' => basename($file),
+                        'path' => $file,
+                        'size' => $this->formatBytes(Storage::disk('local')->size($file)),
+                        'created_at' => date('Y-m-d H:i:s', Storage::disk('local')->lastModified($file)),
+                        'type' => str_contains(basename($file), 'module_') ? 'Per-Menu' : 'Full Database',
+                    ];
+                }
+            }
+
+            // Sort descending by creation date
+            usort($backups, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
+
+            return response()->json([
+                'status' => 'success',
+                'backups' => $backups
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('BackupController index error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat daftar backup: ' . $e->getMessage(),
+                'backups' => []
+            ], 500);
         }
-
-        // Sort descending by creation date
-        usort($backups, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
-
-        return response()->json([
-            'status' => 'success',
-            'backups' => $backups
-        ]);
     }
 
     /**
@@ -55,8 +73,8 @@ class BackupController extends Controller
     public function createFullBackup()
     {
         try {
-            @ini_set('memory_limit', '1024M');
-            @set_time_limit(300);
+            @ini_set('memory_limit', '2048M');
+            @set_time_limit(0);
 
             $filename = 'backup_full_' . date('Y-m-d_H-i-s') . '.sql';
             $relativeFilePath = $this->backupDir . '/' . $filename;
@@ -65,12 +83,21 @@ class BackupController extends Controller
             $this->generateDatabaseDumpToFile($fullPath);
 
             $size = Storage::disk('local')->size($relativeFilePath);
+            $sizeInGB = $size / (1024 * 1024 * 1024);
+            $isLarge = $sizeInGB >= 2.0;
+
+            $message = 'Full Database Backup berhasil dibuat!';
+            if ($isLarge) {
+                $message .= ' (Perhatian: File berukuran sangat besar: ' . $this->formatBytes($size) . ')';
+            }
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Full Database Backup berhasil dibuat!',
+                'message' => $message,
                 'filename' => $filename,
-                'size' => $this->formatBytes($size)
+                'size' => $this->formatBytes($size),
+                'is_large' => $isLarge,
+                'size_bytes' => $size
             ]);
         } catch (\Throwable $e) {
             Log::error('Full Backup Error: ' . $e->getMessage());
@@ -118,12 +145,14 @@ class BackupController extends Controller
     public function restoreFullBackup(Request $request)
     {
         $request->validate([
-            'backup_file' => 'required|file|max:204800', // max 200MB
+            'backup_file' => 'required|file|max:2097152', // max 2GB (2097152 KB)
+        ], [
+            'backup_file.max' => 'Ukuran file restore melebihi batas maksimal 2GB. Gunakan per-menu import atau MySQL CLI server untuk restore file raksasa.'
         ]);
 
         try {
-            @ini_set('memory_limit', '1024M');
-            @set_time_limit(300);
+            @ini_set('memory_limit', '2048M');
+            @set_time_limit(0);
 
             // 1. Buat Pre-Restore Snapshot otomatis untuk keamanan data existing
             $snapshotFilename = 'pre_restore_snapshot_' . date('Y-m-d_H-i-s') . '.sql';
@@ -284,8 +313,8 @@ class BackupController extends Controller
         ]);
 
         try {
-            @ini_set('memory_limit', '1024M');
-            @set_time_limit(300);
+            @ini_set('memory_limit', '2048M');
+            @set_time_limit(0);
 
             $file = $request->file('module_file');
             $content = file_get_contents($file->getRealPath());
@@ -341,8 +370,8 @@ class BackupController extends Controller
      */
     protected function generateDatabaseDumpToFile(string $fullPath): void
     {
-        @ini_set('memory_limit', '1024M');
-        @set_time_limit(300);
+        @ini_set('memory_limit', '2048M');
+        @set_time_limit(0);
 
         $handle = fopen($fullPath, 'w');
         if (!$handle) {

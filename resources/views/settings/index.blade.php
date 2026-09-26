@@ -674,6 +674,23 @@
                         </button>
                     </div>
                     <div class="card-body pt-0">
+                        <!-- Backup Progress Bar Container (Hidden by default) -->
+                        <div id="backupProgressContainer" class="p-3 mb-4 rounded-lg bg-light border border-warning d-none slide-in" style="border-left: 5px solid #f6c23e !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="font-weight-bold text-dark small" id="backupProgressStatus">
+                                    <i class="fas fa-spinner fa-spin text-warning mr-2"></i>Memulai proses backup database...
+                                </span>
+                                <span class="badge badge-warning px-2 py-1 font-weight-bold" id="backupProgressPercent">0%</span>
+                            </div>
+                            <div class="progress shadow-sm" style="height: 14px; border-radius: 7px; background-color: #e2e8f0;">
+                                <div id="backupProgressBar" class="progress-bar bg-warning progress-bar-striped progress-bar-animated font-weight-bold text-dark" role="progressbar" style="width: 0%; font-size: 0.7rem;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                                <small id="backupProgressDetail"><i class="fas fa-info-circle mr-1 text-info"></i>Mohon tunggu, sedang memproses file cadangan database SQL...</small>
+                                <small class="font-weight-bold"><i class="fas fa-database mr-1"></i>Database Backup</small>
+                            </div>
+                        </div>
+
                         <!-- Form Restore SQL -->
                         <div class="p-3 mb-4 rounded-lg bg-light border">
                             <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-upload text-primary mr-2"></i>Restore Database (.sql)</h6>
@@ -1211,6 +1228,7 @@
         var_13: "{{ route('admin.settings.document-headers') }}",
         var_14: "{{ route('admin.settings.document-headers.store') }}",
         var_15: "{{ url('admin/settings/document-headers') }}",
+        var_backup: "{{ url('admin/backup') }}",
     };
 </script>
 

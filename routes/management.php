@@ -16,6 +16,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('items/import', [ItemController::class, 'import'])->name('items.import');
         Route::delete('items/{id}/pdf/{index}', [ItemController::class, 'deletePdf'])->name('items.delete-pdf');
         Route::delete('items/{id}/pdf-similar', [ItemController::class, 'deleteSimilarPdf'])->name('items.delete-similar-pdf');
+        Route::delete('items/{id}/drawing', [ItemController::class, 'deleteDrawing'])->name('items.delete-drawing');
         Route::post('items/bulk-upload-pdf', [ItemController::class, 'bulkUploadPdf'])->name('items.bulk-upload-pdf');
         Route::post('items/add-customer', [ItemController::class, 'addCustomer'])->name('items.add-customer');
         Route::post('items/delete-customer', [ItemController::class, 'deleteCustomer'])->name('items.delete-customer');
@@ -63,8 +64,8 @@ Route::middleware(['auth'])->group(function () {
         // Activity Logs
         Route::get('settings/activity-logs', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('settings.activity_logs');
         
-        // Backup & Restore Management (Strictly Admin Only)
-        Route::middleware(['role:admin'])->prefix('backup')->name('backup.')->group(function () {
+        // Backup & Restore Management (Admin / Superadmin / Administrator)
+        Route::middleware(['role:admin,superadmin,administrator,manager'])->prefix('backup')->name('backup.')->group(function () {
             Route::get('/', [BackupController::class, 'index'])->name('index');
             Route::post('/full', [BackupController::class, 'createFullBackup'])->name('full');
             Route::get('/download/{filename}', [BackupController::class, 'downloadBackup'])->name('download');
