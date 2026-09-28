@@ -510,6 +510,7 @@ class SettingsController extends Controller
             }
             
             DB::commit();
+            Cache::flush();
 
             return response()->json([
                 'status' => 'success',

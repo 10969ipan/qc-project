@@ -26,6 +26,18 @@ class OperatorComplianceController extends Controller
         $month       = (int) $request->get('month', date('n'));
         $year        = (int) $request->get('year', date('Y'));
 
+        // Cek hak akses menu untuk user saat ini (kecuali role admin)
+        if ($currentUser->role !== 'admin') {
+            $menu = \App\Models\AppMenu::where('name', 'Kepatuhan Operator')
+                ->where('plant_code', $plantCode)
+                ->first() 
+                ?? \App\Models\AppMenu::where('name', 'Kepatuhan Operator')->first();
+
+            if ($menu && !$currentUser->hasMenuPermission($menu->id, 'view')) {
+                abort(403, 'Anda tidak memiliki akses ke menu Kepatuhan Operator.');
+            }
+        }
+
         // Cari data plant sesuai kode plant
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
@@ -190,6 +202,18 @@ class OperatorComplianceController extends Controller
         $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
         $month       = (int) $request->get('month', date('n'));
         $year        = (int) $request->get('year', date('Y'));
+
+        // Cek hak akses menu untuk user saat ini (kecuali role admin)
+        if ($currentUser->role !== 'admin') {
+            $menu = \App\Models\AppMenu::where('name', 'Kepatuhan Operator')
+                ->where('plant_code', $plantCode)
+                ->first() 
+                ?? \App\Models\AppMenu::where('name', 'Kepatuhan Operator')->first();
+
+            if ($menu && !$currentUser->hasMenuPermission($menu->id, 'view')) {
+                abort(403, 'Anda tidak memiliki akses ke menu Kepatuhan Operator.');
+            }
+        }
 
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
