@@ -15,12 +15,6 @@ class OperatorComplianceItemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Disable foreign key checks agar truncate bisa berjalan
-        Schema::disableForeignKeyConstraints();
-        DB::table('operator_compliance_entries')->delete();
-        OperatorComplianceItem::truncate();
-        Schema::enableForeignKeyConstraints();
-
         $items = [
             // =====================================================================
             // 1. Mematuhi Standar Kerja (MSK)
@@ -282,13 +276,17 @@ class OperatorComplianceItemSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            OperatorComplianceItem::create([
-                'prinsip_dasar' => $item['prinsip_dasar'],
-                'item_check'    => $item['item_check'],
-                'standard'      => $item['standard'],
-                'order_no'      => $item['order_no'],
-                'is_active'     => true,
-            ]);
+            OperatorComplianceItem::updateOrCreate(
+                [
+                    'prinsip_dasar' => $item['prinsip_dasar'],
+                    'order_no'      => $item['order_no'],
+                ],
+                [
+                    'item_check' => $item['item_check'],
+                    'standard'   => $item['standard'],
+                    'is_active'  => true,
+                ]
+            );
         }
 
         $this->command->info('OperatorComplianceItem seeder selesai: ' . count($items) . ' items inserted.');
