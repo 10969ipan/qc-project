@@ -483,14 +483,19 @@
                                         </button>
                                     </td>
                                     <td class="align-middle text-nowrap" style="font-size: 0.70rem;">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
+                                        {{ $checksheet->date ? \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') : '-' }} / {{ $checksheet->shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
                                         $sec = (int) ($checksheet->cycle_time ?? 0);
                                         $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                        $checkTime = $checksheet->created_at ?? null;
                                     @endphp
                                     <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        @if($checkTime)
+                                            {{ $checkTime->copy()->subSeconds($sec)->format('H:i') }} - {{ $checkTime->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                 @else
                                     @php
@@ -505,14 +510,19 @@
                                         @endif
                                     </td>
                                     <td class="align-middle text-nowrap" style="font-size: 0.70rem;">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('d-m-Y') }} / {{ $checksheet->shift ?? $checksheet->qc_shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
+                                        {{ $checksheet->date ? \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') : '-' }} / {{ $checksheet->shift ?? '-' }} / {{ $checksheet->operator_initials ?? '-' }}
                                     </td>
                                     @php
                                         $sec = (int) ($checksheet->cycle_time ?? 0);
                                         $ctStr = ($sec > 0) ? (($sec < 60) ? ($sec . 's') : (floor($sec / 60) . 'm' . (($sec % 60 > 0) ? ' ' . ($sec % 60) . 's' : ''))) : '-';
+                                        $checkTime = $checksheet->created_at ?? null;
                                     @endphp
                                     <td class="align-middle text-nowrap">
-                                        {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->copy()->subSeconds($sec)->format('H:i') }} - {{ \Carbon\Carbon::parse($checksheet->qc_datetime)->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        @if($checkTime)
+                                            {{ $checkTime->copy()->subSeconds($sec)->format('H:i') }} - {{ $checkTime->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                 @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
