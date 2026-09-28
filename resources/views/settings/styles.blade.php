@@ -842,8 +842,60 @@
     .table th,
     input, 
     select,
-    textarea {
+    textarea,
+    .select2-container {
         text-transform: none !important;
+    }
+
+    /* Item Search Custom Styles for Document Header Modal */
+    #modalAddDocumentHeader .ips-wrapper {
+        margin-bottom: 0;
+        width: 100%;
+    }
+    #modalAddDocumentHeader .ips-input {
+        height: calc(2.25rem + 10px) !important;
+        border-radius: 50rem !important;
+        background-color: #f8f9fc !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 0.5rem 1.25rem !important;
+        font-size: 0.875rem !important;
+        color: #2d3748 !important;
+        font-weight: 500 !important;
+        width: 100% !important;
+        box-shadow: none !important;
+    }
+    #modalAddDocumentHeader .ips-input:focus {
+        border-color: #4e73df !important;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25) !important;
+        background-color: #fff !important;
+    }
+    #modalAddDocumentHeader .ips-clear {
+        right: 14px !important;
+        font-size: 20px !important;
+    }
+    #modalAddDocumentHeader .ips-dropdown {
+        border-radius: 0.75rem !important;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid #e2e8f0 !important;
+        z-index: 1075 !important;
+        width: 100% !important;
+        max-height: 250px !important;
+    }
+    #modalAddDocumentHeader .ips-item {
+        padding: 10px 14px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+    #modalAddDocumentHeader .ips-item:last-child {
+        border-bottom: none !important;
+    }
+    #modalAddDocumentHeader .ips-item:hover,
+    #modalAddDocumentHeader .ips-item.ips-active {
+        background-color: #f1f5f9 !important;
+    }
+    #modalAddDocumentHeader .ips-item .ips-name {
+        font-size: 0.875rem !important;
+        font-weight: 600 !important;
+        color: #1e293b !important;
     }
 </style>
 

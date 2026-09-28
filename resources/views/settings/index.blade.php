@@ -1114,7 +1114,7 @@
                     <div class="modal-body p-4">
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-dark">Pilih Modul / Laporan</label>
-                            <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3" required>
+                            <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3 d-none" required>
                                 <option value="">-- Pilih Modul / Laporan --</option>
                                 <option value="master_data">Master Data Item</option>
                                 <option value="master_alat_ukur">Master Alat Ukur</option>
@@ -1235,5 +1235,6 @@
     <script src="{{ asset('js/vendor/moment.min.js') }}"></script>
     <script src="{{ asset('js/vendor/Sortable.min.js') }}"></script>
     <script src="{{ asset('js/vendor/moment-id.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/settings/index.js') }}?v={{ time() }}"></script>
 @endpush

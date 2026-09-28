@@ -122,22 +122,31 @@
                             }
                         @endphp
                         
+                        @php
+                            $hasMenuRoute = !empty($menu->route) && $menu->route !== '#';
+                            $menuRouteValid = $hasMenuRoute ? Route::has($menu->route) : false;
+                            $menuIsDev = $hasMenuRoute && !$menuRouteValid;
+                            $menuIsMaint = $menu->is_maintenance || $menuIsDev;
+                            $menuMaintMsg = $menu->maintenance_message ?: ($menuIsDev ? 'Menu ' . $menu->name . ' sedang dalam tahap pengembangan dan belum dapat diakses.' : 'Modul ini sedang dalam pemeliharaan.');
+                            $menuUrl = $menuRouteValid ? route($menu->route) : '#';
+                        @endphp
+
                         @if($menu->children->isEmpty())
                             <li class="{{ $isActive ? 'active' : '' }}">
-                                <a href="{{ $menu->route ? (Route::has($menu->route) ? route($menu->route) : url($menu->route)) : '#' }}" 
-                                @if($menu->is_maintenance) 
+                                <a href="{{ $menuUrl }}" 
+                                @if($menuIsMaint) 
                                     class="menu-maintenance-trigger" 
-                                    data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                    data-message="{{ $menuMaintMsg }}"
                                     onclick="return false;" 
                                 @endif>
                                 <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }}
                                 </a>
                             </li>
                         @else
-                            <li class="dropdown-item-hover @if($menu->is_maintenance) menu-maintenance @endif">
-                                <a href="#" class="{{ $isActive ? 'expanded' : '' }} @if($menu->is_maintenance) menu-maintenance-trigger @endif"
-                                @if($menu->is_maintenance) 
-                                    data-message="{{ $menu->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                            <li class="dropdown-item-hover @if($menuIsMaint) menu-maintenance @endif">
+                                <a href="#" class="{{ $isActive ? 'expanded' : '' }} @if($menuIsMaint) menu-maintenance-trigger @endif"
+                                @if($menuIsMaint) 
+                                    data-message="{{ $menuMaintMsg }}"
                                     onclick="return false;" 
                                 @endif>
                                 <i class="{{ $menu->icon }} mr-1"></i> {{ $menu->name }} <i class="fas fa-chevron-down ml-1 small"></i>
@@ -146,13 +155,18 @@
                                      @foreach($menu->children as $child)
                                         @php
                                             $childPlant = $child->plant_code ?: request('plant');
-                                            $childUrl = $child->route ? (Route::has($child->route) ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : url($child->route)) : '#';
+                                            $hasChildRoute = !empty($child->route) && $child->route !== '#';
+                                            $childRouteValid = $hasChildRoute ? Route::has($child->route) : false;
+                                            $childIsDev = $hasChildRoute && !$childRouteValid;
+                                            $childIsMaint = $child->is_maintenance || $childIsDev;
+                                            $childMaintMsg = $child->maintenance_message ?: ($childIsDev ? 'Menu ' . $child->name . ' sedang dalam tahap pengembangan dan belum dapat diakses.' : 'Modul ini sedang dalam pemeliharaan.');
+                                            $childUrl = $childRouteValid ? route($child->route, $childPlant ? ['plant' => $childPlant] : []) : '#';
                                         @endphp
                                         @if($child->children->isEmpty())
                                             <li>
-                                                <a class="dropdown-item @if($child->is_maintenance) menu-maintenance-trigger @endif" href="{{ $childUrl }}"
-                                                    @if($child->is_maintenance) 
-                                                    data-message="{{ $child->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                <a class="dropdown-item @if($childIsMaint) menu-maintenance-trigger @endif" href="{{ $childUrl }}"
+                                                    @if($childIsMaint) 
+                                                    data-message="{{ $childMaintMsg }}"
                                                     onclick="return false;" 
                                                     @endif>
                                                     {{ $child->name }}
@@ -165,13 +179,18 @@
                                                     @foreach($child->children as $grand)
                                                         @php
                                                             $grandPlant = $grand->plant_code ?: $childPlant ?: request('plant');
-                                                            $grandUrl = $grand->route ? (Route::has($grand->route) ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : url($grand->route)) : '#';
+                                                            $hasGrandRoute = !empty($grand->route) && $grand->route !== '#';
+                                                            $grandRouteValid = $hasGrandRoute ? Route::has($grand->route) : false;
+                                                            $grandIsDev = $hasGrandRoute && !$grandRouteValid;
+                                                            $grandIsMaint = $grand->is_maintenance || $grandIsDev;
+                                                            $grandMaintMsg = $grand->maintenance_message ?: ($grandIsDev ? 'Menu ' . $grand->name . ' sedang dalam tahap pengembangan dan belum dapat diakses.' : 'Modul ini sedang dalam pemeliharaan.');
+                                                            $grandUrl = $grandRouteValid ? route($grand->route, $grandPlant ? ['plant' => $grandPlant] : []) : '#';
                                                         @endphp
                                                         @if($grand->children->isEmpty())
                                                             <li>
-                                                                <a class="dropdown-item @if($grand->is_maintenance) menu-maintenance-trigger @endif" href="{{ $grandUrl }}"
-                                                                @if($grand->is_maintenance) 
-                                                                    data-message="{{ $grand->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                <a class="dropdown-item @if($grandIsMaint) menu-maintenance-trigger @endif" href="{{ $grandUrl }}"
+                                                                @if($grandIsMaint) 
+                                                                    data-message="{{ $grandMaintMsg }}"
                                                                     onclick="return false;" 
                                                                 @endif>
                                                                 {{ $grand->name }}
@@ -184,13 +203,18 @@
                                                                     @foreach($grand->children as $sub)
                                                                         @php
                                                                             $subPlant = $sub->plant_code ?: $grandPlant;
-                                                                            $subUrl = $sub->route ? (Route::has($sub->route) ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : url($sub->route)) : '#';
+                                                                            $hasSubRoute = !empty($sub->route) && $sub->route !== '#';
+                                                                            $subRouteValid = $hasSubRoute ? Route::has($sub->route) : false;
+                                                                            $subIsDev = $hasSubRoute && !$subRouteValid;
+                                                                            $subIsMaint = $sub->is_maintenance || $subIsDev;
+                                                                            $subMaintMsg = $sub->maintenance_message ?: ($subIsDev ? 'Menu ' . $sub->name . ' sedang dalam tahap pengembangan dan belum dapat diakses.' : 'Modul ini sedang dalam pemeliharaan.');
+                                                                            $subUrl = $subRouteValid ? route($sub->route, $subPlant ? ['plant' => $subPlant] : []) : '#';
                                                                         @endphp
                                                                         @if($sub->children->isEmpty())
                                                                             <li>
-                                                                                <a class="dropdown-item @if($sub->is_maintenance) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
-                                                                                @if($sub->is_maintenance) 
-                                                                                    data-message="{{ $sub->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                                <a class="dropdown-item @if($subIsMaint) menu-maintenance-trigger @endif" href="{{ $subUrl }}"
+                                                                                @if($subIsMaint) 
+                                                                                    data-message="{{ $subMaintMsg }}"
                                                                                     onclick="return false;" 
                                                                                 @endif>
                                                                                 {{ $sub->name }}
@@ -203,12 +227,17 @@
                                                                                     @foreach($sub->children as $deep)
                                                                                         @php
                                                                                             $deepPlant = $deep->plant_code ?: $subPlant;
-                                                                                            $deepUrl = $deep->route ? (Route::has($deep->route) ? route($deep->route, $deepPlant ? ['plant' => $deepPlant] : []) : url($deep->route)) : '#';
+                                                                                            $hasDeepRoute = !empty($deep->route) && $deep->route !== '#';
+                                                                                            $deepRouteValid = $hasDeepRoute ? Route::has($deep->route) : false;
+                                                                                            $deepIsDev = $hasDeepRoute && !$deepRouteValid;
+                                                                                            $deepIsMaint = $deep->is_maintenance || $deepIsDev;
+                                                                                            $deepMaintMsg = $deep->maintenance_message ?: ($deepIsDev ? 'Menu ' . $deep->name . ' sedang dalam tahap pengembangan dan belum dapat diakses.' : 'Modul ini sedang dalam pemeliharaan.');
+                                                                                            $deepUrl = $deepRouteValid ? route($deep->route, $deepPlant ? ['plant' => $deepPlant] : []) : '#';
                                                                                         @endphp
                                                                                         <li>
-                                                                                            <a class="dropdown-item @if($deep->is_maintenance) menu-maintenance-trigger @endif" href="{{ $deepUrl }}"
-                                                                                            @if($deep->is_maintenance) 
-                                                                                                data-message="{{ $deep->maintenance_message ?: 'Modul ini sedang dalam pemeliharaan.' }}"
+                                                                                            <a class="dropdown-item @if($deepIsMaint) menu-maintenance-trigger @endif" href="{{ $deepUrl }}"
+                                                                                            @if($deepIsMaint) 
+                                                                                                data-message="{{ $deepMaintMsg }}"
                                                                                                 onclick="return false;" 
                                                                                             @endif>
                                                                                             {{ $deep->name }}
@@ -305,16 +334,23 @@
                 };
             }
 
-            // Maintenance Alert Handler
-            document.querySelectorAll('.menu-maintenance-trigger').forEach(el => {
-                el.addEventListener('click', function(e) {
-                    e.preventDefault();
+            // Maintenance / Dev Alert Handler (Delegated listener)
+            $(document).on('click', '.menu-maintenance-trigger', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var msg = $(this).attr('data-message') || 'Menu ini sedang dalam tahap pengembangan dan belum dapat diakses.';
+                if (typeof Swal !== 'undefined') {
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Maintenance',
-                        text: this.getAttribute('data-message')
+                        icon: 'info',
+                        title: 'Tahap Pengembangan',
+                        text: msg,
+                        confirmButtonColor: '#4e73df',
+                        confirmButtonText: 'Mengerti'
                     });
-                });
+                } else {
+                    alert(msg);
+                }
+                return false;
             });
         })();
     </script>
@@ -406,12 +442,14 @@
         #topbar-nav-menu .dropdown-menu .sub-menu {
             background-color: #4e73df !important;
             border: none;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            max-height: 70vh; /* Responsive max height */
+            box-shadow: 0 0.5rem 1.75rem 0 rgba(0, 0, 0, 0.25);
+            min-width: 250px !important;
+            max-height: 75vh; /* Responsive max height */
             overflow-y: auto;  /* Enable vertical scroll */
             scrollbar-width: thin;
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
             z-index: 1050 !important;
+            border-radius: 6px !important;
         }
 
         #topbar-nav-menu .dropdown-menu::-webkit-scrollbar {
@@ -431,8 +469,12 @@
         #topbar-nav-menu .dropdown-item,
         #topbar-nav-menu .dropdown-menu .dropdown-item {
             color: #ffffff !important;
-            padding-top: 6px !important;    /* Reduced padding for compactness */
-            padding-bottom: 6px !important; /* Reduced padding for compactness */
+            padding-top: 6px !important;    /* Compact padding */
+            padding-bottom: 6px !important; /* Compact padding */
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+            white-space: nowrap !important; /* Ensure long menu names don't wrap awkwardly */
+            font-size: 0.81rem !important;
         }
 
         #topbar-nav-menu .dropdown-item:hover,

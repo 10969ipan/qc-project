@@ -1406,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var val = $(this).data('json');
             
             $('#doc_header_id').val(id);
-            $('#doc_header_key').val(key);
+            $('#doc_header_key').val(key).trigger('change');
             $('#doc_header_plant_code').val(plant);
             $('#doc_header_no_dokumen').val(val.no_dokumen || '');
             $('#doc_header_tgl_terbit').val(val.tgl_terbit || '');
@@ -1419,9 +1419,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         $('#modalAddDocumentHeader').on('hidden.bs.modal', function () {
             $('#formDocumentHeader')[0].reset();
+            $('#doc_header_key').val('').trigger('change');
             $('#doc_header_id').val('');
             $('#documentHeaderModalTitle').html('<i class="fas fa-file-alt mr-2"></i>Kustomisasi Header Dokumen');
         });
+
+        // Initialize item search widget for doc_header_key
+        if (typeof initItemSearch === 'function') {
+            initItemSearch('doc_header_key', { placeholder: 'Ketik Nama Modul / Laporan...', maxResults: 50 });
+        }
 
         $('#formDocumentHeader').on('submit', function(e) {
             e.preventDefault();
@@ -1959,6 +1965,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Open Add Modal
         $(document).on('click', '#btnAddDocumentHeader', function() {
             $('#formDocumentHeader')[0].reset();
+            $('#doc_header_key').val('').trigger('change');
             $('#doc_header_id').val('');
             $('#documentHeaderModalTitle').html('<i class="fas fa-file-alt mr-2"></i>Kustomisasi Header Dokumen');
             $('#modalAddDocumentHeader').modal('show');
@@ -1968,7 +1975,7 @@ document.addEventListener('DOMContentLoaded', function() {
         $(document).on('click', '.edit-doc-header', function() {
             const btn = $(this);
             $('#doc_header_id').val(btn.data('id'));
-            $('#doc_header_key').val(btn.data('key'));
+            $('#doc_header_key').val(btn.data('key')).trigger('change');
             $('#doc_header_plant_code').val(btn.data('plant'));
             $('#doc_header_no_dokumen').val(btn.data('nodok'));
             $('#doc_header_tgl_terbit').val(btn.data('tgl'));

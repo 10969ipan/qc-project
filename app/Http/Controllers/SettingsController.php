@@ -83,6 +83,7 @@ class SettingsController extends Controller
             'cass' => 'CASS Test',
             'salt_spray' => 'Salt Spray Test',
             'porecount' => 'Porecount Test',
+            'kepatuhan_operator' => 'Kepatuhan Operator Quality',
         ];
 
         return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings', 'nextProcesses', 'qcModules'));

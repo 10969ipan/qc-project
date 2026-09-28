@@ -30,10 +30,10 @@
             '.ips-input:focus { border-color: #4e73df; box-shadow: 0 0 0 2px rgba(78,115,223,.25); }',
             '.ips-clear {',
             '  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);',
-            '  cursor: pointer; color: #aaa; font-size: 14px; line-height: 1;',
+            '  cursor: pointer; color: #64748b; font-size: 18px; font-weight: 700; line-height: 1;',
             '  display: none; user-select: none;',
             '}',
-            '.ips-clear:hover { color: #333; }',
+            '.ips-clear:hover { color: #ef4444; }',
             '.ips-dropdown {',
             '  position: absolute; z-index: 9999; box-sizing: border-box;',
             '  max-height: 400px; overflow-y: auto;',
@@ -121,6 +121,7 @@
         document.body.appendChild(dropdown);
 
         selectEl.parentNode.insertBefore(wrapper, selectEl);
+        selectEl.style.display = 'none';
 
         /* ── Helpers ── */
         function getOptions() {
@@ -291,13 +292,17 @@
             }
         });
 
-        clearBtn.addEventListener('click', function () {
+        clearBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             input.value = '';
             clearBtn.style.display = 'none';
+            // Reset select value so form won't submit on change
             selectEl.value = '';
+            // Dispatch change WITHOUT submitting form (value is empty)
             var ev = new Event('change', { bubbles: true });
             selectEl.dispatchEvent(ev);
-            closeDropdown();
+            renderDropdown('');
             input.focus();
         });
 
