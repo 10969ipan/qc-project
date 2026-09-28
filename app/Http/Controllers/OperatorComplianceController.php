@@ -25,16 +25,16 @@ class OperatorComplianceController extends Controller
 
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
-        // Retrieve inspector users strictly having role 'inspector' for selected plant
-        $inspectorsQuery = User::where('role', 'inspector');
+        // Retrieve inspector users strictly having role 'inspector' for selected plant and active status
+        $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
         if ($plant) {
             $inspectorsQuery->where('plant_id', $plant->id);
         }
         $inspectors = $inspectorsQuery->orderBy('name')->get();
 
-        // Fallback: If no inspectors found for that specific plant_id, load all inspectors
+        // Fallback: If no inspectors found for that specific plant_id, load all active inspectors
         if ($inspectors->isEmpty()) {
-            $inspectors = User::where('role', 'inspector')->orderBy('name')->get();
+            $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
         }
 
         // Selected Operator ID - Default to the operator checksheet that was last updated
@@ -189,14 +189,14 @@ class OperatorComplianceController extends Controller
 
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
-        $inspectorsQuery = User::where('role', 'inspector');
+        $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
         if ($plant) {
             $inspectorsQuery->where('plant_id', $plant->id);
         }
         $inspectors = $inspectorsQuery->orderBy('name')->get();
 
         if ($inspectors->isEmpty()) {
-            $inspectors = User::where('role', 'inspector')->orderBy('name')->get();
+            $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
         }
 
         $selectedOperatorId = (int) $request->get('operator_id');
