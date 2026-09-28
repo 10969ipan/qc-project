@@ -320,7 +320,7 @@ class OperatorComplianceController extends Controller
         $day          = $request->day;
         $status       = $request->status;
 
-        // Cari entri yang udah ada di database
+        // Cari entri yang udah ada di database untuk cek status sebelumnya
         $entry = OperatorComplianceEntry::where('checksheet_id', $checksheetId)
             ->where('item_id', $itemId)
             ->where('day', $day)
@@ -330,24 +330,23 @@ class OperatorComplianceController extends Controller
 
         if ($status === null || $status === '') {
             // Kalau status dikosongkan, hapus dari database
-            if ($entry) {
-                $entry->delete();
-            }
+            OperatorComplianceEntry::where('checksheet_id', $checksheetId)
+                ->where('item_id', $itemId)
+                ->where('day', $day)
+                ->delete();
         } else {
-            // Simpan atau update status baru
-            if ($entry) {
-                $entry->status     = $status;
-                $entry->updated_by = Auth::id();
-                $entry->save();
-            } else {
-                $entry = OperatorComplianceEntry::create([
+            // Simpan atau update status baru secara atomic biar aman dari race-condition/double click
+            OperatorComplianceEntry::updateOrCreate(
+                [
                     'checksheet_id' => $checksheetId,
                     'item_id'       => $itemId,
                     'day'           => $day,
-                    'status'        => $status,
-                    'updated_by'    => Auth::id(),
-                ]);
-            }
+                ],
+                [
+                    'status'     => $status,
+                    'updated_by' => Auth::id(),
+                ]
+            );
         }
 
         // Kalau status berubah dari NG jadi bukan NG, cek apakah masih ada temuan NG lain buat item ini

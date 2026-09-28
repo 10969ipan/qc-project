@@ -74,6 +74,9 @@ $(document).ready(function () {
                         cell.siblings('.score-cell').text(itemPctText);
                     }
                 }
+            },
+            complete: function () {
+                cell.data('is-busy', false);
             }
         });
     }
@@ -168,6 +171,9 @@ $(document).ready(function () {
             },
             error: function () {
                 alert('Gagal memperbarui data matriks. Silakan refresh.');
+            },
+            complete: function () {
+                cell.data('is-busy', false);
             }
         });
     }
@@ -189,24 +195,31 @@ $(document).ready(function () {
         }
     }
 
-    // Event handler klik sel ceklis harian (Siklus toggle: Kosong -> OK -> NG -> Kosong)
+    // Event handler klik sel ceklis harian (Siklus toggle: Kosong -> NA (-) -> OK (✓) -> NG (✕) -> Kosong)
     $('.day-cell').on('click', function () {
         var cell = $(this);
+
+        // Cegah klik beruntun / double click cepat saat request AJAX sebelumnya masih berlangsung
+        if (cell.data('is-busy')) {
+            return;
+        }
+        cell.data('is-busy', true);
+
         var checksheetId = cell.data('checksheet-id') || config.checksheetId;
         var itemId       = cell.data('item-id');
         var day          = cell.data('day');
         var currentSt    = cell.data('status');
 
-        // Putaran perubahan status: Kosong -> OK -> NG -> Kosong
+        // Putaran perubahan status: Kosong -> NA (-) -> OK (✓) -> NG (✕) -> Kosong
         var nextSt = null;
         if (!currentSt) {
-            nextSt = 'OK';
-        } else if (currentSt === 'OK') {
-            nextSt = 'NG';
-        } else if (currentSt === 'NG') {
-            nextSt = null; // Kembali dikosongkan
+            nextSt = 'NA';  // Klik 1: Kosong menjadi NA (-)
         } else if (currentSt === 'NA') {
-            nextSt = null;
+            nextSt = 'OK';  // Klik 2: NA (-) menjadi OK (✓)
+        } else if (currentSt === 'OK') {
+            nextSt = 'NG';  // Klik 3: OK (✓) menjadi NG (✕)
+        } else if (currentSt === 'NG') {
+            nextSt = null;  // Klik 4: NG (✕) kembali Kosong (null)
         }
 
         // Jika tadinya NG dan mau diubah/dihapus statusnya
