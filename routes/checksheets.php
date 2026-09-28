@@ -16,6 +16,7 @@ use App\Http\Controllers\PlatingChecksheetController;
 use App\Http\Controllers\PaintingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
 use App\Http\Controllers\PlatingScanController;
+use App\Http\Controllers\OperatorComplianceController;
 
 Route::middleware(['auth'])->group(function () {
     // Plating Scan Routes
@@ -89,6 +90,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checksheet/incoming-export', [IncomingExportController::class, 'store'])->name('incoming.exports.store');
         Route::get('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'create'])->name('incoming.chemicals.create');
         Route::post('/checksheet/incoming-chemical', [IncomingChemicalController::class, 'store'])->name('incoming.chemicals.store');
+
+        // Operator Compliance Checksheet
+        Route::get('/checksheet/kepatuhan-operator', [OperatorComplianceController::class, 'index'])->name('checksheet.operator_compliance.index');
+        Route::get('/checksheet/kepatuhan-operator/print', [OperatorComplianceController::class, 'print'])->name('checksheet.operator_compliance.print');
+        Route::post('/checksheet/kepatuhan-operator/toggle', [OperatorComplianceController::class, 'toggleEntry'])->name('checksheet.operator_compliance.toggle');
+        Route::post('/checksheet/kepatuhan-operator/verify', [OperatorComplianceController::class, 'toggleVerification'])->name('checksheet.operator_compliance.verify');
+        Route::post('/checksheet/kepatuhan-operator/problem', [OperatorComplianceController::class, 'storeProblem'])->name('checksheet.operator_compliance.problem.store');
+        Route::delete('/checksheet/kepatuhan-operator/problem/{id}', [OperatorComplianceController::class, 'destroyProblem'])->name('checksheet.operator_compliance.problem.destroy');
+        Route::post('/checksheet/kepatuhan-operator/master-item', [OperatorComplianceController::class, 'storeMasterItem'])->name('checksheet.operator_compliance.master_item.store');
+        Route::put('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'updateMasterItem'])->name('checksheet.operator_compliance.master_item.update');
+        Route::delete('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'destroyMasterItem'])->name('checksheet.operator_compliance.master_item.destroy');
     });
 
     // Special routes for FPA that are not direct input

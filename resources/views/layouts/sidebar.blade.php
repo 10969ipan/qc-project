@@ -79,6 +79,7 @@
                                     <a class="collapse-item" href="{{ route('cross_cut_painting.create', ['plant' => 'jakarta']) }}">Cross Cut Painting</a>
                                     <a class="collapse-item" href="{{ route('painting.create', ['plant' => 'jakarta']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
+                                    <a class="collapse-item" href="{{ route('checksheet.operator_compliance.index', ['plant' => 'jakarta']) }}">Kepatuhan Operator</a>
                                 </div>
                             @endif
 
@@ -153,6 +154,7 @@
                                     <a class="collapse-item" href="{{ route('painting.create', ['plant' => 'karawang']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('double_tape.create') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
+                                    <a class="collapse-item" href="{{ route('checksheet.operator_compliance.index', ['plant' => 'karawang']) }}">Kepatuhan Operator</a>
                                 </div>
                             @endif
 
