@@ -1117,9 +1117,6 @@
                             <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3 d-none" required>
                                 <option value="">-- Pilih Modul / Laporan --</option>
                                 <option value="master_data">Master Data Item</option>
-                                <option value="master_alat_ukur">Master Alat Ukur</option>
-                                <option value="hasil_verifikasi_alat_ukur">Hasil Verifikasi Alat Ukur</option>
-                                <option value="laporan_problem_alat_ukur">Laporan Problem Alat Ukur</option>
                                 @foreach($qcModules as $val => $label)
                                     <option value="{{ $val }}">{{ $label }}</option>
                                 @endforeach
