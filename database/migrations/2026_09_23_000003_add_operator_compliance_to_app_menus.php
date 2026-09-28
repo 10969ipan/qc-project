@@ -19,7 +19,8 @@ return new class extends Migration
         $jktParent = AppMenu::find(10);
         if ($jktParent) {
             $maxOrderJkt = AppMenu::where('parent_id', 10)->max('order') ?? 0;
-            $jktMenu = AppMenu::updateOrCreate(
+            // Gunakan firstOrCreate agar jika menu sudah ada, pengaturan custom Admin tidak tertimpa
+            $jktMenu = AppMenu::firstOrCreate(
                 [
                     'parent_id' => 10,
                     'name'      => 'Kepatuhan Operator',
@@ -33,10 +34,10 @@ return new class extends Migration
                 ]
             );
 
-            // Kasih akses permission: Role 'inspector' default-nya tidak aktif (false), role di atasnya aktif (true)
+            // Gunakan firstOrCreate: Hanya set nilai default jika izin role belum pernah disetting oleh Admin
             foreach ($roles as $role) {
                 $canAccess = ($role !== 'inspector');
-                RolePermission::updateOrCreate(
+                RolePermission::firstOrCreate(
                     ['role' => $role, 'menu_id' => $jktMenu->id],
                     [
                         'can_view'   => $canAccess,
@@ -52,7 +53,8 @@ return new class extends Migration
         $krwParent = AppMenu::find(28);
         if ($krwParent) {
             $maxOrderKrw = AppMenu::where('parent_id', 28)->max('order') ?? 0;
-            $krwMenu = AppMenu::updateOrCreate(
+            // Gunakan firstOrCreate agar jika menu sudah ada, pengaturan custom Admin tidak tertimpa
+            $krwMenu = AppMenu::firstOrCreate(
                 [
                     'parent_id' => 28,
                     'name'      => 'Kepatuhan Operator',
@@ -66,10 +68,10 @@ return new class extends Migration
                 ]
             );
 
-            // Kasih akses permission: Role 'inspector' default-nya tidak aktif (false), role di atasnya aktif (true)
+            // Gunakan firstOrCreate: Hanya set nilai default jika izin role belum pernah disetting oleh Admin
             foreach ($roles as $role) {
                 $canAccess = ($role !== 'inspector');
-                RolePermission::updateOrCreate(
+                RolePermission::firstOrCreate(
                     ['role' => $role, 'menu_id' => $krwMenu->id],
                     [
                         'can_view'   => $canAccess,
