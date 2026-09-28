@@ -1,14 +1,15 @@
 /**
- * Modul JavaScript Checksheet Kepatuhan Operator
+ * Modul JavaScript buat kelola fitur Checksheet Kepatuhan Operator
  */
 $(document).ready(function () {
+    // Set CSRF Token otomatis buat semua request AJAX
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
 
-    // Read config from data-attributes on hidden element (no inline JS in blade)
+    // Baca konfigurasi URL & data dari elemen HTML tersembunyi (bebas dari inline JS)
     var _cfgEl = document.getElementById('op-compliance-config');
     var config = _cfgEl ? {
         checksheetId:        _cfgEl.dataset.checksheetId      || null,
@@ -20,26 +21,27 @@ $(document).ready(function () {
         problemBaseUrl:      _cfgEl.dataset.problemBaseUrl     || '/checksheet/kepatuhan-operator/problem',
         masterItemStoreUrl:  _cfgEl.dataset.masterItemStoreUrl || '/checksheet/kepatuhan-operator/master-item',
         masterItemBaseUrl:   _cfgEl.dataset.masterItemBaseUrl  || '/checksheet/kepatuhan-operator/master-item'
-    } : (window.opComplianceConfig || {}); // fallback for safety
+    } : (window.opComplianceConfig || {}); // Cadangan aman
 
     let pendingNgCell = null;
     let ngProblemSubmitted = false;
 
+    // Fungsi buat balikin status sel ke kosong kalau modal masalah dibatalin atau ditutup tanpa disimpan
     function revertPendingNgCell() {
         if (!pendingNgCell || ngProblemSubmitted) return;
 
         var cell = pendingNgCell;
-        pendingNgCell = null; // Clear immediately to avoid duplicate execution
+        pendingNgCell = null; // Langsung kosongkan biar nggak dieksekusi 2x
 
         var checksheetId = cell.data('checksheet-id') || config.checksheetId;
         var itemId       = cell.data('item-id');
         var day          = cell.data('day');
 
-        // Optimistic UI revert to empty (null)
+        // Balikin tampilan sel di browser jadi kosong dulu (optimistic UI)
         cell.removeClass('cell-ok cell-ng cell-na').text('');
         cell.data('status', null);
 
-        // Revert status in backend database
+        // Kirim request ke backend buat kosongkan status di database
         $.ajax({
             url: config.toggleUrl || '/checksheet/kepatuhan-operator/toggle',
             type: "POST",
@@ -51,7 +53,7 @@ $(document).ready(function () {
             },
             success: function (res) {
                 if (res.success) {
-                    // Update daily score row
+                    // Update tampilan skor harian di tabel
                     $('#dailyOk_' + day).text(res.day_stats.ok);
                     var pctText = res.day_stats.pct !== null ? res.day_stats.pct + '%' : '-';
                     $('#dailyPct_' + day).text(pctText);
@@ -62,11 +64,11 @@ $(document).ready(function () {
                         $('#dailyPct_' + day).removeClass('text-danger').addClass('text-primary');
                     }
 
-                    // Update monthly total stats
+                    // Update statistik total bulanan
                     $('#totalOkMonth').text(res.monthly_stats.total_ok);
                     $('#monthlyPctTotal').text(res.monthly_stats.monthly_pct + '%');
 
-                    // Update item row average
+                    // Update persentase rata-rata baris item
                     if (res.item_pct !== undefined) {
                         var itemPctText = res.item_pct !== '-' ? res.item_pct + '%' : '-';
                         cell.siblings('.score-cell').text(itemPctText);
@@ -76,6 +78,7 @@ $(document).ready(function () {
         });
     }
 
+    // Fungsi bantu buat cari data masalah yang terhubung sama item tertentu
     function getProblemForItem(itemId) {
         var prob = null;
         $('.btn-edit-prob').each(function () {
@@ -90,6 +93,7 @@ $(document).ready(function () {
         return prob;
     }
 
+    // Fungsi utama buat ngirim perubahan status sel ke server via AJAX
     function processCellToggle(cell, checksheetId, itemId, day, nextSt) {
         if (nextSt === 'NG') {
             pendingNgCell = cell;
@@ -98,7 +102,7 @@ $(document).ready(function () {
             pendingNgCell = null;
         }
 
-        // Optimistic UI update
+        // Update tampilan sel langsung di browser biar responsif (Optimistic UI)
         cell.removeClass('cell-ok cell-ng cell-na').text('');
         if (nextSt === 'OK') {
             cell.addClass('cell-ok').text('✓');
@@ -109,7 +113,7 @@ $(document).ready(function () {
         }
         cell.data('status', nextSt);
 
-        // Send AJAX update
+        // Kirim perubahan ke backend
         $.ajax({
             url: config.toggleUrl || '/checksheet/kepatuhan-operator/toggle',
             type: "POST",
@@ -121,7 +125,7 @@ $(document).ready(function () {
             },
             success: function (res) {
                 if (res.success) {
-                    // Update daily score row
+                    // Update skor harian di bagian bawah tabel
                     $('#dailyOk_' + day).text(res.day_stats.ok);
                     var pctText = res.day_stats.pct !== null ? res.day_stats.pct + '%' : '-';
                     $('#dailyPct_' + day).text(pctText);
@@ -132,17 +136,17 @@ $(document).ready(function () {
                         $('#dailyPct_' + day).removeClass('text-danger').addClass('text-primary');
                     }
 
-                    // Update monthly total stats
+                    // Update total statistik bulanan
                     $('#totalOkMonth').text(res.monthly_stats.total_ok);
                     $('#monthlyPctTotal').text(res.monthly_stats.monthly_pct + '%');
 
-                    // Update item row average
+                    // Update skor rata-rata per baris item
                     if (res.item_pct !== undefined) {
                         var itemPctText = res.item_pct !== '-' ? res.item_pct + '%' : '-';
                         cell.siblings('.score-cell').text(itemPctText);
                     }
 
-                    // If set to NG, reset problem form fields & show modal with pre-filled date
+                    // Kalau status diubah jadi NG, otomatis tampilkan modal input masalah abnormal
                     if (nextSt === 'NG') {
                         var curM = config.month || (new Date().getMonth() + 1);
                         var curY = config.year || new Date().getFullYear();
@@ -168,6 +172,7 @@ $(document).ready(function () {
         });
     }
 
+    // Fungsi update angka badge merah di tombol Daftar Riwayat Masalah
     function updateProblemCountBadge() {
         var count = $('#problemTableBody tr:has(.btn-del-prob)').length;
         var $badge = $('#problemCountBadge');
@@ -184,7 +189,7 @@ $(document).ready(function () {
         }
     }
 
-    // Interactive Day Cell Checkbox Toggle (Cycle: empty -> OK -> NG -> empty)
+    // Event handler klik sel ceklis harian (Siklus toggle: Kosong -> OK -> NG -> Kosong)
     $('.day-cell').on('click', function () {
         var cell = $(this);
         var checksheetId = cell.data('checksheet-id') || config.checksheetId;
@@ -192,25 +197,26 @@ $(document).ready(function () {
         var day          = cell.data('day');
         var currentSt    = cell.data('status');
 
-        // Cycle status: empty -> OK -> NG -> empty
+        // Putaran perubahan status: Kosong -> OK -> NG -> Kosong
         var nextSt = null;
         if (!currentSt) {
             nextSt = 'OK';
         } else if (currentSt === 'OK') {
             nextSt = 'NG';
         } else if (currentSt === 'NG') {
-            nextSt = null; // Status berubah menjadi kosong (default)
+            nextSt = null; // Kembali dikosongkan
         } else if (currentSt === 'NA') {
             nextSt = null;
         }
 
-        // If currently NG and user is attempting to change/delete status
+        // Jika tadinya NG dan mau diubah/dihapus statusnya
         if (currentSt === 'NG') {
             var linkedProb = getProblemForItem(itemId);
             if (linkedProb) {
                 var displayDesc = linkedProb.desc || '';
                 if (displayDesc.length > 60) displayDesc = displayDesc.substring(0, 60) + '...';
 
+                // Tanyakan ke user apakah catatan masalah di tabel bawah juga mau dihapus
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         title: 'Hapus Item Masalah Terkait?',
@@ -223,7 +229,7 @@ $(document).ready(function () {
                         cancelButtonText: 'Biarkan Tersimpan'
                     }).then(function (result) {
                         if (result.isConfirmed) {
-                            // Delete problem log from DB, remove row from table DOM, and clear cell status to null (kosong)
+                            // Hapus masalah dari database, hapus baris dari tabel, dan kosongkan status sel
                             $.ajax({
                                 url: (config.problemBaseUrl || '/checksheet/kepatuhan-operator/problem') + '/' + linkedProb.id,
                                 type: "DELETE",
@@ -231,7 +237,6 @@ $(document).ready(function () {
                                     _token: $('meta[name="csrf-token"]').attr('content')
                                 },
                                 success: function (delRes) {
-                                    // Remove table row from DOM instantly & update red button badge count immediately
                                     var $targetRow = $('.btn-edit-prob[data-id="' + linkedProb.id + '"], .btn-del-prob[data-id="' + linkedProb.id + '"]').closest('tr');
                                     $targetRow.remove();
                                     if ($('#problemTableBody tr:has(.btn-del-prob)').length === 0) {
@@ -243,11 +248,10 @@ $(document).ready(function () {
                                 }
                             });
                         } else {
-                            // Biarkan Tersimpan: Data di Daftar Riwayat TIDAK terhapus & status sel TETAP X (NG)
-                            // Tidak melakukan perubahan status (batal ubah sel)
+                            // Biarkan tersimpan: Data masalah TETAP ADA & perubahan sel dibatalkan
                         }
                     });
-                    return; // Stop execution so status update is handled inside Swal callback
+                    return; // Hentikan eksekusi biar diproses di callback SweetAlert
                 }
             }
         }
@@ -255,17 +259,17 @@ $(document).ready(function () {
         processCellToggle(cell, checksheetId, itemId, day, nextSt);
     });
 
-    // Listen to Bootstrap modal hide & hidden events
+    // Jalankan penanganan batal sel kalau modal masalah ditutup
     $('#problemLogModal').on('hide.bs.modal hidden.bs.modal', function () {
         revertPendingNgCell();
     });
 
-    // Explicit click listener for close buttons inside modal
+    // Tangkap klik tombol tutup / X di modal masalah
     $(document).on('click', '#problemLogModal [data-dismiss="modal"], #problemLogModal .close', function () {
         revertPendingNgCell();
     });
 
-    // Backdrop click trigger shake & animate X button (User MUST click X to cancel)
+    // Efek efek getar (shake) kalau user klik di luar area modal (backdrop click)
     $('#problemLogModal').on('click', function (e) {
         if ($(e.target).is('#problemLogModal')) {
             var modalContent = $(this).find('.modal-content');
@@ -281,6 +285,7 @@ $(document).ready(function () {
         }
     });
 
+    // Format tanggal jam verifikasi biar rapi 2 baris
     function formatVerifDate(dateStr) {
         if (!dateStr) return '';
         var parts = $.trim(dateStr).split(' ');
@@ -292,7 +297,7 @@ $(document).ready(function () {
         return dateStr;
     }
 
-    // Daily Leader Verification Checkbox
+    // Checkbox Verifikasi Harian Leader / Kashift
     $(document).on('change', '.verify-daily-checkbox', function () {
         var cb = $(this);
         var day = cb.data('day');
@@ -328,7 +333,7 @@ $(document).ready(function () {
         });
     });
 
-    // Weekly SPV Verification Checkbox
+    // Checkbox Verifikasi Mingguan SPV / Karu
     $(document).on('change', '.verify-weekly-checkbox', function () {
         var cb = $(this);
         var week = cb.data('week');
@@ -364,7 +369,7 @@ $(document).ready(function () {
         });
     });
 
-    // Monthly Manager Verification Checkbox
+    // Checkbox Verifikasi Bulanan Manager / Asst Manager
     $(document).on('change', '.verify-monthly-checkbox', function () {
         var cb = $(this);
         var isChecked = cb.is(':checked') ? 1 : 0;
@@ -399,7 +404,7 @@ $(document).ready(function () {
         });
     });
 
-    // Submit Problem Item Form (with SweetAlert2)
+    // Submit form input/edit item masalah (problem log)
     $('#problemForm').on('submit', function (e) {
         e.preventDefault();
         ngProblemSubmitted = true;
@@ -456,7 +461,7 @@ $(document).ready(function () {
         });
     });
 
-    // Edit Problem Log Button
+    // Tombol Edit Item Masalah di tabel riwayat
     $(document).on('click', '.btn-edit-prob', function () {
         var btn = $(this);
         $('#problem_id').val(btn.data('id'));
@@ -475,7 +480,7 @@ $(document).ready(function () {
         $('#problemLogModal .modal-body').animate({ scrollTop: 0 }, 'fast');
     });
 
-    // Delete Problem Log Button (with SweetAlert2 Confirmation)
+    // Tombol Hapus Item Masalah di tabel riwayat (pake konfirmasi SweetAlert2)
     $(document).on('click', '.btn-del-prob', function (e) {
         e.preventDefault();
         var id = $(this).data('id');
@@ -550,7 +555,7 @@ $(document).ready(function () {
         }
     });
 
-    // Reset problem form when modal is hidden
+    // Reset isi form item masalah saat modal ditutup
     $('#problemLogModal').on('hidden.bs.modal', function () {
         $('#problem_id').val('');
         $('#problem_item_id').val('');
@@ -562,7 +567,7 @@ $(document).ready(function () {
         $('#formProblemTitle').html('<i class="fas fa-plus-circle mr-1"></i> FORM INPUT ITEM MASALAH ABNORMAL');
     });
 
-    // Submit Master Item Form (Admin)
+    // Submit Form Tambah / Edit Master Item Audit (Khusus Admin)
     $('#masterItemForm').on('submit', function (e) {
         e.preventDefault();
         var id = $('#master_item_id').val();
@@ -582,7 +587,7 @@ $(document).ready(function () {
         });
     });
 
-    // Edit Master Item Button
+    // Tombol Edit Master Item Audit (Khusus Admin)
     $(document).on('click', '.btn-edit-mi', function () {
         var btn = $(this);
         $('#master_item_id').val(btn.data('id'));
@@ -594,7 +599,7 @@ $(document).ready(function () {
         $('#masterItemFormTitle').html('<i class="fas fa-edit mr-1"></i> EDIT ITEM AUDIT');
     });
 
-    // Delete Master Item Button
+    // Tombol Hapus Master Item Audit (Khusus Admin)
     $(document).on('click', '.btn-del-mi', function () {
         if (!confirm('Yakin ingin menghapus item audit ini?')) return;
         var id = $(this).data('id');
@@ -610,13 +615,13 @@ $(document).ready(function () {
         });
     });
 
-    // Direct Print Button (without opening new tab)
+    // Tombol Cetak Langsung (pake hidden iframe biar nggak perlu buka tab baru)
     $(document).on('click', '#btnCetakCompliance', function (e) {
         e.preventDefault();
         var printUrl = $(this).data('print-url');
         if (!printUrl) return;
 
-        // Remove old iframe if present
+        // Hapus iframe cetak yang lama kalau ada
         $('#compliancePrintIframe').remove();
 
         var $iframe = $('<iframe>', {
@@ -636,11 +641,11 @@ $(document).ready(function () {
         });
     });
 
-    // Initialize operator filter dropdown search if function exists
+    // Inisialisasi fitur pencarian cepat pada dropdown filter operator jika fungsi tersedia
     if (typeof initItemSearch === 'function') {
         initItemSearch('filterOperator', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50 });
     }
 
-    // Sync problem count badge on initial load
+    // Hitung & update badge angka masalah saat pertama kali halaman dimuat
     updateProblemCountBadge();
 });

@@ -10,11 +10,12 @@ use Illuminate\Support\Facades\Schema;
 class OperatorComplianceItemSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     * Data 100% sesuai dengan file: 096. Checksheet Kepatuhan Operator Quality.xlsx
+     * Jalankan seeder database master item audit kepatuhan operator.
+     * Data 100% persis sesuai acuan file: 096. Checksheet Kepatuhan Operator Quality.xlsx
      */
     public function run(): void
     {
+        // Daftar item audit master yang bakal di-insert / update
         $items = [
             // =====================================================================
             // 1. Mematuhi Standar Kerja (MSK)
@@ -275,6 +276,7 @@ class OperatorComplianceItemSeeder extends Seeder
             ],
         ];
 
+        // Loop dan updateOrCreate supaya aman dikuis berulang kali tanpa duplikat
         foreach ($items as $item) {
             OperatorComplianceItem::updateOrCreate(
                 [
@@ -289,6 +291,6 @@ class OperatorComplianceItemSeeder extends Seeder
             );
         }
 
-        $this->command->info('OperatorComplianceItem seeder selesai: ' . count($items) . ' items inserted.');
+        $this->command->info('Seeder item kepatuhan operator beres: ' . count($items) . ' item berhasil diproses.');
     }
 }

@@ -472,14 +472,14 @@
                      data-master-item-base-url="{{ url('/checksheet/kepatuhan-operator/master-item') }}"
                 ></div>
 
-                <!-- 2. Filter Bar (Plain White Background) -->
+                <!-- 2. Bar Filter Data (Dropdown Operator, Bulan, & Tahun) -->
                 <form action="{{ route('checksheet.operator_compliance.index') }}" method="GET"
                       class="d-flex flex-wrap align-items-end bg-white p-0 rounded mb-3"
                       style="gap: 14px;">
 
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
 
-                    <!-- Dropdown Operator (Hanya Role Inspector Per Plant) -->
+                    <!-- Dropdown Pilihan Operator (User Inspector Aktif) -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Operator / Inspector</label>
                         <div style="width: 230px;" class="custom-filter-wrapper">
@@ -493,7 +493,7 @@
                         </div>
                     </div>
 
-                    <!-- Month Select -->
+                    <!-- Pilihan Bulan -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Bulan</label>
                         <div style="width: 130px;">
@@ -505,7 +505,7 @@
                         </div>
                     </div>
 
-                    <!-- Year Select -->
+                    <!-- Pilihan Tahun -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
                         <div style="width: 95px;">
@@ -518,16 +518,16 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Tombol Aksi (Daftar Masalah, Kelola Master, & Cetak) -->
                     <div class="ml-auto d-flex flex-wrap align-items-center mt-auto" style="gap: 6px;">
-                        <!-- Problem Log Modal Button -->
+                        <!-- Tombol Modal Daftar Item Masalah Abnormal -->
                         <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm"
                                 data-toggle="modal" data-target="#problemLogModal" id="btnProblemLogModal">
                             Daftar Item Masalah
                             <span class="badge badge-light ml-1" id="problemCountBadge" style="{{ count($problems) > 0 ? '' : 'display: none;' }}">{{ count($problems) }}</span>
                         </button>
 
-                        <!-- Admin Master Item Config Button -->
+                        <!-- Tombol Pengaturan Master Item (Khusus Role Admin) -->
                         @if(auth()->user()->role === 'admin')
                             <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm"
                                     data-toggle="modal" data-target="#masterItemModal">
@@ -543,7 +543,7 @@
                     </div>
                 </form>
 
-                <!-- Header Information Operator -->
+                <!-- Informasi Header Data Operator -->
                 <div class="row bg-white p-2 rounded border mx-0 mb-3 shadow-xs" style="font-size: 0.8rem;">
                     <div class="col-md-4">
                         <span class="text-muted">Nama Operator:</span>

@@ -14,33 +14,37 @@ use Carbon\Carbon;
 class OperatorComplianceController extends Controller
 {
     /**
-     * Display the main operator compliance checksheet.
+     * Tampilkan halaman utama checksheet kepatuhan operator quality
      */
     public function index(Request $request)
     {
+        // Ambil data user yang lagi login
         $currentUser = Auth::user();
+
+        // Tentukan plant, bulan, dan tahun (default dari user & tanggal sekarang)
         $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
         $month       = (int) $request->get('month', date('n'));
         $year        = (int) $request->get('year', date('Y'));
 
+        // Cari data plant sesuai kode plant
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
-        // Retrieve inspector users strictly having role 'inspector' for selected plant and active status
+        // Ambil daftar inspector yang aktif buat dropdown pilihan operator
         $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
         if ($plant) {
             $inspectorsQuery->where('plant_id', $plant->id);
         }
         $inspectors = $inspectorsQuery->orderBy('name')->get();
 
-        // Fallback: If no inspectors found for that specific plant_id, load all active inspectors
+        // Kalau nggak ketemu inspector di plant ini, load semua inspector aktif yang ada
         if ($inspectors->isEmpty()) {
             $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
         }
 
-        // Selected Operator ID - Default to the operator checksheet that was last updated
+        // Tentukan ID operator yang dipilih (default otomatis pilih yang paling baru di-update)
         $selectedOperatorId = (int) $request->get('operator_id');
         if (!$selectedOperatorId) {
-            // Find operator checksheet last updated for this month & year and plant
+            // Cari checksheet yang paling baru diupdate di bulan, tahun & plant ini
             $latestChecksheet = OperatorComplianceChecksheet::where('plant_code', $plantCode)
                 ->where('month', $month)
                 ->where('year', $year)
@@ -48,21 +52,21 @@ class OperatorComplianceController extends Controller
                 ->first();
 
             if (!$latestChecksheet) {
-                // Fallback: find operator checksheet last updated overall for this plant
+                // Cadangan: cari checksheet paling baru secara umum di plant ini
                 $latestChecksheet = OperatorComplianceChecksheet::where('plant_code', $plantCode)
                     ->latest('updated_at')
                     ->first();
             }
 
             if (!$latestChecksheet) {
-                // Fallback: find any operator checksheet last updated overall
+                // Cadangan: cari checksheet paling baru secara keseluruhan
                 $latestChecksheet = OperatorComplianceChecksheet::latest('updated_at')->first();
             }
 
             if ($latestChecksheet) {
                 $selectedOperatorId = $latestChecksheet->user_id;
             } else {
-                // Fallback: current user if inspector, otherwise first inspector in list
+                // Cadangan terakhir: pakai ID user sekarang kalau inspector, atau inspector pertama dari list
                 if (in_array($currentUser->role, ['inspector'])) {
                     $selectedOperatorId = $currentUser->id;
                 } else {
@@ -73,23 +77,23 @@ class OperatorComplianceController extends Controller
 
         $selectedOperator = User::find($selectedOperatorId) ?? $currentUser;
 
-        // Ensure selected operator is present in inspectors list for dropdown display
+        // Pastikan operator yang dipilih tetap ada di dropdown inspectors
         if ($selectedOperator && !$inspectors->contains('id', $selectedOperator->id)) {
             $inspectors->push($selectedOperator);
         }
 
-        // Active audit items
+        // Ambil semua item audit yang aktif
         $items = OperatorComplianceItem::where('is_active', true)
             ->orderBy('order_no')
             ->get();
 
-        // Group items by Prinsip Dasar
+        // Kelompokkan item audit berdasarkan Prinsip Dasar
         $groupedItems = $items->groupBy('prinsip_dasar');
 
-        // Number of days in month
+        // Hitung total hari dalam bulan yang dipilih
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
-        // Find or create checksheet header
+        // Cari atau buat header checksheet untuk operator, plant, bulan & tahun ini
         $checksheet = OperatorComplianceChecksheet::firstOrCreate(
             [
                 'user_id'    => $selectedOperatorId,
@@ -103,16 +107,16 @@ class OperatorComplianceController extends Controller
             ]
         );
 
-        // Load existing matrix entries
+        // Load entri matriks yang udah diisi (diatur berdasarkan item_id dan tanggal)
         $entries = OperatorComplianceEntry::where('checksheet_id', $checksheet->id)->get();
         $entriesMatrix = [];
         foreach ($entries as $entry) {
             $entriesMatrix[$entry->item_id][$entry->day] = $entry->status;
         }
 
-        // Calculate daily and total scores
+        // Hitung skor harian dan total persentase bulanan
         $totalItemsCount = $items->count();
-        $dailyScores = []; // day => ['ok' => count, 'ng' => count, 'na' => count, 'pct' => score]
+        $dailyScores = []; // tanggal => ['ok' => jumlah, 'ng' => jumlah, 'na' => jumlah, 'pct' => persentase]
         $totalOkMonth = 0;
         $totalNgMonth = 0;
         $totalFilledEntries = 0;
@@ -132,7 +136,7 @@ class OperatorComplianceController extends Controller
                 }
             }
 
-            $filled = $okCount + $ngCount; // NA status is excluded from calculation
+            $filled = $okCount + $ngCount; // Status NA tidak dihitung dalam pembagi skor
             $pct    = $filled > 0 ? round(($okCount / $filled) * 100, 1) : null;
 
             $dailyScores[$d] = [
@@ -150,7 +154,7 @@ class OperatorComplianceController extends Controller
 
         $monthlyPct = $totalFilledEntries > 0 ? round(($totalOkMonth / $totalFilledEntries) * 100, 1) : 0;
 
-        // Load Problem Items
+        // Ambil daftar item masalah (problem log) untuk checksheet ini
         $problems = OperatorComplianceProblem::where('checksheet_id', $checksheet->id)
             ->orderBy('problem_date', 'desc')
             ->get();
@@ -177,11 +181,11 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Render dedicated print layout for the operator compliance checksheet.
-     * Accepts same query parameters as index().
+     * Tampilkan halaman khusus cetak (print layout) checksheet kepatuhan operator
      */
     public function print(Request $request)
     {
+        // Ambil data user yang lagi login
         $currentUser = Auth::user();
         $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
         $month       = (int) $request->get('month', date('n'));
@@ -189,6 +193,7 @@ class OperatorComplianceController extends Controller
 
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
+        // Ambil daftar inspector aktif
         $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
         if ($plant) {
             $inspectorsQuery->where('plant_id', $plant->id);
@@ -199,6 +204,7 @@ class OperatorComplianceController extends Controller
             $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
         }
 
+        // Cari ID operator yang dipilih
         $selectedOperatorId = (int) $request->get('operator_id');
         if (!$selectedOperatorId) {
             $latestChecksheet = OperatorComplianceChecksheet::where('plant_code', $plantCode)
@@ -221,6 +227,7 @@ class OperatorComplianceController extends Controller
             $inspectors->push($selectedOperator);
         }
 
+        // Ambil master item & hitung statistik sama kayak di index
         $items        = OperatorComplianceItem::where('is_active', true)->orderBy('order_no')->get();
         $groupedItems = $items->groupBy('prinsip_dasar');
         $daysInMonth  = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
@@ -272,10 +279,11 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * AJAX Endpoint to toggle/update a single matrix entry checkbox.
+     * Endpoint AJAX buat update/toggle status ceklis harian (OK / NG / NA / kosong)
      */
     public function toggleEntry(Request $request)
     {
+        // Validasi input data
         $request->validate([
             'checksheet_id' => 'required|exists:operator_compliance_checksheets,id',
             'item_id'       => 'required|exists:operator_compliance_items,id',
@@ -288,6 +296,7 @@ class OperatorComplianceController extends Controller
         $day          = $request->day;
         $status       = $request->status;
 
+        // Cari entri yang udah ada di database
         $entry = OperatorComplianceEntry::where('checksheet_id', $checksheetId)
             ->where('item_id', $itemId)
             ->where('day', $day)
@@ -296,10 +305,12 @@ class OperatorComplianceController extends Controller
         $previousStatus = $entry ? $entry->status : null;
 
         if ($status === null || $status === '') {
+            // Kalau status dikosongkan, hapus dari database
             if ($entry) {
                 $entry->delete();
             }
         } else {
+            // Simpan atau update status baru
             if ($entry) {
                 $entry->status     = $status;
                 $entry->updated_by = Auth::id();
@@ -315,7 +326,7 @@ class OperatorComplianceController extends Controller
             }
         }
 
-        // Check if status changed from NG to non-NG, and if there's a linked problem to prompt for deletion
+        // Kalau status berubah dari NG jadi bukan NG, cek apakah masih ada temuan NG lain buat item ini
         $linkedProblemData = null;
         if ($previousStatus === 'NG' && $status !== 'NG') {
             $hasOtherNgForItem = OperatorComplianceEntry::where('checksheet_id', $checksheetId)
@@ -323,6 +334,7 @@ class OperatorComplianceController extends Controller
                 ->where('status', 'NG')
                 ->exists();
 
+            // Jika udah nggak ada NG sama sekali untuk item ini, siapkan data masalah untuk konfirmasi hapus di JS
             if (!$hasOtherNgForItem) {
                 $linkedProblem = OperatorComplianceProblem::where('checksheet_id', $checksheetId)
                     ->where('item_id', $itemId)
@@ -338,28 +350,28 @@ class OperatorComplianceController extends Controller
             }
         }
 
-        // Touch checksheet to update its updated_at timestamp
+        // Update timestamp updated_at pada checksheet
         $checksheet = OperatorComplianceChecksheet::find($checksheetId);
         if ($checksheet) {
             $checksheet->touch();
         }
 
-        // Recalculate daily & monthly stats
+        // Hitung ulang statistik harian & bulanan secara realtime
         $allEntries = OperatorComplianceEntry::where('checksheet_id', $checksheetId)->get();
 
         $dayOk = $allEntries->where('day', $day)->where('status', 'OK')->count();
         $dayNg = $allEntries->where('day', $day)->where('status', 'NG')->count();
         $dayNa = $allEntries->where('day', $day)->where('status', 'NA')->count();
-        $dayFilled = $dayOk + $dayNg; // NA excluded from calculation!
+        $dayFilled = $dayOk + $dayNg; // NA tidak dihitung dalam pembagi skor!
         $dayPct = $dayFilled > 0 ? round(($dayOk / $dayFilled) * 100, 1) : null;
 
         $totalOk = $allEntries->where('status', 'OK')->count();
         $totalNg = $allEntries->where('status', 'NG')->count();
         $totalNa = $allEntries->where('status', 'NA')->count();
-        $totalFilled = $totalOk + $totalNg; // NA excluded from calculation!
+        $totalFilled = $totalOk + $totalNg; // NA tidak dihitung dalam pembagi skor!
         $monthlyPct = $totalFilled > 0 ? round(($totalOk / $totalFilled) * 100, 1) : 0;
 
-        // Recalculate row score average for this item
+        // Hitung persentase rata-rata khusus baris item ini
         $itemEntries = $allEntries->where('item_id', $itemId);
         $itemOk = $itemEntries->where('status', 'OK')->count();
         $itemNg = $itemEntries->where('status', 'NG')->count();
@@ -388,7 +400,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Toggle verifikator sign/checkbox (Leader per-hari, SPV per-minggu, Manager 1x per-bulan).
+     * Endpoint AJAX buat verifikasi (Leader harian, SPV mingguan, Manager bulanan)
      */
     public function toggleVerification(Request $request)
     {
@@ -405,6 +417,7 @@ class OperatorComplianceController extends Controller
         $checked = (bool) $request->checked;
 
         if ($request->type === 'leader') {
+            // Verifikasi harian Leader / Kashift
             $day = (int) ($request->day ?? 1);
             $leaderChecks = $cs->leader_checks ?? [];
             if ($checked) {
@@ -420,6 +433,7 @@ class OperatorComplianceController extends Controller
             $cs->leader_checks = $leaderChecks;
 
         } elseif ($request->type === 'spv') {
+            // Verifikasi mingguan SPV / Karu
             $week = (int) ($request->week ?? 1);
             $spvChecks = $cs->spv_checks ?? [];
             if ($checked) {
@@ -435,6 +449,7 @@ class OperatorComplianceController extends Controller
             $cs->spv_checks = $spvChecks;
 
         } elseif ($request->type === 'mgr') {
+            // Verifikasi bulanan Asst Mgr / Manager
             $cs->mgr_checked    = $checked;
             $cs->mgr_checked_at = $checked ? now() : null;
             $cs->mgr_id         = $checked ? $user->id : null;
@@ -454,7 +469,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Store or update a problem item.
+     * Simpan atau update data item masalah abnormal (problem log)
      */
     public function storeProblem(Request $request)
     {
@@ -496,7 +511,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Delete a problem log entry.
+     * Hapus catatan item masalah dari database
      */
     public function destroyProblem($id)
     {
@@ -510,7 +525,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Store master item (Admin only).
+     * Tambah item audit baru ke master (khusus Admin)
      */
     public function storeMasterItem(Request $request)
     {
@@ -543,7 +558,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Update master item (Admin only).
+     * Update item audit master (khusus Admin)
      */
     public function updateMasterItem(Request $request, $id)
     {
@@ -574,7 +589,7 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Delete/deactivate master item (Admin only).
+     * Hapus item audit dari master (khusus Admin)
      */
     public function destroyMasterItem($id)
     {

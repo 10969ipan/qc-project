@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Jalankan migrasi buat bikin tabel-tabel kepatuhan operator.
      */
     public function up(): void
     {
-        // 1. Master Item Audit (Configurable by Admin)
+        // 1. Tabel Master Item Audit (Bisa diatur sama Admin)
         Schema::create('operator_compliance_items', function (Blueprint $table) {
             $table->id();
             $table->string('prinsip_dasar');
@@ -22,10 +22,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 2. Checksheet Header
+        // 2. Tabel Header Checksheet (Satu checksheet per operator, plant, bulan & tahun)
         Schema::create('operator_compliance_checksheets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Operator / Inspector being audited
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Operator / Inspector yang diaudit
             $table->string('plant_code', 50)->default('karawang');
             $table->string('bagian')->nullable();
             $table->integer('month');
@@ -45,20 +45,20 @@ return new class extends Migration
             $table->unique(['user_id', 'plant_code', 'month', 'year'], 'op_comp_header_unique');
         });
 
-        // 3. Matrix Entries (Daily status: OK / NG / null)
+        // 3. Tabel Entri Matriks (Status ceklis harian: OK / NG / NA / null)
         Schema::create('operator_compliance_entries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('checksheet_id')->constrained('operator_compliance_checksheets')->onDelete('cascade');
             $table->foreignId('item_id')->constrained('operator_compliance_items')->onDelete('cascade');
-            $table->unsignedTinyInteger('day'); // 1..31
-            $table->string('status', 10)->nullable(); // 'OK', 'NG', or null
+            $table->unsignedTinyInteger('day'); // Tanggal 1 sampai 31
+            $table->string('status', 10)->nullable(); // Status 'OK', 'NG', atau null
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->unique(['checksheet_id', 'item_id', 'day'], 'op_comp_entry_unique');
         });
 
-        // 4. Problem Log / Action Items
+        // 4. Tabel Log Masalah Abnormal / Action Items
         Schema::create('operator_compliance_problems', function (Blueprint $table) {
             $table->id();
             $table->foreignId('checksheet_id')->constrained('operator_compliance_checksheets')->onDelete('cascade');
@@ -68,14 +68,14 @@ return new class extends Migration
             $table->text('corrective_action')->nullable();
             $table->string('pic_name')->nullable();
             $table->date('target_date')->nullable();
-            $table->string('status', 20)->default('Open'); // 'Open', 'In Progress', 'Closed'
+            $table->string('status', 20)->default('Open'); // Status 'Open', 'In Progress', 'Closed'
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Batalkan migrasi (hapus tabel-tabel).
      */
     public function down(): void
     {

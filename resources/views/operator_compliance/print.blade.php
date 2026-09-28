@@ -148,7 +148,7 @@ html, body {
 </head>
 <body>
 
-{{-- NO-PRINT TOOLBAR --}}
+{{-- TOMBOL AKSI CETAK / KEMBALI (TIDAK IKUT TERCETAK) --}}
 <div class="no-print-bar">
     <button class="btn-print" onclick="window.print()">🖨 Cetak / Print</button>
     <button class="btn-back" onclick="history.back()">← Kembali</button>
@@ -263,7 +263,7 @@ html, body {
         </tr>
     </table>
 
-    {{-- ===== MAIN MATRIX TABLE WITH BALANCED FIXED PROPORTIONS ===== --}}
+    {{-- ===== TABEL UTAMA MATRIKS AUDIT KEPATUHAN OPERATOR ===== --}}
     <table class="matrix-table">
         @php
             $dayColPct = 53.0 / $daysInMonth;

@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Cache;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Jalankan migrasi buat nambahin menu Kepatuhan Operator di sidebar (Jakarta & Karawang).
      */
     public function up(): void
     {
+        // Daftar role yang dapet izin akses menu
         $roles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc', 'inspector'];
 
-        // 1. Jakarta CHECKSHEET (Parent ID 10)
+        // 1. Menu CHECKSHEET Plant Jakarta (Parent ID 10)
         $jktParent = AppMenu::find(10);
         if ($jktParent) {
             $maxOrderJkt = AppMenu::where('parent_id', 10)->max('order') ?? 0;
@@ -32,6 +33,7 @@ return new class extends Migration
                 ]
             );
 
+            // Kasih akses permission buat semua role yang terdaftar
             foreach ($roles as $role) {
                 RolePermission::updateOrCreate(
                     ['role' => $role, 'menu_id' => $jktMenu->id],
@@ -40,7 +42,7 @@ return new class extends Migration
             }
         }
 
-        // 2. Karawang CHECKSHEET (Parent ID 28)
+        // 2. Menu CHECKSHEET Plant Karawang (Parent ID 28)
         $krwParent = AppMenu::find(28);
         if ($krwParent) {
             $maxOrderKrw = AppMenu::where('parent_id', 28)->max('order') ?? 0;
@@ -58,6 +60,7 @@ return new class extends Migration
                 ]
             );
 
+            // Kasih akses permission buat semua role yang terdaftar
             foreach ($roles as $role) {
                 RolePermission::updateOrCreate(
                     ['role' => $role, 'menu_id' => $krwMenu->id],
@@ -66,11 +69,12 @@ return new class extends Migration
             }
         }
 
+        // Bersihin cache aplikasi biar menu langsung muncul
         Cache::flush();
     }
 
     /**
-     * Reverse the migrations.
+     * Batalkan migrasi (hapus menu & permission terkait).
      */
     public function down(): void
     {
