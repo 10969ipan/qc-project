@@ -33,7 +33,7 @@ class OperatorComplianceController extends Controller
                 ->first() 
                 ?? \App\Models\AppMenu::where('name', 'Kepatuhan Operator')->first();
 
-            if ($menu && !$currentUser->hasMenuPermission($menu->id, 'view')) {
+            if ($menu && !$currentUser->hasPermission($menu->id, 'view')) {
                 abort(403, 'Anda tidak memiliki akses ke menu Kepatuhan Operator.');
             }
         }
@@ -210,7 +210,7 @@ class OperatorComplianceController extends Controller
                 ->first() 
                 ?? \App\Models\AppMenu::where('name', 'Kepatuhan Operator')->first();
 
-            if ($menu && !$currentUser->hasMenuPermission($menu->id, 'view')) {
+            if ($menu && !$currentUser->hasPermission($menu->id, 'view')) {
                 abort(403, 'Anda tidak memiliki akses ke menu Kepatuhan Operator.');
             }
         }
