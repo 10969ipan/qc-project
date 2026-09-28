@@ -33,11 +33,17 @@ return new class extends Migration
                 ]
             );
 
-            // Kasih akses permission buat semua role yang terdaftar
+            // Kasih akses permission: Role 'inspector' default-nya tidak aktif (false), role di atasnya aktif (true)
             foreach ($roles as $role) {
+                $canAccess = ($role !== 'inspector');
                 RolePermission::updateOrCreate(
                     ['role' => $role, 'menu_id' => $jktMenu->id],
-                    ['can_view' => true, 'can_create' => true, 'can_edit' => true, 'can_delete' => true]
+                    [
+                        'can_view'   => $canAccess,
+                        'can_create' => $canAccess,
+                        'can_edit'   => $canAccess,
+                        'can_delete' => $canAccess,
+                    ]
                 );
             }
         }
@@ -60,11 +66,17 @@ return new class extends Migration
                 ]
             );
 
-            // Kasih akses permission buat semua role yang terdaftar
+            // Kasih akses permission: Role 'inspector' default-nya tidak aktif (false), role di atasnya aktif (true)
             foreach ($roles as $role) {
+                $canAccess = ($role !== 'inspector');
                 RolePermission::updateOrCreate(
                     ['role' => $role, 'menu_id' => $krwMenu->id],
-                    ['can_view' => true, 'can_create' => true, 'can_edit' => true, 'can_delete' => true]
+                    [
+                        'can_view'   => $canAccess,
+                        'can_create' => $canAccess,
+                        'can_edit'   => $canAccess,
+                        'can_delete' => $canAccess,
+                    ]
                 );
             }
         }
