@@ -20,9 +20,9 @@
         var style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = [
-            '.ips-wrapper { position: relative; margin-bottom: 6px; }',
+            '.ips-wrapper { position: relative; margin-bottom: 6px; min-width: 280px; }',
             '.ips-input {',
-            '  width: 100%; box-sizing: border-box;',
+            '  width: 100%; min-width: 280px; box-sizing: border-box;',
             '  padding: 6px 32px 6px 10px;',
             '  border: 1px solid #ced4da; border-radius: 4px;',
             '  font-size: 13px; outline: none; transition: border-color .15s;',

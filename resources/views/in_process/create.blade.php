@@ -303,8 +303,8 @@
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <div class="mb-3">
-                <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+            <div class="mb-3 table-responsive">
+                <table style="width:100%; min-width:700px; border-collapse:collapse; border: 1px solid #dee2e6;">
                     <tr>
                         <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
                             <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
@@ -480,20 +480,20 @@
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                         <tr class="text-center">
-                            <th rowspan="2" class="align-middle">Item Part</th>
-                            <th rowspan="2" class="align-middle">Tanggal / Shift</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 300px;">Item Part</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 140px;">Tanggal / Shift</th>
                             @if(in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']))
-                                <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 120px;">Qty<br>(Total / Sampling)</th>
                             @else
-                                <th rowspan="2" class="align-middle">Qty Check</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 100px;">Qty Check</th>
                             @endif
-                            <th rowspan="2" class="align-middle">Check Dimensi</th>
-                            <th rowspan="2" class="align-middle col-berat-part" style="display: none;">Berat Part</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 250px;">Check Dimensi</th>
+                            <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 100px;">Berat Part</th>
                             <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
-                            <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
-                            <th rowspan="2" class="align-middle">Inisial QC</th>
-                            <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 150px;">Total (OK/NG)</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 150px;">Judgment</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 100px;">Inisial QC</th>
+                            <th rowspan="2" class="align-middle" style="min-width: 320px;">DESCRIPTION</th>
                         </tr>
                         <tr></tr>
                         </thead>
@@ -501,10 +501,10 @@
                             <tr>
 
                                 <!-- Pilihan Barang -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 300px;">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small font-weight-bold mb-1">
-                                        Scan Verifikasi Quanlity
+                                        Scan Verifikasi Quality
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control" id="sapCodeInput"

@@ -96,8 +96,8 @@
                 ]);
             @endphp
 
-            <div class="mb-3">
-                <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+            <div class="mb-3 table-responsive">
+                <table style="width:100%; min-width:700px; border-collapse:collapse; border: 1px solid #dee2e6;">
                     <tr>
                         <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
                             <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
@@ -284,21 +284,21 @@
                     <table class="table" id="checksheetTable" width="100%" cellspacing="0">
                         <thead>
                             <tr class="text-center">
-                                <th rowspan="2" class="align-middle">Item Part</th>
-                                <th rowspan="2" class="align-middle" id="thLotId">Lot ID<br>(Tgl / Shift / Meja / Inisial)</th>
-                                <th rowspan="2" class="align-middle">CHECKED<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" class="align-middle">Qty<br>(Total / Sampling)</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 300px;">Item Part</th>
+                                <th rowspan="2" class="align-middle" id="thLotId" style="min-width: 140px;">Lot ID<br>(Tgl / Shift / Meja / Inisial)</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 130px;">CHECKED<br>(Tgl / Shift / Inisial)</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 120px;">Qty<br>(Total / Sampling)</th>
                                 <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
-                                <th rowspan="2" class="align-middle">Total (OK/NG)</th>
-                                <th rowspan="2" class="align-middle">Judgment</th>
-                                <th rowspan="2" class="align-middle">DESCRIPTION</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 150px;">Total (OK/NG)</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 150px;">Judgment</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 320px;">DESCRIPTION</th>
                             </tr>
                             <tr></tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <!-- Pilihan Barang -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 300px;">
                                     <div class="form-group mb-2">
                                         <label class="font-weight-bold small font-weight-bold mb-1">
                                             Scan Verifikasi Quality
@@ -346,7 +346,7 @@
                                 </td>
 
                                 <!-- Lot ID (Tgl / Shift / Meja / Inisial) -->
-                                <td class="align-middle" id="tdLotId">
+                                <td class="align-middle" id="tdLotId" style="min-width: 140px;">
                                     <input type="date" class="form-control form-control-sm mb-1" style="min-width: 120px;"
                                         name="injection_date" id="injectionDateInput" value="{{ $defaultDate }}" data-field-name="Tanggal Lot ID" data-scan-optional="1">
                                     <select class="form-control form-control-sm mb-1" name="injection_shift" id="injectionShiftInput" data-field-name="Shift Lot ID" data-scan-optional="1">
@@ -366,7 +366,7 @@
                                 </td>
 
                                 <!-- CHECKED (Tgl / Shift / Inisial) -->
-                                <td class="align-middle">
+                                <td class="align-middle" style="min-width: 130px;">
                                     <div class="form-group mb-1">
                                         <label class="sr-only">Tanggal</label>
                                         <input type="date" class="form-control form-control-sm" style="min-width: 110px;" name="date"

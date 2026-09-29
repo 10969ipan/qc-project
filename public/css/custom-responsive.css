@@ -170,18 +170,18 @@
     }
 
     /* Input groups untuk mobile */
-    .input-group {
+    .input-group:not(.table *):not(#checksheetTable *):not(.input-group-sm):not(.no-mobile-stack) {
         flex-wrap: wrap;
     }
 
-    .input-group-prepend,
-    .input-group-append {
+    .input-group:not(.table *):not(#checksheetTable *):not(.input-group-sm):not(.no-mobile-stack) > .input-group-prepend,
+    .input-group:not(.table *):not(#checksheetTable *):not(.input-group-sm):not(.no-mobile-stack) > .input-group-append {
         width: 100%;
         margin-bottom: 0.5rem;
     }
 
-    .input-group-prepend .btn,
-    .input-group-append .btn {
+    .input-group:not(.table *):not(#checksheetTable *):not(.input-group-sm):not(.no-mobile-stack) > .input-group-prepend .btn,
+    .input-group:not(.table *):not(#checksheetTable *):not(.input-group-sm):not(.no-mobile-stack) > .input-group-append .btn {
         width: 100%;
     }
 
@@ -282,12 +282,12 @@ img[style*="width"] {
     height: auto !important;
 }
 
-/* Improve touch targets pada mobile */
+/* Improve touch targets pada mobile (kecuali di dalam tabel/input-group) */
 @media (max-width: 767.98px) {
 
-    a,
-    button,
-    .btn,
+    a:not(.table *):not(#checksheetTable *):not(.btn-sm):not(.btn-xs),
+    button:not(.table *):not(#checksheetTable *):not(.input-group *):not(.btn-sm):not(.btn-xs),
+    .btn:not(.table *):not(#checksheetTable *):not(.input-group *):not(.btn-sm):not(.btn-xs),
     .nav-link,
     .collapse-item {
         min-height: 44px;
@@ -622,6 +622,48 @@ footer.sticky-footer {
 #tempQueueTable td,
 #tempQueueTable th {
     border: 1px solid #e2e8f0 !important;
+}
+
+/* Guarantee Column 1 (Item Part) never gets squished in desktop or mobile mode */
+#checksheetTable > thead > tr > th:first-child,
+#checksheetTable > tbody > tr > td:first-child {
+    min-width: 300px !important;
+}
+
+/* Guarantee input groups inside tables remain horizontal & compact */
+#checksheetTable .input-group,
+.table .input-group {
+    flex-wrap: nowrap !important;
+    display: flex !important;
+    width: 100% !important;
+}
+
+#checksheetTable .input-group .form-control,
+.table .input-group .form-control {
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    min-width: 0 !important;
+}
+
+#checksheetTable .input-group-append,
+#checksheetTable .input-group-prepend,
+.table .input-group-append,
+.table .input-group-prepend {
+    width: auto !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+}
+
+#checksheetTable .input-group-append .btn,
+#checksheetTable .input-group-prepend .btn,
+.table .input-group-append .btn,
+.table .input-group-prepend .btn {
+    width: auto !important;
+    min-height: unset !important;
+    height: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 #checksheetTable > thead > tr > th,
