@@ -123,8 +123,20 @@
         wrapper.appendChild(clearBtn);
         document.body.appendChild(dropdown);
 
+        var isFilter = selectEl.id && selectEl.id.indexOf('filter') === 0;
+        var shouldHideSelect;
+        if (opts.hideSelect !== undefined) {
+            shouldHideSelect = Boolean(opts.hideSelect);
+        } else if (opts.showSelect !== undefined) {
+            shouldHideSelect = !opts.showSelect;
+        } else if (isFilter) {
+            shouldHideSelect = true;
+        } else {
+            shouldHideSelect = false;
+        }
+
         selectEl.parentNode.insertBefore(wrapper, selectEl);
-        if (opts.hideSelect) {
+        if (shouldHideSelect) {
             wrapper.classList.add('ips-hide-select');
             selectEl.style.setProperty('display', 'none', 'important');
         } else {
