@@ -654,9 +654,9 @@ $(document).ready(function () {
         });
     });
 
-    // Inisialisasi fitur pencarian cepat pada dropdown filter operator jika fungsi tersedia
+    // Inisialisasi pencarian cepat (single search input) pada dropdown filter operator
     if (typeof initItemSearch === 'function') {
-        initItemSearch('filterOperator', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50 });
+        initItemSearch('filterOperator', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50, hideSelect: true });
     }
 
     // Hitung & update badge angka masalah saat pertama kali halaman dimuat

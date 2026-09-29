@@ -61,6 +61,7 @@
             '}',
             '.ips-detail { color:#4e73df !important; font-size:10px !important; }',
             '.ips-select-managed { margin-top: 4px !important; width: 100% !important; min-width: 280px !important; display: block !important; }',
+            '.ips-wrapper.ips-hide-select, .ips-wrapper.ips-hide-select .ips-input { min-width: 0 !important; width: 100% !important; }',
         ].join('\n');
         document.head.appendChild(style);
     }
@@ -123,8 +124,13 @@
         document.body.appendChild(dropdown);
 
         selectEl.parentNode.insertBefore(wrapper, selectEl);
-        selectEl.classList.add('ips-select-managed');
-        selectEl.style.display = 'block';
+        if (opts.hideSelect) {
+            wrapper.classList.add('ips-hide-select');
+            selectEl.style.setProperty('display', 'none', 'important');
+        } else {
+            selectEl.classList.add('ips-select-managed');
+            selectEl.style.display = 'block';
+        }
 
         /* ── Helpers ── */
         function getOptions() {
@@ -236,6 +242,9 @@
             var ev = new CustomEvent('change', { bubbles: true });
             ev._ipsInternal = true;
             selectEl.dispatchEvent(ev);
+            if (typeof selectEl.onchange === 'function') {
+                selectEl.onchange();
+            }
         }
 
         function closeDropdown() {
@@ -262,7 +271,12 @@
         });
 
         input.addEventListener('focus', function () {
-            renderDropdown(input.value);
+            if (opts.hideSelect) {
+                try { input.select(); } catch(err){}
+                renderDropdown('');
+            } else {
+                renderDropdown(input.value);
+            }
         });
 
         input.addEventListener('blur', function () {
@@ -297,6 +311,9 @@
             var ev = new CustomEvent('change', { bubbles: true });
             ev._ipsInternal = true;
             selectEl.dispatchEvent(ev);
+            if (typeof selectEl.onchange === 'function') {
+                selectEl.onchange();
+            }
             renderDropdown('');
             input.focus();
         });

@@ -483,7 +483,7 @@
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Operator / Inspector</label>
                         <div style="width: 230px;" class="custom-filter-wrapper">
-                            <select name="operator_id" id="filterOperator" class="form-control form-control-sm shadow-sm d-none" onchange="if(this.value) this.form.submit()">
+                            <select name="operator_id" id="filterOperator" class="form-control form-control-sm filter-select-custom" onchange="if(this.value) this.form.submit()">
                                 @foreach($inspectors as $insp)
                                     <option value="{{ $insp->id }}" data-name="{{ $insp->name }}" {{ $selectedOperatorId == $insp->id ? 'selected' : '' }}>
                                         {{ $insp->name }}
