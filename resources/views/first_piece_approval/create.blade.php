@@ -495,11 +495,11 @@
                                         </div>
                                     </div>
                                     <div class="table-responsive" style="max-height: 400px; overflow: auto;">
-                                        <table class="table table-sm table-bordered mb-0" id="dimensionTable">
+                                        <table class="table table-sm table-bordered mb-0 dimension-table" id="dimensionTable">
                                             <thead class="text-center bg-light">
                                                 <tr id="dimensionHeadRow">
                                                     <th
-                                                        style="min-width: 100px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">
+                                                        style="min-width: 65px; width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">
                                                         Cavity</th>
                                                     @for ($j = 1; $j <= 5; $j++)
                                                         <th class="point-header">Point {{ $j }}</th>

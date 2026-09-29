@@ -624,13 +624,29 @@ footer.sticky-footer {
     border: 1px solid #e2e8f0 !important;
 }
 
-/* Guarantee Column 1 (Item Part) in checksheet form tables never gets squished in desktop or mobile mode */
-#checksheetForm #checksheetTable > thead > tr > th:first-child,
-#checksheetForm #checksheetTable > tbody > tr > td:first-child,
-form#checksheetForm table > thead > tr > th:first-child,
-form#checksheetForm table > tbody > tr > td:first-child {
+/* Guarantee Column 1 (Item Part) in main checksheet form table never gets squished in desktop or mobile mode */
+#checksheetForm > .table-responsive > #checksheetTable > thead > tr > th:first-child,
+#checksheetForm > .table-responsive > #checksheetTable > tbody > tr > td:first-child,
+#checksheetForm > #checksheetTable > thead > tr > th:first-child,
+#checksheetForm > #checksheetTable > tbody > tr > td:first-child {
     min-width: 300px !important;
 }
+
+/* Compact Cavity column in inner dimension tables */
+#dimensionTable th:first-child,
+#dimensionTable td:first-child,
+.dimension-table th:first-child,
+.dimension-table td:first-child,
+[id^="dimensionTable"] th:first-child,
+[id^="dimensionTable"] td:first-child,
+[id^="editDimensionTable"] th:first-child,
+[id^="editDimensionTable"] td:first-child {
+    min-width: 65px !important;
+    width: 65px !important;
+    max-width: 80px !important;
+    white-space: nowrap !important;
+}
+
 
 /* Guarantee input groups inside tables remain horizontal & compact */
 #checksheetTable .input-group,

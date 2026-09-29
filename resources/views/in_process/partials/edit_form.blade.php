@@ -336,7 +336,7 @@
             <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot1">
                 <thead class="bg-light text-center small font-weight-bold">
                     <tr id="editDimensionHeadRowShoot1">
-                        <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                        <th style="min-width: 65px; width: 65px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
                         @for ($j = 1; $j <= $maxPointFound; $j++)
                             <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
                         @endfor
@@ -373,7 +373,7 @@
             <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTableShoot2">
                 <thead class="bg-light text-center small font-weight-bold">
                     <tr id="editDimensionHeadRowShoot2">
-                        <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                        <th style="min-width: 65px; width: 65px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
                         @for ($j = 1; $j <= $maxPointFound; $j++)
                             <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
                         @endfor
