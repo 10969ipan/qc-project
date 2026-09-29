@@ -174,6 +174,7 @@
 
                         var currentBatchIndex = 0;
                         var processedCount = 0;
+                        var lastBaseTime = '';
 
                         function processNextBatch() {
                             if (currentBatchIndex >= batches.length) {
@@ -198,12 +199,21 @@
                             }
 
                             var batchIds = batches[currentBatchIndex];
+                            
+                            var requestData = $.extend({}, baseData, { ids: batchIds });
+                            if (lastBaseTime) {
+                                requestData.base_time = lastBaseTime;
+                            }
 
                             $.ajax({
                                 url: '{{ $bulkApproveRoute }}',
                                 type: 'POST',
-                                data: $.extend({}, baseData, { ids: batchIds }),
+                                data: requestData,
                                 success: function (batchRes) {
+                                    if (batchRes.last_time) {
+                                        lastBaseTime = batchRes.last_time;
+                                    }
+                                    
                                     currentBatchIndex++;
                                     processedCount += batchIds.length;
                                     var percent = Math.min(100, Math.round((processedCount / totalCount) * 100));

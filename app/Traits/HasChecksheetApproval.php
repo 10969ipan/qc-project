@@ -31,6 +31,35 @@ trait HasChecksheetApproval
         return 'date';
     }
 
+    /**
+     * Get the ordered sequence of approval types.
+     * Controllers can override this if they have a custom sequence.
+     */
+    protected function getApprovalSequence()
+    {
+        return ['kashift', 'supervisor', 'asst_manager', 'manager'];
+    }
+
+    protected function validateSequentialApproval($checksheet, $type)
+    {
+        $sequence = $this->getApprovalSequence();
+        $idx = array_search($type, $sequence);
+        
+        if ($idx === false || $idx === 0) return true; // Not in sequence or is the first one
+
+        for ($i = $idx - 1; $i >= 0; $i--) {
+            $prevType = $sequence[$i];
+            $prevMap = $this->getApprovalMapping($prevType);
+            if ($prevMap) {
+                $prevField = $prevMap['field'];
+                if (empty($checksheet->$prevField) || $checksheet->$prevField === 'REJECTED') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public function approve(Request $request, $id, $type)
     {
         $map = $this->getApprovalMapping($type);
@@ -113,6 +142,13 @@ trait HasChecksheetApproval
                     }
                     return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
                 }
+            }
+
+            if (!$this->validateSequentialApproval($checksheet, $type)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Menunggu approval dari level sebelumnya.'], 403);
+                }
+                return redirect()->back()->with('error', 'Menunggu approval dari level sebelumnya.');
             }
 
             // Execute Approval
@@ -211,6 +247,13 @@ trait HasChecksheetApproval
 
             $field = $map['field'];
             $timeField = $map['time'];
+
+            if (!$this->validateSequentialApproval($checksheet, $type)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Menunggu approval dari level sebelumnya.'], 403);
+                }
+                return redirect()->back()->with('error', 'Menunggu approval dari level sebelumnya.');
+            }
 
             $checksheet->$field = 'REJECTED';
             $checksheet->$timeField = now();
@@ -520,10 +563,11 @@ trait HasChecksheetApproval
                 ]);
             }
 
+            $lastTimeStr = null;
+
             if ($approvedCount > 0) {
                 $updateData = [
                     $field => $user->name,
-                    $timeField => now(),
                 ];
                 
                 $dummyModel = new $modelClass();
@@ -541,10 +585,19 @@ trait HasChecksheetApproval
                     $updateData['rejection_remarks'] = null;
                 }
 
-                // Execute mass update (very fast, O(1) query)
-                $modelClass::whereIn('id', $checksheetIds)->update($updateData);
+                $baseTime = $request->filled('base_time') ? \Carbon\Carbon::parse($request->input('base_time')) : now();
+                $lastTime = $baseTime->copy();
 
-
+                // Execute iterative update to assign sequential random time
+                foreach ($checksheetIds as $id) {
+                    $lastTime = $lastTime->addMinutes(rand(1, 5));
+                    $rowUpdateData = $updateData;
+                    $rowUpdateData[$timeField] = $lastTime->copy();
+                    
+                    $modelClass::where('id', $id)->update($rowUpdateData);
+                }
+                
+                $lastTimeStr = $lastTime->toDateTimeString();
             }
 
             if ($approvedCount > 0) {
@@ -558,6 +611,7 @@ trait HasChecksheetApproval
                 'success' => true,
                 'message' => "Berhasil approve {$approvedCount} data checksheet.",
                 'count' => $approvedCount,
+                'last_time' => $lastTimeStr,
             ]);
 
         } catch (\Exception $e) {
@@ -567,6 +621,23 @@ trait HasChecksheetApproval
                 'success' => false,
                 'message' => 'Terjadi error saat bulk approve: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    protected function applySequentialApprovalFilter($query, $type)
+    {
+        $sequence = $this->getApprovalSequence();
+        $idx = array_search($type, $sequence);
+        
+        if ($idx === false || $idx === 0) return;
+
+        for ($i = $idx - 1; $i >= 0; $i--) {
+            $prevType = $sequence[$i];
+            $prevMap = $this->getApprovalMapping($prevType);
+            if ($prevMap) {
+                $prevField = $prevMap['field'];
+                $query->whereNotNull($prevField)->where($prevField, '!=', 'REJECTED');
+            }
         }
     }
 
