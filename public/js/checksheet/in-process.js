@@ -556,11 +556,7 @@ class InProcessCreate {
             }
         });
 
-        // Collect part weights
-        const part_weights = [];
-        $('input[name="part_weight[]"]').each(function () {
-            part_weights.push($(this).val());
-        });
+
 
         // Collect defects
         const defect_types = [];
@@ -596,7 +592,6 @@ class InProcessCreate {
             next_proses: $('#nextProses').val(),
             cycle_time: capturedCycleTime,
             dimensions: dimensions,
-            part_weight: part_weights,
             defect_types: defect_types,
             defect_quantities: defect_quantities,
             itemNameDisplay: $("#itemSelect option:selected").text().trim()
@@ -1944,43 +1939,7 @@ class InProcessCreate {
             ).show();
     }
 
-    initWeightControls() {
-        const _this = this;
-        $(document).on("click", "#addWeightCavBtn", function () {
-            const cnt = $("#weightCavContainer .weight-cav-row").length;
-            if (cnt >= _this.MAX_WEIGHT_CAV) return;
-            $("#weightCavContainer").append(_this.buildWeightCavRow(cnt + 1));
-            _this.updateWeightCavBadge();
-        });
-        $(document).on("click", "#removeWeightCavBtn", function () {
-            const rows = $("#weightCavContainer .weight-cav-row");
-            if (rows.length <= 1) return;
-            rows.last().remove();
-            _this.updateWeightCavBadge();
-        });
-    }
 
-    buildWeightCavRow(cavNum) {
-        return `<div class="weight-cav-row" style="display:flex; align-items:center; margin-bottom:6px; gap:8px;"><span style="font-size:0.85rem; font-weight:600; color:#444; white-space:nowrap; min-width:45px;">CAV ${cavNum}</span><input type="number" step="0.01" min="0" class="form-control form-control-sm text-center" name="part_weight[]" placeholder="0.00" style="width:100px; flex:none;"><span style="font-size:0.85rem; color:#666;">gr</span></div>`;
-    }
-
-    updateWeightCavBadge() {
-        const cnt = $("#weightCavContainer .weight-cav-row").length;
-        $("#addWeightCavBtn").prop("disabled", cnt >= this.MAX_WEIGHT_CAV);
-        $("#removeWeightCavBtn").prop("disabled", cnt <= 1);
-    }
-
-    initWeightCavities(count) {
-        count = Math.min(
-            Math.max(1, parseInt(count) || 1),
-            this.MAX_WEIGHT_CAV,
-        );
-        const container = $("#weightCavContainer");
-        container.empty();
-        for (let i = 1; i <= count; i++)
-            container.append(this.buildWeightCavRow(i));
-        this.updateWeightCavBadge();
-    }
 
     updateDefectDropdown(defects) {
         let defectsData = defects;

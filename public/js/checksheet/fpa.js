@@ -638,34 +638,7 @@ class FpaCreate {
         this.renderWeightRows(cavCount);
     }
 
-    renderWeightRows(count) {
-        const container = $("#weightCavContainer");
-        container.empty();
-        for (let i = 1; i <= count; i++) {
-            container.append(`
-                <div class="input-group input-group-sm mb-1 weight-row" data-index="${i - 1}">
-                    <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">CAV ${i}</span></div>
-                    <input type="text" name="part_weight[]" class="form-control form-control-sm weight-input" placeholder="0.00">
-                </div>
-            `);
-        }
-    }
 
-    addWeightRow() {
-        const nextIdx = $("#weightCavContainer .weight-row").length + 1;
-        $("#weightCavContainer").append(`
-            <div class="input-group input-group-sm mb-1 weight-row" data-index="${nextIdx - 1}">
-                <div class="input-group-prepend"><span class="input-group-text py-0" style="font-size:0.65rem;">CAV ${nextIdx}</span></div>
-                <input type="text" name="part_weight[]" class="form-control form-control-sm weight-input" placeholder="0.00">
-            </div>
-        `);
-    }
-
-    removeWeightRow() {
-        if ($("#weightCavContainer .weight-row").length > 0) {
-            $("#weightCavContainer .weight-row:last").remove();
-        }
-    }
 
     initSapSelection() {
         // Fix: gunakan data-sap_code (underscore) sesuai attribute di blade template
@@ -1078,24 +1051,7 @@ class FpaCreate {
         }
     }
 
-    initWeightCavities(count) {
-        count = Math.min(Math.max(1, parseInt(count) || 1), 8);
-        const container = $("#weightCavContainer");
-        container.empty();
-        for (let i = 1; i <= count; i++) {
-            container.append(
-                `<div class="weight-cav-row" style="display:flex;align-items:center;margin-bottom:6px;gap:8px;">
-                    <span style="font-size:0.85rem;font-weight:600;color:#444;white-space:nowrap;min-width:45px;">CAV ${i}</span>
-                    <input type="number" step="0.01" min="0" class="form-control form-control-sm text-center" name="part_weight[]" placeholder="0.00" style="width:100px;flex:none;">
-                    <span style="font-size:0.85rem;color:#666;">gr</span>
-                </div>`
-            );
-        }
-        // Update badge buttons
-        const cnt = $("#weightCavContainer .weight-cav-row").length;
-        $("#addWeightCavBtn").prop('disabled', cnt >= 8);
-        $("#removeWeightCavBtn").prop('disabled', cnt <= 1);
-    }
+
 
     initAqlLogic() {
         const _this = this;
@@ -1969,49 +1925,7 @@ class FpaEdit {
         }
     }
 
-    initWeightHandling() {
-        this.editMaxWeightCav = 8;
-        $("#editAddWeightCavBtn").on("click", () => this.addWeightCav());
-        $("#editRemoveWeightCavBtn").on("click", () => this.removeWeightCav());
-        this.updateWeightCavBadge();
-    }
 
-    buildWeightCavRow(cavNum, value = "") {
-        return `<div class="input-group input-group-sm mb-1 edit-weight-cav-row">
-            <div class="input-group-prepend">
-                <span class="input-group-text" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
-            </div>
-            <input type="number" step="0.01" min="0" class="form-control text-center"
-                name="part_weight[]" placeholder="0.00" value="${value}">
-            <div class="input-group-append">
-                <span class="input-group-text text-muted small">gr</span>
-            </div>
-        </div>`;
-    }
-
-    updateWeightCavBadge() {
-        const cnt = $("#editWeightCavContainer .edit-weight-cav-row").length;
-        $("#editWeightCavCount").text(`${cnt} Cav`);
-        $("#editAddWeightCavBtn").prop(
-            "disabled",
-            cnt >= this.editMaxWeightCav,
-        );
-        $("#editRemoveWeightCavBtn").prop("disabled", cnt <= 1);
-    }
-
-    addWeightCav() {
-        const cnt = $("#editWeightCavContainer .edit-weight-cav-row").length;
-        if (cnt >= this.editMaxWeightCav) return;
-        $("#editWeightCavContainer").append(this.buildWeightCavRow(cnt + 1));
-        this.updateWeightCavBadge();
-    }
-
-    removeWeightCav() {
-        const rows = $("#editWeightCavContainer .edit-weight-cav-row");
-        if (rows.length <= 1) return;
-        rows.last().remove();
-        this.updateWeightCavBadge();
-    }
 
     initItemHandling() {
         $("#item_id")
