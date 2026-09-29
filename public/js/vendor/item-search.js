@@ -23,13 +23,20 @@
             '.ips-wrapper { position: relative; margin-bottom: 6px; min-width: 280px; }',
             '.ips-input {',
             '  width: 100%; min-width: 280px; box-sizing: border-box;',
-            '  padding: 6px 32px 6px 10px;',
+            '  padding: 6px 42px 6px 10px;',
             '  border: 1px solid #ced4da; border-radius: 4px;',
             '  font-size: 13px; outline: none; transition: border-color .15s;',
+            '  background: #ffffff;',
             '}',
             '.ips-input:focus { border-color: #4e73df; box-shadow: 0 0 0 2px rgba(78,115,223,.25); }',
+            '.ips-arrow {',
+            '  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);',
+            '  cursor: pointer; color: #64748b; font-size: 9px; pointer-events: auto;',
+            '  user-select: none; transition: color .15s; padding: 2px 4px;',
+            '}',
+            '.ips-arrow:hover { color: #1e293b; }',
             '.ips-clear {',
-            '  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);',
+            '  position: absolute; right: 26px; top: 50%; transform: translateY(-50%);',
             '  cursor: pointer; color: #64748b; font-size: 18px; font-weight: 700; line-height: 1;',
             '  display: none; user-select: none;',
             '}',
@@ -108,6 +115,11 @@
         input.autocomplete = 'off';
         input.spellcheck = false;
 
+        var arrowBtn = document.createElement('span');
+        arrowBtn.className = 'ips-arrow';
+        arrowBtn.innerHTML = '&#9660;';
+        arrowBtn.title = 'Tampilkan daftar item';
+
         var clearBtn = document.createElement('span');
         clearBtn.className = 'ips-clear';
         clearBtn.innerHTML = '&times;';
@@ -117,6 +129,7 @@
         dropdown.className = 'ips-dropdown';
 
         wrapper.appendChild(input);
+        wrapper.appendChild(arrowBtn);
         wrapper.appendChild(clearBtn);
         document.body.appendChild(dropdown);
 
@@ -289,6 +302,18 @@
                 }
             } else if (e.key === 'Escape') {
                 closeDropdown();
+            }
+        });
+
+        arrowBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (input.disabled) return;
+            if (dropdown.style.display === 'block') {
+                closeDropdown();
+            } else {
+                renderDropdown('');
+                input.focus();
             }
         });
 

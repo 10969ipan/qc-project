@@ -624,9 +624,11 @@ footer.sticky-footer {
     border: 1px solid #e2e8f0 !important;
 }
 
-/* Guarantee Column 1 (Item Part) never gets squished in desktop or mobile mode */
-#checksheetTable > thead > tr > th:first-child,
-#checksheetTable > tbody > tr > td:first-child {
+/* Guarantee Column 1 (Item Part) in checksheet form tables never gets squished in desktop or mobile mode */
+#checksheetForm #checksheetTable > thead > tr > th:first-child,
+#checksheetForm #checksheetTable > tbody > tr > td:first-child,
+form#checksheetForm table > thead > tr > th:first-child,
+form#checksheetForm table > tbody > tr > td:first-child {
     min-width: 300px !important;
 }
 
