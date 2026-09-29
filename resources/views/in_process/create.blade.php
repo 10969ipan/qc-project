@@ -605,7 +605,7 @@
 
                                  <!-- Cek Dimensi (Cavity & Titik - Sub-kolom SHOOT 1 | SHOOT 2) -->
                                 <td class="align-middle">
-                                    <div class="d-flex justify-content-start mb-2" style="position: sticky; top: 70px; z-index: 105;">
+                                    <div class="d-flex justify-content-start mb-2">
                                         <div class="btn-toolbar bg-white border rounded shadow-sm p-1" role="toolbar" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;">
                                             <div class="btn-group mr-2" role="group">
                                                 <button type="button" class="btn btn-primary btn-xs" id="addCavityBtn"
