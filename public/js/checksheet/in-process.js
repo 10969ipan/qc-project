@@ -778,10 +778,9 @@ class InProcessCreate {
 
             Object.keys(item).forEach(key => {
                 if (key === 'itemNameDisplay') return;
-                if (key === 'next_proses') return; // Override original value
                 appendToFormData(formData, item[key], key);
             });
-            formData.append('next_proses', batchNextProses);
+            formData.append('tujuan', batchNextProses);
 
             try {
                 await new Promise((resolve, reject) => {
