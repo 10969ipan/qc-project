@@ -427,7 +427,6 @@ class InProcessCreate {
         this.initTimer();
         this.initItemSelect();
         this.initDimensionControls();
-        this.initWeightControls();
         this.initDefectList();
         this.initFormValidation();
         this.initZoomLogic();
@@ -782,7 +781,7 @@ class InProcessCreate {
                 if (key === 'next_proses') return; // Override original value
                 appendToFormData(formData, item[key], key);
             });
-            formData.append('tujuan', batchNextProses);
+            formData.append('next_proses', batchNextProses);
 
             try {
                 await new Promise((resolve, reject) => {
@@ -2624,6 +2623,8 @@ class InProcessCreate {
         // ).hide();
         $("#judgmentBadge").addClass("d-none").text("-");
         $("#itemSelect").val("").trigger("change");
+
+        this.lockInputs();
 
         // Buka kembali input scan untuk siklus berikutnya
         $("#sapCodeInput").prop("disabled", false).css("background", "");
