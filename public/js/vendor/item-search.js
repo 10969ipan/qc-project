@@ -304,7 +304,9 @@
         /* ── Lock / unlock to match other form fields ── */
         function applyLockState(locked) {
             input.disabled = locked;
-            selectEl.disabled = locked;
+            if (selectEl.disabled !== locked) {
+                selectEl.disabled = locked;
+            }
             if (locked) {
                 input.placeholder = 'Klik Start terlebih dahulu...';
                 input.style.cursor = 'not-allowed';
