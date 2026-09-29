@@ -140,45 +140,7 @@
                 </div>
             </div>
 
-            <!-- Section Berat Part (Hanya muncul jika customer tertentu) -->
-            <div id="editBeratPartRow" style="display: none;" class="mt-3 bg-white p-3 rounded shadow-sm border">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="small font-weight-bold text-gray-700 mb-0">
-                        <i class="fas fa-weight mr-1"></i> Berat Part (gr.)
-                        <span class="badge badge-secondary ml-2 font-weight-normal" id="editWeightStandardBadge" style="display: none;">
-                            Std: <span id="editWeightStandardDisplay">-</span> gr
-                        </span>
-                    </label>
-                    
-                    <div class="d-flex align-items-center" style="gap:5px;">
-                        <div class="btn-group shadow-sm">
-                            <button type="button" id="editAddWeightCavBtn" class="btn btn-primary btn-xs px-2" title="Tambah Cavity" style="font-size: 0.7rem;"><i class="fas fa-plus"></i></button>
-                            <button type="button" id="editRemoveWeightCavBtn" class="btn btn-danger btn-xs px-2" title="Kurangi Cavity" style="font-size: 0.7rem;"><i class="fas fa-minus"></i></button>
-                        </div>
-                        <span id="editWeightCavCount" class="badge badge-primary px-2 py-1" style="font-size: 0.7rem;">1 Cav</span>
-                    </div>
-                </div>
 
-                <div id="editWeightCavContainer">
-                    @php
-                        $existingWeights = is_array($checksheet->part_weight)
-                            ? $checksheet->part_weight
-                            : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[') ? json_decode($checksheet->part_weight, true) : ($checksheet->part_weight ? [$checksheet->part_weight] : [null]));
-                    @endphp
-                    @foreach($existingWeights as $cavIdx => $wVal)
-                        <div class="input-group input-group-sm mb-2 edit-weight-cav-row">
-                            <div class="input-group-prepend shadow-sm">
-                                <span class="input-group-text bg-light border-0" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $cavIdx + 1 }}</span>
-                            </div>
-                            <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold border-0 shadow-sm"
-                                name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
-                            <div class="input-group-append shadow-sm">
-                                <span class="input-group-text bg-light border-0 text-muted">gr</span>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
         </div>
 
         <!-- 3. Kolom Kanan: Hasil Kualitas -->
@@ -1366,44 +1328,7 @@
             }
         });
 
-        // ============================================================
-        // EDIT WEIGHT CAVITY HELPERS
-        // ============================================================
-        const EDIT_MAX_WEIGHT_CAV = 12;
 
-        function buildEditWeightCavRow(cavNum, value) {
-            value = value || '';
-            return `<div class="input-group input-group-sm mb-1 edit-weight-cav-row">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-white" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${cavNum}</span>
-                </div>
-                <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold"
-                    name="part_weight[]" placeholder="0.00" value="${value}">
-                <div class="input-group-append">
-                    <span class="input-group-text bg-white text-muted">gr</span>
-                </div>
-            </div>`;
-        }
-
-        function updateEditWeightCavBadge() {
-            var cnt = $('#editWeightCavContainer .edit-weight-cav-row').length;
-            $('#editWeightCavCount').text(cnt + ' Cav');
-        }
-        updateEditWeightCavBadge();
-
-        $('#editAddWeightCavBtn').click(function () {
-            var cnt = $('#editWeightCavContainer .edit-weight-cav-row').length;
-            if (cnt >= EDIT_MAX_WEIGHT_CAV) return;
-            $('#editWeightCavContainer').append(buildEditWeightCavRow(cnt + 1));
-            updateEditWeightCavBadge();
-        });
-
-        $('#editRemoveWeightCavBtn').click(function () {
-            var rows = $('#editWeightCavContainer .edit-weight-cav-row');
-            if (rows.length <= 1) return;
-            rows.last().remove();
-            updateEditWeightCavBadge();
-        });
         })(jQuery); // Pass jQuery to the function
     })(); // Self-executing function
 </script>

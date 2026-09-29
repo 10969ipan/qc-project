@@ -365,8 +365,6 @@
                                     <th rowspan="2" class="align-middle">Qty Check</th>
                                 @endif
                                 <th rowspan="2" class="align-middle">Check Dimensi</th>
-                                <th rowspan="2" class="align-middle col-berat-part" style="display: none; min-width: 280px;">
-                                    Berat Part</th>
                                 <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
                                 <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                                 <th rowspan="2" class="align-middle">Judgment</th>
@@ -526,26 +524,6 @@
                                     </div>
                                 </td>
 
-                                {{-- Berat Part (Kondisional) --}}
-                                <td class="align-middle col-berat-part" style="display: none; min-width: 280px;">
-                                    <div class="px-2">
-                                        {{-- Baris kontrol --}}
-                                        <div class="d-flex align-items-center mb-2" style="gap:4px;">
-                                            <button type="button" id="addWeightCavBtn" title="Tambah Cavity"
-                                                style="width:22px;height:22px;border-radius:50%;border:none;background:#4e73df;color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer;text-align:center;">+</button>
-                                            <button type="button" id="removeWeightCavBtn" title="Hapus Cavity"
-                                                style="width:22px;height:22px;border-radius:50%;border:1px solid #ccc;background:#fff;color:#aaa;font-size:15px;line-height:20px;padding:0;cursor:pointer;text-align:center;">−</button>
-                                        </div>
-                                        {{-- Baris per-cavity (disuntikkan oleh JS) --}}
-                                        <div id="weightCavContainer"></div>
-                                        {{-- Badge Standar --}}
-                                        <div class="mt-1">
-                                            <span id="weightStandardBadge" class="text-muted"
-                                                style="display:none; font-size:0.7rem;">Std: <span
-                                                    id="weightStandardDisplay">-</span> gr.</span>
-                                        </div>
-                                    </div>
-                                </td>
 
                                 <td class="align-middle" style="min-width: 280px;">
                                     <div class="d-flex justify-content-between align-items-center mb-2">

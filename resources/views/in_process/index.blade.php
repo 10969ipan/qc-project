@@ -571,7 +571,6 @@
                             <th rowspan="2" class="align-middle">Customer</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th rowspan="2" class="align-middle" style="min-width: 170px;">Check Dimensi</th>
-                                <th rowspan="2" class="align-middle">Berat Part</th>
                             @endif
                             @if(in_array(strtolower($plantContext ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
                                 <th rowspan="2" class="align-middle text-nowrap">Qty<br>(Total / Sampling)</th>
@@ -1103,27 +1102,7 @@
                                     @endif
                                 </td>
 
-                                <td class="align-middle" style="min-width:90px;">
-                                    @php
-                                        $weights = is_array($checksheet->part_weight)
-                                            ? $checksheet->part_weight
-                                            : (is_string($checksheet->part_weight) && str_starts_with($checksheet->part_weight, '[')
-                                                ? json_decode($checksheet->part_weight, true)
-                                                : ($checksheet->part_weight ? [$checksheet->part_weight] : []));
-                                    @endphp
-                                    @if(!empty(array_filter($weights, fn($w) => $w !== null && $w !== '')))
-                                        @foreach($weights as $ci => $wv)
-                                            @if($wv !== null && $wv !== '')
-                                                <div class="text-nowrap" style="font-size:0.75rem;">
-                                                    <span class="text-muted">CAV{{ $ci + 1 }}:</span>
-                                                    <strong>{{ $wv }}</strong><small class="text-muted"> gr</small>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    @else
-                                        -
-                                    @endif
-                                </td>
+
                                 @endif
 
                                  <td class="align-middle text-nowrap">

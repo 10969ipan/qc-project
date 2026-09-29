@@ -1393,32 +1393,7 @@ class InProcessCreate {
             const weightStandard = selectedOption.data("weight-standard");
             const cavityData = selectedOption.data("cavity");
 
-            // Berat Part Logic
-            if (
-                customer &&
-                (customer.toUpperCase().includes("ASTRA HONDA MOTOR") ||
-                    customer.toUpperCase().includes("AHM") ||
-                    customer
-                        .toUpperCase()
-                        .includes("PT. TAKAGI SARI MULTI UTAMA"))
-            ) {
-                $(".col-berat-part").attr(
-                    "style",
-                    "display: table-cell !important;",
-                );
-                const itemCavity = parseInt(cavityData) || 1;
-                _this.initWeightCavities(Math.min(itemCavity, 8));
-                if (weightStandard) {
-                    $("#weightStandardDisplay").text(weightStandard);
-                    $("#weightStandardBadge").show();
-                } else {
-                    $("#weightStandardBadge").hide();
-                }
-            } else {
-                $(".col-berat-part").attr("style", "display: none !important;");
-                _this.initWeightCavities(1);
-                $("#weightStandardBadge").hide();
-            }
+
 
             // Logika Referensi PDF
             if (itemId === _this.lastItemId) {

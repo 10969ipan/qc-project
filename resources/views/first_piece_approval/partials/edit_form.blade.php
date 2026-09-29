@@ -122,42 +122,7 @@
             </div>
 
             <!-- Section Berat Part -->
-                    <div id="editBeratPartRow" class="mt-3 bg-white p-3 rounded shadow-sm border">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="small font-weight-bold text-gray-700 mb-0">
-                                <i class="fas fa-weight mr-1"></i> Berat Part (gr.)
-                                <span class="badge badge-secondary ml-2 font-weight-normal" id="weightStdBadge">
-                                    Std: {{ $checksheet->item->weight_standard ?? '-' }} gr
-                                </span>
-                            </label>
-                            
-                            <div class="d-flex align-items-center" style="gap:5px;">
-                                <div class="btn-group shadow-sm">
-                                    <button type="button" id="editAddWeightCavBtn" class="btn btn-primary btn-xs px-2" title="Tambah Cavity" style="font-size: 0.7rem;"><i class="fas fa-plus"></i></button>
-                                    <button type="button" id="editRemoveWeightCavBtn" class="btn btn-danger btn-xs px-2" title="Kurangi Cavity" style="font-size: 0.7rem;"><i class="fas fa-minus"></i></button>
-                                </div>
-                                @php
-                                    $wts = is_array($checksheet->part_weight) ? $checksheet->part_weight : json_decode($checksheet->part_weight, true) ?? [null];
-                                @endphp
-                                <span id="editWeightCavCount" class="badge badge-primary px-2 py-1" style="font-size: 0.7rem;">{{ count($wts) }} Cav</span>
-                            </div>
-                        </div>
 
-                        <div id="editWeightCavContainer">
-                            @foreach($wts as $idx => $wVal)
-                                <div class="input-group input-group-sm mb-2 edit-weight-cav-row">
-                                    <div class="input-group-prepend shadow-sm">
-                                        <span class="input-group-text bg-light border-0" style="min-width:60px; justify-content:center; font-weight:600;">CAV {{ $idx + 1 }}</span>
-                                    </div>
-                                    <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold border-0 shadow-sm"
-                                        name="part_weight[]" placeholder="0.00" value="{{ $wVal }}">
-                                    <div class="input-group-append shadow-sm">
-                                        <span class="input-group-text bg-light border-0 text-muted">gr</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
         </div>
         <!-- 3. Kolom Kanan: Hasil Kualitas -->
         <div class="col-md-6 mb-3">
@@ -345,25 +310,7 @@
         let currentPoints = {{ $maxP }};
 
         // UI Handlers
-        $('#editAddWeightCavBtn').click(function() {
-            const count = $('#editWeightCavContainer .edit-weight-cav-row').length + 1;
-            $('#editWeightCavContainer').append(`
-                <div class="input-group input-group-sm mb-1 edit-weight-cav-row">
-                    <div class="input-group-prepend"><span class="input-group-text bg-white" style="min-width:60px; justify-content:center; font-weight:600;">CAV ${count}</span></div>
-                    <input type="number" step="0.01" min="0" class="form-control text-center font-weight-bold" name="part_weight[]" placeholder="0.00">
-                    <div class="input-group-append"><span class="input-group-text bg-white text-muted">gr</span></div>
-                </div>
-            `);
-            $('#editWeightCavCount').text(count + ' Cav');
-        });
 
-        $('#editRemoveWeightCavBtn').click(function() {
-            if($('#editWeightCavContainer .edit-weight-cav-row').length > 1) {
-                $('#editWeightCavContainer .edit-weight-cav-row:last').remove();
-                const count = $('#editWeightCavContainer .edit-weight-cav-row').length;
-                $('#editWeightCavCount').text(count + ' Cav');
-            }
-        });
 
         $('#editAddDefectBtn').click(function() {
             let itemDefects = $('#item_id').find('option:selected').data('defects') || [];

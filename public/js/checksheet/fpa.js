@@ -764,26 +764,7 @@ class FpaCreate {
             $(".similar-nav-controls, #fullSimilarBtn, #downloadSimilarBtn").hide();
         }
 
-        // ── Berat Part – hanya untuk AHM / PT Takagi (sesuai in-process.js) ──
-        const cu = customer.toUpperCase();
-        const showWeight = cu.includes('ASTRA HONDA MOTOR') ||
-            cu.includes('AHM') ||
-            cu.includes('PT. TAKAGI SARI MULTI UTAMA');
-        if (showWeight) {
-            $(".col-berat-part").attr("style", "display: table-cell !important;");
-            const itemCavity = parseInt(cavityData) || 1;
-            this.initWeightCavities(Math.min(itemCavity, 8));
-            if (weightStd) {
-                $("#weightStandardDisplay").text(weightStd);
-                $("#weightStandardBadge").show();
-            } else {
-                $("#weightStandardBadge").hide();
-            }
-        } else {
-            $(".col-berat-part").attr("style", "display: none !important;");
-            this.initWeightCavities(1);
-            $("#weightStandardBadge").hide();
-        }
+
 
         // ── Dimension Standards ───────────────────────────────────────────────
         let dimStds = $opt.data("dimension-standards");
