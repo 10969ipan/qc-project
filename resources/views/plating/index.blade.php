@@ -745,8 +745,13 @@
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
                                             $kashiftApproved = !empty($checksheet->kashift_qc) && $checksheet->kashift_qc !== 'REJECTED';
+                                            $supervisorApproved = !empty($checksheet->supervisor_qc) && $checksheet->supervisor_qc !== 'REJECTED';
+                                            $asstApproved = !empty($checksheet->asst_manager_qc) && $checksheet->asst_manager_qc !== 'REJECTED';
+
                                             $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && $kashiftApproved;
+                                            $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') && $supervisorApproved;
+                                            $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED') && $asstApproved;
 
                                             $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
                                             $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
@@ -797,6 +802,42 @@
                                                     </button>
                                                 </form>
                                                 <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'asst_manager' && $canApproveAsst)
+                                                <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (AM)">
+                                                        <i class="fas fa-check"></i> Approve AM
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (AM)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            @elseif($user->role === 'manager' && $canApproveManager)
+                                                <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    @csrf
+                                                    <input type="hidden" name="page" value="{{ request('page') }}">
+                                                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                    <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                    <input type="hidden" name="search" value="{{ request('search') }}">
+                                                    <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                    <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (MGR)">
+                                                        <i class="fas fa-check"></i> Approve MGR
+                                                    </button>
+                                                </form>
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (MGR)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @endif
@@ -851,6 +892,50 @@
                                                         </form>
                                                         <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Asst Manager (Admin Only in Dropdown) --}}
+                                                    @if($canApproveAsst)
+                                                        <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve AM
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject AM
+                                                        </button>
+                                                        <div class="dropdown-divider"></div>
+                                                    @endif
+
+                                                    {{-- Approve Manager (Admin Only in Dropdown) --}}
+                                                    @if($canApproveManager)
+                                                        <form action="{{ route('plating.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            @csrf
+                                                            <input type="hidden" name="page" value="{{ request('page') }}">
+                                                            <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                                                            <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                                                            <input type="hidden" name="item_id" value="{{ request('item_id') }}">
+                                                            <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                                                            <input type="hidden" name="search" value="{{ request('search') }}">
+                                                            <input type="hidden" name="shift" value="{{ request('shift') }}">
+                                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                            <button type="submit" class="dropdown-item text-success font-weight-bold">
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve MGR
+                                                            </button>
+                                                        </form>
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject MGR
                                                         </button>
                                                         <div class="dropdown-divider"></div>
                                                     @endif
