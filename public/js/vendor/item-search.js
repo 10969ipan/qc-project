@@ -223,7 +223,6 @@
             dropdown.style.setProperty('width', rect.width + 'px', 'important');
             dropdown.style.setProperty('margin', '0', 'important');
             dropdown.style.setProperty('z-index', '999999', 'important');
-            dropdown.style.setProperty('display', 'block', 'important');
         }
 
         // Only close on resize, no need to close on scroll anymore as it scrolls with the page
@@ -232,22 +231,16 @@
         function selectOption(opt) {
             opt.selected = true;
             selectEl.value = opt.value;
-            // Display part name and part number in search box
-            var partNo = opt.dataset.partNumber || opt.dataset.part_number;
-            var name = opt.dataset.name || opt.text || '';
-            var displayText = name;
-            if (partNo && partNo !== '-' && name.indexOf(partNo) === -1) {
-                displayText += ' - ' + partNo;
-            }
-            input.value = displayText.replace(/\s*\(.*\)\s*(-\s*SAP:.*)?$/i, '').trim();
-            clearBtn.style.display = 'inline';
-            // Trigger change so existing JS listeners fire
-            var ev = new Event('change', { bubbles: true });
+            syncDisplay();
+            // Trigger change so existing JS listeners fire (marked internal to prevent syncDisplay loop)
+            var ev = new CustomEvent('change', { bubbles: true });
+            ev._ipsInternal = true;
             selectEl.dispatchEvent(ev);
         }
 
         function closeDropdown() {
-            dropdown.style.display = 'none';
+            dropdown.style.setProperty('display', 'none', 'important');
+            dropdown.innerHTML = '';
             activeIdx = -1;
         }
 
@@ -300,10 +293,9 @@
             e.stopPropagation();
             input.value = '';
             clearBtn.style.display = 'none';
-            // Reset select value so form won't submit on change
             selectEl.value = '';
-            // Dispatch change WITHOUT submitting form (value is empty)
-            var ev = new Event('change', { bubbles: true });
+            var ev = new CustomEvent('change', { bubbles: true });
+            ev._ipsInternal = true;
             selectEl.dispatchEvent(ev);
             renderDropdown('');
             input.focus();
@@ -350,7 +342,8 @@
         observer.observe(selectEl, { attributes: true, attributeFilter: ['disabled'] });
 
         /* ── Sync if select already has a value (e.g. after validation error or external script update) ── */
-        var syncDisplay = function () {
+        var syncDisplay = function (e) {
+            if (e && e._ipsInternal) return;
             if (selectEl.value) {
                 var selOpt = selectEl.options[selectEl.selectedIndex];
                 if (selOpt) {
