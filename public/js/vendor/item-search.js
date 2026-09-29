@@ -5,7 +5,7 @@
  *   options        – { placeholder, maxResults, startButtonId }
  *
  * Lock behaviour:
- *   The search input mirrors the disabled state of the underlying <select>.
+ *   The search input & select mirror the disabled state of the underlying <select>.
  *   If a startButtonId is provided (default: 'startTimerBtn'), the widget
  *   also listens for that button's click and unlocks at that moment — same
  *   as every other field in the checksheet forms.
@@ -20,23 +20,17 @@
         var style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = [
-            '.ips-wrapper { position: relative; margin-bottom: 6px; min-width: 280px; }',
+            '.ips-wrapper { position: relative; margin-bottom: 4px; min-width: 280px; }',
             '.ips-input {',
             '  width: 100%; min-width: 280px; box-sizing: border-box;',
-            '  padding: 6px 42px 6px 10px;',
+            '  padding: 6px 32px 6px 10px;',
             '  border: 1px solid #ced4da; border-radius: 4px;',
             '  font-size: 13px; outline: none; transition: border-color .15s;',
             '  background: #ffffff;',
             '}',
             '.ips-input:focus { border-color: #4e73df; box-shadow: 0 0 0 2px rgba(78,115,223,.25); }',
-            '.ips-arrow {',
-            '  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);',
-            '  cursor: pointer; color: #64748b; font-size: 9px; pointer-events: auto;',
-            '  user-select: none; transition: color .15s; padding: 2px 4px;',
-            '}',
-            '.ips-arrow:hover { color: #1e293b; }',
             '.ips-clear {',
-            '  position: absolute; right: 26px; top: 50%; transform: translateY(-50%);',
+            '  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);',
             '  cursor: pointer; color: #64748b; font-size: 18px; font-weight: 700; line-height: 1;',
             '  display: none; user-select: none;',
             '}',
@@ -66,6 +60,7 @@
             '  border-color:#ced4da;',
             '}',
             '.ips-detail { color:#4e73df !important; font-size:10px !important; }',
+            '.ips-select-managed { margin-top: 4px !important; width: 100% !important; min-width: 280px !important; display: block !important; }',
         ].join('\n');
         document.head.appendChild(style);
     }
@@ -84,7 +79,7 @@
      * @param {string|HTMLSelectElement} selectEl  – id or element of the target <select>
      * @param {object} [opts]
      * @param {string} [opts.placeholder]
-     * @param {number} [opts.maxResults=50]
+     * @param {number} [opts.maxResults=60]
      * @param {string} [opts.startButtonId='startTimerBtn']  – button that unlocks all fields
      */
     function initItemSearch(selectEl, opts) {
@@ -115,11 +110,6 @@
         input.autocomplete = 'off';
         input.spellcheck = false;
 
-        var arrowBtn = document.createElement('span');
-        arrowBtn.className = 'ips-arrow';
-        arrowBtn.innerHTML = '&#9660;';
-        arrowBtn.title = 'Tampilkan daftar item';
-
         var clearBtn = document.createElement('span');
         clearBtn.className = 'ips-clear';
         clearBtn.innerHTML = '&times;';
@@ -129,12 +119,12 @@
         dropdown.className = 'ips-dropdown';
 
         wrapper.appendChild(input);
-        wrapper.appendChild(arrowBtn);
         wrapper.appendChild(clearBtn);
         document.body.appendChild(dropdown);
 
         selectEl.parentNode.insertBefore(wrapper, selectEl);
-        selectEl.style.display = 'none';
+        selectEl.classList.add('ips-select-managed');
+        selectEl.style.display = 'block';
 
         /* ── Helpers ── */
         function getOptions() {
@@ -305,18 +295,6 @@
             }
         });
 
-        arrowBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (input.disabled) return;
-            if (dropdown.style.display === 'block') {
-                closeDropdown();
-            } else {
-                renderDropdown('');
-                input.focus();
-            }
-        });
-
         clearBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -334,14 +312,17 @@
         /* ── Lock / unlock to match other form fields ── */
         function applyLockState(locked) {
             input.disabled = locked;
+            selectEl.disabled = locked;
             if (locked) {
                 input.placeholder = 'Klik Start terlebih dahulu...';
                 input.style.cursor = 'not-allowed';
+                selectEl.style.cursor = 'not-allowed';
                 clearBtn.style.display = 'none';
                 closeDropdown();
             } else {
                 input.placeholder = placeholder;
                 input.style.cursor = '';
+                selectEl.style.cursor = '';
             }
         }
 
