@@ -582,6 +582,10 @@ class StandardPerformanceTestController extends Controller
 
     private function renderReport(Request $request, $testType, $isTrial = false)
     {
+        // ponytail: production server has 128MB limit; this page loads many columns.
+        // Ceiling: if data grows massively, refactor averages to use DB aggregates instead.
+        ini_set('memory_limit', '256M');
+
         $query = DurabilityThicknessReport::with([
                 'standard', 'analis',
                 'analisCorrodkote', 'analisCass', 'analisSaltSpray', 'analisPorecount',
