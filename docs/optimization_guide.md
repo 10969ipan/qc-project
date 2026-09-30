@@ -4,9 +4,9 @@ Dokumen ini berisi standar dan pola optimalisasi (*optimization blueprint*) leng
 
 ---
 
-## 🚀 6 Pilar Utama Optimalisasi
+## 🚀 7 Pilar Utama Optimalisasi
 
-```
+```text
 ┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
 │ 1. Database Indexing    │ ──► │ 2. Permission Cache     │ ──► │ 3. Direct Master Query  │
 └─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
@@ -16,6 +16,12 @@ Dokumen ini berisi standar dan pola optimalisasi (*optimization blueprint*) leng
 │ 4. Eager Loading &      │ ──► │ 5. Controller           │ ──► │ 6. Blade Cleanup        │
 │    Fast String Query    │     │    Pre-computation      │     │    (N+1 Query Free)     │
 └─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
+             │
+             ▼
+┌─────────────────────────┐
+│ 7. Ekstraksi JS Inline  │
+│    ke File Eksternal    │
+└─────────────────────────┘
 ```
 
 ---
@@ -146,12 +152,13 @@ Ambil data dropdown langsung dari tabel master `items` (`Item::where(...)->get()
 ```php
 // app/Http/Controllers/NamaController.php
 
-$items = \Illuminate\Support\Facades\Cache::remember("filter_items_{$plantId}", 3600, function () use ($plantId) {
-    return Item::where(function($q) use ($plantId) {
-        if (!empty($plantId)) {
+$items = \Illuminate\Support\Facades\Cache::remember("filter_items_v2_{$plantId}", 3600, function () use ($plantId) {
+    return Item::byCategory('NAMA_MENU') // Filter by kategori relevan agar query sangat spesifik
+        ->when($plantId, function($q) use ($plantId) {
             $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-        }
-    })->orderBy('name')->get();
+        })
+        ->orderBy('name')
+        ->get();
 });
 
 $customers = \Illuminate\Support\Facades\Cache::remember("filter_cust_{$plantId}", 3600, function () use ($plantId) {
@@ -217,11 +224,15 @@ Hitung status/flag helper di Controller **hanya untuk 10 baris item di halaman a
 // app/Http/Controllers/NamaController.php
 
 $checksheets = $this->service->getFilteredChecksheets($filters);
+$items_array = $checksheets->items();
 
-// Pre-compute status baris hanya untuk item di halaman aktif
-foreach ($checksheets->items() as $item) {
+// Pre-compute status baris & hitung komputasi logic O(N) hanya untuk item di halaman aktif
+foreach ($items_array as $index => $item) {
     $item->is_dimension_ng = $this->service->isDimensionNg($item, $standards);
     $item->is_no_dimension_row = $this->service->isNoDimensionRow($item);
+    
+    // Pre-kalkulasi cycle time gap / logic O(N) agar tidak membebani render Blade
+    $item->cycle_time_computed = 0; // Contoh hasil perhitungan 
 }
 
 return view('nama_menu.index', compact('checksheets', ...));
@@ -252,15 +263,41 @@ Gunakan properti pre-computed di Blade dengan *fallback safe operator* (`??`).
 
 ---
 
+### Pilar 7: Ekstraksi Skrip JavaScript Inline Raksasa
+
+#### Masalah:
+Blade view sering kali dibebani oleh ratusan hingga ribuan baris skrip JS `<script>...</script>` *inline* yang mengandung tag rendering data, *event listener*, hingga fitur interaktif (seperti *Scanner QR*, *Bulk Action*). Ketika Blade me-*render* iterasi data DOM yang besar, *closure* JS inline dapat memakan banyak *memory* (kebocoran memory / *memory leak*) dan membuat DOM sangat berat untuk dirender oleh *browser* HP (Mobile).
+
+#### Solusi:
+Pisahkan skrip logika panjang ke dalam file eksternal murni (`.js`), lalu supply data / URL *routing* dari PHP ke JS menggunakan objek konfigurasi `window` (*Window Inject Pattern*).
+
+```html
+{{-- resources/views/nama_menu/index.blade.php --}}
+
+<script>
+    // 1. Data Inject Pattern (menghindari kurung kurawal blade di dalam file .js eksternal)
+    window.namaMenuConfig = {
+        routePrint: "{{ route('nama_menu.print') }}",
+        routeBulkDestroy: "{{ route('nama_menu.bulk_destroy') }}",
+        csrfToken: "{{ csrf_token() }}"
+    };
+</script>
+<!-- 2. Panggil script eksternal (di-cache oleh browser client) -->
+<script src="{{ asset('js/nama_menu/index.js') }}?v={{ time() }}"></script>
+```
+
+---
+
 ## 📋 Checklist Penerapan pada Menu Baru
 
 Saat hendak mengoptimalisasi menu baru (misal: *Plating, Cross Cut, Sortir, Painting, Incoming Parts*):
 
 - [ ] **Step 1**: Buat Migration B-Tree Composite Index untuk `(plant_id, date, created_at)` pada tabel menu tersebut.
 - [ ] **Step 2**: Pastikan method `buildFilteredQuery()` di Service menggunakan `with(['item', 'user'])`.
-- [ ] **Step 3**: Ganti query subquery `distinct()->pluck()` di Controller dengan query master `Item::get()`.
-- [ ] **Step 4**: Tambahkan perulangan pre-computation `foreach ($checksheets->items() as $c)` di Controller sebelum `return view()`.
-- [ ] **Step 5**: Ganti pemanggilan `app(Service::class)` di dalam Blade `@foreach` dengan `$c->properti_precomputed ?? app(...)`.
+- [ ] **Step 3**: Ganti query subquery `distinct()->pluck()` di Controller dengan query master spesifik `Item::byCategory()->get()`.
+- [ ] **Step 4**: Tambahkan perulangan pre-computation iterasi O(N) `foreach ($checksheets->items() as $index => $c)` di Controller sebelum `return view()`.
+- [ ] **Step 5**: Ganti pemanggilan `app(Service::class)` maupun iterasi duplikasi di dalam Blade `@foreach` dengan properti: `$c->properti_precomputed ?? app(...)`.
+- [ ] **Step 6**: Ekstrak script JS raksasa di view index ke file `.js` terpisah (khusus untuk module kompleks/berat) menggunakan pilar 7.
 
 ---
 

@@ -59,12 +59,23 @@ class UpdateItemRequest extends FormRequest
                     if (!empty($value) && $value !== '-') {
                         $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
                         $categoryId = $this->input('category_id');
-                        if (Item::where('part_number', $value)
+                        $sapCode = $this->input('sap_code');
+                        
+                        $query = Item::where('part_number', $value)
                             ->where('plant_id', $plantId)
                             ->where('category_id', $categoryId)
-                            ->where('id', '!=', $itemId)
-                            ->exists()) {
-                            $fail('Nomor Part ini sudah terdaftar di kategori ini pada plant ini.');
+                            ->where('id', '!=', $itemId);
+                            
+                        if (!empty($sapCode) && $sapCode !== '-') {
+                            $query->where('sap_code', $sapCode);
+                        } else {
+                            $query->where(function($q) {
+                                $q->whereNull('sap_code')->orWhere('sap_code', '')->orWhere('sap_code', '-');
+                            });
+                        }
+                        
+                        if ($query->exists()) {
+                            $fail('Kombinasi Nomor Part dan Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
                         }
                     }
                 },
@@ -79,12 +90,23 @@ class UpdateItemRequest extends FormRequest
                     if (!empty($value) && $value !== '-') {
                         $plantId = \App\Models\Plant::resolveId($this->input('plant')) ?? auth()->user()->plant_id;
                         $categoryId = $this->input('category_id');
-                        if (Item::where('sap_code', $value)
+                        $partNumber = $this->input('part_number');
+                        
+                        $query = Item::where('sap_code', $value)
                             ->where('plant_id', $plantId)
                             ->where('category_id', $categoryId)
-                            ->where('id', '!=', $itemId)
-                            ->exists()) {
-                            $fail('Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
+                            ->where('id', '!=', $itemId);
+                            
+                        if (!empty($partNumber) && $partNumber !== '-') {
+                            $query->where('part_number', $partNumber);
+                        } else {
+                            $query->where(function($q) {
+                                $q->whereNull('part_number')->orWhere('part_number', '')->orWhere('part_number', '-');
+                            });
+                        }
+                        
+                        if ($query->exists()) {
+                            $fail('Kombinasi Nomor Part dan Kode SAP ini sudah terdaftar di kategori ini pada plant ini.');
                         }
                     }
                 },

@@ -35,7 +35,9 @@ Ini daftar file utama tempat logika modul ini berada:
   - Index & Tabel: `resources/views/in_process/index.blade.php`
   - Form Input: `resources/views/in_process/create.blade.php`
   - Modal Edit: `resources/views/in_process/partials/edit_form.blade.php`
-- **JavaScript**: `public/js/checksheet/in-process.js`
+- **JavaScript**: 
+  - Main app logic: `public/js/checksheet/in-process.js`
+  - Index view logic: `public/js/checksheet/in-process-index.js` (Ekstraksi dari blade inline JS)
 - **Migration & Blueprint**: `database/migrations/2026_09_14_000001_add_indexes_for_in_process_and_notifications_performance.php`
 
 ---
@@ -176,12 +178,17 @@ protected static array $permissionsMemoryCache = [];
 ```
 
 ### 3. Direct Master Query & Filter Caching
-Mengambil opsi filter dropdown langsung dari tabel master `Item` dan di-cache per Plant ID selama 30 menit (1.800 detik):
+Mengambil opsi filter dropdown hanya untuk item relevan (kategori `INPROSES`) langsung dari tabel master `Item` dan di-cache per Plant ID agar tidak memberatkan server (*table scan* index besar):
 
 ```php
 // app/Http/Controllers/InProcessChecksheetController.php
-$items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_{$plantId}", 1800, function () use ($plantId) {
-    return Item::where('plant_id', $plantId)->orderBy('name')->get();
+$items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v6_{$plantId}", 3600, function () use ($plantId) {
+    return Item::byCategory('INPROSES')
+        ->when($plantId, function($q) use ($plantId) {
+            $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+        })
+        ->orderBy('name')
+        ->get();
 });
 ```
 
@@ -194,24 +201,39 @@ $query = InProcessChecksheet::with(['item', 'user'])
     ->whereRaw("CHAR_LENGTH(dimension_check) > 4");
 ```
 
-### 5. Controller Pre-computation
-Helper status dimensi diproses di Controller hanya untuk 10 baris di halaman aktif sebelum dikirim ke Blade view:
+### 5. Controller Pre-computation & O(N) Iteration
+Helper status dimensi dan kalkulasi *cycle time* gap antar record diproses langsung secara efisien (O(N)) di Controller. Ini menghindari beban perhitungan ganda (O(N²)) dan duplikasi *closure* di dalam *loop* Blade:
 
 ```php
-foreach ($checksheets->items() as $item) {
-    $item->is_dimension_ng = $this->service->isDimensionNg($item, $standards);
-    $item->is_no_dimension_row = $this->service->isNoDimensionRow($item);
+// app/Http/Controllers/InProcessChecksheetController.php
+$items_array = $checksheets->items();
+foreach ($items_array as $index => $c) {
+    $c->is_dimension_ng = $this->inProcessService->isDimensionNg($c, $partDimensionStandards);
+    $c->is_no_dimension_row = $this->inProcessService->isNoDimensionRow($c);
+    
+    // Fallback hitung jarak waktu (gap) antar data untuk Cycle Time dilakukan di sini
+    $c->cycle_time_computed = $sec; 
 }
 ```
 
-### 6. Clean Blade View (N+1 Query Free)
-Blade view mengonsumsi properti pre-computed tanpa memicu panggilan `app(Service::class)` berulang:
+### 6. Clean Blade View & External JS Script
+Blade view mengonsumsi properti *pre-computed* murni hanya untuk dirender (`{{ $c->cycle_time_computed }}`). Selain itu, seluruh logika JavaScript yang sebelumnya menggunakan metode *inline raksasa* (>600 baris) sudah diekstraksi penuh ke file eksternal `in-process-index.js`, dengan konfigurasi URL diletakkan pada parameter *window object*:
 
-```blade
-@php
-    $isDimensionNgRow = $checksheet->is_dimension_ng ?? app(InProcessChecksheetService::class)->isDimensionNg($checksheet, $standards);
-@endphp
+```html
+<!-- resources/views/in_process/index.blade.php -->
+<script>
+    window.inProcessConfig = {
+        routePrint: "{{ route('in_process.print') }}",
+        ...
+    };
+</script>
+<script src="{{ asset('js/checksheet/in-process-index.js') }}?v={{ time() }}"></script>
 ```
+
+Keuntungannya:
+1. Menurunkan jumlah DOM HTML secara ekstrim.
+2. Meningkatkan *Time to Interactive* (TTI) di *device low-end* (Mobile).
+3. Mencegah *memory leak* akibat re-deklarasi *closure JS* ganda saat *looping foreach* Blade dipanggil.
 
 ---
 
