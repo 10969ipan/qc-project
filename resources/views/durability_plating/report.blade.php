@@ -473,6 +473,23 @@
                     @foreach($reports as $index => $report)
                         @php
                             $std = $report->standard;
+                            
+                            // Map evidence based on testType
+                            $sfx = in_array($testType, ['corrodkote', 'thickness']) ? '' : '_' . $testType;
+                            $evBefore = 'evidence_before' . $sfx;
+                            $evAfter = 'evidence_after' . $sfx;
+                            $evAfterTrial = 'evidence_after_trial' . $sfx;
+                            $evBeforeTime = $evBefore . '_uploaded_at';
+                            $evAfterTime = $evAfter . '_uploaded_at';
+                            $evAfterTrialTime = $evAfterTrial . '_uploaded_at';
+                            
+                            $reportData = $report->toArray();
+                            $reportData['evidence_before'] = $report->$evBefore;
+                            $reportData['evidence_after'] = $report->$evAfter;
+                            $reportData['evidence_after_trial'] = $report->$evAfterTrial;
+                            $reportData['evidence_before_uploaded_at'] = $report->$evBeforeTime;
+                            $reportData['evidence_after_uploaded_at'] = $report->$evAfterTime;
+                            $reportData['evidence_after_trial_uploaded_at'] = $report->$evAfterTrialTime;
                         @endphp
                         <tr>
                             <td class="align-middle text-center">
@@ -610,15 +627,24 @@
                                 @endif
                             </td>
                             @if($testType == 'corrodkote' || $testType == 'cass' || $testType == 'salt_spray' || $testType == 'porecount')
+                                @php
+                                    $sfx = in_array($testType, ['corrodkote', 'thickness']) ? '' : '_' . $testType;
+                                    $evBefore = 'evidence_before' . $sfx;
+                                    $evAfter = 'evidence_after' . $sfx;
+                                    $evAfterTrial = 'evidence_after_trial' . $sfx;
+                                    $evBeforeTime = $evBefore . '_uploaded_at';
+                                    $evAfterTime = $evAfter . '_uploaded_at';
+                                    $evAfterTrialTime = $evAfterTrial . '_uploaded_at';
+                                @endphp
                                 <td class="text-center">
-                                    @if($report->evidence_before || $report->evidence_after || $report->evidence_after_trial)
+                                    @if($report->$evBefore || $report->$evAfter || $report->$evAfterTrial)
                                         <a href="javascript:void(0)" class="text-primary btn-view-evidence" style="font-size: 0.8rem; text-decoration: underline;"
-                                                data-before="{{ $report->evidence_before ? asset($report->evidence_before) : '' }}" 
-                                                data-after="{{ $report->evidence_after ? asset($report->evidence_after) : '' }}"
-                                                data-after-trial="{{ $report->evidence_after_trial ? asset($report->evidence_after_trial) : '' }}"
-                                                data-before-time="{{ $report->evidence_before_uploaded_at ? \Carbon\Carbon::parse($report->evidence_before_uploaded_at)->format('d-m-Y H:i') : '' }}"
-                                                data-after-time="{{ $report->evidence_after_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_uploaded_at)->format('d-m-Y H:i') : '' }}"
-                                                data-after-trial-time="{{ $report->evidence_after_trial_uploaded_at ? \Carbon\Carbon::parse($report->evidence_after_trial_uploaded_at)->format('d-m-Y H:i') : '' }}">
+                                                data-before="{{ $report->$evBefore ? asset($report->$evBefore) : '' }}" 
+                                                data-after="{{ $report->$evAfter ? asset($report->$evAfter) : '' }}"
+                                                data-after-trial="{{ $report->$evAfterTrial ? asset($report->$evAfterTrial) : '' }}"
+                                                data-before-time="{{ $report->$evBeforeTime ? \Carbon\Carbon::parse($report->$evBeforeTime)->format('d-m-Y H:i') : '' }}"
+                                                data-after-time="{{ $report->$evAfterTime ? \Carbon\Carbon::parse($report->$evAfterTime)->format('d-m-Y H:i') : '' }}"
+                                                data-after-trial-time="{{ $report->$evAfterTrialTime ? \Carbon\Carbon::parse($report->$evAfterTrialTime)->format('d-m-Y H:i') : '' }}">
                                             <i class="fas fa-images"></i> View
                                         </a>
                                     @else
@@ -876,7 +902,7 @@
                                                 @if($canEditReport)
                                                     <button type="button" class="dropdown-item btn-edit-thickness" 
                                                         data-id="{{ $report->id }}" 
-                                                        data-item="{{ json_encode($report) }}" 
+                                                        data-item="{{ json_encode($reportData) }}" 
                                                         data-part="{{ $std->part_name }}"
                                                         data-stdcu="{{ $std->thickness_cu }}"
                                                         data-stdni="{{ $std->thickness_ni }}"

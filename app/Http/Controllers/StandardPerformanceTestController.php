@@ -398,6 +398,15 @@ class StandardPerformanceTestController extends Controller
             'description_trial' => 'nullable|string'
         ]);
 
+        $testType = $request->input('test_type', 'thickness');
+        $sfx = in_array($testType, ['corrodkote', 'thickness']) ? '' : '_' . $testType;
+        $evBefore = 'evidence_before' . $sfx;
+        $evAfter = 'evidence_after' . $sfx;
+        $evAfterTrial = 'evidence_after_trial' . $sfx;
+        $evBeforeTime = $evBefore . '_uploaded_at';
+        $evAfterTime = $evAfter . '_uploaded_at';
+        $evAfterTrialTime = $evAfterTrial . '_uploaded_at';
+
         $evidenceBeforePath = null;
         $evidenceAfterPath = null;
         $evidenceAfterTrialPath = null;
@@ -452,10 +461,10 @@ class StandardPerformanceTestController extends Controller
                 'analis_id' => auth()->id(),
                 'description' => $request->description,
                 'is_trial' => true,
-                'evidence_before' => $evidenceBeforePath,
-                'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
-                'evidence_after' => $evidenceAfterTrialPath ?: $evidenceAfterPath,
-                'evidence_after_uploaded_at' => ($evidenceAfterTrialPath ?: $evidenceAfterPath) ? now() : null,
+                $evBefore => $evidenceBeforePath,
+                $evBeforeTime => $evidenceBeforePath ? now() : null,
+                $evAfter => $evidenceAfterTrialPath ?: $evidenceAfterPath,
+                $evAfterTime => ($evidenceAfterTrialPath ?: $evidenceAfterPath) ? now() : null,
             ]);
 
             $std = StandardPerformanceTest::find($request->standard_performance_test_id);
@@ -500,12 +509,12 @@ class StandardPerformanceTestController extends Controller
             'description_salt_spray' => $request->description_salt_spray,
             'description_porecount' => $request->description_porecount,
             'is_trial' => false,
-            'evidence_before' => $evidenceBeforePath,
-            'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
-            'evidence_after' => $evidenceAfterPath,
-            'evidence_after_uploaded_at' => $evidenceAfterPath ? now() : null,
-            'evidence_after_trial' => $evidenceAfterTrialPath,
-            'evidence_after_trial_uploaded_at' => $evidenceAfterTrialPath ? now() : null,
+            $evBefore => $evidenceBeforePath,
+            $evBeforeTime => $evidenceBeforePath ? now() : null,
+            $evAfter => $evidenceAfterPath,
+            $evAfterTime => $evidenceAfterPath ? now() : null,
+            $evAfterTrial => $evidenceAfterTrialPath,
+            $evAfterTrialTime => $evidenceAfterTrialPath ? now() : null,
         ]);
 
         $std = StandardPerformanceTest::find($request->standard_performance_test_id);
@@ -548,8 +557,8 @@ class StandardPerformanceTestController extends Controller
             'description_porecount' => $request->filled('description_porecount_trial') ? $request->description_porecount_trial : null,
             'is_trial' => true,
             'data1_id' => $report1->id,
-            'evidence_before' => $evidenceBeforePath,
-            'evidence_before_uploaded_at' => $evidenceBeforePath ? now() : null,
+            $evBefore => $evidenceBeforePath,
+            $evBeforeTime => $evidenceBeforePath ? now() : null,
             'evidence_after' => $evidenceAfterTrialPath ?: $evidenceAfterPath,
             'evidence_after_uploaded_at' => ($evidenceAfterTrialPath ?: $evidenceAfterPath) ? now() : null,
         ]);
@@ -1211,41 +1220,49 @@ class StandardPerformanceTestController extends Controller
             $trialReport->save();
         }
         
+        $sfx = in_array($testType, ['corrodkote', 'thickness']) ? '' : '_' . $testType;
+        $evBefore = 'evidence_before' . $sfx;
+        $evAfter = 'evidence_after' . $sfx;
+        $evAfterTrial = 'evidence_after_trial' . $sfx;
+        $evBeforeTime = $evBefore . '_uploaded_at';
+        $evAfterTime = $evAfter . '_uploaded_at';
+        $evAfterTrialTime = $evAfterTrial . '_uploaded_at';
+
         // Handle X-button deletions before processing new uploads
         if ($request->input('delete_evidence_before') === '1') {
-            if ($report->evidence_before && file_exists(public_path($report->evidence_before))) {
-                @unlink(public_path($report->evidence_before));
+            if ($report->{$evBefore} && file_exists(public_path($report->{$evBefore}))) {
+                @unlink(public_path($report->{$evBefore}));
             }
-            $report->update(['evidence_before' => null, 'evidence_before_uploaded_at' => null]);
+            $report->update([$evBefore => null, $evBeforeTime => null]);
             DurabilityThicknessReport::where('standard_performance_test_id', $report->standard_performance_test_id)
                 ->where('is_trial', true)
                 ->where('lot_no', $report->lot_no)
-                ->update(['evidence_before' => null, 'evidence_before_uploaded_at' => null]);
+                ->update([$evBefore => null, $evBeforeTime => null]);
         }
 
         if ($request->input('delete_evidence_after') === '1') {
-            if ($report->evidence_after && file_exists(public_path($report->evidence_after))) {
-                @unlink(public_path($report->evidence_after));
+            if ($report->{$evAfter} && file_exists(public_path($report->{$evAfter}))) {
+                @unlink(public_path($report->{$evAfter}));
             }
-            $report->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+            $report->update([$evAfter => null, $evAfterTime => null]);
         }
 
         if ($request->input('delete_evidence_after_trial') === '1') {
-            if ($report->evidence_after_trial && file_exists(public_path($report->evidence_after_trial))) {
-                @unlink(public_path($report->evidence_after_trial));
+            if ($report->{$evAfterTrial} && file_exists(public_path($report->{$evAfterTrial}))) {
+                @unlink(public_path($report->{$evAfterTrial}));
             }
-            $report->update(['evidence_after_trial' => null, 'evidence_after_trial_uploaded_at' => null]);
+            $report->update([$evAfterTrial => null, $evAfterTrialTime => null]);
             if (isset($trialReport) && $trialReport) {
-                if ($trialReport->evidence_after && file_exists(public_path($trialReport->evidence_after))) {
-                    @unlink(public_path($trialReport->evidence_after));
+                if ($trialReport->{$evAfter} && file_exists(public_path($trialReport->{$evAfter}))) {
+                    @unlink(public_path($trialReport->{$evAfter}));
                 }
-                $trialReport->update(['evidence_after' => null, 'evidence_after_uploaded_at' => null]);
+                $trialReport->update([$evAfter => null, $evAfterTime => null]);
             }
         }
 
         if ($request->hasFile('evidence_before')) {
-            if ($report->evidence_before && file_exists(public_path($report->evidence_before))) {
-                @unlink(public_path($report->evidence_before));
+            if ($report->{$evBefore} && file_exists(public_path($report->{$evBefore}))) {
+                @unlink(public_path($report->{$evBefore}));
             }
             $fileBefore = $request->file('evidence_before');
             $filenameBefore = time() . '_before_' . $fileBefore->getClientOriginalName();
@@ -1265,8 +1282,8 @@ class StandardPerformanceTestController extends Controller
         }
 
         if ($request->hasFile('evidence_after')) {
-            if ($report->evidence_after && file_exists(public_path($report->evidence_after))) {
-                @unlink(public_path($report->evidence_after));
+            if ($report->{$evAfter} && file_exists(public_path($report->{$evAfter}))) {
+                @unlink(public_path($report->{$evAfter}));
             }
             $fileAfter = $request->file('evidence_after');
             $filenameAfter = time() . '_after_' . $fileAfter->getClientOriginalName();
@@ -1279,8 +1296,8 @@ class StandardPerformanceTestController extends Controller
         }
 
         if ($request->hasFile('evidence_after_trial')) {
-            if ($report->evidence_after_trial && file_exists(public_path($report->evidence_after_trial))) {
-                @unlink(public_path($report->evidence_after_trial));
+            if ($report->{$evAfterTrial} && file_exists(public_path($report->{$evAfterTrial}))) {
+                @unlink(public_path($report->{$evAfterTrial}));
             }
             $fileAfterTrial = $request->file('evidence_after_trial');
             $filenameAfterTrial = time() . '_after_data2_' . $fileAfterTrial->getClientOriginalName();

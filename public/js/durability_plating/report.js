@@ -589,9 +589,9 @@ $(document).ready(function () {
         form.find('[name="result_judgment_cass_trial"]').val(item.result_judgment_cass_trial || '-');
         form.find('[name="description_cass_trial"]').val(item.description_cass_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
-        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
+        let beforeUrl = item.evidence_before_cass ? config.baseUrl + item.evidence_before_cass : null;
+        let afterUrl = item.evidence_after_cass ? config.baseUrl + item.evidence_after_cass : null;
+        let afterTrialUrl = item.evidence_after_trial_cass ? config.baseUrl + item.evidence_after_trial_cass : null;
         showEvidenceCard('cass_evidence_before_preview', 'cass_evidence_before_preview_wrap', 'cass_evidence_before_empty', 'btn_delete_cass_evidence_before', null, beforeUrl, null);
         showEvidenceCard('cass_evidence_after_preview', 'cass_evidence_after_preview_wrap', 'cass_evidence_after_empty', 'btn_delete_cass_evidence_after', null, afterUrl, null);
         showEvidenceCard('cass_evidence_after_trial_preview', 'cass_evidence_after_trial_preview_wrap', 'cass_evidence_after_trial_empty', 'btn_delete_cass_evidence_after_trial', null, afterTrialUrl, null);
@@ -642,9 +642,9 @@ $(document).ready(function () {
         form.find('[name="result_judgment_salt_spray_trial"]').val(item.result_judgment_salt_spray_trial || '-');
         form.find('[name="description_salt_spray_trial"]').val(item.description_salt_spray_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
-        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
+        let beforeUrl = item.evidence_before_salt_spray ? config.baseUrl + item.evidence_before_salt_spray : null;
+        let afterUrl = item.evidence_after_salt_spray ? config.baseUrl + item.evidence_after_salt_spray : null;
+        let afterTrialUrl = item.evidence_after_trial_salt_spray ? config.baseUrl + item.evidence_after_trial_salt_spray : null;
         showEvidenceCard('salt_spray_evidence_before_preview', 'salt_spray_evidence_before_preview_wrap', 'salt_spray_evidence_before_empty', 'btn_delete_salt_spray_evidence_before', null, beforeUrl, null);
         showEvidenceCard('salt_spray_evidence_after_preview', 'salt_spray_evidence_after_preview_wrap', 'salt_spray_evidence_after_empty', 'btn_delete_salt_spray_evidence_after', null, afterUrl, null);
         showEvidenceCard('salt_spray_evidence_after_trial_preview', 'salt_spray_evidence_after_trial_preview_wrap', 'salt_spray_evidence_after_trial_empty', 'btn_delete_salt_spray_evidence_after_trial', null, afterTrialUrl, null);
@@ -692,9 +692,9 @@ $(document).ready(function () {
         form.find('[name="result_judgment_porecount_trial"]').val(item.result_judgment_porecount_trial || '-');
         form.find('[name="description_porecount_trial"]').val(item.description_porecount_trial || '');
 
-        let beforeUrl = item.evidence_before ? config.baseUrl + item.evidence_before : null;
-        let afterUrl = item.evidence_after ? config.baseUrl + item.evidence_after : null;
-        let afterTrialUrl = item.evidence_after_trial ? config.baseUrl + item.evidence_after_trial : null;
+        let beforeUrl = item.evidence_before_porecount ? config.baseUrl + item.evidence_before_porecount : null;
+        let afterUrl = item.evidence_after_porecount ? config.baseUrl + item.evidence_after_porecount : null;
+        let afterTrialUrl = item.evidence_after_trial_porecount ? config.baseUrl + item.evidence_after_trial_porecount : null;
         showEvidenceCard('porecount_evidence_before_preview', 'porecount_evidence_before_preview_wrap', 'porecount_evidence_before_empty', 'btn_delete_porecount_evidence_before', null, beforeUrl, null);
         showEvidenceCard('porecount_evidence_after_preview', 'porecount_evidence_after_preview_wrap', 'porecount_evidence_after_empty', 'btn_delete_porecount_evidence_after', null, afterUrl, null);
         showEvidenceCard('porecount_evidence_after_trial_preview', 'porecount_evidence_after_trial_preview_wrap', 'porecount_evidence_after_trial_empty', 'btn_delete_porecount_evidence_after_trial', null, afterTrialUrl, null);
