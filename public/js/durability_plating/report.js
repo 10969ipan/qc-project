@@ -485,6 +485,7 @@ $(document).ready(function () {
     $('.btn-input-corrodkote').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputCorrodkote');
+        form[0].reset();
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
@@ -549,6 +550,7 @@ $(document).ready(function () {
     $('.btn-input-cass').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputCass');
+        form[0].reset();
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
@@ -604,6 +606,7 @@ $(document).ready(function () {
     $('.btn-input-salt-spray').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputSaltSpray');
+        form[0].reset();
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);
@@ -657,6 +660,7 @@ $(document).ready(function () {
     $('.btn-input-porecount').click(function () {
         let item = $(this).data('item');
         let form = $('#formInputPorecount');
+        form[0].reset();
 
         let url = config.updateUrl;
         url = url.replace(':id', item.id);

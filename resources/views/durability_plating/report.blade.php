@@ -1576,6 +1576,7 @@
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_corrodkote" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
+                                            <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
                                         </select>
@@ -1855,6 +1856,7 @@
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_cass" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
+                                            <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
                                         </select>
@@ -2130,6 +2132,7 @@
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_salt_spray" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
+                                            <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG - White Rust">NG - White Rust</option>
                                             <option value="NG - Red Rust">NG - Red Rust</option>
@@ -2381,6 +2384,7 @@
                                         <label class="small font-weight-bold text-gray-700">Result / Judgment</label>
                                         <select name="result_judgment_porecount" class="form-control form-control-sm border-0 shadow-sm" required>
                                             <option value="">Pilih...</option>
+                                            <option value="-">-</option>
                                             <option value="OK">OK</option>
                                             <option value="NG">NG</option>
                                         </select>
