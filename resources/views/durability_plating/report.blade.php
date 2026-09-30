@@ -909,6 +909,12 @@
                                                         data-stdcr="{{ $std->thickness_cr }}">
                                                         <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
                                                     </button>
+                                                    <form action="{{ route('standard-performance-tests.thickness.duplicate', ['id' => $report->id]) }}" method="POST" class="d-inline duplicate-form">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item btn-duplicate-laporan">
+                                                            <i class="fas fa-copy text-success fa-fw mr-2"></i> Duplicate Laporan
+                                                        </button>
+                                                    </form>
                                                 @endif
 
                                                 @if($canEditApproval)

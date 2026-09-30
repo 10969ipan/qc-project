@@ -1162,4 +1162,24 @@ $(document).ready(function () {
         });
     });
 
+    // Duplicate Laporan SweetAlert
+    $(document).on('submit', '.duplicate-form', function(e) {
+        e.preventDefault();
+        var form = this;
+        Swal.fire({
+            title: 'Duplicate Laporan?',
+            text: "Data Thickness Test & Foto Before akan diduplikasi, dan data test lainnya akan dikosongkan.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#858796',
+            confirmButtonText: 'Ya, Duplicate!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+
 });

@@ -1419,6 +1419,113 @@ class StandardPerformanceTestController extends Controller
         }
     }
 
+    public function duplicateThickness($id, Request $request)
+    {
+        $original = DurabilityThicknessReport::findOrFail($id);
+        $newReport = $original->replicate();
+        
+        // Reset Corrodkote fields
+        $newReport->actual_corrodkote_waktu = '-';
+        $newReport->aktual_corrosion = null;
+        $newReport->result_judgment_corrodkote = '-';
+        $newReport->description_corrodkote = null;
+
+        // Reset CASS fields
+        $newReport->actual_cass_waktu = '-';
+        $newReport->aktual_rn = null;
+        $newReport->result_judgment_cass = '-';
+        $newReport->description_cass = null;
+
+        // Reset Salt Spray fields
+        $newReport->actual_salt_spray_waktu = '-';
+        $newReport->result_judgment_salt_spray = '-';
+        $newReport->description_salt_spray = null;
+
+        // Reset Porecount fields
+        $newReport->actual_porecount = '-';
+        $newReport->result_judgment_porecount = '-';
+        $newReport->description_porecount = null;
+        $newReport->tanggal_cek_porecount = null;
+
+        // Reset Tgl/Jam Masuk/Keluar Chamber
+        $newReport->tgl_masuk = null;
+        $newReport->jam_masuk = null;
+        $newReport->tgl_keluar = null;
+        $newReport->jam_keluar = null;
+        
+        // Reset After Evidence (keep Before Evidence since it's the same part)
+        $newReport->evidence_after = null;
+        $newReport->evidence_after_uploaded_at = null;
+
+        // Reset Approvals & Timestamps
+        $newReport->status = 'Pending';
+        $newReport->supervisor_qc = null;
+        $newReport->supervisor_plating = null;
+        $newReport->asst_manager_qc = null;
+        $newReport->asst_manager_plating = null;
+        $newReport->tanggal_cek = now()->toDateString();
+        $newReport->analis_id = auth()->id();
+        $newReport->updated_by = null;
+        $newReport->save();
+
+        // Duplicate Data 2 (Trial) if exists
+        if (!$original->is_trial) {
+            $originalData2 = DurabilityThicknessReport::where('data1_id', $original->id)->first();
+            if (!$originalData2) {
+                $originalData2 = DurabilityThicknessReport::where('is_trial', true)
+                    ->whereNull('data1_id')
+                    ->where('standard_performance_test_id', $original->standard_performance_test_id)
+                    ->where('lot_no', $original->lot_no)
+                    ->first();
+            }
+
+            if ($originalData2) {
+                $newData2 = $originalData2->replicate();
+                $newData2->data1_id = $newReport->id;
+
+                // Reset Trial Test fields
+                $newData2->actual_corrodkote_waktu_trial = '-';
+                $newData2->aktual_corrosion_trial = null;
+                $newData2->result_judgment_corrodkote_trial = '-';
+                $newData2->description_corrodkote_trial = null;
+                
+                $newData2->actual_cass_waktu_trial = '-';
+                $newData2->aktual_rn_trial = null;
+                $newData2->result_judgment_cass_trial = '-';
+                $newData2->description_cass_trial = null;
+                
+                $newData2->actual_salt_spray_waktu_trial = '-';
+                $newData2->result_judgment_salt_spray_trial = '-';
+                $newData2->description_salt_spray_trial = null;
+
+                $newData2->actual_porecount_trial = '-';
+                $newData2->result_judgment_porecount_trial = '-';
+                $newData2->description_porecount_trial = null;
+                
+                $newData2->tgl_masuk = null;
+                $newData2->jam_masuk = null;
+                $newData2->tgl_keluar = null;
+                $newData2->jam_keluar = null;
+
+                $newData2->evidence_after = null;
+                $newData2->evidence_after_uploaded_at = null;
+                $newData2->evidence_after_trial = null;
+                $newData2->evidence_after_trial_uploaded_at = null;
+                
+                $newData2->tanggal_cek = now()->toDateString();
+                $newData2->analis_id = auth()->id();
+                $newData2->updated_by = null;
+                $newData2->save();
+            }
+        }
+
+        $std = $original->standardPerformanceTest;
+        $partName = $std ? $std->part_name : 'Part';
+        ActivityLogger::log('created', $newReport, "Menduplikasi Laporan Durability Plating: {$partName} (Lot: {$newReport->lot_no})");
+
+        return redirect()->back()->with('success', 'Laporan berhasil diduplikasi. Silakan input tes Corrodkote/CASS/Porecount pada baris yang baru.');
+    }
+
     public function destroyThickness(Request $request, $id)
     {
         $report = DurabilityThicknessReport::with('standardPerformanceTest')->findOrFail($id);
