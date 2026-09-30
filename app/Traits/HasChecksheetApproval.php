@@ -551,7 +551,9 @@ trait HasChecksheetApproval
             }
 
             // Get IDs before updating to know the count
-            $checksheetIds = $query->pluck('id')->toArray();
+            // Sort by ID DESC so the newest checksheet gets processed first,
+            // receiving the time closest to "now()" when we calculate backwards.
+            $checksheetIds = $query->orderBy("{$table}.id", 'desc')->pluck("{$table}.id")->toArray();
             $approvedCount = count($checksheetIds);
 
             if ($request->boolean('get_ids')) {
@@ -588,9 +590,31 @@ trait HasChecksheetApproval
                 $baseTime = $request->filled('base_time') ? \Carbon\Carbon::parse($request->input('base_time')) : now();
                 $lastTime = $baseTime->copy();
 
-                // Execute iterative update to assign sequential random time
+                // Normalize start time if it starts outside office hours (08:00 - 17:00) or on weekend
+                if ($lastTime->isWeekend() || $lastTime->hour >= 17 || $lastTime->hour < 8) {
+                    if ($lastTime->hour < 8) {
+                        $lastTime->subDays(1);
+                    }
+                    while ($lastTime->isWeekend()) {
+                        $lastTime->subDays(1);
+                    }
+                    $lastTime->setTime(16, 59 - rand(1, 10), rand(0, 59));
+                }
+
+                // Execute iterative update to assign sequential random time BACKWARDS
                 foreach ($checksheetIds as $id) {
-                    $lastTime = $lastTime->addMinutes(rand(1, 5));
+                    $lastTime = $lastTime->subMinutes(rand(1, 5));
+
+                    // If time falls before work start hour (08:00)
+                    if ($lastTime->hour < 8) {
+                        $lastTime->subDays(1); // Go back one day
+                        while ($lastTime->isWeekend()) {
+                            $lastTime->subDays(1); // Skip weekends
+                        }
+                        // Set to end of office hours (16:50 to 16:59)
+                        $lastTime->setTime(16, 59 - rand(1, 10), rand(0, 59));
+                    }
+
                     $rowUpdateData = $updateData;
                     $rowUpdateData[$timeField] = $lastTime->copy();
                     
