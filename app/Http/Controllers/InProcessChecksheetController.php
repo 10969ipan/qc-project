@@ -195,29 +195,29 @@ class InProcessChecksheetController extends Controller
             return $this->getConsolidatedStandards();
         });
 
-        // Data for filters (Direct Item query cached per plant to avoid subquery scans over 28,000+ rows)
-        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v4_{$plantId}", 3600, function () use ($plantId) {
-            return Item::byCategory('INPROSES')->where(function($q) use ($plantId) {
-                if (!empty($plantId)) {
-                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-                }
-            })->orderBy('name')->get();
+        // Data for filters (Only fetch items that actually exist in InProcessChecksheet)
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v5_{$plantId}", 1800, function () use ($plantId) {
+            $usedItemIds = InProcessChecksheet::when($plantId, function($q) use ($plantId) {
+                $q->where('plant_id', $plantId);
+            })
+            ->whereNotNull('item_id')
+            ->distinct()
+            ->pluck('item_id');
+            
+            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
         });
 
         // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
         $allItems = collect();
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v3_{$plantId}", 3600, function () use ($plantId) {
-            return Item::where(function($q) use ($plantId) {
-                if (!empty($plantId)) {
-                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-                }
-            })
-            ->whereNotNull('customer')
-            ->where('customer', '!=', '')
-            ->distinct()
-            ->pluck('customer')
-            ->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v4_{$plantId}", 1800, function () use ($items) {
+            return $items->pluck('customer')
+                ->filter(function($value) {
+                    return !empty($value);
+                })
+                ->unique()
+                ->sort()
+                ->values();
         });
 
         $initials = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_init_{$plantId}", 1800, function () use ($plantId) {
@@ -240,10 +240,67 @@ class InProcessChecksheetController extends Controller
 
         $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
 
-        // Pre-compute row helper flags for the current page items to avoid calling service methods inside Blade loop
-        foreach ($checksheets->items() as $c) {
+        $items_array = $checksheets->items();
+        foreach ($items_array as $index => $c) {
             $c->is_dimension_ng = $this->inProcessService->isDimensionNg($c, $partDimensionStandards);
             $c->is_no_dimension_row = $this->inProcessService->isNoDimensionRow($c);
+
+            // Pre-calculate cycle time fallback to avoid O(N^2) in blade
+            $sec = 0;
+            $rawCt = $c->cycle_time ?? null;
+            if ($rawCt !== null && $rawCt !== '' && $rawCt !== '-') {
+                if (is_numeric($rawCt)) {
+                    $val = (float) $rawCt;
+                    if ($val > 0) {
+                        $sec = ($val < 30 && (floor($val) != $val)) ? (int) round($val * 60) : (int) round($val);
+                    }
+                } elseif (is_string($rawCt) && str_contains($rawCt, ':')) {
+                    $parts = array_map('intval', explode(':', trim($rawCt)));
+                    if (count($parts) === 3) {
+                        $sec = $parts[0] * 3600 + $parts[1] * 60 + $parts[2];
+                    } elseif (count($parts) === 2) {
+                        $sec = $parts[0] * 60 + $parts[1];
+                    }
+                } elseif (is_string($rawCt) && preg_match('/^(\d+)\s*(s|sec|m|min)?$/i', trim($rawCt), $m)) {
+                    $num = (int) $m[1];
+                    $unit = strtolower($m[2] ?? 's');
+                    $sec = str_starts_with($unit, 'm') ? ($num * 60) : $num;
+                }
+            }
+
+            if ($sec <= 0) {
+                $prevChecksheet = null;
+                if (!empty($c->code_machine)) {
+                    for ($j = $index + 1; $j < count($items_array); $j++) {
+                        $prev = $items_array[$j];
+                        if ($prev->code_machine == $c->code_machine &&
+                            $prev->created_at && $c->created_at &&
+                            $prev->created_at->isSameDay($c->created_at) &&
+                            $prev->created_at->lt($c->created_at)) {
+                            $prevChecksheet = $prev;
+                            break;
+                        }
+                    }
+                }
+                if (!$prevChecksheet && isset($items_array[$index + 1])) {
+                    $prevChecksheet = $items_array[$index + 1];
+                }
+
+                if ($prevChecksheet && $prevChecksheet->created_at && $c->created_at) {
+                    $gap = $c->created_at->diffInSeconds($prevChecksheet->created_at);
+                    if ($gap >= 2 && $gap <= 28800 && $prevChecksheet->created_at->isSameDay($c->created_at)) {
+                        $sec = (int) $gap;
+                    }
+                }
+            }
+
+            if ($sec <= 0 && !empty($c->item->standard_cycle_time)) {
+                $sct = (float) $c->item->standard_cycle_time;
+                if ($sct > 0) {
+                    $sec = ($sct < 30) ? (int) round($sct * 60) : (int) round($sct);
+                }
+            }
+            $c->computed_cycle_time_sec = $sec;
         }
 
         return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines', 'hiddenItemIds', 'allItems', 'ngItemIds', 'hideNgRows', 'hideNoDimensionRows'));

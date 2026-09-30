@@ -603,6 +603,73 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            // Helper function for single value NG validation
+                            $checkValueNG = function($val, $std) {
+                                if ($val === '-' || $val === '' || $val === null || !is_numeric($val) || empty($std)) {
+                                    return false;
+                                }
+                                $fVal = (float)$val;
+                                $epsilon = 0.00001;
+                                $normStd = function($v) {
+                                    if ($v === null || $v === '') return '';
+                                    $s = str_replace(',', '.', (string)$v);
+                                    $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
+                                    $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
+                                    return trim($s);
+                                };
+
+                                // 1. Check Absolute Min/Max
+                                if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                                    $minBound = (float)$normStd($std['min']);
+                                    if ($fVal < ($minBound - $epsilon)) return true;
+                                }
+                                if (($std['max'] ?? null) !== null && $std['max'] !== '') {
+                                    $maxBound = (float)$normStd($std['max']);
+                                    if ($fVal > ($maxBound + $epsilon)) return true;
+                                }
+
+                                // 2. Check Size +/- Tolerance
+                                if (($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                                    $szStr = $normStd($std['size']);
+                                    if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
+                                        $base = (float)$szStr;
+                                        $tol = $normStd($std['tolerance']);
+                                        $lb = $base; $ub = $base;
+                                        if (str_contains($tol, '/')) {
+                                            $parts = explode('/', $tol);
+                                            foreach ($parts as $p) {
+                                                $p = $normStd($p);
+                                                $fv = (float)$p;
+                                                if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
+                                                elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
+                                            }
+                                        } elseif (str_starts_with($tol, '+')) {
+                                            $ub = $base + (float)substr($tol, 1);
+                                        } elseif (str_starts_with($tol, '-')) {
+                                            $lb = $base + (float)$tol;
+                                        } else {
+                                            $tv = (float)$tol;
+                                            $lb = $base - $tv; $ub = $base + $tv;
+                                        }
+                                        if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) return true;
+                                    }
+                                }
+
+                                // 3. Check Special Size (prefix)
+                                if (($std['size'] ?? null) !== null && $std['size'] !== '') {
+                                    $szStr = $normStd($std['size']);
+                                    if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
+                                        $op = $szStr[0];
+                                        $bound = (float)substr($szStr, 1);
+                                        if ($op === '+' && $fVal < ($bound - $epsilon)) return true;
+                                        if ($op === '-' && $fVal > ($bound + $epsilon)) return true;
+                                    }
+                                }
+
+                                return false;
+                            };
+                        @endphp
                         @foreach($checksheets as $checksheet)
                             @php
                                 $isHiddenItem = in_array($checksheet->item_id, $hiddenItemIds ?? []);
@@ -643,61 +710,7 @@
                                     {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}
                                 </td>
                                   @php
-                                      $sec = 0;
-                                      $rawCt = $checksheet->cycle_time ?? null;
-
-                                      // 1. Parse cycle_time if explicitly present
-                                      if ($rawCt !== null && $rawCt !== '' && $rawCt !== '-') {
-                                          if (is_numeric($rawCt)) {
-                                              $val = (float) $rawCt;
-                                              if ($val > 0) {
-                                                  $sec = ($val < 30 && (floor($val) != $val)) ? (int) round($val * 60) : (int) round($val);
-                                              }
-                                          } elseif (is_string($rawCt) && str_contains($rawCt, ':')) {
-                                              $parts = array_map('intval', explode(':', trim($rawCt)));
-                                              if (count($parts) === 3) {
-                                                  $sec = $parts[0] * 3600 + $parts[1] * 60 + $parts[2];
-                                              } elseif (count($parts) === 2) {
-                                                  $sec = $parts[0] * 60 + $parts[1];
-                                              }
-                                          } elseif (is_string($rawCt) && preg_match('/^(\d+)\s*(s|sec|m|min)?$/i', trim($rawCt), $m)) {
-                                              $num = (int) $m[1];
-                                              $unit = strtolower($m[2] ?? 's');
-                                              $sec = str_starts_with($unit, 'm') ? ($num * 60) : $num;
-                                          }
-                                      }
-
-                                      // 2. Fallback: Derive gap from earlier checksheet in collection (desc order)
-                                      if ($sec <= 0 && isset($checksheets) && isset($loop)) {
-                                          $prevChecksheet = null;
-                                          if (!empty($checksheet->code_machine)) {
-                                              $prevChecksheet = $checksheets->slice($loop->index + 1)->first(function ($c) use ($checksheet) {
-                                                  return $c->code_machine == $checksheet->code_machine
-                                                      && $c->created_at
-                                                      && $checksheet->created_at
-                                                      && $c->created_at->isSameDay($checksheet->created_at)
-                                                      && $c->created_at->lt($checksheet->created_at);
-                                              });
-                                          }
-                                          if (!$prevChecksheet) {
-                                              $prevChecksheet = $checksheets[$loop->index + 1] ?? null;
-                                          }
-
-                                          if ($prevChecksheet && $prevChecksheet->created_at && $checksheet->created_at) {
-                                              $gap = $checksheet->created_at->diffInSeconds($prevChecksheet->created_at);
-                                              if ($gap >= 2 && $gap <= 28800 && $prevChecksheet->created_at->isSameDay($checksheet->created_at)) {
-                                                  $sec = (int) $gap;
-                                              }
-                                          }
-                                      }
-
-                                      // 3. Fallback: Use Item's standard_cycle_time
-                                      if ($sec <= 0 && !empty($checksheet->item->standard_cycle_time)) {
-                                          $sct = (float) $checksheet->item->standard_cycle_time;
-                                          if ($sct > 0) {
-                                              $sec = ($sct < 30) ? (int) round($sct * 60) : (int) round($sct);
-                                          }
-                                      }
+                                      $sec = $checksheet->computed_cycle_time_sec ?? 0;
 
                                       // Format Cycle Time text
                                       if ($sec >= 3600) {
@@ -831,71 +844,7 @@
                                         $displayMaxCavity = max(5, $actualMaxCavity);
                                         $anyNGInRow = false;
                                         
-                                        // Helper function for single value NG validation
-                                        $checkValueNG = function($val, $std) {
-                                            if ($val === '-' || $val === '' || $val === null || !is_numeric($val) || empty($std)) {
-                                                return false;
-                                            }
-                                            $fVal = (float)$val;
-                                            $epsilon = 0.00001;
-                                            $normStd = function($v) {
-                                                if ($v === null || $v === '') return '';
-                                                $s = str_replace(',', '.', (string)$v);
-                                                $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
-                                                $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
-                                                return trim($s);
-                                            };
-
-                                            // 1. Check Absolute Min/Max
-                                            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
-                                                $minBound = (float)$normStd($std['min']);
-                                                if ($fVal < ($minBound - $epsilon)) return true;
-                                            }
-                                            if (($std['max'] ?? null) !== null && $std['max'] !== '') {
-                                                $maxBound = (float)$normStd($std['max']);
-                                                if ($fVal > ($maxBound + $epsilon)) return true;
-                                            }
-
-                                            // 2. Check Size +/- Tolerance
-                                            if (($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
-                                                $szStr = $normStd($std['size']);
-                                                if (!str_starts_with($szStr, '+') && !str_starts_with($szStr, '-')) {
-                                                    $base = (float)$szStr;
-                                                    $tol = $normStd($std['tolerance']);
-                                                    $lb = $base; $ub = $base;
-                                                    if (str_contains($tol, '/')) {
-                                                        $parts = explode('/', $tol);
-                                                        foreach ($parts as $p) {
-                                                            $p = $normStd($p);
-                                                            $fv = (float)$p;
-                                                            if (str_starts_with($p, '+') || $fv > 0) $ub = $base + abs($fv);
-                                                            elseif (str_starts_with($p, '-') || $fv < 0) $lb = $base - abs($fv);
-                                                        }
-                                                    } elseif (str_starts_with($tol, '+')) {
-                                                        $ub = $base + (float)substr($tol, 1);
-                                                    } elseif (str_starts_with($tol, '-')) {
-                                                        $lb = $base + (float)$tol;
-                                                    } else {
-                                                        $tv = (float)$tol;
-                                                        $lb = $base - $tv; $ub = $base + $tv;
-                                                    }
-                                                    if ($fVal < ($lb - $epsilon) || $fVal > ($ub + $epsilon)) return true;
-                                                }
-                                            }
-
-                                            // 3. Check Special Size (prefix)
-                                            if (($std['size'] ?? null) !== null && $std['size'] !== '') {
-                                                $szStr = $normStd($std['size']);
-                                                if (str_starts_with($szStr, '+') || str_starts_with($szStr, '-')) {
-                                                    $op = $szStr[0];
-                                                    $bound = (float)substr($szStr, 1);
-                                                    if ($op === '+' && $fVal < ($bound - $epsilon)) return true;
-                                                    if ($op === '-' && $fVal > ($bound + $epsilon)) return true;
-                                                }
-                                            }
-
-                                            return false;
-                                        };
+                                        // Helper function for single value NG validation has been moved outside loop
 
                                         $hasStdData = false;
                                         foreach ($activePoints as $j) {
@@ -1805,98 +1754,6 @@
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/checksheet/in-process.js') }}?v={{ time() }}"></script>
-    <script>
-        $(document).ready(function () {
-            window.initInProcessIndex({
-                qrScannerModalId: '#qrScannerModal',
-                btnScanId: '#btnScanQRIndex',
-                inputQrId: '#filterQrRaw'
-            });
-
-            // Initialize Custom Search
-            if (typeof initItemSearch === 'function') {
-                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
-                initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
-                initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
-                initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });
-            }
-
-            var form = document.getElementById('filterFormInProcess');
-            if (form) {
-                // Link Synchronization (Sync Print/Export links with current filter selections)
-                function syncExportLinks() {
-                    var baseUrlPrint = "{{ route('in_process.print') }}";
-                    var baseUrlPdf = "{{ route('in_process.export_pdf') }}";
-                    var baseUrlMeasurements = "{{ route('in_process.export_measurements') }}";
-                    
-                    var baseUrlRecap = "{{ route('in_process.daily_recap') }}";
-                    
-                    var params = new URLSearchParams();
-                    var formData = new FormData(form);
-                    for (var pair of formData.entries()) {
-                        if (pair[1]) params.append(pair[0], pair[1]);
-                    }
-                    
-                    var queryString = params.toString();
-                    
-                    var printBtn = form.querySelector('a[title="Print"]');
-                    var pdfBtn = form.querySelector('a[title="Export to PDF"]');
-                    var measurementsBtn = form.querySelector('a[title="Export Data Dimensi (XLSX)"]');
-                    var recapBtn = document.getElementById('btnDailyRecap');
-                    
-                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
-                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
-                    if (measurementsBtn) measurementsBtn.href = baseUrlMeasurements + '?' + queryString;
-                    if (recapBtn) recapBtn.href = baseUrlRecap + '?' + queryString;
-                }
-
-                $(form).find('input, select').on('change', syncExportLinks);
-                // Also sync on initial load
-                syncExportLinks();
-
-                $(form).on('submit', function(e) {
-                    var startDate = document.getElementById('start_date').value;
-                    var endDate = document.getElementById('end_date').value;
-
-                    if (startDate && endDate && startDate > endDate) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Rentang Tanggal Tidak Valid',
-                            text: 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir.',
-                            confirmButtonColor: '#4e73df'
-                        });
-                    }
-                });
-            }
-
-            // Direct Print (Tanpa Buka Halaman Baru & Tanpa Double Dialog)
-            $(document).on('click', '.btn-print-direct', function(e) {
-                e.preventDefault();
-                var printUrl = $(this).attr('href');
-                if (!printUrl || printUrl === '#') return;
-
-                var oldIframe = document.getElementById('silentPrintIframe');
-                if (oldIframe) {
-                    oldIframe.parentNode.removeChild(oldIframe);
-                }
-
-                var iframe = document.createElement('iframe');
-                iframe.id = 'silentPrintIframe';
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                iframe.style.opacity = '0';
-                iframe.src = printUrl;
-
-                document.body.appendChild(iframe);
-            });
-        });
-    </script>
-
     <!-- Modal Import Data Dimensi -->
     <div class="modal fade" id="importMeasurementsModal" tabindex="-1" role="dialog" aria-labelledby="importMeasurementsModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -2089,175 +1946,7 @@
                 </div>
             </div>
         </div>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                function sortHiddenTableRows() {
-                    var tbody = $('#tableHiddenItems tbody');
-                    var rows = tbody.find('tr.hidden-item-row').get();
-                    rows.sort(function(a, b) {
-                        var aChecked = $(a).find('.chk-hidden-item').is(':checked') ? 1 : 0;
-                        var bChecked = $(b).find('.chk-hidden-item').is(':checked') ? 1 : 0;
-                        if (aChecked !== bChecked) {
-                            return bChecked - aChecked; // Checked (1) comes before Unchecked (0)
-                        }
-                        var aName = $(a).find('td:nth-child(3)').text().trim().toLowerCase();
-                        var bName = $(b).find('td:nth-child(3)').text().trim().toLowerCase();
-                        return aName.localeCompare(bName);
-                    });
-                    $.each(rows, function(index, row) {
-                        tbody.append(row);
-                    });
-                }
-
-                function filterHiddenModalTable() {
-                    var query = $('#searchHiddenModalItem').val().toLowerCase().trim();
-                    var dimFilter = $('#filterDimensionModalItem').val();
-
-                    $('#tableHiddenItems tbody tr.hidden-item-row').each(function() {
-                        var searchData = $(this).data('search') || '';
-                        var hasDim = $(this).attr('data-has-dimension');
-                        var hasNg = $(this).attr('data-has-ng');
-
-                        var matchSearch = searchData.indexOf(query) !== -1;
-                        var matchDim = true;
-                        if (dimFilter === "1" || dimFilter === "0") {
-                            matchDim = (dimFilter === hasDim);
-                        } else if (dimFilter === "ng") {
-                            matchDim = (hasNg === "1");
-                        }
-
-                        if (matchSearch && matchDim) {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
-                    });
-                }
-
-                $('#searchHiddenModalItem').on('input', filterHiddenModalTable);
-                $('#filterDimensionModalItem').on('change', filterHiddenModalTable);
-
-                function updateHiddenCount() {
-                    var cnt = $('.chk-hidden-item:checked').length;
-                    $('#countSelectedHidden strong').text(cnt);
-                }
-
-                var hiddenItemsLoaded = false;
-                $('#modalHiddenItems, #modalManageHiddenItems').on('show.bs.modal', function () {
-                    if (!hiddenItemsLoaded) {
-                        $('#tbodyHiddenItems').html('<tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2 text-primary"></i> Memuat data item...</td></tr>');
-                        fetch("{{ route('in_process.hidden_items_data', ['plant' => request('plant')]) }}")
-                            .then(function(res) { return res.json(); })
-                            .then(function(data) {
-                                if (data.success) {
-                                    $('#tbodyHiddenItems').html(data.html);
-                                    hiddenItemsLoaded = true;
-                                    updateHiddenCount();
-                                    sortHiddenTableRows();
-                                }
-                            })
-                            .catch(function(err) {
-                                console.error('Error loading hidden items data:', err);
-                                $('#tbodyHiddenItems').html('<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-1"></i> Gagal memuat data item. Silakan coba lagi.</td></tr>');
-                            });
-                    }
-                });
-
-                $(document).on('change', '.chk-hidden-item', function() {
-                    updateHiddenCount();
-                    sortHiddenTableRows();
-                });
-
-                $('#btnSelectAllHidden').on('click', function() {
-                    $('#tableHiddenItems tbody tr.hidden-item-row:visible .chk-hidden-item').prop('checked', true);
-                    updateHiddenCount();
-                    sortHiddenTableRows();
-                });
-
-                $('#btnUnselectAllHidden').on('click', function() {
-                    $('#tableHiddenItems tbody tr.hidden-item-row:visible .chk-hidden-item').prop('checked', false);
-                    updateHiddenCount();
-                    sortHiddenTableRows();
-                });
-
-                $('#btnSelectNoDimensionHidden').on('click', function() {
-                    $('#switchHideNoDimensionRows').prop('checked', true);
-                    var countChecked = 0;
-                    $('#tableHiddenItems tbody tr.hidden-item-row[data-has-dimension="0"]').each(function() {
-                        var chk = $(this).find('.chk-hidden-item');
-                        if (!chk.is(':checked')) {
-                            chk.prop('checked', true);
-                            countChecked++;
-                        }
-                    });
-                    updateHiddenCount();
-                    sortHiddenTableRows();
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: countChecked > 0 ? (countChecked + ' item Visual Only (Tanpa Dimensi) & opsi sembunyikan baris Visual Only diaktifkan') : 'Semua item Visual Only sudah dicentang & opsi sembunyikan baris Visual Only diaktifkan',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                });
-
-                $('#btnSelectNgHidden').on('click', function() {
-                    $('#switchHideNgRows').prop('checked', true);
-                    var countChecked = 0;
-                    $('#tableHiddenItems tbody tr.hidden-item-row[data-has-ng="1"]').each(function() {
-                        var chk = $(this).find('.chk-hidden-item');
-                        if (!chk.is(':checked')) {
-                            chk.prop('checked', true);
-                            countChecked++;
-                        }
-                    });
-                    updateHiddenCount();
-                    sortHiddenTableRows();
-
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: countChecked > 0 ? (countChecked + ' item NG Dimensi & opsi sembunyikan baris NG Dimensi diaktifkan') : 'Semua item NG Dimensi sudah dicentang & opsi sembunyikan baris NG Dimensi diaktifkan',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
-                });
-
-                $('#modalHiddenItems').on('shown.bs.modal', function() {
-                    sortHiddenTableRows();
-                });
-            });
-        </script>
     @endif
-
-    <script>
-        // Custom file input label update
-        $('#importFile').on('change', function() {
-            var fileName = $(this).val().split('\\').pop();
-            $(this).next('.custom-file-label').addClass("selected").html(fileName);
-        });
-
-        $('#importMeasurementsForm').on('submit', function() {
-            // Tutup modal agar tidak menutupi layar setelah klik proses
-            $('#importMeasurementsModal').modal('hide');
-            
-            // Gunakan toast kecil atau biarkan browser menangani loading bar
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'info',
-                title: 'Mengunggah & Memproses Data...',
-                showConfirmButton: false,
-                timerProgressBar: true
-            });
-        });
-    </script>
 
     @include('partials.qr_scanner_modal')
 
@@ -2265,7 +1954,7 @@
     @include('partials.bulk_approve_script')
 
     <!-- Float Menu untuk Bulk Delete -->
-    @if(auth()->user()->role === 'admin')
+    @if(auth()->check() && auth()->user()->role === 'admin')
     <div id="bulkActionMenu" class="position-fixed shadow-lg rounded" style="bottom: 80px; left: 50%; transform: translateX(-50%); display: none; z-index: 1050; background: white; padding: 15px; border: 1px solid #e3e6f0;">
         <div class="d-flex align-items-center">
             <span class="mr-3 font-weight-bold text-gray-800"><span id="bulkSelectedCount">0</span> Data Terpilih</span>
@@ -2277,128 +1966,15 @@
     @endif
 
     <script>
-        $(document).ready(function() {
-            // Restore scroll position
-            var savedScroll = sessionStorage.getItem('inProcessScrollPos');
-            if (savedScroll) {
-                $('.table-responsive').scrollTop(savedScroll);
-                sessionStorage.removeItem('inProcessScrollPos');
-            }
-
-            // Save scroll position before leaving or reloading
-            $(window).on('beforeunload', function() {
-                sessionStorage.setItem('inProcessScrollPos', $('.table-responsive').scrollTop());
-            });
-
-            const checkAllBtn = $('#checkAllRows');
-            const rowCheckboxes = $('.row-checkbox');
-            const countDisplay = $('#checkedCountDisplay');
-            const bulkMenu = $('#bulkActionMenu');
-            const bulkSelectedCount = $('#bulkSelectedCount');
-            const btnBulkDelete = $('#btnBulkDelete');
-
-            function updateCount() {
-                const checkedCount = $('.row-checkbox:checked').length;
-                countDisplay.text(checkedCount);
-                if (bulkSelectedCount.length > 0) {
-                    bulkSelectedCount.text(checkedCount);
-                }
-                
-                if(rowCheckboxes.length > 0) {
-                    checkAllBtn.prop('checked', checkedCount === rowCheckboxes.length);
-                }
-
-                // Show or hide floating menu
-                if (checkedCount > 0) {
-                    bulkMenu.fadeIn(200);
-                } else {
-                    bulkMenu.fadeOut(200);
-                }
-
-                // Add slight background color to checked rows
-                $('.row-checkbox').each(function() {
-                    const row = $(this).closest('tr');
-                    if ($(this).is(':checked')) {
-                        row.css('background-color', 'rgba(78, 115, 223, 0.05)');
-                    } else {
-                        row.css('background-color', '');
-                    }
-                });
-            }
-
-            checkAllBtn.on('change', function() {
-                const isChecked = $(this).prop('checked');
-                rowCheckboxes.prop('checked', isChecked);
-                updateCount();
-            });
-
-            rowCheckboxes.on('change', function() {
-                updateCount();
-            });
-
-            // Handle Bulk Delete
-            if (btnBulkDelete.length > 0) {
-                btnBulkDelete.on('click', function() {
-                    const selectedIds = $('.row-checkbox:checked').map(function() {
-                        return $(this).val();
-                    }).get();
-
-                    if (selectedIds.length === 0) return;
-
-                    Swal.fire({
-                        title: 'Konfirmasi Hapus',
-                        text: "Apakah Anda yakin ingin menghapus " + selectedIds.length + " data yang dipilih? Data yang dihapus tidak dapat dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#e74a3b',
-                        cancelButtonColor: '#858796',
-                        confirmButtonText: 'Ya, Hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Menghapus Data...',
-                                html: 'Mohon tunggu sebentar',
-                                allowOutsideClick: false,
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
-
-                            $.ajax({
-                                url: '{{ route("in_process.bulk_destroy") }}' + window.location.search,
-                                type: 'POST',
-                                data: {
-                                    _token: '{{ csrf_token() }}',
-                                    ids: selectedIds
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: 'Berhasil!',
-                                            text: response.message,
-                                            timer: 1500,
-                                            showConfirmButton: false
-                                        }).then(() => {
-                                            if (response.redirect) {
-                                                window.location.href = response.redirect;
-                                            } else {
-                                                location.reload();
-                                            }
-                                        });
-                                    } else {
-                                        Swal.fire('Gagal!', response.message, 'error');
-                                    }
-                                },
-                                error: function(xhr) {
-                                    Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-        });
+        window.inProcessConfig = {
+            routePrint: "{{ route('in_process.print') }}",
+            routeExportPdf: "{{ route('in_process.export_pdf') }}",
+            routeExportMeasurements: "{{ route('in_process.export_measurements') }}",
+            routeDailyRecap: "{{ route('in_process.daily_recap') }}",
+            routeHiddenItemsData: "{{ route('in_process.hidden_items_data', ['plant' => request('plant')]) }}",
+            routeBulkDestroy: "{{ route('in_process.bulk_destroy') }}",
+            csrfToken: "{{ csrf_token() }}"
+        };
     </script>
+    <script src="{{ asset('js/checksheet/in-process-index.js') }}?v={{ time() }}"></script>
 @endpush
