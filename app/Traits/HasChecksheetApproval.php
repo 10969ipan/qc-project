@@ -550,6 +550,9 @@ trait HasChecksheetApproval
                 $this->applySequentialApprovalFilter($query, $type);
             }
 
+            $dummyModel = new $modelClass();
+            $table = $dummyModel->getTable();
+
             // Get IDs before updating to know the count
             // Sort by ID DESC so the newest checksheet gets processed first,
             // receiving the time closest to "now()" when we calculate backwards.
