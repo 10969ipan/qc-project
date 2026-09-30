@@ -684,7 +684,7 @@ $(document).ready(function () {
         if (poreDate && item.tgl_masuk && poreDate === item.tgl_masuk) {
             poreDate = '';
         }
-        form.find('[name="tanggal_test"]').val(poreDate || new Date().toISOString().slice(0, 10));
+        form.find('[name="tanggal_test"]').val(poreDate || '');
 
         // Data 1 Fields
         form.find('[name="actual_porecount"]').val(item.actual_porecount && item.actual_porecount !== '-' ? item.actual_porecount : '');
@@ -1158,26 +1158,6 @@ $(document).ready(function () {
                 $parent.removeClass('show');
                 $(this).removeClass('show').hide();
                 $parent.append($(this));
-            }
-        });
-    });
-
-    // Duplicate Laporan SweetAlert
-    $(document).on('submit', '.duplicate-form', function(e) {
-        e.preventDefault();
-        var form = this;
-        Swal.fire({
-            title: 'Duplicate Laporan?',
-            text: "Data Thickness Test & Foto Before akan diduplikasi, dan data test lainnya akan dikosongkan.",
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#858796',
-            confirmButtonText: 'Ya, Duplicate!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
             }
         });
     });
