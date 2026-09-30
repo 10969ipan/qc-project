@@ -128,11 +128,11 @@ class InProcessChecksheetService extends BaseService
         }
 
         if (!empty($filters['start_date'])) {
-            $query->whereDate('in_process_checksheets.date', '>=', $filters['start_date']);
+            $query->where('in_process_checksheets.date', '>=', $filters['start_date']);
         }
 
         if (!empty($filters['end_date'])) {
-            $query->whereDate('in_process_checksheets.date', '<=', $filters['end_date']);
+            $query->where('in_process_checksheets.date', '<=', $filters['end_date']);
         }
 
         if (!empty($filters['approval_status'])) {
@@ -180,21 +180,11 @@ class InProcessChecksheetService extends BaseService
                         ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera'])
                         ->orWhere(function($sub) {
                             $sub->whereNotNull('in_process_checksheets.dimension_check')
-                                ->where('in_process_checksheets.dimension_check', '!=', '')
-                                ->where('in_process_checksheets.dimension_check', '!=', '[]')
-                                ->where('in_process_checksheets.dimension_check', '!=', '{}')
-                                ->where('in_process_checksheets.dimension_check', '!=', 'null')
-                                ->where('in_process_checksheets.dimension_check', '!=', '""')
-                                ->whereRaw("CHAR_LENGTH(in_process_checksheets.dimension_check) > 4");
+                                ->whereNotIn('in_process_checksheets.dimension_check', ['', '[]', '{}', 'null', '""']);
                         });
                     } else {
                         $q->whereNotNull('in_process_checksheets.dimension_check')
-                            ->where('in_process_checksheets.dimension_check', '!=', '')
-                            ->where('in_process_checksheets.dimension_check', '!=', '[]')
-                            ->where('in_process_checksheets.dimension_check', '!=', '{}')
-                            ->where('in_process_checksheets.dimension_check', '!=', 'null')
-                            ->where('in_process_checksheets.dimension_check', '!=', '""')
-                            ->whereRaw("CHAR_LENGTH(in_process_checksheets.dimension_check) > 4");
+                            ->whereNotIn('in_process_checksheets.dimension_check', ['', '[]', '{}', 'null', '""']);
                     }
                 });
             }
@@ -264,16 +254,8 @@ class InProcessChecksheetService extends BaseService
         } else {
             // Default: strict regular manual input entries only (excludes verification scan data)
             $query->where(function ($q) {
-                $q->where(function ($sub) {
-                    $sub->whereNull('in_process_checksheets.qrcode')
-                        ->orWhere('in_process_checksheets.qrcode', '');
-                })->where(function ($sub) {
-                    $sub->whereNull('in_process_checksheets.unique_code_id')
-                        ->orWhere('in_process_checksheets.unique_code_id', '');
-                })->where(function ($sub) {
-                    $sub->whereNull('in_process_checksheets.scan_method')
-                        ->orWhere('in_process_checksheets.scan_method', 'manual');
-                });
+                $q->whereNull('in_process_checksheets.scan_method')
+                  ->orWhere('in_process_checksheets.scan_method', 'manual');
             });
         }
 
@@ -1079,10 +1061,12 @@ class InProcessChecksheetService extends BaseService
     public function getDimensionNgItemIds($plantId): array
     {
         $resolvedPlant = $this->resolvePlantId($plantId);
-        $cacheKey = "in_proc_dim_ng_item_ids_" . ($resolvedPlant ?? 'global');
+        $cacheKey = "in_proc_dim_ng_item_ids_v2_" . ($resolvedPlant ?? 'global');
 
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($resolvedPlant) {
-            return InProcessChecksheet::where('plant_id', $resolvedPlant)
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($resolvedPlant) {
+            return InProcessChecksheet::when($resolvedPlant, function($q) use ($resolvedPlant) {
+                    $q->where('plant_id', $resolvedPlant);
+                })
                 ->whereNotNull('item_id')
                 ->where(function($q) {
                     $q->where('judgment', 'NG')

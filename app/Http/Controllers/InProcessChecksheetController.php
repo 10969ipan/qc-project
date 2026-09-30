@@ -195,22 +195,20 @@ class InProcessChecksheetController extends Controller
             return $this->getConsolidatedStandards();
         });
 
-        // Data for filters (Only fetch items that actually exist in InProcessChecksheet)
-        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v5_{$plantId}", 1800, function () use ($plantId) {
-            $usedItemIds = InProcessChecksheet::when($plantId, function($q) use ($plantId) {
-                $q->where('plant_id', $plantId);
-            })
-            ->whereNotNull('item_id')
-            ->distinct()
-            ->pluck('item_id');
-            
-            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
+        // Data for filters (Direct Item query cached per plant to avoid table scan over checksheets)
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v6_{$plantId}", 3600, function () use ($plantId) {
+            return Item::byCategory('INPROSES')
+                ->when($plantId, function($q) use ($plantId) {
+                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+                })
+                ->orderBy('name')
+                ->get();
         });
 
         // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
         $allItems = collect();
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v4_{$plantId}", 1800, function () use ($items) {
+        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v5_{$plantId}", 3600, function () use ($items) {
             return $items->pluck('customer')
                 ->filter(function($value) {
                     return !empty($value);
@@ -220,18 +218,24 @@ class InProcessChecksheetController extends Controller
                 ->values();
         });
 
-        $initials = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_init_{$plantId}", 1800, function () use ($plantId) {
-            return InProcessChecksheet::where('plant_id', $plantId)
+        $initials = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_init_v2_{$plantId}", 1800, function () use ($plantId) {
+            return InProcessChecksheet::when($plantId, function($q) use ($plantId) {
+                    $q->where('plant_id', $plantId);
+                })
                 ->where('date', '>=', now()->subDays(90))
                 ->whereNotNull('operator_initials')
+                ->where('operator_initials', '!=', '')
                 ->distinct()
                 ->pluck('operator_initials')
                 ->sort();
         });
 
-        $machines = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_mach_{$plantId}", 3600, function () use ($plantId) {
-            return InProcessChecksheet::where('plant_id', $plantId)
+        $machines = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_mach_v2_{$plantId}", 3600, function () use ($plantId) {
+            return InProcessChecksheet::when($plantId, function($q) use ($plantId) {
+                    $q->where('plant_id', $plantId);
+                })
                 ->whereNotNull('code_machine')
+                ->where('code_machine', '!=', '')
                 ->distinct()
                 ->pluck('code_machine')
                 ->sort(SORT_NUMERIC)

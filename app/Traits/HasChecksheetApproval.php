@@ -380,17 +380,20 @@ trait HasChecksheetApproval
                 $query->whereIn($query->getModel()->getTable() . '.id', $request->input('ids'));
             } else {
                 $dateColumn = $this->getApprovalDateColumn();
+                $table = (new $modelClass)->getTable();
+                $prefixedDateCol = $table . '.' . $dateColumn;
+
                 if ($request->filled('start_date')) {
-                    $query->whereDate($dateColumn, '>=', $request->start_date);
+                    $query->where($prefixedDateCol, '>=', $request->start_date);
                 }
                 if ($request->filled('end_date')) {
-                    $query->whereDate($dateColumn, '<=', $request->end_date);
+                    $query->where($prefixedDateCol, '<=', $request->end_date);
                 }
                 if ($request->filled('start_tgl_datang')) {
-                    $query->whereDate('tanggal_datang', '>=', $request->input('start_tgl_datang'));
+                    $query->where($table . '.tanggal_datang', '>=', $request->input('start_tgl_datang'));
                 }
                 if ($request->filled('end_tgl_datang')) {
-                    $query->whereDate('tanggal_datang', '<=', $request->input('end_tgl_datang'));
+                    $query->where($table . '.tanggal_datang', '<=', $request->input('end_tgl_datang'));
                 }
 
                 $table = (new $modelClass)->getTable();
