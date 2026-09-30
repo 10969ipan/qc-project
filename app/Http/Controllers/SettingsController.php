@@ -514,7 +514,7 @@ class SettingsController extends Controller
             }
             
             DB::commit();
-            Cache::flush();
+            \Illuminate\Support\Facades\Cache::flush();
 
             return response()->json([
                 'status' => 'success',
