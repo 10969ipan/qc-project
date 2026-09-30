@@ -491,10 +491,9 @@
                             <th rowspan="2" class="align-middle">No</th>
                             <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / Cycle Time)</th>
-                            <th rowspan="2" class="align-middle">No Mesin</th>
                             <th rowspan="2" class="align-middle text-nowrap">Kategori</th>
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No / No. Mesin</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             <th rowspan="2" class="align-middle">Check Dimensi</th>
                             @if(in_array(strtolower($plantContext ?? $plantCode ?? 'karawang'), ['jakarta', 'jkt']))
@@ -536,14 +535,14 @@
                                  <td class="align-middle text-nowrap">
                                      {{ $checksheet->created_at->copy()->subSeconds($sec)->format('H:i') }} - {{ $checksheet->created_at->format('H:i') }} <span class="text-muted">({{ $ctStr }})</span>
                                  </td>
-                                <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
                                 <td class="align-middle text-nowrap text-uppercase">{{ $checksheet->category ?? '-' }}</td>
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                 <td class="align-middle text-left text-nowrap">
                                     <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span><br>
-                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
+                                    <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small><br>
+                                    <small class="text-muted" style="font-size: 0.55rem;">No. Mesin : {{ $checksheet->code_machine ?? '-' }}</small>
                                 </td>
-                                <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
+                                <td class="align-middle text-left text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 
                                 {{-- Dimension Check Detail --}}
                                 <td class="align-middle p-0">

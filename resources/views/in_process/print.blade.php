@@ -275,8 +275,8 @@
                 <th rowspan="2">No</th>
                 <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
                 <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
-                <th rowspan="2">No Mesin</th>
-                <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / CUSTOMER</th>
+                <th rowspan="2" style="min-width: 140px;">ITEM PART / PART NO / NO. MESIN</th>
+                <th rowspan="2">CUSTOMER</th>
                 <th rowspan="2" style="width: 25%;">Check Dimensi</th>
                 @if(in_array(strtolower($headerPlantCode ?? 'karawang'), ['jakarta', 'jkt']))
                     <th rowspan="2">Qty<br>(Total / Sampling)</th>
@@ -458,12 +458,13 @@
                             -
                         @endif
                     </td>
-                    <td style="white-space: nowrap;">{{ $checksheet->code_machine ?? '-' }}</td>
-
-                    {{-- Item Part / Part No / Customer Combined Column --}}
+                    {{-- Item Part / Part No / No Mesin --}}
                     <td style="text-align: left;">
                         <div style="font-weight: bold; font-size: 8.5px; color: #000;">{{ $checksheet->item->name ?? '-' }}</div>
                         <div style="font-size: 7px; color: #000;">{{ $checksheet->item->part_number ?? '-' }}</div>
+                        <div style="font-size: 7px; color: #000;">No. Mesin : {{ $checksheet->code_machine ?? '-' }}</div>
+                    </td>
+                    <td style="text-align: left;">
                         <div style="font-size: 7px; color: #000;">{{ $checksheet->item->customer ?? '-' }}</div>
                     </td>
 

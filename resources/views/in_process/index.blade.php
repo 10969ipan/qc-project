@@ -508,6 +508,7 @@
                         <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     @endif
+                    @if(auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('in_process.export_measurements', request()->query()) }}"
                         class="btn btn-warning btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Export Data Dimensi (XLSX)"
                         style="background-color: #d97706; color: white; font-size: 0.68rem; height: 26px;">
@@ -519,7 +520,6 @@
                         title="Import Data Dimensi (CSV/XLSX)">
                         <i class="fas fa-file-import fa-sm mr-1"></i> Import
                     </button>
-                    @if(auth()->check() && auth()->user()->role === 'admin')
                     <button type="button" 
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" 
                         style="background-color: #7c3aed; color: white; font-size: 0.68rem; height: 26px;"
@@ -563,11 +563,8 @@
                             @endif
                             <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                             <th rowspan="2" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / Cycle Time)</th>
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager', 'supervisor_plating', 'manager_plating']))
-                                <th rowspan="2" class="align-middle">No Mesin</th>
-                            @endif
                             <th rowspan="2" class="align-middle d-none">Kode SAP</th>
-                            <th rowspan="2" class="align-middle">Item Part / Part No</th>
+                            <th rowspan="2" class="align-middle">Item Part / Part No / No. Mesin</th>
                             <th rowspan="2" class="align-middle">Customer</th>
                             @if(request('view_mode') !== 'verifikasi')
                                 <th rowspan="2" class="align-middle" style="min-width: 170px;">Check Dimensi</th>
@@ -734,9 +731,6 @@
                                           -
                                       @endif
                                   </td>
-                                @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'asst_manager', 'manager', 'supervisor_plating', 'manager_plating', 'oshef']))
-                                    <td class="align-middle">{{ $checksheet->code_machine ?? '-' }}</td>
-                                @endif
                                 <td class="align-middle text-nowrap d-none">{{ $checksheet->item->sap_code ?? '-' }}</td>
                                  <td class="align-middle text-left text-nowrap">
                                      <span class="font-weight-bold text-gray-800">{{ $checksheet->item->name ?? '-' }}</span>
@@ -754,9 +748,10 @@
                                          </span>
                                      @endif
                                      <br>
-                                     <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small>
+                                     <small class="text-muted">{{ $checksheet->item->part_number ?? '-' }}</small><br>
+                                     <small class="text-muted" style="font-size: 0.55rem;">No. Mesin : {{ $checksheet->code_machine ?? '-' }}</small>
                                  </td>
-                                 <td class="align-middle text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
+                                 <td class="align-middle text-left text-nowrap">{{ $checksheet->item->customer ?? '-' }}</td>
                                 @if(request('view_mode') !== 'verifikasi')
 
                                 {{-- Detail Cek Dimensi --}}
