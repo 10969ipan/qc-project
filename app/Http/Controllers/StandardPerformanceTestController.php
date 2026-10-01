@@ -664,7 +664,7 @@ class StandardPerformanceTestController extends Controller
         // Calculate averages across all matching reports before pagination for THICKNESS and CORRODKOTE reports
         $averages = null;
         if ($testType === 'thickness') {
-            $allMatching = (clone $query)->get();
+            $allMatching = (clone $query)->withoutEagerLoads()->select(['id', 'data1_id', 'actual_cr', 'actual_ni', 'actual_cu'])->get();
 
             $cr1 = []; $ni1 = []; $cu1 = [];
             $cr2 = []; $ni2 = []; $cu2 = [];
@@ -674,6 +674,7 @@ class StandardPerformanceTestController extends Controller
                     $allIds = $allMatching->pluck('id')->filter()->unique();
                     $allTrials = DurabilityThicknessReport::where('is_trial', true)
                         ->whereIn('data1_id', $allIds)
+                        ->select(['id', 'data1_id', 'actual_cr', 'actual_ni', 'actual_cu'])
                         ->get()
                         ->keyBy('data1_id');
 
@@ -699,7 +700,10 @@ class StandardPerformanceTestController extends Controller
             } else {
                 if (count($allMatching) > 0) {
                     $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
-                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)
+                        ->select(['id', 'actual_cr', 'actual_ni', 'actual_cu'])
+                        ->get()
+                        ->keyBy('id');
 
                     foreach ($allMatching as $m) {
                         $d1 = $allData1->get($m->data1_id);
@@ -732,7 +736,7 @@ class StandardPerformanceTestController extends Controller
                 'cu2' => count($cu2) ? number_format(array_sum($cu2) / count($cu2), 2) : '-',
             ];
         } elseif ($testType === 'corrodkote') {
-            $allMatching = (clone $query)->get();
+            $allMatching = (clone $query)->withoutEagerLoads()->select(['id', 'data1_id', 'aktual_corrosion'])->get();
 
             $parseVal = function($val) {
                 if (is_null($val)) return null;
@@ -748,6 +752,7 @@ class StandardPerformanceTestController extends Controller
                     $allIds = $allMatching->pluck('id')->filter()->unique();
                     $allTrials = DurabilityThicknessReport::where('is_trial', true)
                         ->whereIn('data1_id', $allIds)
+                        ->select(['id', 'data1_id', 'aktual_corrosion'])
                         ->get()
                         ->keyBy('data1_id');
 
@@ -771,7 +776,10 @@ class StandardPerformanceTestController extends Controller
             } else {
                 if (count($allMatching) > 0) {
                     $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
-                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)
+                        ->select(['id', 'aktual_corrosion'])
+                        ->get()
+                        ->keyBy('id');
 
                     foreach ($allMatching as $m) {
                         $d1 = $allData1->get($m->data1_id);
@@ -798,7 +806,7 @@ class StandardPerformanceTestController extends Controller
                 'corrosion2' => count($corr2) ? number_format(array_sum($corr2) / count($corr2), 2) : '-',
             ];
         } elseif ($testType === 'cass') {
-            $allMatching = (clone $query)->get();
+            $allMatching = (clone $query)->withoutEagerLoads()->select(['id', 'data1_id', 'aktual_rn'])->get();
 
             $parseVal = function($val) {
                 if (is_null($val)) return null;
@@ -814,6 +822,7 @@ class StandardPerformanceTestController extends Controller
                     $allIds = $allMatching->pluck('id')->filter()->unique();
                     $allTrials = DurabilityThicknessReport::where('is_trial', true)
                         ->whereIn('data1_id', $allIds)
+                        ->select(['id', 'data1_id', 'aktual_rn'])
                         ->get()
                         ->keyBy('data1_id');
 
@@ -837,7 +846,10 @@ class StandardPerformanceTestController extends Controller
             } else {
                 if (count($allMatching) > 0) {
                     $data1Ids = $allMatching->pluck('data1_id')->filter()->unique();
-                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)->get()->keyBy('id');
+                    $allData1 = DurabilityThicknessReport::whereIn('id', $data1Ids)
+                        ->select(['id', 'aktual_rn'])
+                        ->get()
+                        ->keyBy('id');
 
                     foreach ($allMatching as $m) {
                         $d1 = $allData1->get($m->data1_id);
