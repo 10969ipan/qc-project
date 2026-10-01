@@ -87,7 +87,8 @@ class IncomingExportController extends Controller
 
         $cacheKey = "incoming_exports_filters_" . md5(json_encode([$plantId]));
         $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+            // ponytail: hanya kategori khusus Outgoing Export — pisah dari item InProcess/Plating
+            $categories = ['Outgoing Export', 'Incoming Export'];
             $jakartaPlantId = Plant::resolveId('jakarta');
             $karawangPlantId = Plant::resolveId('karawang');
             $plantIds = array_unique(array_filter([$plantId, $jakartaPlantId, $karawangPlantId]));
@@ -108,7 +109,8 @@ class IncomingExportController extends Controller
     public function create(Request $request)
     {
         $user = auth()->user();
-        $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        // ponytail: kategori khusus Outgoing Export, pisah dari InProcess/Plating
+        $categories = ['Outgoing Export', 'Incoming Export'];
         $query = Item::byCategory($categories)->orderBy('name');
 
         $jakartaPlantId = Plant::resolveId('jakarta');
@@ -163,7 +165,8 @@ class IncomingExportController extends Controller
     public function edit($id)
     {
         $checksheet = IncomingExport::findOrFail($id);
-        $categories = ['Outgoing Export', 'Incoming Export', 'Incoming Part', 'INPROSES', 'Inprosess', 'Inprocess', 'SUB ASSY', 'Sub Assy', 'Plating', 'PLATING'];
+        // ponytail: kategori khusus Outgoing Export, pisah dari InProcess/Plating
+        $categories = ['Outgoing Export', 'Incoming Export'];
         $jakartaPlantId = Plant::resolveId('jakarta');
         $karawangPlantId = Plant::resolveId('karawang');
         $plantIds = array_unique(array_filter([$checksheet->plant_id, $jakartaPlantId, $karawangPlantId]));
