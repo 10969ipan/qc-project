@@ -714,98 +714,22 @@
 
                              {{-- Level 1: SPV Quality --}}
                              <td class="align-middle text-center">
-                                 @if($report->supervisor_qc)
-                                     @if($report->supervisor_qc === 'REJECTED')
-                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
-                                     @else
-                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->supervisor_qc }}</small>
-                                     @endif
-                                 @else
-                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
-                                         <i class="fas fa-clock mr-1"></i> PENDING
-                                     </span>
-                                 @endif
-                                 @if($report->supervisor_approved_at)
-                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->supervisor_approved_at)->format('d/m/Y H:i') }}</small>
-                                 @endif
+                                 {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($report, 'supervisor', $report->supervisor_qc, $report->supervisor_approved_at, $report->rejection_remarks) !!}
                              </td>
 
                              {{-- Level 2: SPV Plating --}}
                              <td class="align-middle text-center">
-                                 @if($report->supervisor_plating)
-                                     @if($report->supervisor_plating === 'REJECTED')
-                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
-                                     @else
-                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->supervisor_plating }}</small>
-                                     @endif
-                                 @else
-                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
-                                         <i class="fas fa-clock mr-1"></i> PENDING
-                                     </span>
-                                 @endif
-                                 @if($report->supervisor_plating_approved_at)
-                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->supervisor_plating_approved_at)->format('d/m/Y H:i') }}</small>
-                                 @endif
+                                 {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($report, 'supervisor_plating', $report->supervisor_plating, $report->supervisor_plating_approved_at, $report->rejection_remarks) !!}
                              </td>
 
                              {{-- Level 3: Asst Manager Quality --}}
                              <td class="align-middle text-center">
-                                 @if($report->asst_manager_qc)
-                                     @if($report->asst_manager_qc === 'REJECTED')
-                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
-                                     @else
-                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->asst_manager_qc }}</small>
-                                     @endif
-                                 @else
-                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
-                                         <i class="fas fa-clock mr-1"></i> PENDING
-                                     </span>
-                                 @endif
-                                 @if($report->asst_manager_approved_at)
-                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->asst_manager_approved_at)->format('d/m/Y H:i') }}</small>
-                                 @endif
+                                 {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($report, 'asst_manager', $report->asst_manager_qc, $report->asst_manager_approved_at, $report->rejection_remarks) !!}
                              </td>
 
                              {{-- Level 4: Asst Manager Plating --}}
                              <td class="align-middle text-center">
-                                 @if($report->asst_manager_plating)
-                                     @if($report->asst_manager_plating === 'REJECTED')
-                                         <span class="badge badge-danger px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ getRejectorName($report->rejection_remarks) }}</small>
-                                     @else
-                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem;">
-                                             <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                         </span>
-                                         <br><small class="text-muted" style="font-size: 0.65rem;">oleh {{ $report->asst_manager_plating }}</small>
-                                     @endif
-                                 @else
-                                     <span class="badge badge-warning px-2 py-1" style="font-size: 0.7rem;">
-                                         <i class="fas fa-clock mr-1"></i> PENDING
-                                     </span>
-                                 @endif
-                                 @if($report->asst_manager_plating_approved_at)
-                                     <br><small class="text-muted" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($report->asst_manager_plating_approved_at)->format('d/m/Y H:i') }}</small>
-                                 @endif
+                                 {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($report, 'asst_manager_plating', $report->asst_manager_plating, $report->asst_manager_plating_approved_at, $report->rejection_remarks) !!}
                              </td>
 
                              {{-- Rejection Remarks --}}

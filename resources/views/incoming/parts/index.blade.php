@@ -352,6 +352,18 @@
                 </div>
                 @endif
 
+                <!-- Field: Tipe Approval -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tipe Approval</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua Tipe</option>
+                            <option value="sampling" {{ request('approval_method') === 'sampling' ? 'selected' : '' }}>Sampling (Biru)</option>
+                            <option value="bulk" {{ request('approval_method') === 'bulk' ? 'selected' : '' }}>Bulk (Hijau)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Tombol Filter & Reset -->
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
@@ -435,7 +447,7 @@
                             <tr class="text-center">
                                 <th style="width: 45px; min-width: 45px;">Pcs</th>
                                 <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
-                                <th style="font-size: 10px; min-width: 120px;">{{ $plantCode === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Karu QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
@@ -451,7 +463,7 @@
                                 $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                 $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                $canApproveKashift = (in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) 
+                                $canApproveKaru = ($user->role === 'karu_qc' || $isAdmin) 
                                     && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED');
 
                                 $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
@@ -610,42 +622,18 @@
                                 </td>
                                 
                                 @if(request('view_mode') !== 'verifikasi')
-                                    {{-- Unified Approval Columns (4 Roles) --}}
-                                    @foreach ($approvalOrder as $role)
-                                        @php
-                                            $field = getApprovalField($role);
-                                            $dateField = getApprovalDateField($role);
-                                            $status = $cs->$field;
-                                            $date = $cs->$dateField;
-                                        @endphp
-                                        <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                            @if($status === 'REJECTED')
-                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $cs->rejection_remarks }}">
-                                                    <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                                </span>
-                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                    <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
-                                                    @if($date)
-                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                    @endif
-                                                </div>
-                                            @elseif($status && $status !== 'Pending')
-                                                <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                                    <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                                </span>
-                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                    <div>oleh {{ $status }}</div>
-                                                    @if($date)
-                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                    @endif
-                                                </div>
-                                            @else
-                                                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                                    <i class="fas fa-clock mr-1"></i> PENDING
-                                                </span>
-                                            @endif
-                                        </td>
-                                    @endforeach
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                        {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($cs, 'karu_qc', $cs->kashift_qc, $cs->kashift_approved_at, $cs->rejection_remarks) !!}
+                                    </td>
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                        {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($cs, 'supervisor', $cs->supervisor_qc, $cs->supervisor_approved_at, $cs->rejection_remarks) !!}
+                                    </td>
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                        {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($cs, 'asst_manager', $cs->asst_manager_qc, $cs->asst_manager_approved_at, $cs->rejection_remarks) !!}
+                                    </td>
+                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                        {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($cs, 'manager', $cs->manager_qc, $cs->manager_approved_at, $cs->rejection_remarks) !!}
+                                    </td>
                                 @endif
 
                                 <td class="align-middle text-left small" style="min-width: 150px; white-space: normal;">{{ $cs->remarks ?? '-' }}</td>
@@ -655,14 +643,15 @@
                                         @include('partials.bulk_approve_button')
                                     @endif
 
-                                    @if($canApproveKashift)
-                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline">
+                                    @if($canApproveKaru)
+                                        <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'karu_qc'], request()->all())) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $isJakarta ? 'Kepala Regu' : 'Kashift QC' }})" style="min-width: 90px;">
-                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ($isJakarta ? ' KR' : ' KS') : '' }}
+                                            <input type="hidden" name="approval_method" value="sampling">
+                                            <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Karu QC)" style="min-width: 90px;">
+                                                <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' Karu' : ' Karu QC' }}
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject ({{ $isJakarta ? 'Kepala Regu' : 'Kashift QC' }})" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}kashift" style="min-width: 90px;">
+                                        <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Karu QC)" data-toggle="modal" data-target="#rejectModal{{ $cs->id }}karu_qc" style="min-width: 90px;">
                                             <i class="fas fa-times"></i> Reject
                                         </button>
                                     @endif
@@ -670,6 +659,7 @@
                                     @if($canApproveSupervisor)
                                         <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline">
                                             @csrf
+                                            <input type="hidden" name="approval_method" value="sampling">
                                             <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Supervisor QC)" style="min-width: 90px;">
                                                 <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' SPV' : '' }}
                                             </button>
@@ -682,6 +672,7 @@
                                     @if($canApproveAsstManager)
                                         <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline">
                                             @csrf
+                                            <input type="hidden" name="approval_method" value="sampling">
                                             <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Asst Manager QC)" style="min-width: 90px;">
                                                 <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' AM' : '' }}
                                             </button>
@@ -694,6 +685,7 @@
                                     @if($canApproveManager)
                                         <form action="{{ route('incoming.parts.approve', array_merge(['id' => $cs->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline">
                                             @csrf
+                                            <input type="hidden" name="approval_method" value="sampling">
                                             <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Manager QC)" style="min-width: 90px;">
                                                 <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' MGR' : '' }}
                                             </button>
@@ -806,15 +798,12 @@
 
     <!-- Modal Penolakan untuk setiap checksheet -->
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+        @foreach(['karu_qc', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
                 $user = auth()->user();
                 $isAdmin = $user->role === 'admin';
-                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta' || strtolower(request('plant') ?? '') === 'jakarta';
-                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
                 $canReject = false;
-                if ($rejectType == 'kashift' && ((in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED'))) {
+                if ($rejectType == 'karu_qc' && (($user->role === 'karu_qc' || $isAdmin) && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;
@@ -842,7 +831,7 @@
                                 <div class="modal-body text-left">
                                     <div class="alert alert-warning">
                                         <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ($rejectType === 'kashift' ? 'Kashift QC' : 'Supervisor QC') }}</strong>
+                                        <strong>{{ $rejectType === 'karu_qc' ? 'Karu QC' : ($rejectType === 'supervisor' ? 'Supervisor QC' : ($rejectType === 'asst_manager' ? 'Asst Manager QC' : 'Manager QC')) }}</strong>
                                     </div>
                                     <div class="form-group">
                                         <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">

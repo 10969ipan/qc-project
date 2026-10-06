@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Cross Cut Painting')
+@section('title', 'Cross Cut Test Painting')
 
 @section('content')
 <style>
@@ -385,8 +385,8 @@
                             <th style="font-size: 10px; min-width: 120px;">Kashift Painting</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Quality</th>
                             <th style="font-size: 10px; min-width: 120px;">Supervisor Painting</th>
-                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Quality</th>
                             <th style="font-size: 10px; min-width: 120px;">Asst Manager Painting</th>
+                            <th style="font-size: 10px; min-width: 120px;">Asst Manager Quality</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -467,31 +467,7 @@
                                         $date = $checksheet->$dateField;
                                     @endphp
                                     <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                        @if($status === 'REJECTED')
-                                            <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $checksheet->rejection_remarks }}">
-                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                            </span>
-                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                                @if($date)
-                                                    <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                @endif
-                                            </div>
-                                        @elseif($status && $status !== 'Pending')
-                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                            </span>
-                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                <div>oleh {{ $status }}</div>
-                                                @if($date)
-                                                    <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                                <i class="fas fa-clock mr-1"></i> PENDING
-                                            </span>
-                                        @endif
+                                        {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, $role, $status, $date, $checksheet->rejection_remarks) !!}
                                     </td>
                                 @endforeach
 
@@ -564,6 +540,7 @@
                                                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                     <input type="hidden" name="operator_initials" value="{{ request('operator_initials') }}">
                                                     <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="action_type" value="approve">
                                                     <button type="submit" class="btn btn-success btn-sm m-1" title="Approve ({{ $label }})" style="min-width: 80px;">
                                                         <i class="fas fa-check"></i> Approve{{ $isAdmin ? ' ' . $label : '' }}
@@ -742,7 +719,7 @@
             window.initCrossCutIndex({
                 isPainting: true,
                 moduleName: 'Cross_Cut_Painting',
-                pdfTitle: 'LAPORAN CHECKSHEET CROSS CUT PAINTING',
+                pdfTitle: 'LAPORAN DATA CROSS CUT TEST PAINTING',
                 docNo: 'QC-KRW-F-0215',
                 approveRoute: "{{ route('cross_cut_painting.approve', ['id' => ':id', 'type' => ':type']) }}"
             });

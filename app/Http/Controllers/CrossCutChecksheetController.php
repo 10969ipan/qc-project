@@ -700,9 +700,9 @@ class CrossCutChecksheetController extends Controller
             'supervisor' => 3,
             'supervisor_qc' => 3,
             'supervisor_plating' => 4,
-            'asst_manager' => 5,
-            'asst_manager_qc' => 5,
-            'asst_manager_plating' => 6,
+            'asst_manager_plating' => 5,
+            'asst_manager' => 6,
+            'asst_manager_qc' => 6,
             'manager' => 7,
             'manager_qc' => 7,
             'manager_plating' => 7,
@@ -713,8 +713,8 @@ class CrossCutChecksheetController extends Controller
             2 => 'kashift_plating',
             3 => 'supervisor_qc',
             4 => 'supervisor_plating',
-            5 => 'asst_manager_qc',
-            6 => 'asst_manager_plating'
+            5 => 'asst_manager_plating',
+            6 => 'asst_manager_qc',
         ];
 
         $currentStep = $stepOrder[$type] ?? 0;

@@ -34,19 +34,32 @@ class IncomingPartController extends Controller
     protected function getApprovalMapping($type)
     {
         $mapping = [
-            'kashift'      => ['field' => 'kashift_qc',      'time' => 'kashift_approved_at',      'label' => 'Kashift QC / Kepala Regu'],
-            'supervisor'   => ['field' => 'supervisor_qc',   'time' => 'supervisor_approved_at',   'label' => 'Supervisor QC'],
-            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
-            'manager'      => ['field' => 'manager_qc',      'time' => 'manager_approved_at',      'label' => 'Manager QC'],
+            'karu_qc'         => ['field' => 'kashift_qc',      'time' => 'kashift_approved_at',      'label' => 'Karu QC'],
+            'supervisor'      => ['field' => 'supervisor_qc',   'time' => 'supervisor_approved_at',   'label' => 'Supervisor QC'],
+            'supervisor_qc'   => ['field' => 'supervisor_qc',   'time' => 'supervisor_approved_at',   'label' => 'Supervisor QC'],
+            'asst_manager'    => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager QC'],
+            'manager'         => ['field' => 'manager_qc',      'time' => 'manager_approved_at',      'label' => 'Manager QC'],
+            'manager_qc'      => ['field' => 'manager_qc',      'time' => 'manager_approved_at',      'label' => 'Manager QC'],
         ];
 
         return $mapping[$type] ?? null;
     }
 
+    protected function getApprovalSequence()
+    {
+        return ['karu_qc', 'supervisor', 'asst_manager', 'manager'];
+    }
+
+    protected function getDisallowedApprovalRoles()
+    {
+        return ['kashift', 'kashift_qc'];
+    }
+
     protected function applySequentialApprovalFilter($query, $type)
     {
         $sequence = [
-            'kashift'      => 'kashift_qc',
+            'karu_qc'      => 'kashift_qc',
             'supervisor'   => 'supervisor_qc',
             'asst_manager' => 'asst_manager_qc',
             'manager'      => 'manager_qc',
@@ -114,6 +127,7 @@ class IncomingPartController extends Controller
             'entry_method'      => $request->entry_method,
             'shift'             => $request->shift,
             'view_mode'         => $request->view_mode,
+            'approval_method'   => $request->approval_method,
         ];
 
         if ($request->get('view_mode') !== 'verifikasi' && empty($filters['entry_method'])) {

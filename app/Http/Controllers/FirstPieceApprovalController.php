@@ -109,7 +109,7 @@ class FirstPieceApprovalController extends Controller
         $preservationKeys = [
             'page', 'plant', 'start_date', 'end_date', 'approval_status',
             'search', 'shift', 'item_id', 'customer', 'operator_initials',
-            'code_machine', 'next_proses'
+            'code_machine', 'next_proses', 'approval_method'
         ];
 
         return array_filter($request->only($preservationKeys), function ($val) {
@@ -138,6 +138,7 @@ class FirstPieceApprovalController extends Controller
             'shift' => $request->shift,
             'code_machine' => $request->code_machine,
             'search' => $request->search,
+            'approval_method' => $request->approval_method,
         ];
 
         $checksheets = $this->firstPieceService->getFilteredChecksheets($filters);

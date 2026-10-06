@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Input Data Checksheet')
+@section('title', 'Input Data Inproses')
 
 @section('content')
 

@@ -350,6 +350,18 @@
                 </div>
                 @endif
 
+                <!-- Field: Tipe Approval -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700">Tipe Approval</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua Tipe</option>
+                            <option value="sampling" {{ request('approval_method') === 'sampling' ? 'selected' : '' }}>Sampling (Biru)</option>
+                            <option value="bulk" {{ request('approval_method') === 'bulk' ? 'selected' : '' }}>Bulk (Hijau)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Tombol Filter & Reset (Tepat di Samping Field dengan 10px Space) -->
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 10px;">
                     <style>
@@ -450,7 +462,7 @@
                             @if(request('view_mode') !== 'verifikasi')
                                 <th style="width: 45px; min-width: 45px;">Pcs</th>
                                 <th style="min-width: 70px;" class="text-nowrap">Jenis NG</th>
-                                <th style="font-size: 10px; min-width: 120px;">Kashift QC</th>
+                                <th style="font-size: 10px; min-width: 120px;">Karu QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
@@ -585,35 +597,25 @@
                                 </td>
 
                                 @if(request('view_mode') !== 'verifikasi')
-                                @foreach(['kashift_qc' => 'kashift_approved_at', 'supervisor_qc' => 'supervisor_approved_at', 'asst_manager_qc' => 'asst_manager_approved_at', 'manager_qc' => 'manager_approved_at'] as $field => $timeField)
-                                    <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                        @if($checksheet->$field === 'REJECTED')
-                                            <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                                <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                            </span>
-                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                                @if($checksheet->$timeField)
-                                                    <div>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/Y H:i') }}</div>
-                                                @endif
-                                            </div>
-                                        @elseif($checksheet->$field)
-                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                                <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                            </span>
-                                            <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                <div>oleh {{ $checksheet->$field }}</div>
-                                                @if($checksheet->$timeField)
-                                                    <div>{{ \Carbon\Carbon::parse($checksheet->$timeField)->format('d/m/Y H:i') }}</div>
-                                                @endif
-                                            </div>
-                                        @else
-                                            <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                                <i class="fas fa-clock mr-1"></i> PENDING
-                                            </span>
-                                        @endif
-                                    </td>
-                                @endforeach
+                                {{-- Karu QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'karu_qc', $checksheet->kashift_qc, $checksheet->kashift_approved_at, $checksheet->rejection_remarks) !!}
+                                </td>
+
+                                {{-- Supervisor QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'supervisor', $checksheet->supervisor_qc, $checksheet->supervisor_approved_at, $checksheet->rejection_remarks) !!}
+                                </td>
+
+                                {{-- Asst Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'asst_manager', $checksheet->asst_manager_qc, $checksheet->asst_manager_approved_at, $checksheet->rejection_remarks) !!}
+                                </td>
+
+                                {{-- Manager QC --}}
+                                <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'manager', $checksheet->manager_qc, $checksheet->manager_approved_at, $checksheet->rejection_remarks) !!}
+                                </td>
                                 @endif {{-- end view_mode !== verifikasi --}}
 
                                 <td class="align-middle">
@@ -641,7 +643,7 @@
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveKaru = ($user->role === 'karu_qc' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
                                             $canApproveAsstManager = ($user->role === 'asst_manager' || $user->role === 'asst_manager_qc' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') && ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'REJECTED');
                                             $canApproveManager = ($user->role === 'manager' || $user->role === 'manager_qc' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED') && ($checksheet->asst_manager_qc && $checksheet->asst_manager_qc !== 'REJECTED');
@@ -657,24 +659,26 @@
 
                                         {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
                                         @if(request('view_mode') !== 'verifikasi' && !$isAdmin)
-                                            @if($user->role === 'kashift' && $canApproveKashift)
-                                                <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST" class="d-inline">
+                                            @if($user->role === 'karu_qc' && $canApproveKaru)
+                                                <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'karu_qc']) }}" method="POST" class="d-inline">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                     <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                     <input type="hidden" name="shift" value="{{ request('shift') }}">
-                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
-                                                        <i class="fas fa-check"></i> Approve KS
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Karu QC)">
+                                                        <i class="fas fa-check"></i> Approve Karu QC
                                                     </button>
                                                 </form>
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Karu QC)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'supervisor' && $canApproveSupervisor)
                                                 <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST" class="d-inline">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -690,6 +694,7 @@
                                             @elseif(($user->role === 'asst_manager' || $user->role === 'asst_manager_qc') && $canApproveAsstManager)
                                                 <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST" class="d-inline">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -705,6 +710,7 @@
                                             @elseif(($user->role === 'manager' || $user->role === 'manager_qc') && $canApproveManager)
                                                 <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST" class="d-inline">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -730,21 +736,22 @@
                                             <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:8px;min-width:180px;">
                                                 
                                                 @if(request('view_mode') !== 'verifikasi' && $isAdmin)
-                                                    {{-- Approve Kashift (Admin Only in Dropdown) --}}
-                                                    @if($canApproveKashift)
-                                                        <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'kashift']) }}" method="POST" class="d-inline w-100">
+                                                    {{-- Approve Karu QC (Admin Only in Dropdown) --}}
+                                                    @if($canApproveKaru)
+                                                        <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'karu_qc']) }}" method="POST" class="d-inline w-100">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
                                                             <input type="hidden" name="item_id" value="{{ request('item_id') }}">
                                                             <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                             <button type="submit" class="dropdown-item text-success font-weight-bold">
-                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve Kashift QC
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve Karu QC
                                                             </button>
                                                         </form>
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
-                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject Kashift QC
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject Karu QC
                                                         </button>
                                                         <div class="dropdown-divider"></div>
                                                     @endif
@@ -753,6 +760,7 @@
                                                     @if($canApproveSupervisor)
                                                         <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'supervisor']) }}" method="POST" class="d-inline w-100">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -772,6 +780,7 @@
                                                     @if($canApproveAsstManager)
                                                         <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'asst_manager']) }}" method="POST" class="d-inline w-100">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -791,6 +800,7 @@
                                                     @if($canApproveManager)
                                                         <form action="{{ route('double_tape.approve', ['id' => $checksheet->id, 'type' => 'manager']) }}" method="POST" class="d-inline w-100">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -893,12 +903,12 @@
 
     <!-- Modal Rejection untuk setiap checksheet dan tipe -->
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+        @foreach(['karu_qc', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             @php
                 $user = auth()->user();
                 $isAdmin = $user->role === 'admin';
                 $canReject = false;
-                if ($rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
+                if ($rejectType == 'karu_qc' && (($user->role === 'karu_qc' || $isAdmin) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
                     $canReject = true;
                 } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
                     $canReject = true;

@@ -67,6 +67,10 @@ class IncomingMaterialService extends BaseService
             $query->where($query->getModel()->getTable() . '.id', $filters['id']);
         }
 
+        if (!empty($filters['approval_method'])) {
+            \App\Helpers\ApprovalHelper::applyApprovalMethodFilter($query, $filters['approval_method']);
+        }
+
         return $query;
     }
 

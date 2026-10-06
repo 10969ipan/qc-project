@@ -266,8 +266,8 @@
                 <th style="font-size: 5.5px;">Kashift Plating</th>
                 <th style="font-size: 5.5px;">Supervisor QC</th>
                 <th style="font-size: 5.5px;">Supervisor Plating</th>
-                <th style="font-size: 5.5px;">Asst Mgr QC</th>
                 <th style="font-size: 5.5px;">Asst Mgr Plating</th>
+                <th style="font-size: 5.5px;">Asst Mgr QC</th>
             </tr>
         </thead>
         <tbody>
@@ -310,8 +310,8 @@
                             'kashift_plating'      => 'kashift_plating_approved_at',
                             'supervisor_qc'        => 'supervisor_approved_at',
                             'supervisor_plating'   => 'supervisor_plating_approved_at',
-                            'asst_manager_qc'      => 'asst_manager_approved_at',
                             'asst_manager_plating' => 'asst_manager_plating_approved_at',
+                            'asst_manager_qc'      => 'asst_manager_approved_at',
                         ];
                     @endphp
                     @foreach($approvalFields as $field => $timeField)

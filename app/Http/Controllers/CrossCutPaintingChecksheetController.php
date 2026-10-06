@@ -117,10 +117,10 @@ class CrossCutPaintingChecksheetController extends Controller
                 ->pluck('operator_initials');
         });
 
-        $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'asst_manager', 'asst_manager_plating'];
+        $approvalOrder = ['karu_qc', 'kashift_plating', 'supervisor', 'supervisor_plating', 'asst_manager_plating', 'asst_manager'];
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut_painting', $plantCode, [
-            'judul'      => 'LAPORAN CHECK SHEET CROSS CUT PAINTING',
+            'judul'      => 'LAPORAN DATA CROSS CUT TEST PAINTING',
             'no_dokumen' => 'QC-KRW-F-0215',
             'tgl_terbit' => '25/03/2015',
             'revisi'     => '3',
@@ -511,7 +511,7 @@ class CrossCutPaintingChecksheetController extends Controller
         }
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('cross_cut_painting', $plantCode, [
-            'judul'      => 'LAPORAN CHECK SHEET CROSS CUT PAINTING',
+            'judul'      => 'LAPORAN DATA CROSS CUT TEST PAINTING',
             'no_dokumen' => 'QC-KRW-F-0215',
             'tgl_terbit' => '25/03/2015',
             'revisi'     => '3',
@@ -579,9 +579,9 @@ class CrossCutPaintingChecksheetController extends Controller
             'supervisor' => 3,
             'supervisor_qc' => 3,
             'supervisor_plating' => 4,
-            'asst_manager' => 5,
-            'asst_manager_qc' => 5,
-            'asst_manager_plating' => 6,
+            'asst_manager_plating' => 5,
+            'asst_manager' => 6,
+            'asst_manager_qc' => 6,
             'manager' => 7,
             'manager_qc' => 7,
             'manager_plating' => 7,
@@ -592,8 +592,8 @@ class CrossCutPaintingChecksheetController extends Controller
             2 => 'kashift_plating',
             3 => 'supervisor_qc',
             4 => 'supervisor_plating',
-            5 => 'asst_manager_qc',
-            6 => 'asst_manager_plating'
+            5 => 'asst_manager_plating',
+            6 => 'asst_manager_qc',
         ];
 
         $currentStep = $stepOrder[$type] ?? 0;

@@ -1595,6 +1595,7 @@
     </script>
 
     @stack('fusioncharts')
+    <script src="{{ asset('js/checksheet/approval-guard.js') }}"></script>
     @stack('scripts')
     <script src="{{ asset('js/vendor/instant-navigation.js') }}" defer></script>
 

@@ -93,6 +93,10 @@ class CrossCutChecksheetService extends BaseService
             $query->where('qc_shift', $filters['shift']);
         }
 
+        if (!empty($filters['approval_method'])) {
+            \App\Helpers\ApprovalHelper::applyApprovalMethodFilter($query, $filters['approval_method']);
+        }
+
         return $query;
     }
 
@@ -384,6 +388,12 @@ class CrossCutChecksheetService extends BaseService
                 $allowedRole = $type;
                 if ($type === 'supervisor')
                     $allowedRole = 'supervisor';
+                if ($type === 'manager')
+                    $allowedRole = 'manager';
+                if ($type === 'asst_manager')
+                    $allowedRole = 'asst_manager';
+                if ($type === 'asst_manager_plating')
+                    $allowedRole = 'asst_manager_plating';
                 if ($user->role !== $allowedRole) {
                     throw new \Exception('Unauthorized to approve at this level.', 403);
                 }
@@ -412,6 +422,18 @@ class CrossCutChecksheetService extends BaseService
                 $checksheet->approval_status = 'Approved';
             }
 
+            // Record approval method (auto determine sampling vs bulk based on quota)
+            $methods = $checksheet->approval_methods ?? [];
+            if (is_string($methods)) {
+                $methods = json_decode($methods, true) ?: [];
+            }
+            if (!is_array($methods)) {
+                $methods = [];
+            }
+            $determinedMethod = \App\Helpers\ApprovalHelper::determineApprovalMethod($checksheet, $type);
+            $methods[$type] = $determinedMethod;
+            $checksheet->approval_methods = $methods;
+
             $checksheet->save();
             DB::commit();
             return $checksheet;
@@ -430,6 +452,8 @@ class CrossCutChecksheetService extends BaseService
             'asst_manager_plating' => 'asst_manager_plating',
             'supervisor' => 'supervisor_qc',
             'asst_manager' => 'asst_manager_qc',
+            'manager_plating' => 'manager_plating',
+            'manager' => 'manager_qc',
         ];
         return $fields[$type] ?? $type;
     }
@@ -443,6 +467,8 @@ class CrossCutChecksheetService extends BaseService
             'asst_manager_plating' => 'asst_manager_plating_approved_at',
             'supervisor' => 'supervisor_approved_at',
             'asst_manager' => 'asst_manager_approved_at',
+            'manager_plating' => 'manager_plating_approved_at',
+            'manager' => 'manager_approved_at',
         ];
         return $fields[$type] ?? "{$type}_approved_at";
     }
@@ -469,8 +495,8 @@ class CrossCutChecksheetService extends BaseService
             'kashift_plating',
             'supervisor', 
             'supervisor_plating',
-            'asst_manager', 
-            'asst_manager_plating'
+            'asst_manager_plating',
+            'asst_manager',
         ];
 
         $currentIndex = array_search($currentType, $sequence);

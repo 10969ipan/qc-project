@@ -30,6 +30,31 @@ class PlatingChecksheetController extends Controller
         return PlatingChecksheet::class;
     }
 
+    protected function getApprovalMapping($type)
+    {
+        $mapping = [
+            'karu_qc'         => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Karu QC'],
+            'supervisor'      => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'supervisor_qc'   => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'asst_manager'    => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'manager'         => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+            'manager_qc'      => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+        ];
+
+        return $mapping[$type] ?? null;
+    }
+
+    protected function getApprovalSequence()
+    {
+        return ['karu_qc', 'supervisor', 'asst_manager', 'manager'];
+    }
+
+    protected function getDisallowedApprovalRoles()
+    {
+        return ['kashift', 'kashift_qc'];
+    }
+
     protected function restrictToKarawang()
     {
         $user = auth()->user();
@@ -65,7 +90,7 @@ class PlatingChecksheetController extends Controller
             'Judgment',
             'Inisial Operator',
             'Remarks',
-            'Ka Shift',
+            'Karu QC',
             'Supervisor',
             'Asst Manager',
             'Manager'
@@ -108,7 +133,7 @@ class PlatingChecksheetController extends Controller
     {
         $this->restrictToKarawang();
 
-        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer', 'approval_method']);
         $filters['plant'] = 'karawang';
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif

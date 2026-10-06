@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Input Data Checksheet')
+@section('title', 'Input Data Outgoing Sub Assy')
 
 @push('styles')
 <style>
@@ -104,7 +104,7 @@
                         </td>
                         <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                             <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                                CHECK SHEET SUB ASSY
+                                CHECK SHEET OUTGOING SUB ASSY
                             </h1>
                         </td>
                         <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">

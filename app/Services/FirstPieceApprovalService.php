@@ -217,6 +217,27 @@ class FirstPieceApprovalService extends BaseService
             $query->where("first_piece_approvals.code_machine", $filters["code_machine"]);
         }
 
+        if (!empty($filters["approval_method"])) {
+            $method = strtolower($filters["approval_method"]);
+            $table = $query->getModel()->getTable();
+            if ($method === 'sampling') {
+                $query->whereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'sampling') IS NOT NULL");
+            } elseif ($method === 'bulk') {
+                $query->where(function($q) use ($table) {
+                    $q->whereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'bulk') IS NOT NULL")
+                      ->orWhere(function($legacyQ) use ($table) {
+                          $legacyQ->whereNull("{$table}.approval_methods")
+                                  ->where(function($sub) use ($table) {
+                                      $sub->whereNotNull("{$table}.kashift_qc")
+                                          ->orWhereNotNull("{$table}.supervisor_qc")
+                                          ->orWhereNotNull("{$table}.asst_manager_qc")
+                                          ->orWhereNotNull("{$table}.manager_qc");
+                                  });
+                      });
+                });
+            }
+        }
+
         return $query;
     }
 

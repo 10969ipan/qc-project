@@ -1569,6 +1569,18 @@ class StandardPerformanceTestController extends Controller
 
             $report->$field = $userName;
             $report->$timeField = $now;
+
+            // Record approval method (auto-sampling)
+            $methods = $report->approval_methods ?? [];
+            if (is_string($methods)) {
+                $methods = json_decode($methods, true) ?: [];
+            }
+            if (!is_array($methods)) {
+                $methods = [];
+            }
+            $methods[$type] = 'sampling';
+            $report->approval_methods = $methods;
+
             $report->save();
 
             // Sync to paired report (Data 1 / Data 2 Trial) if it is also OK (not NG)
@@ -1583,6 +1595,7 @@ class StandardPerformanceTestController extends Controller
             })->update([
                 $field => $userName,
                 $timeField => $now,
+                'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'sampling')"),
             ]);
 
             ActivityLogger::log('approved', $report, "Melakukan approval ({$label}) pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
@@ -1754,12 +1767,60 @@ class StandardPerformanceTestController extends Controller
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
             })->get();
 
+            // Skenario 5: SPV / Role wajib melakukan sampling per-customer sebelum bulk approve
+            if (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
+                // Get all distinct customer_names on this target date range
+                $distinctCustomers = (clone $query)->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                    ->whereNotNull('standard_performance_tests.customer_name')
+                    ->where('standard_performance_tests.customer_name', '!=', '')
+                    ->distinct()
+                    ->pluck('standard_performance_tests.customer_name')
+                    ->all();
+
+                if (!empty($distinctCustomers)) {
+                    // Check if each customer has at least 1 sampling approved report
+                    $unapprovedCustomers = [];
+                    foreach ($distinctCustomers as $cust) {
+                        $hasSampling = DurabilityThicknessReport::query()
+                            ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                            ->where('standard_performance_tests.customer_name', $cust)
+                            ->where(function($q) use ($request, $testType) {
+                                if ($request->filled('start_date')) {
+                                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+                                    $q->whereDate($dateCol, '>=', $request->start_date);
+                                }
+                                if ($request->filled('end_date')) {
+                                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+                                    $q->whereDate($dateCol, '<=', $request->end_date);
+                                }
+                            })
+                            ->whereNotNull("durability_thickness_reports.{$field}")
+                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
+                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
+                            ->exists();
+
+                        if (!$hasSampling) {
+                            $unapprovedCustomers[] = $cust;
+                        }
+                    }
+
+                    if (!empty($unapprovedCustomers)) {
+                        $custStr = implode(', ', $unapprovedCustomers);
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Bulk Approval ditolak: Customer berikut belum memiliki approval sampling ({$custStr}). Harap lakukan approval sampling minimal 1 data per customer terlebih dahulu.",
+                        ], 422);
+                    }
+                }
+            }
+
             $now = now();
             $updatedCount = 0;
             foreach ($reportsToApprove as $rep) {
                 $rep->update([
                     $field => $userName,
                     $timeField => $now,
+                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'bulk')"),
                 ]);
 
                 // Sync paired report (Data 1 / Data 2 Trial) if it also matches the result filter (and is not NG)
@@ -1775,6 +1836,7 @@ class StandardPerformanceTestController extends Controller
                 })->update([
                     $field => $userName,
                     $timeField => $now,
+                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'bulk')"),
                 ]);
                 $updatedCount++;
             }

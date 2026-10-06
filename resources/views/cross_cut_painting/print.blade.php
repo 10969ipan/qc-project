@@ -2,7 +2,7 @@
 @php
     $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
     $docHeader = isset($docHeader) ? $docHeader : \App\Models\GeneralSetting::getDocHeader('cross_cut_painting', $headerPlantCode, [
-        'judul'      => 'LAPORAN CHECK SHEET CROSS CUT PAINTING',
+        'judul'      => 'LAPORAN DATA CROSS CUT TEST PAINTING',
         'no_dokumen' => 'QC-KRW-F-0215',
         'tgl_terbit' => '25/03/2015',
         'revisi'     => '3',
@@ -266,8 +266,8 @@
                 <th style="font-size: 5.5px;">Kashift Painting</th>
                 <th style="font-size: 5.5px;">Supervisor QC</th>
                 <th style="font-size: 5.5px;">Supervisor Painting</th>
-                <th style="font-size: 5.5px;">Asst Mgr QC</th>
                 <th style="font-size: 5.5px;">Asst Mgr Painting</th>
+                <th style="font-size: 5.5px;">Asst Mgr QC</th>
             </tr>
         </thead>
         <tbody>
@@ -308,8 +308,8 @@
                             'kashift_plating'      => 'kashift_plating_approved_at',
                             'supervisor_qc'        => 'supervisor_approved_at',
                             'supervisor_plating'   => 'supervisor_plating_approved_at',
-                            'asst_manager_qc'      => 'asst_manager_approved_at',
                             'asst_manager_plating' => 'asst_manager_plating_approved_at',
+                            'asst_manager_qc'      => 'asst_manager_approved_at',
                         ];
                     @endphp
                     @foreach($approvalFields as $field => $timeField)

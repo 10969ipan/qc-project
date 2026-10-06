@@ -147,6 +147,14 @@ class SubAssyChecksheetService extends BaseService
             $query->where('sub_assy_checksheets.line', $filters['line']);
         }
 
+        if (!empty($filters['approval_method'])) {
+            if ($filters['approval_method'] === 'sampling') {
+                $query->whereRaw("JSON_SEARCH(sub_assy_checksheets.approval_methods, 'one', 'sampling') IS NOT NULL");
+            } elseif ($filters['approval_method'] === 'bulk') {
+                $query->whereRaw("JSON_SEARCH(sub_assy_checksheets.approval_methods, 'one', 'bulk') IS NOT NULL");
+            }
+        }
+
         return $query;
     }
 

@@ -111,7 +111,7 @@ class InProcessChecksheetController extends Controller
         $preservationKeys = [
             'page', 'plant', 'start_date', 'end_date', 'approval_status',
             'search', 'shift', 'view_mode', 'item_id', 'customer',
-            'operator_initials', 'tujuan', 'code_machine', 'entry_method', 'qr_raw'
+            'operator_initials', 'tujuan', 'code_machine', 'entry_method', 'qr_raw', 'approval_method'
         ];
 
         return array_filter($request->only($preservationKeys), function ($val) {
@@ -133,6 +133,7 @@ class InProcessChecksheetController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'approval_status' => $request->approval_status,
+            'approval_method' => $request->approval_method,
             'item_id' => $request->item_id,
             'operator_initials' => $request->operator_initials,
             'customer' => $request->customer,

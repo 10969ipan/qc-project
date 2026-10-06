@@ -314,6 +314,18 @@
                     </div>
                 </div>
 
+                <!-- Field: Tipe Approval -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tipe Approval</label>
+                    <div style="width: 120px;" class="custom-filter-wrapper">
+                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua Tipe</option>
+                            <option value="sampling" {{ request('approval_method') === 'sampling' ? 'selected' : '' }}>Sampling (Biru)</option>
+                            <option value="bulk" {{ request('approval_method') === 'bulk' ? 'selected' : '' }}>Bulk (Hijau)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Tombol Filter & Reset (Di Samping Inisial dengan 2x Space) -->
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
@@ -454,7 +466,7 @@
                             <th style="width: 50px; min-width: 40px; white-space: nowrap;">Pcs</th>
                             <th style="white-space: nowrap;">Jenis NG</th>
                             @if(request('view_mode') !== 'verifikasi')
-                                <th style="font-size: 10px; min-width: 120px;">{{ $plantContext === 'jakarta' ? 'Kepala Regu' : 'Kashift QC' }}</th>
+                                <th style="font-size: 10px; min-width: 120px;">Karu QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Supervisor QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Asst Manager QC</th>
                                 <th style="font-size: 10px; min-width: 120px;">Manager QC</th>
@@ -602,120 +614,24 @@
                                 </td>
 
                                 @if(request('view_mode') !== 'verifikasi')
-                                {{-- Kashift QC --}}
+                                {{-- Karu QC --}}
                                 <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->kashift_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->kashift_qc }}</div>
-                                            @if($checksheet->kashift_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->kashift_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'karu_qc', $checksheet->kashift_qc, $checksheet->kashift_approved_at, $checksheet->rejection_remarks) !!}
                                 </td>
 
                                 {{-- Supervisor QC --}}
                                 <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->supervisor_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->supervisor_qc }}</div>
-                                            @if($checksheet->supervisor_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->supervisor_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'supervisor', $checksheet->supervisor_qc, $checksheet->supervisor_approved_at, $checksheet->rejection_remarks) !!}
                                 </td>
 
                                 {{-- Asst Manager QC --}}
                                 <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->asst_manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->asst_manager_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->asst_manager_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->asst_manager_qc }}</div>
-                                            @if($checksheet->asst_manager_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->asst_manager_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'asst_manager', $checksheet->asst_manager_qc, $checksheet->asst_manager_approved_at, $checksheet->rejection_remarks) !!}
                                 </td>
 
                                 {{-- Manager QC --}}
                                 <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                    @if($checksheet->manager_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ getRejectorName($checksheet->rejection_remarks) }}</div>
-                                            @if($checksheet->manager_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @elseif($checksheet->manager_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                            <div>oleh {{ $checksheet->manager_qc }}</div>
-                                            @if($checksheet->manager_approved_at)
-                                                <div>{{ \Carbon\Carbon::parse($checksheet->manager_approved_at)->format('d/m/Y H:i') }}</div>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'manager', $checksheet->manager_qc, $checksheet->manager_approved_at, $checksheet->rejection_remarks) !!}
                                 </td>
                                 @endif {{-- end view_mode !== verifikasi --}}
 
@@ -743,22 +659,15 @@
                                         @php
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
-                                            $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                                            $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
                                             $kashiftApproved = !empty($checksheet->kashift_qc) && $checksheet->kashift_qc !== 'REJECTED';
                                             $supervisorApproved = !empty($checksheet->supervisor_qc) && $checksheet->supervisor_qc !== 'REJECTED';
                                             $asstApproved = !empty($checksheet->asst_manager_qc) && $checksheet->asst_manager_qc !== 'REJECTED';
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveKaru = ($user->role === 'karu_qc' || $isAdmin) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && $kashiftApproved;
                                             $canApproveAsst = ($user->role === 'asst_manager' || $isAdmin) && (!$checksheet->asst_manager_qc || $checksheet->asst_manager_qc === 'REJECTED') && $supervisorApproved;
                                             $canApproveManager = ($user->role === 'manager' || $isAdmin) && (!$checksheet->manager_qc || $checksheet->manager_qc === 'REJECTED') && $asstApproved;
-
-                                            $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
-                                            $kashiftLabel = ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
-                                            $kashiftAcronym = ($plantContext === 'jakarta') ? '' : ' KS';
 
                                             $showEdit = (request('view_mode') === 'verifikasi' || $canEdit);
                                             $showDel = (request('view_mode') === 'verifikasi' || $canDelete);
@@ -771,9 +680,10 @@
 
                                         {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
                                         @if(request('view_mode') !== 'verifikasi' && !$isAdmin)
-                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
-                                                <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                            @if($user->role === 'karu_qc' && $canApproveKaru)
+                                                <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'karu_qc'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -782,16 +692,17 @@
                                                     <input type="hidden" name="search" value="{{ request('search') }}">
                                                     <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                     <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Kashift)">
-                                                        <i class="fas fa-check"></i> Approve{{ $kashiftAcronym }}
+                                                    <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (Karu QC)">
+                                                        <i class="fas fa-check"></i> Approve Karu QC
                                                     </button>
                                                 </form>
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Karu QC)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'supervisor' && $canApproveSupervisor)
                                                 <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -810,6 +721,7 @@
                                             @elseif($user->role === 'asst_manager' && $canApproveAsst)
                                                 <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -828,6 +740,7 @@
                                             @elseif($user->role === 'manager' && $canApproveManager)
                                                 <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
+                                                    <input type="hidden" name="approval_method" value="sampling">
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
                                                     <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                     <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -855,10 +768,11 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:8px;min-width:180px;">
                                                 @if(request('view_mode') !== 'verifikasi' && $isAdmin)
-                                                    {{-- Approve Kashift (Admin Only in Dropdown) --}}
-                                                    @if($canApproveKashift)
-                                                        <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                    {{-- Approve Karu QC (Admin Only in Dropdown) --}}
+                                                    @if($canApproveKaru)
+                                                        <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'karu_qc'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -868,11 +782,11 @@
                                                             <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                             <input type="hidden" name="plant" value="{{ request('plant') }}">
                                                             <button type="submit" class="dropdown-item text-success font-weight-bold">
-                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve {{ $kashiftLabel }}
+                                                                <i class="fas fa-check-circle text-success fa-fw mr-2"></i> Approve Karu QC
                                                             </button>
                                                         </form>
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
-                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}karu_qc">
+                                                            <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject Karu QC
                                                         </button>
                                                         <div class="dropdown-divider"></div>
                                                     @endif
@@ -881,6 +795,7 @@
                                                     @if($canApproveSupervisor)
                                                         <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -903,6 +818,7 @@
                                                     @if($canApproveAsst)
                                                         <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -925,6 +841,7 @@
                                                     @if($canApproveManager)
                                                         <form action="{{ route('painting.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
                                                             @csrf
+                                                            <input type="hidden" name="approval_method" value="sampling">
                                                             <input type="hidden" name="page" value="{{ request('page') }}">
                                                             <input type="hidden" name="start_date" value="{{ request('start_date') }}">
                                                             <input type="hidden" name="end_date" value="{{ request('end_date') }}">
@@ -1026,7 +943,7 @@
 
     <!-- Modal Penolakan -->
     @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
+        @foreach(['karu_qc', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
             <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
                 aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">

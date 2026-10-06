@@ -488,31 +488,7 @@
                                             $date = $cs->$dateField;
                                         @endphp
                                         <td class="align-middle text-center" style="white-space: nowrap; min-width: 120px;">
-                                            @if($status === 'REJECTED')
-                                                <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;" data-toggle="tooltip" title="{{ $cs->rejection_remarks }}">
-                                                    <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                                </span>
-                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                    <div>oleh {{ getRejectorName($cs->rejection_remarks) }}</div>
-                                                    @if($date)
-                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                    @endif
-                                                </div>
-                                            @elseif($status && $status !== 'Pending')
-                                                <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                                    <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                                </span>
-                                                <div class="text-muted mt-1" style="font-size: 0.62rem; line-height: 1.2;">
-                                                    <div>oleh {{ $status }}</div>
-                                                    @if($date)
-                                                        <div>{{ \Carbon\Carbon::parse($date)->format('d/m/Y H:i') }}</div>
-                                                    @endif
-                                                </div>
-                                            @else
-                                                <span class="badge badge-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
-                                                    <i class="fas fa-clock mr-1"></i> PENDING
-                                                </span>
-                                            @endif
+                                            {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($cs, $role, $status, $date, $cs->rejection_remarks) !!}
                                         </td>
                                     @endforeach
                                 @endif

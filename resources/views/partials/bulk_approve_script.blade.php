@@ -10,19 +10,46 @@
         $(document).ready(function () {
             $(document).off('click', '#btnBulkApprove').on('click', '#btnBulkApprove', function (e) {
                 e.preventDefault();
-                var startDate = '{{ request("start_date") }}';
-                var endDate = '{{ request("end_date", request("start_date")) }}';
+                var btn = $(this);
+                var defaultItemDate = btn.data('item-date') || '';
+
+                var reqStart = '{{ request("start_date", "") }}';
+                var reqEnd = '{{ request("end_date", "") }}';
+                var domStart = $('#start_date').length ? $('#start_date').val() : '';
+                var domEnd = $('#end_date').length ? $('#end_date').val() : '';
+
+                var rawStart = reqStart || domStart || '';
+                var rawEnd = reqEnd || domEnd || '';
+
+                // Rule: If single date is provided, both start & end must equal that date to prevent open-ended queries
+                var startDate = rawStart || rawEnd || '';
+                var endDate = rawEnd || rawStart || '';
+
+                // Fallback to active screen items date if no date filter was specified at all
+                if (!startDate && defaultItemDate) {
+                    startDate = defaultItemDate;
+                    endDate = defaultItemDate;
+                }
+
+                var shift = '{{ request("shift", "") }}';
+                if (shift === '' && $('#filterShift').length) {
+                    shift = $('#filterShift').val() || '';
+                }
+
+                var operatorInitials = '{{ request("operator_initials", "") }}';
+                if (operatorInitials === '' && $('#filterInisial').length) {
+                    operatorInitials = $('#filterInisial').val() || '';
+                }
+
                 var startTglDatang = '{{ request("start_tgl_datang", "") }}';
                 var endTglDatang = '{{ request("end_tgl_datang", "") }}';
                 var plant = '{{ request("plant", "") }}';
                 var resultJudgment = '{{ request("result_judgment", request("judgment", "")) }}';
-                var search = '{{ request("search", "") }}';
+                var search = '{{ request("search", "") }}' || ($('#filterSearch').length ? $('#filterSearch').val() : '');
                 var customerName = '{{ request("customer_name", request("customer", "")) }}';
                 var supplier = '{{ request("supplier", "") }}';
                 var approvalStatus = '{{ request("approval_status", "") }}';
                 var category = '{{ request("category", "") }}';
-                var shift = '{{ request("shift", "") }}';
-                var operatorInitials = '{{ request("operator_initials", "") }}';
                 var itemId = '{{ request("item_id", "") }}';
                 var userRole = '{{ auth()->user()->role }}';
 
@@ -53,28 +80,28 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, result.value, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, result.value, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate);
                         }
                     });
                 } else {
                     Swal.fire({
                         title: 'Konfirmasi Bulk Approve',
                         html: '<div class="text-left">' +
-                            '<p>Anda akan meng-approve <strong>semua</strong> data yang memenuhi filter berikut:</p>' +
-                            '<ul>' +
-                            (startDate ? '<li><strong>Dari Tanggal:</strong> ' + startDate + '</li>' : '') +
-                            (endDate ? '<li><strong>Sampai Tanggal:</strong> ' + endDate + '</li>' : '') +
-                            (startTglDatang ? '<li><strong>Tgl Datang Dari:</strong> ' + startTglDatang + '</li>' : '') +
-                            (endTglDatang ? '<li><strong>Tgl Datang Sampai:</strong> ' + endTglDatang + '</li>' : '') +
-                            (supplier ? '<li><strong>Supplier:</strong> ' + supplier + '</li>' : '') +
-                            (shift ? '<li><strong>Shift:</strong> Shift ' + shift + '</li>' : '') +
-                            (operatorInitials ? '<li><strong>Inisial:</strong> ' + operatorInitials + '</li>' : '') +
+                            '<p>Anda akan meng-approve <strong>semua</strong> data yang memenuhi filter aktif berikut:</p>' +
+                            '<ul class="mb-3" style="font-size: 0.88rem;">' +
+                            (startDate ? '<li><strong>Rentang Tanggal:</strong> ' + startDate + (endDate && endDate !== startDate ? ' s/d ' + endDate : '') + '</li>' : '') +
+                            (shift ? '<li><strong>Shift:</strong> Shift ' + shift + '</li>' : '<li><strong>Shift:</strong> Semua Shift</li>') +
+                            (operatorInitials ? '<li><strong>Inisial Operator:</strong> ' + operatorInitials + '</li>' : '') +
                             (customerName ? '<li><strong>Customer:</strong> ' + customerName + '</li>' : '') +
+                            (supplier ? '<li><strong>Supplier:</strong> ' + supplier + '</li>' : '') +
                             (resultJudgment ? '<li><strong>Result:</strong> ' + resultJudgment + '</li>' : '') +
                             (search ? '<li><strong>Search:</strong> ' + search + '</li>' : '') +
                             (plant ? '<li><strong>Plant:</strong> ' + plant + '</li>' : '') +
                             '</ul>' +
-                            '<p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Aksi ini tidak dapat dibatalkan!</p>' +
+                            '<div class="alert alert-info py-2 px-3 small mb-2" style="border-radius: 8px;">' +
+                            '<i class="fas fa-info-circle mr-1"></i> Hanya data yang sesuai dengan filter di atas yang akan diproses.' +
+                            '</div>' +
+                            '<p class="text-danger small mb-0"><i class="fas fa-exclamation-triangle"></i> Aksi ini tidak dapat dibatalkan!</p>' +
                             '</div>',
                         icon: 'warning',
                         showCancelButton: true,
@@ -85,13 +112,13 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate);
                         }
                     });
                 }
             });
 
-            function doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId) {
+            function doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate) {
                 // Show modal loading while fetching IDs
                 Swal.fire({
                     title: 'Menyiapkan Data...',
@@ -108,6 +135,7 @@
                     _token: '{{ csrf_token() }}',
                     start_date: startDate,
                     end_date: endDate,
+                    item_date: defaultItemDate || '',
                     start_tgl_datang: startTglDatang,
                     end_tgl_datang: endTglDatang,
                     plant: plant,
@@ -123,6 +151,7 @@
                     shift: shift || '',
                     operator_initials: operatorInitials || '',
                     item_id: itemId || '',
+                    approval_method: '{{ request("approval_method", "") }}',
                     test_type: '{{ $testType ?? "thickness" }}',
                     is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                 };
@@ -255,12 +284,18 @@
                     },
                     error: function (xhr) {
                         var msg = 'Gagal mengambil data untuk approval.';
+                        var icon = 'error';
+                        var title = 'Gagal!';
+                        if (xhr.status === 422) {
+                            icon = 'warning';
+                            title = 'Approval Diblokir!';
+                        }
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             msg = xhr.responseJSON.message;
                         }
                         Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
+                            icon: icon,
+                            title: title,
                             text: msg,
                             confirmButtonColor: '#e74a3b'
                         });

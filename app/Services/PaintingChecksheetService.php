@@ -98,6 +98,18 @@ class PaintingChecksheetService extends BaseService
             $query->where($query->getModel()->getTable() . '.id', $filters['id']);
         }
 
+        if (!empty($filters['approval_method'])) {
+            $table = $query->getModel()->getTable();
+            if ($filters['approval_method'] === 'sampling') {
+                $query->whereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'sampling') IS NOT NULL");
+            } elseif ($filters['approval_method'] === 'bulk') {
+                $query->where(function($q) use ($table) {
+                    $q->whereNull("{$table}.approval_methods")
+                      ->orWhereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'bulk') IS NOT NULL");
+                });
+            }
+        }
+
         return $query;
     }
 

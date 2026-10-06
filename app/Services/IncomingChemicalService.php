@@ -67,6 +67,10 @@ class IncomingChemicalService extends BaseService
             $query->whereBetween('tanggal_datang', [$filters['start_tgl_datang'], $filters['end_tgl_datang']]);
         }
 
+        if (!empty($filters['approval_method'])) {
+            \App\Helpers\ApprovalHelper::applyApprovalMethodFilter($query, $filters['approval_method']);
+        }
+
         return $query;
     }
 

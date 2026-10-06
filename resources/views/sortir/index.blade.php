@@ -445,52 +445,12 @@
 
                                 {{-- Kashift QC --}}
                                 <td class="align-middle text-center" style="font-size: 0.65rem;">
-                                    @if($checksheet->kashift_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</span>
-                                        @if($checksheet->kashift_qc_time)
-                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</span>
-                                        @endif
-                                    @elseif($checksheet->kashift_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ $checksheet->kashift_qc }}</span>
-                                        @if($checksheet->kashift_qc_time)
-                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->kashift_qc_time->format('d/m/Y H:i') }}</span>
-                                        @endif
-                                    @else
-                                        <span class="badge badge-warning px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'kashift', $checksheet->kashift_qc, $checksheet->kashift_qc_time, $checksheet->rejection_remarks) !!}
                                 </td>
 
                                 {{-- Supervisor QC --}}
                                 <td class="align-middle text-center" style="font-size: 0.65rem;">
-                                    @if($checksheet->supervisor_qc === 'REJECTED')
-                                        <span class="badge badge-danger px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-times-circle mr-1"></i> REJECTED
-                                        </span>
-                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ getRejectorName($checksheet->rejection_remarks) }}</span>
-                                        @if($checksheet->supervisor_qc_time)
-                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</span>
-                                        @endif
-                                    @elseif($checksheet->supervisor_qc)
-                                        <span class="badge badge-success px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-check-circle mr-1"></i> APPROVED
-                                        </span>
-                                        <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">oleh {{ $checksheet->supervisor_qc }}</span>
-                                        @if($checksheet->supervisor_qc_time)
-                                            <br><span class="text-muted" style="font-size: 0.62rem; line-height: 1.2;">{{ $checksheet->supervisor_qc_time->format('d/m/Y H:i') }}</span>
-                                        @endif
-                                    @else
-                                        <span class="badge badge-warning px-2 py-1" style="font-size: 0.65rem;">
-                                            <i class="fas fa-clock mr-1"></i> PENDING
-                                        </span>
-                                    @endif
+                                    {!! \App\Helpers\ApprovalHelper::renderApprovalBadgeHtml($checksheet, 'supervisor', $checksheet->supervisor_qc, $checksheet->supervisor_qc_time, $checksheet->rejection_remarks) !!}
                                 </td>
 
                                 <td class="align-middle text-left">

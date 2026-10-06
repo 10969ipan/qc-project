@@ -114,6 +114,7 @@ class SubAssyChecksheetController extends Controller
             'entry_method' => $request->entry_method,
             'shift' => $request->shift,
             'line' => $request->line,
+            'approval_method' => $request->approval_method,
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif

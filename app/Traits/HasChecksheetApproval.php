@@ -17,10 +17,15 @@ trait HasChecksheetApproval
     protected function getApprovalMapping($type)
     {
         $mapping = [
+            'karu_qc' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Karu QC'],
             'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Kashift'],
+            'kashift_qc' => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Kashift'],
             'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'supervisor_qc' => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
             'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
             'manager' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+            'manager_qc' => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
         ];
 
         return $mapping[$type] ?? null;
@@ -77,6 +82,14 @@ trait HasChecksheetApproval
             $checksheet = $query->findOrFail($id);
             $user = auth()->user();
 
+            // validation: check if role is disallowed on this module
+            if (method_exists($this, 'getDisallowedApprovalRoles')) {
+                $disallowed = $this->getDisallowedApprovalRoles();
+                if (in_array($user->role, $disallowed) && $user->role !== 'admin') {
+                    abort(403, 'Role Anda tidak memiliki akses approval untuk modul ini.');
+                }
+            }
+
             // validation: check if user owns the role or is admin
             if ($user->role !== 'admin') {
                 $modelClass = $this->getModelClass();
@@ -88,7 +101,7 @@ trait HasChecksheetApproval
 
                 $isAllowed = false;
 
-                // Standard role match (e.g. kashift role for kashift type)
+                // Standard role match (e.g. kashift role for kashift type, karu_qc for karu_qc type)
                 if ($type === $user->role || ($user->role !== '' && strpos($type, $user->role) !== false)) {
                     $isAllowed = true;
                 }
@@ -104,6 +117,16 @@ trait HasChecksheetApproval
                 if (!$isAllowed) {
                     abort(403);
                 }
+            }
+
+            // Guard: Check if Next Process is still OPEN
+            if (function_exists('isNextProcessOpen') && isNextProcessOpen($checksheet)) {
+                $nextProcessName = $checksheet->next_proses ?? 'Sortir';
+                $openMsg = "Data tidak dapat di-approve karena status Next Proses ({$nextProcessName}) masih OPEN. Status harus CLOSE terlebih dahulu.";
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $openMsg], 422);
+                }
+                return redirect()->back()->with('error', $openMsg);
             }
 
             $field = $map['field'];
@@ -128,15 +151,8 @@ trait HasChecksheetApproval
                     }
                     return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
                 }
-            } else {
-                $isVerification = false;
-                if (Schema::hasColumn($table, 'qrcode') && !empty($checksheet->qrcode)) {
-                    $isVerification = true;
-                }
-                if (Schema::hasColumn($table, 'unique_code_id') && !empty($checksheet->unique_code_id)) {
-                    $isVerification = true;
-                }
-                if ($isVerification) {
+            } elseif (Schema::hasColumn($table, 'qrcode_verifikasi')) {
+                if (!empty($checksheet->qrcode_verifikasi)) {
                     if ($request->ajax() || $request->wantsJson()) {
                         return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
                     }
@@ -151,9 +167,21 @@ trait HasChecksheetApproval
                 return redirect()->back()->with('error', 'Menunggu approval dari level sebelumnya.');
             }
 
-            // Execute Approval
+            // Execute Approval (Mark as Sampling)
             $checksheet->$field = $user->name;
             $checksheet->$timeField = now();
+
+            // Record approval method (auto determine sampling vs bulk based on quota)
+            $methods = $checksheet->approval_methods ?? [];
+            if (is_string($methods)) {
+                $methods = json_decode($methods, true) ?: [];
+            }
+            if (!is_array($methods)) {
+                $methods = [];
+            }
+            $determinedMethod = \App\Helpers\ApprovalHelper::determineApprovalMethod($checksheet, $type);
+            $methods[$type] = $determinedMethod;
+            $checksheet->approval_methods = $methods;
 
             // Set global approval status if Supervisor approves (Standard logic)
             // Or usually Supervisor approval triggers 'Approved' status in simplified flow
@@ -162,9 +190,6 @@ trait HasChecksheetApproval
                     $checksheet->approval_status = 'Approved';
                 }
             }
-
-            // Logic khusus Sortir / Lainnya jika semua verified bisa ditaruh di sini atau override
-            // Untuk saat ini kita ikuti logic eksisting: Supervisor approve -> Status Approved.
 
             $checksheet->save();
 
@@ -185,7 +210,6 @@ trait HasChecksheetApproval
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            session()->flash('success', 'Data Checksheet berhasil disetujui.');
             return response()->json([
                 'success' => true,
                 'message' => 'Data Checksheet berhasil disetujui.',
@@ -300,7 +324,6 @@ trait HasChecksheetApproval
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            session()->flash('success', 'Data Checksheet berhasil ditolak.');
             return response()->json([
                 'success' => true,
                 'message' => 'Data Checksheet berhasil ditolak.',
@@ -319,12 +342,20 @@ trait HasChecksheetApproval
     {
         $request->validate([
             'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date',
             'ids' => 'nullable|array',
         ]);
 
         $user = auth()->user();
         $modelClass = $this->getModelClass();
+
+        // Check disallowed roles
+        if (method_exists($this, 'getDisallowedApprovalRoles')) {
+            $disallowed = $this->getDisallowedApprovalRoles();
+            if (in_array($user->role, $disallowed) && $user->role !== 'admin') {
+                return response()->json(['success' => false, 'message' => 'Role Anda tidak diizinkan untuk approval pada modul ini.'], 403);
+            }
+        }
 
         // Determine approval type based on user role
         $type = null;
@@ -340,6 +371,42 @@ trait HasChecksheetApproval
 
         if (!$type) {
             return response()->json(['success' => false, 'message' => 'Role Anda tidak diizinkan untuk bulk approve.'], 403);
+        }
+
+        // Validate Sampling Quota Requirement Before Bulk Approval
+        if ($user->role !== 'admin') {
+            $quotaFilterParams = $request->all();
+            $effectiveDate = $request->input('start_date') ?: ($request->input('end_date') ?: $request->input('item_date'));
+            if ($effectiveDate) {
+                $quotaFilterParams['start_date'] = $effectiveDate;
+                $quotaFilterParams['end_date'] = $effectiveDate;
+            }
+            $quotaStatus = function_exists('getSamplingQuotaStatus') ? getSamplingQuotaStatus($modelClass, $user, $quotaFilterParams) : ['fulfilled' => true];
+            if (!$quotaStatus['fulfilled']) {
+                $req = $quotaStatus['required'];
+                $cur = $quotaStatus['current'];
+                $dateFormatted = \Carbon\Carbon::parse($quotaStatus['target_date'])->format('d/m/Y');
+
+                if (!empty($quotaStatus['unfulfilled_shifts'])) {
+                    $shiftDetails = [];
+                    foreach ($quotaStatus['unfulfilled_shifts'] as $us) {
+                        $shiftDetails[] = "Shift {$us['shift']} ({$us['current']}/{$us['required']})";
+                    }
+                    $shiftsStr = implode(', ', $shiftDetails);
+                    $msg = "Strict Blocking: Tidak dapat Approve Semua karena {$shiftsStr} pada tanggal {$dateFormatted} belum memenuhi minimal sampling ({$req}x per shift). Silakan lengkapi sampling pada shift tersebut atau pilih filter Shift yang spesifik.";
+                } else {
+                    $scopeText = $quotaStatus['scope'] === 'shift'
+                        ? "Shift {$quotaStatus['target_shift']} pada tanggal {$dateFormatted}"
+                        : "tanggal {$dateFormatted}";
+                    $msg = "Wajib melakukan approval sampling minimal {$req} data untuk {$scopeText} terlebih dahulu sebelum dapat Approve Semua. (Sampling saat ini: {$cur}/{$req})";
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                    'quota_status' => $quotaStatus,
+                ], 422);
+            }
         }
 
         $map = $this->getApprovalMapping($type);
@@ -383,12 +450,23 @@ trait HasChecksheetApproval
                 $table = (new $modelClass)->getTable();
                 $prefixedDateCol = $table . '.' . $dateColumn;
 
-                if ($request->filled('start_date')) {
-                    $query->where($prefixedDateCol, '>=', $request->start_date);
+                $reqStart = $request->input('start_date');
+                $reqEnd = $request->input('end_date');
+                $itemDate = $request->input('item_date');
+
+                // Strictly bound date range: single dates or active item_date bound to exact date
+                $startDate = $reqStart ?: ($reqEnd ?: $itemDate);
+                $endDate = $reqEnd ?: ($reqStart ?: $itemDate);
+
+                if (!empty($startDate) && !empty($endDate)) {
+                    $query->whereDate($prefixedDateCol, '>=', $startDate)
+                          ->whereDate($prefixedDateCol, '<=', $endDate);
+                } elseif (!empty($startDate)) {
+                    $query->whereDate($prefixedDateCol, $startDate);
+                } elseif (!empty($endDate)) {
+                    $query->whereDate($prefixedDateCol, $endDate);
                 }
-                if ($request->filled('end_date')) {
-                    $query->where($prefixedDateCol, '<=', $request->end_date);
-                }
+
                 if ($request->filled('start_tgl_datang')) {
                     $query->where($table . '.tanggal_datang', '>=', $request->input('start_tgl_datang'));
                 }
@@ -445,17 +523,32 @@ trait HasChecksheetApproval
                         $q->where("{$table}.entry_method", 'regular')
                           ->orWhereNull("{$table}.entry_method");
                     });
-                } else {
-                    if (Schema::hasColumn($table, 'qrcode')) {
-                        $query->where(function ($sub) use ($table) {
-                            $sub->whereNull("{$table}.qrcode")->orWhere("{$table}.qrcode", '');
-                        });
+                } elseif (Schema::hasColumn($table, 'qrcode_verifikasi')) {
+                    $query->whereNull("{$table}.qrcode_verifikasi");
+                }
+
+                // Filter by Approval Method (Sampling vs Bulk) if requested
+                if ($request->filled('approval_method')) {
+                    $methodVal = $request->input('approval_method');
+                    if ($methodVal === 'sampling') {
+                        $query->whereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'sampling') IS NOT NULL");
+                    } elseif ($methodVal === 'bulk') {
+                        $query->whereRaw("JSON_SEARCH({$table}.approval_methods, 'one', 'bulk') IS NOT NULL");
                     }
-                    if (Schema::hasColumn($table, 'unique_code_id')) {
-                        $query->where(function ($sub) use ($table) {
-                            $sub->whereNull("{$table}.unique_code_id")->orWhere("{$table}.unique_code_id", '');
-                        });
-                    }
+                }
+
+                // Guard: Exclude records with OPEN Next Process (only applicable to In-Process, Sub Assy, and FPA)
+                $guardedNextProcessModels = [
+                    'App\Models\InProcessChecksheet',
+                    'App\Models\SubAssyChecksheet',
+                    'App\Models\FirstPieceApproval',
+                ];
+                if (in_array($modelClass, $guardedNextProcessModels) && Schema::hasColumn($table, 'next_proses')) {
+                    $query->where(function ($q) use ($table) {
+                        $q->whereNull("{$table}.next_proses")
+                          ->orWhere("{$table}.next_proses", '')
+                          ->orWhere("{$table}.remarks", 'like', '%[SORTIR_CLOSED]%');
+                    });
                 }
 
                 // Apply hiding filters for non-admins if this is InProcessChecksheet
@@ -574,8 +667,12 @@ trait HasChecksheetApproval
             $lastTimeStr = null;
 
             if ($approvedCount > 0) {
+                $now = now();
+                $lastTimeStr = $now->toDateTimeString();
+
                 $updateData = [
                     $field => $user->name,
+                    $timeField => $now,
                 ];
                 
                 $dummyModel = new $modelClass();
@@ -593,41 +690,10 @@ trait HasChecksheetApproval
                     $updateData['rejection_remarks'] = null;
                 }
 
-                $baseTime = $request->filled('base_time') ? \Carbon\Carbon::parse($request->input('base_time')) : now();
-                $lastTime = $baseTime->copy();
+                // Generic Actual Time & Mark as Bulk Approval
+                $updateData['approval_methods'] = DB::raw("JSON_SET(COALESCE({$table}.approval_methods, '{}'), '$.\"{$type}\"', 'bulk')");
 
-                // Normalize start time if it starts outside office hours (08:00 - 17:00) or on weekend
-                if ($lastTime->isWeekend() || $lastTime->hour >= 17 || $lastTime->hour < 8) {
-                    if ($lastTime->hour < 8) {
-                        $lastTime->subDays(1);
-                    }
-                    while ($lastTime->isWeekend()) {
-                        $lastTime->subDays(1);
-                    }
-                    $lastTime->setTime(16, 59 - rand(1, 10), rand(0, 59));
-                }
-
-                // Execute iterative update to assign sequential random time BACKWARDS
-                foreach ($checksheetIds as $id) {
-                    $lastTime = $lastTime->subMinutes(rand(1, 5));
-
-                    // If time falls before work start hour (08:00)
-                    if ($lastTime->hour < 8) {
-                        $lastTime->subDays(1); // Go back one day
-                        while ($lastTime->isWeekend()) {
-                            $lastTime->subDays(1); // Skip weekends
-                        }
-                        // Set to end of office hours (16:50 to 16:59)
-                        $lastTime->setTime(16, 59 - rand(1, 10), rand(0, 59));
-                    }
-
-                    $rowUpdateData = $updateData;
-                    $rowUpdateData[$timeField] = $lastTime->copy();
-                    
-                    $modelClass::where('id', $id)->update($rowUpdateData);
-                }
-                
-                $lastTimeStr = $lastTime->toDateTimeString();
+                $modelClass::whereIn('id', $checksheetIds)->update($updateData);
             }
 
             if ($approvedCount > 0) {

@@ -30,6 +30,31 @@ class PaintingChecksheetController extends Controller
         return PaintingChecksheet::class;
     }
 
+    protected function getApprovalMapping($type)
+    {
+        $mapping = [
+            'karu_qc'         => ['field' => 'kashift_qc', 'time' => 'kashift_approved_at', 'label' => 'Karu QC'],
+            'supervisor'      => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'supervisor_qc'   => ['field' => 'supervisor_qc', 'time' => 'supervisor_approved_at', 'label' => 'Supervisor'],
+            'asst_manager'    => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_approved_at', 'label' => 'Asst Manager'],
+            'manager'         => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+            'manager_qc'      => ['field' => 'manager_qc', 'time' => 'manager_approved_at', 'label' => 'Manager'],
+        ];
+
+        return $mapping[$type] ?? null;
+    }
+
+    protected function getApprovalSequence()
+    {
+        return ['karu_qc', 'supervisor', 'asst_manager', 'manager'];
+    }
+
+    protected function getDisallowedApprovalRoles()
+    {
+        return ['kashift', 'kashift_qc'];
+    }
+
     protected function getPlantCode(Request $request)
     {
         $plant = $request->get('plant') ?? optional(auth()->user()->plant)->code ?? 'karawang';
@@ -59,7 +84,7 @@ class PaintingChecksheetController extends Controller
             'Judgment',
             'Inisial Operator',
             'Remarks',
-            'Ka Shift',
+            'Karu QC',
             'Supervisor',
             'Asst Manager',
             'Manager'
@@ -101,7 +126,7 @@ class PaintingChecksheetController extends Controller
     public function index(Request $request)
     {
         $plantCode = $this->getPlantCode($request);
-        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
+        $filters = $request->only(['id', 'start_date', 'end_date', 'approval_status', 'approval_method', 'item_id', 'search', 'qr_raw', 'entry_method', 'shift', 'operator_initials', 'customer']);
         $filters['plant'] = $plantCode;
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif

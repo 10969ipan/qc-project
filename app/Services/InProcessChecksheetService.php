@@ -271,6 +271,14 @@ class InProcessChecksheetService extends BaseService
             $query->where('in_process_checksheets.code_machine', $filters['code_machine']);
         }
 
+        if (!empty($filters['approval_method'])) {
+            if ($filters['approval_method'] === 'sampling') {
+                $query->whereRaw("JSON_SEARCH(in_process_checksheets.approval_methods, 'one', 'sampling') IS NOT NULL");
+            } elseif ($filters['approval_method'] === 'bulk') {
+                $query->whereRaw("JSON_SEARCH(in_process_checksheets.approval_methods, 'one', 'bulk') IS NOT NULL");
+            }
+        }
+
         return $query;
     }
 
