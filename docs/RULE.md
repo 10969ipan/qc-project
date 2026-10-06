@@ -28,7 +28,7 @@ Semua pembuatan fitur tabel data yang masif **WAJIB** merujuk pada `docs/optimiz
 - Lakukan validasi ketat menggunakan `FormRequest` class (`app/Http/Requests`).
 
 ## 5. Pesan Commit (Git)
-- Gunakan bahasa yang mudah dipahami, bisa santai atau semi-formal, asalkan *intent* atau tujuannya tersampaikan dengan jelas.
-- Sebutkan modul yang diubah (contoh: `optimasi(in-process): ...` atau `fix(plating): ...`).
+- **Wajib menggunakan Bahasa Indonesia yang santai / tidak baku** (hindari bahasa Inggris kaku atau istilah formal yang berbelit-belit), asalkan maksud (*intent*) perubahannya jelas dan langsung to the point.
+- Sebutkan konteks/modul yang diubah jika relevan (contoh: `update logic kuota approval otomatis sampling dan ubah nama menu sub assy serta inprocess`, `tambah filter tipe approval di semua incoming dan outgoing export`).
 
 > **PENTING BAGI AI MODEL**: Saat Anda diberikan *prompt* oleh User terkait penambahan menu baru, baca secara saksama dokumen ini dan `optimization_guide.md` terlebih dahulu agar kode hasil *generate* tidak merusak standar performa sistem.

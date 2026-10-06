@@ -73,7 +73,7 @@ class IncomingMaterialController extends Controller
         $plantFilter = $request->get('plant', auth()->user()->plant_id);
         $plantId = Plant::resolveId($plantFilter);
 
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'approval_method', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
         $cacheKey = "incoming_materials_filters_" . md5(json_encode([$plantId]));

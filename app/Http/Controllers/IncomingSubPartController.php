@@ -71,7 +71,7 @@ class IncomingSubPartController extends Controller
         $plantFilter = $request->get('plant', auth()->user()->plant_id);
         $plantId = Plant::resolveId($plantFilter);
 
-        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search', 'entry_method', 'view_mode']);
+        $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'approval_method', 'item_id', 'search', 'entry_method', 'view_mode']);
         if ($request->get('view_mode') !== 'verifikasi' && empty($filters['entry_method'])) {
             $filters['entry_method'] = 'manual';
         }

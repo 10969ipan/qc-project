@@ -70,6 +70,7 @@ class IncomingExportController extends Controller
             'start_date'        => $request->start_date,
             'end_date'          => $request->end_date,
             'approval_status'   => $request->approval_status,
+            'approval_method'   => $request->approval_method,
             'item_id'           => $request->item_id,
             'operator_initials' => $request->operator_initials,
             'search'            => $request->search,

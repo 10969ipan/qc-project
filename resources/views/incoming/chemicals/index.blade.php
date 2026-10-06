@@ -239,17 +239,17 @@
                 </table>
             </div>
             <form action="{{ route('incoming.chemicals.index') }}" method="GET"
-                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormIncoming">
+                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+                style="gap: 8px; overflow-x: auto;" id="filterFormIncoming">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
 
-                <!-- Field: Part -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                <!-- Field: Chemical Name -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Chemical Name</label>
                     <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Ketik Chemical / Part No...</option>
+                            <option value="">Semua Chemical Name</option>
                             @foreach($items as $item)
                                 <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" {{ request('item_id') == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }} {{ $item->part_number ? '- '.$item->part_number : '' }}
@@ -259,33 +259,9 @@
                     </div>
                 </div>
 
-                <!-- Field: Tanggal -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Check:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-1 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
-                    </div>
-                </div>
-
-                <!-- Field: Tgl Datang -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl Datang:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('start_tgl_datang') }}">
-                        <span class="px-1 text-gray-500 small">-</span>
-                        <input type="date" name="end_tgl_datang" id="end_tgl_datang" class="form-control form-control-sm border-0"
-                            style="width: 120px; font-size: 0.75rem;" value="{{ request('end_tgl_datang') }}">
-                    </div>
-                </div>
-
                 <!-- Field: Supplier -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Supplier:</label>
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Supplier</label>
                     <div style="width: 140px;" class="custom-filter-wrapper">
                         <select name="supplier" id="filterSupplier" class="form-control form-control-sm border-0 shadow-sm">
                             <option value="">Semua Supplier</option>
@@ -296,30 +272,70 @@
                     </div>
                 </div>
 
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
+                <!-- Field: Tanggal Check -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal Check</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
+                </div>
+
+                <!-- Field: Tanggal Datang -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal Datang</label>
+                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                        <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_tgl_datang') }}" title="Dari Tanggal Datang">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_tgl_datang" id="end_tgl_datang" class="form-control form-control-sm border-0"
+                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_tgl_datang') }}" title="Sampai Tanggal Datang">
+                    </div>
+                </div>
+
+                <!-- Field: Tipe Approval -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tipe Approval</label>
+                    <div style="width: 125px;" class="custom-filter-wrapper">
+                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.70rem; height: 26px;">
+                            <option value="">Semua Tipe</option>
+                            <option value="sampling" {{ request('approval_method') === 'sampling' ? 'selected' : '' }}>Sampling (Biru)</option>
+                            <option value="bulk" {{ request('approval_method') === 'bulk' ? 'selected' : '' }}>Bulk (Hijau)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tombol Filter & Reset -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
                     </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('incoming.chemicals.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
-                    @if($canExport)
+                </div>
+
+                <!-- Tombol Cetak (Paling Kanan) -->
+                @if($canExport)
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     <a href="{{ route('incoming.chemicals.print', request()->query()) }}"
                         target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print-direct" title="Print"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i> Cetak
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print-direct d-flex align-items-center" title="Print"
+                        style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
-                    @endif
                 </div>
+                @endif
             </form>
 
             <div class="table-responsive">
