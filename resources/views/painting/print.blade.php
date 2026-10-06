@@ -2,7 +2,7 @@
 @php
     $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
     $docHeader = isset($docHeader) ? $docHeader : \App\Models\GeneralSetting::getDocHeader('painting', $headerPlantCode, [
-        'judul'      => 'LAPORAN CHECK SHEET PAINTING',
+        'judul'      => 'LAPORAN DATA OUTGOING PAINTING',
         'no_dokumen' => $headerPlantCode === 'jakarta' ? 'QC-JKT-F-034/0' : 'QC-KRW-F-0183',
         'tgl_terbit' => $headerPlantCode === 'jakarta' ? '18.02.2022' : '25/03/2015',
         'revisi'     => $headerPlantCode === 'jakarta' ? '0 / 30-Dec-99' : '3 / 22/12/2025',
@@ -154,7 +154,7 @@
                                 <img src="{{ asset('master item/ipp.jpg') }}" style="max-width:58px; max-height:44px; object-fit:contain;">
                             </td>
                             <td class="title" style="border:1px solid #000; padding:5px 8px; text-align:center; vertical-align:middle; font-weight:bold; font-size:10pt; color:#000; text-transform:uppercase;">
-                                {{ $docHeader['judul'] ?? 'LAPORAN CHECK SHEET PAINTING' }}
+                                {{ $docHeader['judul'] ?? 'LAPORAN DATA OUTGOING PAINTING' }}
                             </td>
                             <td style="width:1px; border:1px solid #000; padding:0 !important; vertical-align:top; white-space:nowrap;">
                                 <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">

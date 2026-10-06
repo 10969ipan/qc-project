@@ -133,7 +133,7 @@
             <td class="logo">
                 <img src="{{ public_path('master item/ipp.jpg') }}" style="max-width: 70px;">
             </td>
-            <td class="title">LAPORAN CHECK SHEET PLATING</td>
+            <td class="title">LAPORAN DATA OUTGOING PLATING</td>
             <td class="doc-info">
                 <table>
                     <tr>
