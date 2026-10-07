@@ -3,7 +3,7 @@
     $plantCode = strtolower($plantCode ?: 'karawang');
     $isJkt     = in_array($plantCode, ['jakarta', 'jkt']);
     $docHeader = \App\Models\GeneralSetting::getDocHeader('kepatuhan_operator', $plantCode, [
-        'no_dokumen' => 'PI-KRW-F-051',
+        'no_dokumen' => $isJkt ? 'QC-JKT-F-051' : 'PI-KRW-F-051',
         'tgl_terbit' => '31/03/2022',
         'revisi'     => '08/09/2023',
         'halaman'    => '1 / 1'
@@ -366,7 +366,7 @@ html, body {
                     @endphp
                     <td class="{{ $sun?'cell-sun':'' }}" style="vertical-align:top;padding:0.5px;" title="{{ $chk&&$uNm?$uNm.' ('.$uTm.')':'' }}">
                         @if($chk)
-                            <div style="font-weight:900;color:#065f46;font-size:7px;text-align:center;">✓</div>
+                            <div style="font-weight:900;color:#065f46;font-size:5px;text-align:center;">✓ Approved</div>
                             <div style="font-size:3.5px;color:#555;text-align:center;">{{ $uNm }}</div>
                         @endif
                     </td>
@@ -391,7 +391,7 @@ html, body {
                             $sT  = $sC['time'] ?? '';
                         @endphp
                         <td colspan="{{ $wSp }}" style="text-align:center;vertical-align:middle;padding:0.5px;white-space:nowrap;">
-                            <div style="font-weight:700;font-size:5.2px;{{ $sChk?'color:#065f46':'color:#aaa' }}">Minggu-{{ $wNum }} {{ $sChk?'✓':'' }}</div>
+                            <div style="font-weight:700;font-size:5.2px;{{ $sChk?'color:#065f46':'color:#aaa' }}">{{ $sChk ? '✓ Approved' : ('Minggu-' . $wNum) }}</div>
                             @if($sChk && $sU)
                                 <div style="font-size:3.5px;color:#555;">{{ $sU }}</div>
                             @endif
@@ -405,7 +405,7 @@ html, body {
                 <td colspan="4" class="tfoot-lbl" style="font-size:5.5px;">DIKETAHUI (ASST. MNGR)</td>
                 <td colspan="{{ $daysInMonth }}" style="text-align:center;padding:1px 3px;vertical-align:middle;">
                     @if($checksheet->mgr_checked)
-                        <span style="color:#065f46;font-weight:700;font-size:6px;">✓ Verified (Asst Mgr)</span>
+                        <span style="color:#065f46;font-weight:700;font-size:6px;">✓ Approved</span>
                         @if($checksheet->manager)
                             &nbsp;<span style="font-size:5px;color:#555;">
                                 {{ $checksheet->manager->name }}

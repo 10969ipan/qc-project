@@ -51,6 +51,12 @@ class OperatorComplianceChecksheet extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Alias relasi user untuk operator
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     // Relasi ke user leader / kashift yang meriksa
     public function leader()
     {

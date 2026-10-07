@@ -101,6 +101,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checksheet/kepatuhan-operator/master-item', [OperatorComplianceController::class, 'storeMasterItem'])->name('checksheet.operator_compliance.master_item.store');
         Route::put('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'updateMasterItem'])->name('checksheet.operator_compliance.master_item.update');
         Route::delete('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'destroyMasterItem'])->name('checksheet.operator_compliance.master_item.destroy');
+        
+        // Schedule Routes
+        Route::get('/checksheet/kepatuhan-operator/schedule', [OperatorComplianceController::class, 'schedule'])->name('checksheet.operator_compliance.schedule');
+        Route::post('/checksheet/kepatuhan-operator/schedule', [OperatorComplianceController::class, 'scheduleStore'])->name('checksheet.operator_compliance.schedule.store');
+        Route::put('/checksheet/kepatuhan-operator/schedule/{id}', [OperatorComplianceController::class, 'scheduleUpdate'])->name('checksheet.operator_compliance.schedule.update');
+        Route::delete('/checksheet/kepatuhan-operator/schedule/{id}', [OperatorComplianceController::class, 'scheduleDestroy'])->name('checksheet.operator_compliance.schedule.destroy');
+        Route::post('/checksheet/kepatuhan-operator/schedule/sync-historical', [OperatorComplianceController::class, 'syncHistoricalSchedules'])->name('checksheet.operator_compliance.schedule.sync_historical');
     });
 
     // Special routes for FPA that are not direct input

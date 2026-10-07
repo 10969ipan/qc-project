@@ -7,7 +7,7 @@
         $plantCode = strtolower($plantCode ?: 'karawang');
         $isJkt = in_array($plantCode, ['jakarta', 'jkt']);
         $docHeader = \App\Models\GeneralSetting::getDocHeader('kepatuhan_operator', $plantCode, [
-            'no_dokumen' => 'PI-KRW-F-051',
+            'no_dokumen' => $isJkt ? 'QC-JKT-F-051' : 'PI-KRW-F-051',
             'tgl_terbit' => '31/03/2022',
             'revisi'     => '08/09/2023',
             'halaman'    => '1 / 1'
@@ -462,6 +462,7 @@
 
                 <div id="op-compliance-config" class="d-none"
                      data-checksheet-id="{{ $checksheet ? $checksheet->id : '' }}"
+                     data-plant="{{ $plantCode }}"
                      data-month="{{ $month }}"
                      data-year="{{ $year }}"
                      data-toggle-url="{{ route('checksheet.operator_compliance.toggle') }}"
@@ -470,6 +471,10 @@
                      data-problem-base-url="{{ url('/checksheet/kepatuhan-operator/problem') }}"
                      data-master-item-store-url="{{ route('checksheet.operator_compliance.master_item.store') }}"
                      data-master-item-base-url="{{ url('/checksheet/kepatuhan-operator/master-item') }}"
+                     data-schedule-store-url="{{ route('checksheet.operator_compliance.schedule.store') }}"
+                     data-schedule-base-url="{{ url('/checksheet/kepatuhan-operator/schedule') }}"
+                     data-month-name="{{ $monthNames[$month] }} {{ $year }}"
+                     data-plan-days='@json($planDays ?? [])'
                 ></div>
 
                 <!-- 2. Bar Filter Data (Dropdown Operator, Bulan, & Tahun) -->
@@ -527,13 +532,25 @@
                             <span class="badge badge-light ml-1" id="problemCountBadge" style="{{ count($problems) > 0 ? '' : 'display: none;' }}">{{ count($problems) }}</span>
                         </button>
 
-                        <!-- Tombol Pengaturan Master Item (Khusus Role Admin) -->
-                        @if(auth()->user()->role === 'admin')
+                        <!-- Tombol Kelola Jadwal Operator (Semua Role Kecuali Inspector) -->
+                        @if(auth()->user()->role !== 'inspector')
+                            <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm"
+                                    data-toggle="modal" data-target="#kelolaOperatorModal">
+                                <i class="fas fa-calendar-alt fa-sm mr-1"></i> Kelola Jadwal Operator
+                            </button>
+                        @endif
+
+                        <!-- Tombol Pengaturan Master Item (Role SPV ke Atas) -->
+                        @if(in_array(auth()->user()->role, ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating']))
                             <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm"
                                     data-toggle="modal" data-target="#masterItemModal">
                                 <i class="fas fa-cog fa-sm mr-1"></i> Kelola Master Item
                             </button>
                         @endif
+
+                        <a href="{{ route('checksheet.operator_compliance.schedule', ['plant' => $plantCode, 'month' => $month, 'year' => $year]) }}" class="btn btn-info btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;">
+                            <i class="fas fa-calendar-alt fa-sm mr-1"></i> Schedule Kepatuhan
+                        </a>
 
                         <button type="button" id="btnCetakCompliance"
                                 data-print-url="{{ route('checksheet.operator_compliance.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'month' => $month, 'year' => $year]) }}"
@@ -606,25 +623,35 @@
                                             @php
                                                 $st = $entriesMatrix[$item->id][$d] ?? null;
                                                 $isSunday = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday();
+                                                
+                                                // Check if the day is in the Plan
+                                                $isPlanDay = in_array($d, $planDays);
+                                                
                                                 $cellClass = $isSunday ? 'day-sunday' : '';
                                                 $cellChar = '';
-                                                if ($st === 'OK') {
-                                                    $cellClass .= ' cell-ok';
-                                                    $cellChar = '✓';
-                                                } elseif ($st === 'NG') {
-                                                    $cellClass .= ' cell-ng';
-                                                    $cellChar = '✕';
-                                                } elseif ($st === 'NA') {
-                                                    $cellClass .= ' cell-na';
-                                                    $cellChar = '-';
+                                                if (!$isPlanDay && empty($st)) {
+                                                    $cellClass .= ' bg-light text-muted'; 
+                                                    $cellChar = ''; // Dikosongkan, jangan pakai 'x' biar tidak berantakan
+                                                } else {
+                                                    if ($st === 'OK') {
+                                                        $cellClass .= ' cell-ok';
+                                                        $cellChar = '✓';
+                                                    } elseif ($st === 'NG') {
+                                                        $cellClass .= ' cell-ng';
+                                                        $cellChar = '✕';
+                                                    } elseif ($st === 'NA') {
+                                                        $cellClass .= ' cell-na';
+                                                        $cellChar = '-';
+                                                    }
                                                 }
                                             @endphp
-                                            <td class="day-cell {{ $cellClass }}"
+                                            <td class="day-cell {{ $cellClass }} {{ !$isPlanDay ? 'disabled-cell' : '' }}"
                                                 data-checksheet-id="{{ $checksheet->id }}"
                                                 data-item-id="{{ $item->id }}"
                                                 data-day="{{ $d }}"
                                                 data-status="{{ $st }}"
-                                                title="Hari Ke-{{ $d }}: {{ $item->item_check }} (Klik: OK -> NG -> NA -> Hapus)">
+                                                data-is-plan="{{ $isPlanDay ? '1' : '0' }}"
+                                                title="Hari Ke-{{ $d }}: {{ $item->item_check }} {{ !$isPlanDay ? '(Bukan Jadwal)' : '(Klik: OK -> NG -> NA -> Hapus)' }}">
                                                 {{ $cellChar }}
                                             </td>
                                         @endfor
@@ -685,6 +712,14 @@
                                 </td>
                             </tr>
 
+                            <!-- Verification Rows (Role-Restricted Checkboxes) -->
+                            @php
+                                $userRole = auth()->check() ? auth()->user()->role : '';
+                                $canApproveLeader = in_array($userRole, ['admin', 'kashift', 'kashift_qc', 'karu_qc', 'kashift_plating', 'karu_prod']);
+                                $canApproveSpv    = in_array($userRole, ['admin', 'supervisor', 'supervisor_qc', 'supervisor_plating']);
+                                $canApproveMgr    = in_array($userRole, ['admin', 'asst_manager', 'asst_manager_qc', 'asst_manager_plating', 'manager', 'manager_qc', 'manager_plating']);
+                            @endphp
+
                             <!-- Verification Row 1: DINILAI (KASHIFT / KARU) = PER HARI (Tanggal 1-31) -->
                             <tr>
                                 <td colspan="4" class="text-right py-2 pr-3 align-middle bg-light text-uppercase" style="white-space: nowrap !important;">
@@ -700,8 +735,16 @@
                                         $uTime = $lCheck['time'] ?? '';
                                     @endphp
                                     <td class="text-center align-middle p-1 {{ $isSunday ? 'day-sunday' : '' }}" style="vertical-align:top !important; padding:4px 2px !important; overflow:hidden;" title="Verifikasi Leader/Kashift Tgl {{ $d }} {{ !empty($uName) ? 'by '.$uName.' ('.$uTime.')' : '' }}">
-                                        <input type="checkbox" class="verify-daily-checkbox cursor-pointer"
-                                               data-type="leader" data-day="{{ $d }}" {{ $isChecked ? 'checked' : '' }}>
+                                        @if($canApproveLeader)
+                                            <input type="checkbox" class="verify-daily-checkbox cursor-pointer"
+                                                   data-type="leader" data-day="{{ $d }}" {{ $isChecked ? 'checked' : '' }}>
+                                        @else
+                                            @if($isChecked)
+                                                <div class="text-success font-weight-bold" style="font-size:0.75rem; line-height:1;">✓</div>
+                                            @else
+                                                <span class="text-muted" style="font-size:0.65rem;">-</span>
+                                            @endif
+                                        @endif
                                         <div id="leaderDetail_{{ $d }}" class="small text-muted text-center mt-1" style="font-size:0.50rem; line-height:1.1; overflow:hidden;">
                                             @if($isChecked && !empty($uName))
                                                 @php
@@ -712,8 +755,9 @@
                                                         $formattedTime = str_replace(' ', '<br>', $uTime);
                                                     }
                                                 @endphp
-                                                <div class="text-success font-weight-bold" style="font-size:0.50rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $uName }}">{{ $uName }}</div>
-                                                <div class="text-muted" style="font-size:0.48rem; line-height:1.1; margin-top:1px;">{!! $formattedTime !!}</div>
+                                                <div class="text-success font-weight-bold" style="font-size:0.46rem; white-space:nowrap; line-height:1.2;">✓ Approved</div>
+                                                <div class="text-dark font-weight-bold" style="font-size:0.48rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{{ $uName }}">{{ $uName }}</div>
+                                                <div class="text-muted" style="font-size:0.45rem; line-height:1.1; margin-top:1px;">{!! $formattedTime !!}</div>
                                             @endif
                                         </div>
                                     </td>
@@ -747,15 +791,25 @@
                                             $spvTime = $sCheck['time'] ?? '';
                                         @endphp
                                         <td colspan="{{ $wSpan }}" class="text-center align-middle py-1 px-2 bg-white border-right" style="white-space: nowrap !important;">
-                                            <div class="custom-control custom-checkbox d-inline-block">
-                                                <input type="checkbox" class="custom-control-input verify-weekly-checkbox" id="verifySpv_W{{ $wNum }}"
-                                                       data-type="spv" data-week="{{ $wNum }}" {{ $isSpvChecked ? 'checked' : '' }}>
-                                                <label class="custom-control-label cursor-pointer font-weight-bold small mb-0" for="verifySpv_W{{ $wNum }}" style="font-size:0.72rem;">
-                                                    <span id="spvText_W{{ $wNum }}" class="{{ $isSpvChecked ? 'text-success' : 'text-muted' }}">
-                                                        Minggu-{{ $wNum }} {{ $isSpvChecked ? '✓' : '' }}
-                                                    </span>
-                                                </label>
-                                            </div>
+                                            @if($canApproveSpv)
+                                                <div class="custom-control custom-checkbox d-inline-block">
+                                                    <input type="checkbox" class="custom-control-input verify-weekly-checkbox" id="verifySpv_W{{ $wNum }}"
+                                                           data-type="spv" data-week="{{ $wNum }}" {{ $isSpvChecked ? 'checked' : '' }}>
+                                                    <label class="custom-control-label cursor-pointer font-weight-bold small mb-0" for="verifySpv_W{{ $wNum }}" style="font-size:0.72rem;">
+                                                        <span id="spvText_W{{ $wNum }}" class="{{ $isSpvChecked ? 'text-success' : 'text-muted' }}">
+                                                            {{ $isSpvChecked ? '✓ Approved' : ('Minggu-' . $wNum) }}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            @else
+                                                <div class="font-weight-bold small mb-0" style="font-size:0.72rem;">
+                                                    @if($isSpvChecked)
+                                                        <span class="text-success font-weight-bold">✓ Approved</span>
+                                                    @else
+                                                        <span class="text-muted font-weight-bold">Minggu-{{ $wNum }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                             <div id="spvDetail_W{{ $wNum }}" class="small text-muted mt-1" style="font-size:0.62rem; line-height:1.2; white-space: nowrap !important;">
                                                 @if($isSpvChecked && !empty($spvUser))
                                                     <span class="text-success font-weight-bold">{{ $spvUser }}</span>
@@ -774,15 +828,25 @@
                                     <strong>DIKETAHUI (ASST. MNGR)</strong>
                                 </td>
                                 <td colspan="{{ $daysInMonth }}" class="text-center align-middle py-2 bg-white" style="white-space: nowrap !important;">
-                                    <div class="custom-control custom-checkbox d-inline-block">
-                                        <input type="checkbox" class="custom-control-input verify-monthly-checkbox" id="verifyMgr"
-                                               data-type="mgr" {{ $checksheet->mgr_checked ? 'checked' : '' }}>
-                                        <label class="custom-control-label cursor-pointer font-weight-bold mb-0" for="verifyMgr">
-                                            <span id="mgrStatusText" class="{{ $checksheet->mgr_checked ? 'text-success' : 'text-muted' }}">
-                                                {{ $checksheet->mgr_checked ? '✓ Verified (Asst Mgr)' : 'Ceklis Verifikasi Bulanan Asst Mgr' }}
-                                            </span>
-                                        </label>
-                                    </div>
+                                    @if($canApproveMgr)
+                                        <div class="custom-control custom-checkbox d-inline-block">
+                                            <input type="checkbox" class="custom-control-input verify-monthly-checkbox" id="verifyMgr"
+                                                   data-type="mgr" {{ $checksheet->mgr_checked ? 'checked' : '' }}>
+                                            <label class="custom-control-label cursor-pointer font-weight-bold mb-0" for="verifyMgr">
+                                                <span id="mgrStatusText" class="{{ $checksheet->mgr_checked ? 'text-success' : 'text-muted' }}" data-default-text="{{ $monthNames[$month] }} {{ $year }}">
+                                                    {{ $checksheet->mgr_checked ? '✓ Approved' : ($monthNames[$month] . ' ' . $year) }}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    @else
+                                        <div class="font-weight-bold mb-0" style="font-size:0.8rem;">
+                                            @if($checksheet->mgr_checked)
+                                                <span class="text-success font-weight-bold">✓ Approved</span>
+                                            @else
+                                                <span class="text-muted font-weight-bold">{{ $monthNames[$month] }} {{ $year }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                     <div id="mgrDetailText" class="small text-muted mt-1" style="font-size:0.62rem; line-height:1.2; white-space: nowrap !important;">
                                         @if($checksheet->mgr_checked && $checksheet->manager)
                                             <span class="text-success font-weight-bold">{{ $checksheet->manager->name }}</span>
@@ -973,14 +1037,14 @@
         </div>
     </div>
 
-    <!-- Modal 2: Kelola Master Item Audit (Admin - Schedule Style & Tanpa Scrollbar) -->
-    @if(auth()->user()->role === 'admin')
+    <!-- Modal 2: Kelola Master Item Audit (Role SPV ke Atas - Schedule Style & Tanpa Scrollbar) -->
+    @if(in_array(auth()->user()->role, ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating']))
         <div class="modal fade" id="masterItemModal" tabindex="-1" role="dialog" aria-labelledby="masterItemModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
                     <div class="modal-header bg-white" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem;">
                         <h5 class="modal-title text-primary font-weight-bold" id="masterItemModalLabel">
-                            <i class="fas fa-cogs mr-2"></i>Kelola Master Item Audit (Admin)
+                            <i class="fas fa-cogs mr-2"></i>Kelola Master Item Audit
                         </h5>
                         <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -1069,6 +1133,155 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if(auth()->user()->role !== 'inspector')
+    <!-- Modal Kelola Jadwal Operator (Semua role kecuali Inspector) -->
+    <div class="modal fade" id="kelolaOperatorModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
+                <div class="modal-header bg-white py-3 px-4" style="border-radius: 12px 12px 0 0; border-bottom: 1px solid #e2e8f0;">
+                    <h5 class="modal-title font-weight-bold text-dark" style="font-size: 1.1rem;">
+                        Kelola Jadwal Operator
+                    </h5>
+                    <button type="button" class="close btn-close-modal" data-dismiss="modal" aria-label="Close" style="color: #6c757d; opacity: 1; outline: none; transition: all 0.2s;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-light px-4 py-4" style="max-height: 65vh; overflow-y: auto;">
+                    <div class="row">
+                        <!-- Form Tambah Jadwal -->
+                        <div class="col-md-4">
+                            <div class="card shadow-sm border-0 mb-3" style="border-radius: 8px;">
+                                <div class="card-header bg-white py-2" style="border-radius: 8px 8px 0 0;">
+                                    <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.9rem;" id="formScheduleTitle">Form Jadwal</h6>
+                                </div>
+                                <div class="card-body p-3">
+                                    <form id="formOperatorSchedule" novalidate>
+                                        <input type="hidden" id="schEditId" value="">
+                                        <div class="form-group mb-2">
+                                            <label for="schOperatorId" class="small font-weight-bold text-gray-700">Operator / Inspector <span class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm border-0 shadow-sm" id="schOperatorId">
+                                                <option value="">-- Pilih Operator / Inspector --</option>
+                                                @foreach(($plantOperators ?? $inspectors ?? []) as $op)
+                                                    <option value="{{ $op->id }}" data-bagian="{{ $op->bagian ?? '' }}">{{ $op->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label for="schBagian" class="small font-weight-bold text-gray-700">Bagian</label>
+                                            <select class="form-control form-control-sm border-0 shadow-sm" id="schBagian">
+                                                <option value="">-- Pilih Bagian --</option>
+                                                <option value="Inspector Outgoing Plating">Inspector Outgoing Plating</option>
+                                                <option value="Inspector Outgoing Painting">Inspector Outgoing Painting</option>
+                                                <option value="Inspector Outgoing Export">Inspector Outgoing Export</option>
+                                                <option value="Inspector Outgoing Sub Assy">Inspector Outgoing Sub Assy</option>
+                                                <option value="Inspector Inproses">Inspector Inproses</option>
+                                                <option value="Inspector Incoming Sub-Part/Material/Chemical">Inspector Incoming Sub-Part/Material/Chemical</option>
+                                                <option value="Inspector Incoming Plating">Inspector Incoming Plating</option>
+                                                <option value="Inspector Outgoing Double Tape">Inspector Outgoing Double Tape</option>
+                                                <option value="Performance Test">Performance Test</option>
+                                                <option value="Claim Customer">Claim Customer</option>
+                                                <option value="Final ISD">Final ISD</option>
+                                                <option value="Digitalisasi Support">Digitalisasi Support</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label for="schShift" class="small font-weight-bold text-gray-700">Shift</label>
+                                            <select class="form-control form-control-sm border-0 shadow-sm" id="schShift">
+                                                <option value="Non Shift">Non Shift</option>
+                                                <option value="Shift 1">Shift 1</option>
+                                                <option value="Shift 2">Shift 2</option>
+                                                <option value="Shift 3">Shift 3</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="small font-weight-bold text-gray-700 mb-1">Tanggal Plan <span class="text-danger">*</span></label>
+                                            
+                                            <div id="schDatesContainer" class="d-flex flex-column" style="gap: 8px;">
+                                                <div class="input-group input-group-sm sch-date-row">
+                                                    <input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff;" onclick="try{this.showPicker()}catch(e){}">
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan" style="width: 34px; padding: 0;">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted font-italic mt-1 d-block" id="schDatesHint" style="font-size: 0.65rem;">
+                                                * Klik <strong>+</strong> jika dalam 1 bulan terdapat beberapa tanggal plan.
+                                            </small>
+                                        </div>
+                                        <button type="button" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold" id="btnSaveSchedule" style="position: relative; z-index: 10; cursor: pointer;">
+                                            <i class="fas fa-save mr-1"></i> Simpan Jadwal
+                                        </button>
+                                        <button type="button" class="btn btn-light btn-sm btn-block border shadow-sm font-weight-bold mt-2 d-none" id="btnCancelEditSchedule">
+                                            <i class="fas fa-times mr-1"></i> Batal Edit
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tabel Daftar Jadwal -->
+                        <div class="col-md-8">
+                            <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                                <div class="card-header bg-white py-2" style="border-radius: 8px 8px 0 0;">
+                                    <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.9rem;">Daftar Jadwal Inspector</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive" style="max-height: 400px;">
+                                        <table class="table table-bordered table-schedule-style mb-0 w-100" id="tableSchedules">
+                                            <thead style="position: sticky; top: 0; z-index: 10;">
+                                                <tr>
+                                                    <th class="text-nowrap" style="width: auto;">OPERATOR / INSPECTOR</th>
+                                                    <th class="text-nowrap" style="width: auto;">BAGIAN</th>
+                                                    <th class="text-nowrap text-center" style="width: 90px;">SHIFT</th>
+                                                    <th class="text-nowrap text-center" style="width: 120px;">TANGGAL PLAN</th>
+                                                    <th class="text-nowrap text-center" style="width: 80px;">AKSI</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($allSchedules as $sch)
+                                                <tr class="sch-row" data-operator-id="{{ $sch->operator_id }}" style="display: none;">
+                                                    <td class="align-middle font-weight-bold text-dark text-nowrap">{{ $sch->operator->name ?? '-' }}</td>
+                                                    <td class="align-middle text-nowrap">{{ $sch->bagian }}</td>
+                                                    <td class="align-middle text-nowrap text-center">{{ $sch->shift }}</td>
+                                                    <td class="align-middle text-primary font-weight-bold text-nowrap text-center">{{ \Carbon\Carbon::parse($sch->schedule_date)->format('d M Y') }}</td>
+                                                    <td class="align-middle text-center text-nowrap">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary btn-edit-schedule py-0 px-2 mr-1" style="font-size: 0.7rem;" 
+                                                                data-id="{{ $sch->id }}" 
+                                                                data-operator-id="{{ $sch->operator_id }}" 
+                                                                data-bagian="{{ $sch->bagian }}" 
+                                                                data-shift="{{ $sch->shift }}" 
+                                                                data-date="{{ \Carbon\Carbon::parse($sch->schedule_date)->format('Y-m-d') }}"
+                                                                title="Edit Jadwal">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-schedule py-0 px-2" style="font-size: 0.7rem;" 
+                                                                data-id="{{ $sch->id }}" 
+                                                                data-operator-id="{{ $sch->operator_id }}" 
+                                                                title="Hapus Jadwal">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                                <tr class="sch-info-row">
+                                                    <td colspan="5" class="text-center text-muted font-italic py-4">
+                                                        <i class="fas fa-info-circle mr-1 text-primary"></i> Silakan pilih Operator / Inspector pada form di sebelah kiri untuk melihat daftar jadwal.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     @endif
 
 @endsection

@@ -7,6 +7,7 @@ use App\Models\OperatorComplianceItem;
 use App\Models\OperatorComplianceChecksheet;
 use App\Models\OperatorComplianceEntry;
 use App\Models\OperatorComplianceProblem;
+use App\Models\OperatorComplianceSchedule;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -41,16 +42,18 @@ class OperatorComplianceController extends Controller
         // Cari data plant sesuai kode plant
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
-        // Ambil daftar inspector yang aktif buat dropdown pilihan operator
-        $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
+        // Ambil daftar operator / inspector aktif khusus plant yang dipilih
+        $plantOperatorsQuery = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true);
         if ($plant) {
-            $inspectorsQuery->where('plant_id', $plant->id);
+            $plantOperatorsQuery->where('plant_id', $plant->id);
         }
-        $inspectors = $inspectorsQuery->orderBy('name')->get();
+        $plantOperators = $plantOperatorsQuery->orderBy('name')->get();
 
-        // Kalau nggak ketemu inspector di plant ini, load semua inspector aktif yang ada
-        if ($inspectors->isEmpty()) {
-            $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
+        // Untuk dropdown filter pilihan operator (fallback jika plant belum memiliki operator/inspector)
+        if ($plantOperators->isEmpty() && (!$plant || $plantCode === 'total')) {
+            $inspectors = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true)->orderBy('name')->get();
+        } else {
+            $inspectors = $plantOperators->concat([]);
         }
 
         // Tentukan ID operator yang dipilih (default otomatis pilih yang paling baru di-update)
@@ -171,12 +174,33 @@ class OperatorComplianceController extends Controller
             ->orderBy('problem_date', 'desc')
             ->get();
 
+        // Ambil plan jadwal khusus untuk operator yang dipilih bulan ini (untuk disable cell di frontend)
+        $planDays = OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
+            ->whereYear('schedule_date', $year)
+            ->whereMonth('schedule_date', $month)
+            ->pluck('schedule_date')
+            ->map(function ($date) {
+                return Carbon::parse($date)->format('j'); // Ambil tanggalnya aja (1-31)
+            })
+            ->toArray();
+
+        // Ambil semua data master jadwal untuk modal "Kelola Jadwal Operator" (semua role kecuali inspector)
+        $allSchedules = collect();
+        if ($currentUser->role !== 'inspector') {
+            $allSchedulesQuery = OperatorComplianceSchedule::with('operator');
+            if ($plantCode !== 'total') {
+                $allSchedulesQuery->where('plant', $plantCode);
+            }
+            $allSchedules = $allSchedulesQuery->orderBy('schedule_date', 'desc')->get();
+        }
+
         return view('operator_compliance.index', compact(
             'plantCode',
             'month',
             'year',
             'daysInMonth',
             'inspectors',
+            'plantOperators',
             'selectedOperatorId',
             'selectedOperator',
             'items',
@@ -188,7 +212,9 @@ class OperatorComplianceController extends Controller
             'totalNgMonth',
             'totalFilledEntries',
             'monthlyPct',
-            'problems'
+            'problems',
+            'planDays',
+            'allSchedules'
         ));
     }
 
@@ -217,15 +243,15 @@ class OperatorComplianceController extends Controller
 
         $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
 
-        // Ambil daftar inspector aktif
-        $inspectorsQuery = User::where('role', 'inspector')->where('is_active', true);
+        // Ambil daftar operator / inspector aktif
+        $inspectorsQuery = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true);
         if ($plant) {
             $inspectorsQuery->where('plant_id', $plant->id);
         }
         $inspectors = $inspectorsQuery->orderBy('name')->get();
 
         if ($inspectors->isEmpty()) {
-            $inspectors = User::where('role', 'inspector')->where('is_active', true)->orderBy('name')->get();
+            $inspectors = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true)->orderBy('name')->get();
         }
 
         // Cari ID operator yang dipilih
@@ -319,6 +345,24 @@ class OperatorComplianceController extends Controller
         $itemId       = $request->item_id;
         $day          = $request->day;
         $status       = $request->status;
+
+        $checksheet = OperatorComplianceChecksheet::find($checksheetId);
+        if (!$checksheet) {
+            return response()->json(['success' => false, 'message' => 'Checksheet tidak ditemukan.'], 404);
+        }
+
+        // Cek validasi jadwal (Plan Input Data)
+        $targetDate = Carbon::createFromDate($checksheet->year, $checksheet->month, $day)->format('Y-m-d');
+        $hasPlan = OperatorComplianceSchedule::where('operator_id', $checksheet->user_id)
+            ->where('schedule_date', $targetDate)
+            ->exists();
+
+        if (!$hasPlan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Belum masuk jadwal input. Plan data tidak ditemukan pada tanggal ini.'
+            ], 403);
+        }
 
         // Cari entri yang udah ada di database untuk cek status sebelumnya
         $entry = OperatorComplianceEntry::where('checksheet_id', $checksheetId)
@@ -440,6 +484,10 @@ class OperatorComplianceController extends Controller
         $checked = (bool) $request->checked;
 
         if ($request->type === 'leader') {
+            $allowed = ['admin', 'kashift', 'kashift_qc', 'karu_qc', 'kashift_plating', 'karu_prod'];
+            if (!in_array($user->role, $allowed)) {
+                return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya role Kashift / Karu yang dapat melakukan approval harian.'], 403);
+            }
             // Verifikasi harian Leader / Kashift
             $day = (int) ($request->day ?? 1);
             $leaderChecks = $cs->leader_checks ?? [];
@@ -456,6 +504,10 @@ class OperatorComplianceController extends Controller
             $cs->leader_checks = $leaderChecks;
 
         } elseif ($request->type === 'spv') {
+            $allowed = ['admin', 'supervisor', 'supervisor_qc', 'supervisor_plating'];
+            if (!in_array($user->role, $allowed)) {
+                return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya role Supervisor yang dapat melakukan approval mingguan.'], 403);
+            }
             // Verifikasi mingguan SPV / Karu
             $week = (int) ($request->week ?? 1);
             $spvChecks = $cs->spv_checks ?? [];
@@ -472,6 +524,10 @@ class OperatorComplianceController extends Controller
             $cs->spv_checks = $spvChecks;
 
         } elseif ($request->type === 'mgr') {
+            $allowed = ['admin', 'asst_manager', 'asst_manager_qc', 'asst_manager_plating', 'manager', 'manager_qc', 'manager_plating'];
+            if (!in_array($user->role, $allowed)) {
+                return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya role Asst Manager / Manager yang dapat melakukan approval bulanan.'], 403);
+            }
             // Verifikasi bulanan Asst Mgr / Manager
             $cs->mgr_checked    = $checked;
             $cs->mgr_checked_at = $checked ? now() : null;
@@ -548,11 +604,12 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Tambah item audit baru ke master (khusus Admin)
+     * Tambah item audit baru ke master (Role SPV ke Atas)
      */
     public function storeMasterItem(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
+        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
@@ -581,11 +638,12 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Update item audit master (khusus Admin)
+     * Update item audit master (Role SPV ke Atas)
      */
     public function updateMasterItem(Request $request, $id)
     {
-        if (Auth::user()->role !== 'admin') {
+        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
@@ -612,11 +670,12 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Hapus item audit dari master (khusus Admin)
+     * Hapus item audit dari master (Role SPV ke Atas)
      */
     public function destroyMasterItem($id)
     {
-        if (Auth::user()->role !== 'admin') {
+        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
@@ -628,4 +687,357 @@ class OperatorComplianceController extends Controller
             'message' => 'Master Item Audit berhasil dihapus.',
         ]);
     }
+
+    /**
+     * Halaman Utama Schedule Kepatuhan Operator (Bulanan)
+     */
+    public function schedule(Request $request)
+    {
+        $currentUser = Auth::user();
+        $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
+        $month       = (int) $request->get('month', date('n'));
+        $year        = (int) $request->get('year', date('Y'));
+        $shiftFilter        = $request->get('shift');
+        $search             = $request->get('search');
+        $selectedOperatorId = (int) $request->get('operator_id');
+
+        // Default: jika filter shift tidak secara eksplisit ditentukan di query string,
+        // tampilkan per shift dari jadwal yang terakhir di-update datanya
+        if (!$request->has('shift')) {
+            $latestSchedule = OperatorComplianceSchedule::where('plant', $plantCode)
+                ->whereYear('schedule_date', $year)
+                ->whereMonth('schedule_date', $month)
+                ->whereNotNull('shift')
+                ->where('shift', '!=', '')
+                ->latest('updated_at')
+                ->first();
+
+            if (!$latestSchedule) {
+                $latestSchedule = OperatorComplianceSchedule::where('plant', $plantCode)
+                    ->whereNotNull('shift')
+                    ->where('shift', '!=', '')
+                    ->latest('updated_at')
+                    ->first();
+            }
+
+            if ($latestSchedule && !empty($latestSchedule->shift)) {
+                $shiftFilter = $latestSchedule->shift;
+            }
+        }
+
+        // Cek hak akses
+        if ($currentUser->role !== 'admin') {
+            $menu = \App\Models\AppMenu::where('name', 'Kepatuhan Operator')
+                ->where('plant_code', $plantCode)
+                ->first() 
+                ?? \App\Models\AppMenu::where('name', 'Kepatuhan Operator')->first();
+
+            if ($menu && !$currentUser->hasPermission($menu->id, 'view')) {
+                abort(403, 'Anda tidak memiliki akses ke menu ini.');
+            }
+        }
+
+        // Cari data plant sesuai kode plant
+        $plant = \App\Models\Plant::whereRaw('LOWER(code) = ?', [$plantCode])->first();
+
+        // Ambil daftar operator / inspector aktif khusus plant yang dipilih
+        $plantOperatorsQuery = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true);
+        if ($plant) {
+            $plantOperatorsQuery->where('plant_id', $plant->id);
+        }
+        $plantOperators = $plantOperatorsQuery->orderBy('name')->get();
+
+        if ($plantOperators->isEmpty() && (!$plant || $plantCode === 'total')) {
+            $inspectors = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true)->orderBy('name')->get();
+        } else {
+            $inspectors = $plantOperators->concat([]);
+        }
+
+        $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
+
+        $schedulesQuery = OperatorComplianceSchedule::where('plant', $plantCode)
+            ->whereYear('schedule_date', $year)
+            ->whereMonth('schedule_date', $month)
+            ->with('operator');
+
+        if ($selectedOperatorId) {
+            $schedulesQuery->where('operator_id', $selectedOperatorId);
+        }
+            
+        if ($shiftFilter) {
+            $schedulesQuery->where('shift', $shiftFilter);
+        }
+        
+        if ($search) {
+            $schedulesQuery->whereHas('operator', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+        
+        $schedules = $schedulesQuery->get();
+        
+        // Group by operator_id 
+        $operatorRows = [];
+        foreach ($schedules as $sch) {
+            $opId = $sch->operator_id;
+            if (!isset($operatorRows[$opId])) {
+                $operatorRows[$opId] = [
+                    'operator' => $sch->operator,
+                    'bagian'   => $sch->bagian ?: ($sch->operator?->bagian ?? 'Quality Control'),
+                    'plans'    => [],
+                    'actuals'  => []
+                ];
+            }
+            $d = (int) Carbon::parse($sch->schedule_date)->format('j');
+            $operatorRows[$opId]['plans'][$d] = true;
+        }
+
+        // Ambil data checksheet actual untuk bulan & tahun ini
+        $checksheetsQuery = OperatorComplianceChecksheet::where('plant_code', $plantCode)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->with('operator');
+
+        if ($selectedOperatorId) {
+            $checksheetsQuery->where('user_id', $selectedOperatorId);
+        }
+
+        if ($search) {
+            $checksheetsQuery->whereHas('operator', function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $checksheets = $checksheetsQuery->get();
+            
+        foreach ($checksheets as $cs) {
+            $opId = $cs->user_id;
+
+            $entriesDays = OperatorComplianceEntry::where('checksheet_id', $cs->id)
+                            ->select('day')
+                            ->distinct()
+                            ->pluck('day')
+                            ->toArray();
+
+            if (!empty($entriesDays)) {
+                if (!isset($operatorRows[$opId])) {
+                    if ($shiftFilter) {
+                        continue;
+                    }
+                    $operatorRows[$opId] = [
+                        'operator' => $cs->operator,
+                        'bagian'   => $cs->bagian ?: 'Quality Control',
+                        'plans'    => [],
+                        'actuals'  => []
+                    ];
+                }
+                foreach ($entriesDays as $d) {
+                    $operatorRows[$opId]['actuals'][(int)$d] = true;
+                }
+            }
+        }
+
+        // Hitung total plan dan total actual per operator
+        foreach ($operatorRows as $opId => &$row) {
+            $row['total_plan']   = count($row['plans']);
+            $row['total_actual'] = count($row['actuals']);
+        }
+        unset($row);
+
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        return view('operator_compliance.schedule', compact(
+            'plantCode', 'month', 'year', 'daysInMonth', 'operatorRows', 'monthNames', 'shiftFilter', 'search', 'inspectors', 'selectedOperatorId'
+        ));
+    }
+
+    /**
+     * Tambah/Update Jadwal Operator (Semua role kecuali Inspector)
+     */
+    public function scheduleStore(Request $request)
+    {
+        if (Auth::user()->role === 'inspector') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Inspector tidak diizinkan mengelola jadwal.'], 403);
+        }
+
+        $request->validate([
+            'operator_id'      => 'required|exists:users,id',
+            'bagian'           => 'nullable|string',
+            'shift'            => 'nullable|string',
+            'schedule_date'    => 'nullable|date',
+            'schedule_dates'   => 'nullable|array',
+            'schedule_dates.*' => 'date',
+        ]);
+
+        $dates = (array) ($request->get('schedule_dates') ?: []);
+        if ($request->schedule_date && !in_array($request->schedule_date, $dates)) {
+            $dates[] = $request->schedule_date;
+        }
+
+        if (empty($dates)) {
+            return response()->json(['success' => false, 'message' => 'Silakan tentukan minimal satu tanggal plan.'], 422);
+        }
+
+        $operator = User::with('plant')->find($request->operator_id);
+        $plantCode = strtolower($request->get('plant', $operator?->plant?->code ?? (Auth::user()->plant ? Auth::user()->plant->code : 'karawang')));
+
+        $saved = [];
+        foreach ($dates as $date) {
+            $formattedDate = Carbon::parse($date)->format('Y-m-d');
+            $schedule = OperatorComplianceSchedule::updateOrCreate(
+                [
+                    'plant'         => $plantCode,
+                    'operator_id'   => $request->operator_id,
+                    'schedule_date' => $formattedDate,
+                ],
+                [
+                    'bagian'        => $request->bagian,
+                    'shift'         => $request->shift,
+                ]
+            );
+            $saved[] = $schedule;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => count($saved) > 1 
+                ? count($saved) . ' Jadwal Operator berhasil disimpan.' 
+                : 'Jadwal Operator berhasil disimpan.',
+            'schedules'=> $saved
+        ]);
+    }
+
+    /**
+     * Update Jadwal Operator (Semua role kecuali Inspector)
+     */
+    public function scheduleUpdate(Request $request, $id)
+    {
+        if (Auth::user()->role === 'inspector') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Inspector tidak diizinkan mengelola jadwal.'], 403);
+        }
+
+        $request->validate([
+            'operator_id'   => 'required|exists:users,id',
+            'bagian'        => 'nullable|string',
+            'shift'         => 'nullable|string',
+            'schedule_date' => 'required|date',
+        ]);
+
+        $schedule = OperatorComplianceSchedule::findOrFail($id);
+
+        $operator = User::with('plant')->find($request->operator_id);
+        $plantCode = strtolower($request->get('plant', $operator?->plant?->code ?? (Auth::user()->plant ? Auth::user()->plant->code : 'karawang')));
+
+        $formattedDate = Carbon::parse($request->schedule_date)->format('Y-m-d');
+
+        // Cek duplikasi jadwal untuk operator dan tanggal yang sama pada plant ini (kecuali record ini sendiri)
+        $duplicate = OperatorComplianceSchedule::where('plant', $plantCode)
+            ->where('operator_id', $request->operator_id)
+            ->where('schedule_date', $formattedDate)
+            ->where('id', '!=', $id)
+            ->first();
+
+        if ($duplicate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jadwal untuk operator ini pada tanggal tersebut sudah ada.'
+            ], 422);
+        }
+
+        $schedule->update([
+            'plant'         => $plantCode,
+            'operator_id'   => $request->operator_id,
+            'bagian'        => $request->bagian,
+            'shift'         => $request->shift,
+            'schedule_date' => $formattedDate,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal Operator berhasil diperbarui.',
+            'schedule'=> $schedule
+        ]);
+    }
+
+    /**
+     * Hapus Jadwal Operator (Semua role kecuali Inspector)
+     */
+    public function scheduleDestroy($id)
+    {
+        if (Auth::user()->role === 'inspector') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Inspector tidak diizinkan mengelola jadwal.'], 403);
+        }
+
+        $schedule = OperatorComplianceSchedule::findOrFail($id);
+        $schedule->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal Operator berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Sinkronisasi riwayat checksheet ke tabel jadwal Plan (P)
+     * Hanya dapat dijalankan oleh role Admin
+     */
+    public function syncHistoricalSchedules(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Admin yang dapat melakukan sinkronisasi jadwal.'], 403);
+        }
+
+        $checksheets = OperatorComplianceChecksheet::with(['operator', 'entries'])->get();
+
+        $createdCount = 0;
+        $skippedCount = 0;
+
+        foreach ($checksheets as $cs) {
+            if (!$cs->user_id) {
+                continue;
+            }
+
+            $days = $cs->entries->pluck('day')->unique()->filter()->values();
+            if ($days->isEmpty()) {
+                continue;
+            }
+
+            $plant = strtolower($cs->plant_code ?: 'karawang');
+            $bagian = $cs->bagian ?: 'Quality Control';
+
+            foreach ($days as $day) {
+                $dateStr = sprintf('%04d-%02d-%02d', $cs->year, $cs->month, (int)$day);
+
+                $exists = OperatorComplianceSchedule::where('plant', $plant)
+                    ->where('operator_id', $cs->user_id)
+                    ->whereDate('schedule_date', $dateStr)
+                    ->first();
+
+                if ($exists) {
+                    $skippedCount++;
+                } else {
+                    OperatorComplianceSchedule::create([
+                        'plant'         => $plant,
+                        'operator_id'   => $cs->user_id,
+                        'bagian'        => $bagian,
+                        'shift'         => 'Non Shift',
+                        'schedule_date' => $dateStr,
+                    ]);
+                    $createdCount++;
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sinkronisasi selesai! {$createdCount} data Plan (P) berhasil dibuat, {$skippedCount} jadwal yang sudah ada dilewati.",
+            'created' => $createdCount,
+            'skipped' => $skippedCount
+        ]);
+    }
 }
+
