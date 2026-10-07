@@ -498,7 +498,7 @@
                         </button>
 
                         @if(auth()->user()->role !== 'inspector')
-                        <button type="button" id="btnSyncHistoricalSchedule" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;" title="Sinkronkan entri riwayat checksheet ke Plan Schedule">
+                        <button type="button" id="btnSyncHistoricalSchedule" data-url="{{ route('checksheet.operator_compliance.schedule.sync_historical') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;" title="Sinkronkan entri riwayat checksheet ke Plan Schedule">
                             <i class="fas fa-sync-alt fa-sm mr-1"></i> Sinkron Riwayat
                         </button>
                         @endif

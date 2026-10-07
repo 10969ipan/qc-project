@@ -1145,7 +1145,7 @@
                         <h5 class="modal-title font-weight-bold text-dark m-0" style="font-size: 1.1rem;">
                             Kelola Jadwal Operator
                         </h5>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm btnSyncHistoricalSchedule" style="height: 28px; font-size: 0.72rem;" title="Sinkronkan entri riwayat checksheet yang ada ke Plan Schedule">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm btnSyncHistoricalSchedule" data-url="{{ route('checksheet.operator_compliance.schedule.sync_historical') }}" style="height: 28px; font-size: 0.72rem;" title="Sinkronkan entri riwayat checksheet yang ada ke Plan Schedule">
                             <i class="fas fa-sync-alt fa-sm mr-1"></i> Sinkronkan Riwayat
                         </button>
                     </div>

@@ -734,6 +734,7 @@ $(document).ready(function () {
     // Tombol Sinkronkan Riwayat ke Schedule (Plan P)
     $(document).on('click', '#btnSyncHistoricalSchedule, .btnSyncHistoricalSchedule', function (e) {
         e.preventDefault();
+        var syncUrl = $(this).data('url');
         Swal.fire({
             title: 'Sinkronkan Data Riwayat?',
             text: 'Sistem akan memeriksa seluruh checksheet aktual dan membuatkan jadwal Plan (P) pada tanggal-tanggal yang pernah diisi.',
@@ -755,7 +756,7 @@ $(document).ready(function () {
                 });
 
                 $.ajax({
-                    url: '/checksheet/kepatuhan-operator/schedule/sync-historical',
+                    url: syncUrl,
                     method: 'POST',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content')
@@ -781,7 +782,7 @@ $(document).ready(function () {
                         }
                     },
                     error: function (xhr) {
-                        var msg = 'Terjadi kesalahan saat sinkronisasi.';
+                        var msg = 'Terjadi kesalahan saat sinkronisasi (HTTP ' + xhr.status + ').';
                         if (xhr.status === 419) {
                             msg = 'Sesi telah berakhir (CSRF token expired). Silakan refresh halaman dan coba lagi.';
                         } else if (xhr.responseJSON && xhr.responseJSON.message) {
