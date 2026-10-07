@@ -1145,9 +1145,11 @@
                         <h5 class="modal-title font-weight-bold text-dark m-0" style="font-size: 1.1rem;">
                             Kelola Jadwal Operator
                         </h5>
+                        @if(auth()->user()->role === 'admin')
                         <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm btnSyncHistoricalSchedule" data-url="{{ route('checksheet.operator_compliance.schedule.sync_historical') }}" style="height: 28px; font-size: 0.72rem;" title="Sinkronkan entri riwayat checksheet yang ada ke Plan Schedule">
                             <i class="fas fa-sync-alt fa-sm mr-1"></i> Sinkronkan Riwayat
                         </button>
+                        @endif
                     </div>
                     <button type="button" class="close btn-close-modal ml-auto" data-dismiss="modal" aria-label="Close" style="color: #6c757d; opacity: 1; outline: none; transition: all 0.2s;">
                         <span aria-hidden="true">&times;</span>
