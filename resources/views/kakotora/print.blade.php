@@ -128,9 +128,15 @@
             @forelse($kakotoras as $item)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/y') : '-' }}</td>
+                    <td>{{ $item->formatDate('d/m/y') }}</td>
                     <td style="font-size: 6px;">{{ $item->no_reg ?? '-' }}</td>
-                    <td>{{ $item->issue_date ? \Carbon\Carbon::parse($item->issue_date)->format('d/m/y') : '-' }}</td>
+                    <td>
+                        @forelse($item->formatIssueDates('d/m/y') as $issueDate)
+                            <div style="white-space: nowrap;">{{ $issueDate }}</div>
+                        @empty
+                            -
+                        @endforelse
+                    </td>
                     <td>{{ $item->rev_model ?? '-' }}</td>
                     <td>{{ $item->family ?? '-' }}</td>
                     <td>{{ $item->category_nm_mp ?? '-' }}</td>

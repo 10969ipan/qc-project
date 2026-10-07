@@ -309,16 +309,14 @@
                                     @endif
                                     <td class="text-center">{{ $loop->iteration }}</td>
                                     <td class="details-control"><i class="fas fa-caret-right text-primary fa-lg"></i></td>
-                                    <td>{{ $item->date ? \Carbon\Carbon::parse($item->date)->format('d/m/Y') : '-' }}</td>
+                                    <td>{{ $item->formatDate('d/m/Y') }}</td>
                                     <td>{{ $item->no_reg ?? '-' }}</td>
                                     <td>
-                                        @if($item->issue_date)
-                                            @foreach(explode(',', $item->issue_date) as $d)
-                                                <div style="white-space:nowrap;">{{ \Carbon\Carbon::parse(trim($d))->format('d/m/Y') }}</div>
-                                            @endforeach
-                                        @else
+                                        @forelse($item->formatIssueDates('d/m/Y') as $issueDate)
+                                            <div style="white-space:nowrap;">{{ $issueDate }}</div>
+                                        @empty
                                             -
-                                        @endif
+                                        @endforelse
                                     </td>
                                     <td>{{ $item->rev_model ?? '-' }}</td>
                                     <td>{{ $item->family ?? '-' }}</td>

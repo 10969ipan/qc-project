@@ -50,4 +50,44 @@ class Kakotora extends Model
     {
         return $this->foto_path ? asset('storage/' . $this->foto_path) : null;
     }
+
+    /**
+     * Safely format the date attribute.
+     */
+    public function formatDate(string $format = 'd/m/Y'): string
+    {
+        if (empty($this->date)) {
+            return '-';
+        }
+
+        try {
+            return \Carbon\Carbon::parse($this->date)->format($format);
+        } catch (\Throwable $e) {
+            return (string) $this->date;
+        }
+    }
+
+    /**
+     * Safely get array of formatted issue dates.
+     */
+    public function formatIssueDates(string $format = 'd/m/Y'): array
+    {
+        if (empty($this->issue_date)) {
+            return [];
+        }
+
+        $dates = array_filter(array_map('trim', explode(',', $this->issue_date)));
+        $result = [];
+
+        foreach ($dates as $d) {
+            try {
+                $result[] = \Carbon\Carbon::parse($d)->format($format);
+            } catch (\Throwable $e) {
+                $result[] = $d;
+            }
+        }
+
+        return $result;
+    }
 }
+
