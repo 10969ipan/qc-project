@@ -1140,11 +1140,16 @@
     <div class="modal fade" id="kelolaOperatorModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
-                <div class="modal-header bg-white py-3 px-4" style="border-radius: 12px 12px 0 0; border-bottom: 1px solid #e2e8f0;">
-                    <h5 class="modal-title font-weight-bold text-dark" style="font-size: 1.1rem;">
-                        Kelola Jadwal Operator
-                    </h5>
-                    <button type="button" class="close btn-close-modal" data-dismiss="modal" aria-label="Close" style="color: #6c757d; opacity: 1; outline: none; transition: all 0.2s;">
+                <div class="modal-header bg-white py-3 px-4 d-flex align-items-center justify-between" style="border-radius: 12px 12px 0 0; border-bottom: 1px solid #e2e8f0;">
+                    <div class="d-flex align-items-center" style="gap: 12px;">
+                        <h5 class="modal-title font-weight-bold text-dark m-0" style="font-size: 1.1rem;">
+                            Kelola Jadwal Operator
+                        </h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm btnSyncHistoricalSchedule" style="height: 28px; font-size: 0.72rem;" title="Sinkronkan entri riwayat checksheet yang ada ke Plan Schedule">
+                            <i class="fas fa-sync-alt fa-sm mr-1"></i> Sinkronkan Riwayat
+                        </button>
+                    </div>
+                    <button type="button" class="close btn-close-modal ml-auto" data-dismiss="modal" aria-label="Close" style="color: #6c757d; opacity: 1; outline: none; transition: all 0.2s;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

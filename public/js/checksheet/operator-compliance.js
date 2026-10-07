@@ -732,7 +732,7 @@ $(document).ready(function () {
     });
 
     // Tombol Sinkronkan Riwayat ke Schedule (Plan P)
-    $(document).on('click', '#btnSyncHistoricalSchedule', function (e) {
+    $(document).on('click', '#btnSyncHistoricalSchedule, .btnSyncHistoricalSchedule', function (e) {
         e.preventDefault();
         Swal.fire({
             title: 'Sinkronkan Data Riwayat?',

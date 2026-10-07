@@ -991,53 +991,65 @@ class OperatorComplianceController extends Controller
             return response()->json(['success' => false, 'message' => 'Akses ditolak. Role Inspector tidak diizinkan melakukan sinkronisasi.'], 403);
         }
 
-        $checksheets = OperatorComplianceChecksheet::with(['operator', 'entries'])->get();
+        try {
+            $checksheets = OperatorComplianceChecksheet::with(['operator', 'entries'])->get();
 
-        $createdCount = 0;
-        $skippedCount = 0;
+            $createdCount = 0;
+            $skippedCount = 0;
 
-        foreach ($checksheets as $cs) {
-            if (!$cs->user_id) {
-                continue;
-            }
+            foreach ($checksheets as $cs) {
+                if (!$cs->user_id) {
+                    continue;
+                }
 
-            $days = $cs->entries->pluck('day')->unique()->filter()->values();
-            if ($days->isEmpty()) {
-                continue;
-            }
+                $days = $cs->entries->pluck('day')->unique()->filter()->values();
+                if ($days->isEmpty()) {
+                    continue;
+                }
 
-            $plant = strtolower($cs->plant_code ?: 'karawang');
-            $bagian = $cs->bagian ?: 'Quality Control';
+                $plant = strtolower($cs->plant_code ?: 'karawang');
+                $bagian = $cs->bagian ?: 'Quality Control';
 
-            foreach ($days as $day) {
-                $dateStr = sprintf('%04d-%02d-%02d', $cs->year, $cs->month, (int)$day);
+                foreach ($days as $day) {
+                    if (!is_numeric($day) || (int)$day < 1 || (int)$day > 31) {
+                        continue;
+                    }
 
-                $exists = OperatorComplianceSchedule::where('plant', $plant)
-                    ->where('operator_id', $cs->user_id)
-                    ->whereDate('schedule_date', $dateStr)
-                    ->first();
+                    $dateStr = sprintf('%04d-%02d-%02d', (int)$cs->year, (int)$cs->month, (int)$day);
 
-                if ($exists) {
-                    $skippedCount++;
-                } else {
-                    OperatorComplianceSchedule::create([
-                        'plant'         => $plant,
-                        'operator_id'   => $cs->user_id,
-                        'bagian'        => $bagian,
-                        'shift'         => 'Non Shift',
-                        'schedule_date' => $dateStr,
-                    ]);
-                    $createdCount++;
+                    $exists = OperatorComplianceSchedule::where('plant', $plant)
+                        ->where('operator_id', $cs->user_id)
+                        ->whereDate('schedule_date', $dateStr)
+                        ->first();
+
+                    if ($exists) {
+                        $skippedCount++;
+                    } else {
+                        OperatorComplianceSchedule::create([
+                            'plant'         => $plant,
+                            'operator_id'   => $cs->user_id,
+                            'bagian'        => $bagian,
+                            'shift'         => 'Non Shift',
+                            'schedule_date' => $dateStr,
+                        ]);
+                        $createdCount++;
+                    }
                 }
             }
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Sinkronisasi selesai! {$createdCount} data Plan (P) berhasil dibuat, {$skippedCount} jadwal yang sudah ada dilewati.",
-            'created' => $createdCount,
-            'skipped' => $skippedCount
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => "Sinkronisasi selesai! {$createdCount} data Plan (P) berhasil dibuat, {$skippedCount} jadwal yang sudah ada dilewati.",
+                'created' => $createdCount,
+                'skipped' => $skippedCount
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Error sync historical schedules: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal sinkronisasi: ' . $e->getMessage() . '. Pastikan migrasi database di server sudah dijalankan (php artisan migrate).'
+            ], 500);
+        }
     }
 }
 
