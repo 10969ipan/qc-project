@@ -888,7 +888,7 @@ class StandardPerformanceTestController extends Controller
             return view('durability_plating.print', compact('reports', 'docHeader', 'testType', 'isTrial'));
         }
 
-        $reports = $query->paginate(10)->withQueryString();
+        $reports = (clone $query)->paginate(10)->withQueryString();
 
         if (!$isTrial) {
             $reportIds = $reports->pluck('id')->filter()->unique();
@@ -1013,7 +1013,11 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        $rekapCounts = (clone $query)
+        $rekapQuery = (clone $query);
+        $rekapQuery->getQuery()->limit = null;
+        $rekapQuery->getQuery()->offset = null;
+
+        $rekapCounts = $rekapQuery
             ->withoutEagerLoads()
             ->reorder()
             ->select('standard_performance_test_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
