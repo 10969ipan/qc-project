@@ -987,8 +987,8 @@ class OperatorComplianceController extends Controller
      */
     public function syncHistoricalSchedules(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Admin yang dapat melakukan sinkronisasi jadwal.'], 403);
+        if (Auth::user()->role === 'inspector') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Role Inspector tidak diizinkan melakukan sinkronisasi.'], 403);
         }
 
         $checksheets = OperatorComplianceChecksheet::with(['operator', 'entries'])->get();

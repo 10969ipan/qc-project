@@ -757,19 +757,36 @@ $(document).ready(function () {
                 $.ajax({
                     url: '/checksheet/kepatuhan-operator/schedule/sync-historical',
                     method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
                     dataType: 'json',
                     success: function (res) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Sinkronisasi Berhasil!',
-                            text: res.message,
-                            confirmButtonColor: '#4e73df'
-                        }).then(function () {
-                            window.location.reload();
-                        });
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sinkronisasi Berhasil!',
+                                text: res.message,
+                                confirmButtonColor: '#4e73df'
+                            }).then(function () {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Sinkron',
+                                text: res.message || 'Gagal melakukan sinkronisasi.',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        }
                     },
                     error: function (xhr) {
-                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Terjadi kesalahan saat sinkronisasi.';
+                        var msg = 'Terjadi kesalahan saat sinkronisasi.';
+                        if (xhr.status === 419) {
+                            msg = 'Sesi telah berakhir (CSRF token expired). Silakan refresh halaman dan coba lagi.';
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal Sinkron',
