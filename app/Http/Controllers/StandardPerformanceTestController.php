@@ -1013,18 +1013,26 @@ class StandardPerformanceTestController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        $rekapMatching = (($testType === 'thickness' || $testType === 'corrodkote' || $testType === 'cass') && isset($allMatching)) ? $allMatching : (clone $query)->get();
-        $rekapSummary = $rekapMatching->groupBy('standard_performance_test_id')->map(function ($group) {
-            $first = $group->first();
-            $std = $first->standard ?? null;
+        $rekapCounts = (clone $query)
+            ->withoutEagerLoads()
+            ->reorder()
+            ->select('standard_performance_test_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->groupBy('standard_performance_test_id')
+            ->get();
+
+        $masterMap = $masterItems->keyBy('id');
+
+        $rekapSummary = $rekapCounts->map(function ($row) use ($masterMap) {
+            $std = $masterMap->get($row->standard_performance_test_id);
             return (object)[
                 'part_name' => $std->part_name ?? '-',
                 'part_number' => $std->part_number ?? '-',
                 'customer_name' => $std->customer_name ?? '-',
                 'customer_standard' => $std->customer_standard ?? '-',
-                'total' => $group->count(),
+                'total' => (int) $row->total,
             ];
         })->sortBy('part_name')->values();
+
 
         return view('durability_plating.report', compact('reports', 'items', 'masterItems', 'customers', 'categories', 'averages', 'rekapSummary', 'testType', 'isTrial'));
     }
