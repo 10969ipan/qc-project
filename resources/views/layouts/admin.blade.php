@@ -1199,6 +1199,18 @@
                 transform: rotate(360deg);
             }
         }
+        .main-content-container {
+            padding-top: calc(56px + 1.5rem) !important;
+        }
+        @media print {
+            .main-content-container,
+            #content-wrapper .main-content-container,
+            #content > .container-fluid {
+                padding: 0 !important;
+                padding-top: 0 !important;
+                margin: 0 !important;
+            }
+        }
     </style>
 
 </head>
@@ -1213,7 +1225,7 @@
 
                 @include('layouts.topbar')
 
-                <div class="container-fluid px-3 px-md-4 px-xl-5 py-4" style="padding-top: calc(56px + 1.5rem) !important;">
+                <div class="container-fluid px-3 px-md-4 px-xl-5 py-4 main-content-container">
 
                     @yield('content')
 

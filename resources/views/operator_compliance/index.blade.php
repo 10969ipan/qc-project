@@ -1193,30 +1193,28 @@
                                                 <option value="Digitalisasi Support">Digitalisasi Support</option>
                                             </select>
                                         </div>
-                                        <div class="form-group mb-2">
-                                            <label for="schShift" class="small font-weight-bold text-gray-700">Shift</label>
-                                            <select class="form-control form-control-sm border-0 shadow-sm" id="schShift">
-                                                <option value="Non Shift">Non Shift</option>
-                                                <option value="Shift 1">Shift 1</option>
-                                                <option value="Shift 2">Shift 2</option>
-                                                <option value="Shift 3">Shift 3</option>
-                                            </select>
-                                        </div>
                                         <div class="form-group mb-3">
-                                            <label class="small font-weight-bold text-gray-700 mb-1">Tanggal Plan <span class="text-danger">*</span></label>
-                                            
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <label class="small font-weight-bold text-gray-700 mb-0">Tanggal Plan & Shift <span class="text-danger">*</span></label>
+                                            </div>
                                             <div id="schDatesContainer" class="d-flex flex-column" style="gap: 8px;">
                                                 <div class="input-group input-group-sm sch-date-row">
-                                                    <input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff;" onclick="try{this.showPicker()}catch(e){}">
+                                                    <input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">
+                                                    <select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">
+                                                        <option value="Non Shift">Non Shift</option>
+                                                        <option value="Shift 1">Shift 1</option>
+                                                        <option value="Shift 2">Shift 2</option>
+                                                        <option value="Shift 3">Shift 3</option>
+                                                    </select>
                                                     <div class="input-group-append">
-                                                        <button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan" style="width: 34px; padding: 0;">
+                                                        <button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan & Shift" style="width: 34px; padding: 0;">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
                                             <small class="text-muted font-italic mt-1 d-block" id="schDatesHint" style="font-size: 0.65rem;">
-                                                * Klik <strong>+</strong> jika dalam 1 bulan terdapat beberapa tanggal plan.
+                                                * Klik <strong>+</strong> jika dalam 1 bulan terdapat beberapa tanggal plan & shift.
                                             </small>
                                         </div>
                                         <button type="button" class="btn btn-primary btn-sm btn-block shadow-sm font-weight-bold" id="btnSaveSchedule" style="position: relative; z-index: 10; cursor: pointer;">
@@ -1233,7 +1231,12 @@
                         <div class="col-md-8">
                             <div class="card shadow-sm border-0" style="border-radius: 8px;">
                                 <div class="card-header bg-white py-2" style="border-radius: 8px 8px 0 0;">
-                                    <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.9rem;">Daftar Jadwal Inspector</h6>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.9rem;">Daftar Jadwal Inspector</h6>
+                                        <span class="badge badge-light border text-primary font-weight-bold px-2 py-1" style="font-size: 0.72rem;">
+                                            <i class="far fa-calendar-alt mr-1"></i> Periode: {{ $monthNames[$month] }} {{ $year }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive" style="max-height: 400px;">
@@ -1275,7 +1278,7 @@
                                                 @endforeach
                                                 <tr class="sch-info-row">
                                                     <td colspan="5" class="text-center text-muted font-italic py-4">
-                                                        <i class="fas fa-info-circle mr-1 text-primary"></i> Silakan pilih Operator / Inspector pada form di sebelah kiri untuk melihat daftar jadwal.
+                                                        <i class="fas fa-info-circle mr-1 text-primary"></i> Silakan pilih Operator / Inspector pada form di sebelah kiri untuk melihat daftar jadwal periode {{ $monthNames[$month] }} {{ $year }}.
                                                     </td>
                                                 </tr>
                                             </tbody>

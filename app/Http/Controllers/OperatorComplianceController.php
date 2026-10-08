@@ -184,10 +184,12 @@ class OperatorComplianceController extends Controller
             })
             ->toArray();
 
-        // Ambil semua data master jadwal untuk modal "Kelola Jadwal Operator" (semua role kecuali inspector)
+        // Ambil data master jadwal sesuai bulan & tahun aktif untuk modal "Kelola Jadwal Operator"
         $allSchedules = collect();
         if ($currentUser->role !== 'inspector') {
-            $allSchedulesQuery = OperatorComplianceSchedule::with('operator');
+            $allSchedulesQuery = OperatorComplianceSchedule::with('operator')
+                ->whereYear('schedule_date', $year)
+                ->whereMonth('schedule_date', $month);
             if ($plantCode !== 'total') {
                 $allSchedulesQuery->where('plant', $plantCode);
             }
@@ -701,30 +703,6 @@ class OperatorComplianceController extends Controller
         $search             = $request->get('search');
         $selectedOperatorId = (int) $request->get('operator_id');
 
-        // Default: jika filter shift tidak secara eksplisit ditentukan di query string,
-        // tampilkan per shift dari jadwal yang terakhir di-update datanya
-        if (!$request->has('shift')) {
-            $latestSchedule = OperatorComplianceSchedule::where('plant', $plantCode)
-                ->whereYear('schedule_date', $year)
-                ->whereMonth('schedule_date', $month)
-                ->whereNotNull('shift')
-                ->where('shift', '!=', '')
-                ->latest('updated_at')
-                ->first();
-
-            if (!$latestSchedule) {
-                $latestSchedule = OperatorComplianceSchedule::where('plant', $plantCode)
-                    ->whereNotNull('shift')
-                    ->where('shift', '!=', '')
-                    ->latest('updated_at')
-                    ->first();
-            }
-
-            if ($latestSchedule && !empty($latestSchedule->shift)) {
-                $shiftFilter = $latestSchedule->shift;
-            }
-        }
-
         // Cek hak akses
         if ($currentUser->role !== 'admin') {
             $menu = \App\Models\AppMenu::where('name', 'Kepatuhan Operator')
@@ -752,6 +730,11 @@ class OperatorComplianceController extends Controller
         } else {
             $inspectors = $plantOperators->concat([]);
         }
+
+        // Pastikan daftar dropdown inspector terurut A-Z
+        $inspectors = $inspectors->sortBy(function ($item) {
+            return strtolower($item->name ?? '');
+        })->values();
 
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
@@ -796,7 +779,7 @@ class OperatorComplianceController extends Controller
         $checksheetsQuery = OperatorComplianceChecksheet::where('plant_code', $plantCode)
             ->where('year', $year)
             ->where('month', $month)
-            ->with('operator');
+            ->with(['operator', 'entries:id,checksheet_id,day']);
 
         if ($selectedOperatorId) {
             $checksheetsQuery->where('user_id', $selectedOperatorId);
@@ -813,11 +796,7 @@ class OperatorComplianceController extends Controller
         foreach ($checksheets as $cs) {
             $opId = $cs->user_id;
 
-            $entriesDays = OperatorComplianceEntry::where('checksheet_id', $cs->id)
-                            ->select('day')
-                            ->distinct()
-                            ->pluck('day')
-                            ->toArray();
+            $entriesDays = $cs->entries->pluck('day')->unique()->toArray();
 
             if (!empty($entriesDays)) {
                 if (!isset($operatorRows[$opId])) {
@@ -836,6 +815,13 @@ class OperatorComplianceController extends Controller
                 }
             }
         }
+
+        // Urutkan nama operator secara alfabetis A-Z
+        uasort($operatorRows, function ($a, $b) {
+            $nameA = (string) ($a['operator']->name ?? '');
+            $nameB = (string) ($b['operator']->name ?? '');
+            return strnatcasecmp($nameA, $nameB);
+        });
 
         // Hitung total plan dan total actual per operator
         foreach ($operatorRows as $opId => &$row) {
@@ -871,35 +857,63 @@ class OperatorComplianceController extends Controller
             'schedule_date'    => 'nullable|date',
             'schedule_dates'   => 'nullable|array',
             'schedule_dates.*' => 'date',
+            'plans'            => 'nullable|array',
+            'plans.*.date'     => 'nullable|date',
+            'plans.*.shift'    => 'nullable|string',
         ]);
-
-        $dates = (array) ($request->get('schedule_dates') ?: []);
-        if ($request->schedule_date && !in_array($request->schedule_date, $dates)) {
-            $dates[] = $request->schedule_date;
-        }
-
-        if (empty($dates)) {
-            return response()->json(['success' => false, 'message' => 'Silakan tentukan minimal satu tanggal plan.'], 422);
-        }
 
         $operator = User::with('plant')->find($request->operator_id);
         $plantCode = strtolower($request->get('plant', $operator?->plant?->code ?? (Auth::user()->plant ? Auth::user()->plant->code : 'karawang')));
 
+        $plans = (array) ($request->get('plans') ?: []);
         $saved = [];
-        foreach ($dates as $date) {
-            $formattedDate = Carbon::parse($date)->format('Y-m-d');
-            $schedule = OperatorComplianceSchedule::updateOrCreate(
-                [
-                    'plant'         => $plantCode,
-                    'operator_id'   => $request->operator_id,
-                    'schedule_date' => $formattedDate,
-                ],
-                [
-                    'bagian'        => $request->bagian,
-                    'shift'         => $request->shift,
-                ]
-            );
-            $saved[] = $schedule;
+
+        if (!empty($plans)) {
+            foreach ($plans as $p) {
+                if (empty($p['date'])) {
+                    continue;
+                }
+                $formattedDate = Carbon::parse($p['date'])->format('Y-m-d');
+                $planShift = !empty($p['shift']) ? $p['shift'] : ($request->shift ?: 'Non Shift');
+
+                $schedule = OperatorComplianceSchedule::updateOrCreate(
+                    [
+                        'plant'         => $plantCode,
+                        'operator_id'   => $request->operator_id,
+                        'schedule_date' => $formattedDate,
+                    ],
+                    [
+                        'bagian'        => $request->bagian,
+                        'shift'         => $planShift,
+                    ]
+                );
+                $saved[] = $schedule;
+            }
+        } else {
+            $dates = (array) ($request->get('schedule_dates') ?: []);
+            if ($request->schedule_date && !in_array($request->schedule_date, $dates)) {
+                $dates[] = $request->schedule_date;
+            }
+
+            foreach ($dates as $date) {
+                $formattedDate = Carbon::parse($date)->format('Y-m-d');
+                $schedule = OperatorComplianceSchedule::updateOrCreate(
+                    [
+                        'plant'         => $plantCode,
+                        'operator_id'   => $request->operator_id,
+                        'schedule_date' => $formattedDate,
+                    ],
+                    [
+                        'bagian'        => $request->bagian,
+                        'shift'         => $request->shift ?: 'Non Shift',
+                    ]
+                );
+                $saved[] = $schedule;
+            }
+        }
+
+        if (empty($saved)) {
+            return response()->json(['success' => false, 'message' => 'Silakan tentukan minimal satu tanggal plan.'], 422);
         }
 
         return response()->json([

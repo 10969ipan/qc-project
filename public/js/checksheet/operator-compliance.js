@@ -853,9 +853,10 @@ $(document).ready(function () {
             $matchingRows.show();
         } else {
             $allRows.hide();
+            var activePeriod = (config && config.monthName) ? config.monthName : 'periode ini';
             $('#tableSchedules tbody').append(
                 '<tr class="sch-info-row"><td colspan="5" class="text-center text-muted font-italic py-4">' +
-                '<i class="fas fa-calendar-times mr-1 text-warning"></i> Belum ada jadwal yang di-set untuk operator ini.' +
+                '<i class="fas fa-calendar-times mr-1 text-warning"></i> Belum ada jadwal yang di-set untuk operator ini pada periode ' + activePeriod + '.' +
                 '</td></tr>'
             );
         }
@@ -892,15 +893,22 @@ $(document).ready(function () {
         }
     });
 
-    // Tambah baris tanggal plan baru saat klik tombol +
+    // Tambah baris tanggal plan & shift baru saat klik tombol +
     $(document).on('click', '#btnAddDateRow', function (e) {
         e.preventDefault();
-        var newRowHtml = '<div class="input-group input-group-sm sch-date-row mt-2">' +
-            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff;" onclick="try{this.showPicker()}catch(e){}">' +
+        var lastShift = $('#schDatesContainer .sch-date-row:last-child .sch-shift-select').val() || 'Non Shift';
+        var newRowHtml = '<div class="input-group input-group-sm sch-date-row mt-1">' +
+            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
+            '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
+                '<option value="Non Shift"' + (lastShift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
+                '<option value="Shift 1"' + (lastShift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
+                '<option value="Shift 2"' + (lastShift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
+                '<option value="Shift 3"' + (lastShift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
+            '</select>' +
             '<div class="input-group-append">' +
-            '<button class="btn btn-outline-danger border-0 shadow-sm btn-remove-date-row" type="button" title="Hapus Tanggal" style="width: 34px; padding: 0;">' +
-            '<i class="fas fa-times"></i>' +
-            '</button>' +
+                '<button class="btn btn-outline-danger border-0 shadow-sm btn-remove-date-row" type="button" title="Hapus Baris Plan" style="width: 34px; padding: 0;">' +
+                    '<i class="fas fa-times"></i>' +
+                '</button>' +
             '</div>' +
             '</div>';
         $('#schDatesContainer').append(newRowHtml);
@@ -925,7 +933,7 @@ $(document).ready(function () {
         var id = $btn.data('id');
         var opId = $btn.data('operator-id');
         var bagian = $btn.data('bagian');
-        var shift = $btn.data('shift');
+        var shift = $btn.data('shift') || 'Non Shift';
         var date = $btn.data('date');
 
         $('#schEditId').val(id);
@@ -939,14 +947,17 @@ $(document).ready(function () {
         if (bagian) {
             $('#schBagian').val(bagian);
         }
-        if (shift) {
-            $('#schShift').val(shift);
-        }
 
-        // Set baris tanggal menjadi 1 baris khusus untuk tanggal yang diedit
+        // Set baris tanggal dan shift menjadi 1 baris khusus untuk tanggal yang diedit
         $('#schDatesContainer').html(
-            '<div class="sch-date-row">' +
-            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" value="' + date + '" style="cursor: pointer; background-color: #fff;" onclick="try{this.showPicker()}catch(e){}">' +
+            '<div class="input-group input-group-sm sch-date-row">' +
+            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" value="' + date + '" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
+            '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
+                '<option value="Non Shift"' + (shift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
+                '<option value="Shift 1"' + (shift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
+                '<option value="Shift 2"' + (shift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
+                '<option value="Shift 3"' + (shift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
+            '</select>' +
             '</div>'
         );
         $('#schDatesHint').hide();
@@ -970,11 +981,17 @@ $(document).ready(function () {
         $('#schDatesHint').show();
         $('#schDatesContainer').html(
             '<div class="input-group input-group-sm sch-date-row">' +
-            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff;" onclick="try{this.showPicker()}catch(e){}">' +
+            '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
+            '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
+                '<option value="Non Shift">Non Shift</option>' +
+                '<option value="Shift 1">Shift 1</option>' +
+                '<option value="Shift 2">Shift 2</option>' +
+                '<option value="Shift 3">Shift 3</option>' +
+            '</select>' +
             '<div class="input-group-append">' +
-            '<button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan" style="width: 34px; padding: 0;">' +
-            '<i class="fas fa-plus"></i>' +
-            '</button>' +
+                '<button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan & Shift" style="width: 34px; padding: 0;">' +
+                    '<i class="fas fa-plus"></i>' +
+                '</button>' +
             '</div>' +
             '</div>'
         );
@@ -996,7 +1013,6 @@ $(document).ready(function () {
         var $btn = $('#btnSaveSchedule');
         var operatorId = $('#schOperatorId').val();
         var bagian = $('#schBagian').val();
-        var shift = $('#schShift').val();
         var editId = $('#schEditId').val();
 
         if (!operatorId) {
@@ -1013,25 +1029,49 @@ $(document).ready(function () {
             return;
         }
 
-        var dates = [];
-        $('.sch-date-input').each(function () {
-            var val = $(this).val();
-            if (val && !dates.includes(val)) {
-                dates.push(val);
+        var plans = [];
+        var datesChecked = [];
+        var hasDuplicateDate = false;
+
+        $('.sch-date-row').each(function () {
+            var dateVal = $(this).find('.sch-date-input').val();
+            var shiftVal = $(this).find('.sch-shift-select').val() || 'Non Shift';
+            if (dateVal) {
+                if (datesChecked.includes(dateVal)) {
+                    hasDuplicateDate = true;
+                }
+                datesChecked.push(dateVal);
+                plans.push({
+                    date: dateVal,
+                    shift: shiftVal
+                });
             }
         });
 
-        if (dates.length === 0) {
+        if (plans.length === 0) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Tanggal Plan Belum Diisi',
-                    text: 'Silakan pilih minimal satu Tanggal Plan terlebih dahulu.'
+                    text: 'Silakan tentukan minimal satu Tanggal Plan terlebih dahulu.'
                 });
             } else {
-                alert('Silakan pilih minimal satu Tanggal Plan terlebih dahulu.');
+                alert('Silakan tentukan minimal satu Tanggal Plan terlebih dahulu.');
             }
             $('.sch-date-input').first().focus();
+            return;
+        }
+
+        if (hasDuplicateDate) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanggal Plan Ganda',
+                    text: 'Terdapat tanggal plan yang sama pada baris input. Mohon gunakan tanggal yang berbeda untuk tiap baris.'
+                });
+            } else {
+                alert('Terdapat tanggal plan yang sama pada baris input. Mohon gunakan tanggal yang berbeda.');
+            }
             return;
         }
 
@@ -1043,8 +1083,8 @@ $(document).ready(function () {
             var updateData = {
                 operator_id: operatorId,
                 bagian: bagian,
-                shift: shift,
-                schedule_date: dates[0],
+                shift: plans[0].shift,
+                schedule_date: plans[0].date,
                 plant: config.plant || new URLSearchParams(window.location.search).get('plant') || 'karawang',
                 _token: $('meta[name="csrf-token"]').attr('content'),
                 _method: 'PUT'
@@ -1100,12 +1140,11 @@ $(document).ready(function () {
             return;
         }
 
-        // Mode Tambah Baru (Multi-Tanggal)
+        // Mode Tambah Baru (Multi Plan & Shift Sekaligus)
         var data = {
             operator_id: operatorId,
             bagian: bagian,
-            shift: shift,
-            schedule_dates: dates,
+            plans: plans,
             plant: config.plant || new URLSearchParams(window.location.search).get('plant') || 'karawang',
             _token: $('meta[name="csrf-token"]').attr('content')
         };

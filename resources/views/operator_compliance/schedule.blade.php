@@ -30,91 +30,84 @@
     @endphp
 
     <style>
-        /* ===== UI STYLES ===== */
+        /* ===== UI STYLES (TANPA STICKY BAR) ===== */
         #content-wrapper .op-schedule-grid-wrapper {
-            overflow: auto;
-            max-height: 75vh;
-            border: 1px solid #e2e8f0 !important;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            background-color: #fff !important;
+            background-color: #fff;
         }
 
         body #content-wrapper .op-schedule-grid {
-            table-layout: fixed !important;
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-            width: 100% !important;
-            min-width: 1300px !important;
-            background-color: #fff !important;
-            border: none !important;
-            margin-bottom: 0 !important;
+            table-layout: fixed;
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 1200px;
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0;
         }
 
         body #content-wrapper .op-schedule-grid thead th {
-            background-color: #f8fafc !important;
-            color: #475569 !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            font-size: 0.62rem !important;
-            letter-spacing: 0.3px !important;
-            padding: 6px 4px !important;
-            border: 1px solid #e2e8f0 !important;
-            vertical-align: middle !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 100 !important;
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.62rem;
+            letter-spacing: 0.3px;
+            padding: 6px 4px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+            text-align: center;
         }
 
         body #content-wrapper .op-schedule-grid thead th.week-header {
-            height: 28px !important;
-            background-color: #f1f5f9 !important;
-            color: #334155 !important;
+            height: 28px;
+            background-color: #f1f5f9;
+            color: #334155;
         }
 
         body #content-wrapper .op-schedule-grid thead th.day-header {
-            height: 24px !important;
-            top: 28px !important;
-            background-color: #f8fafc !important;
-            color: #64748b !important;
-            font-size: 0.60rem !important;
+            height: 24px;
+            background-color: #f8fafc;
+            color: #64748b;
+            font-size: 0.60rem;
         }
 
         body #content-wrapper .op-schedule-grid thead th.op-col, 
         body #content-wrapper .op-schedule-grid thead th.bag-col, 
         body #content-wrapper .op-schedule-grid thead th.status-col {
-            z-index: 110 !important;
-            background-color: #f1f5f9 !important;
+            background-color: #f1f5f9;
         }
 
-        body #content-wrapper .op-schedule-grid .op-col { width: 220px !important; min-width: 220px !important; left: 0 !important; position: sticky !important; z-index: 10 !important; }
-        body #content-wrapper .op-schedule-grid .bag-col { width: 140px !important; min-width: 140px !important; left: 220px !important; position: sticky !important; z-index: 10 !important; }
-        body #content-wrapper .op-schedule-grid .status-col { width: 65px !important; min-width: 65px !important; left: 360px !important; position: sticky !important; z-index: 10 !important; border-right: 2px solid #cbd5e1 !important; }
+        body #content-wrapper .op-schedule-grid .op-col { width: 17%; min-width: 180px; }
+        body #content-wrapper .op-schedule-grid .bag-col { width: 10.5%; min-width: 120px; }
+        body #content-wrapper .op-schedule-grid .status-col { width: 4.5%; min-width: 55px; border-right: 2px solid #cbd5e1; }
 
         body #content-wrapper .op-schedule-grid tbody td.op-col,
         body #content-wrapper .op-schedule-grid tbody td.bag-col {
-            background-color: #fff !important;
-            z-index: 10 !important;
-            color: #334155 !important;
-            font-size: 0.68rem !important;
-            padding: 6px 10px !important;
-            border-bottom: 1px solid #e2e8f0 !important;
+            background-color: #fff;
+            color: #334155;
+            font-size: 0.68rem;
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
         }
 
         body #content-wrapper .op-schedule-grid tbody td.status-col {
-            background-color: #f8fafc !important;
-            font-weight: 800 !important;
-            font-size: 0.65rem !important;
-            z-index: 10 !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            border-right: 2px solid #cbd5e1 !important;
+            background-color: #f8fafc;
+            font-weight: 800;
+            font-size: 0.65rem;
+            border: 1px solid #e2e8f0;
+            border-right: 2px solid #cbd5e1;
+            text-align: center;
         }
 
         body #content-wrapper .op-schedule-grid td {
-            border: 1px solid #e2e8f0 !important;
-            height: 28px !important;
-            padding: 2px !important;
-            vertical-align: middle !important;
+            border: 1px solid #e2e8f0;
+            height: 28px;
+            padding: 2px;
+            vertical-align: middle;
             background-color: #fff;
             font-size: 0.68rem;
         }
@@ -131,6 +124,32 @@
         .marker-p { background-color: #10b981 !important; color: white !important; }
         .marker-a { background-color: #06b6d4 !important; color: white !important; }
         .day-sunday { background-color: #fef2f2 !important; color: #dc2626 !important; }
+
+        /* Metadata Info Tabel persis Standar Checksheet (Hanya tampil saat Cetak) */
+        .schedule-meta-table {
+            display: none;
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #dee2e6;
+            font-size: 0.72rem;
+            background: #fff;
+        }
+        .schedule-meta-table td {
+            border: 1px solid #dee2e6;
+            padding: 4px 8px;
+            vertical-align: middle;
+        }
+        .schedule-meta-table .lbl {
+            font-weight: 700;
+            width: 85px;
+            background: #f8fafc;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+        }
+        .schedule-meta-table .val {
+            color: #1e293b;
+        }
 
         /* Custom Filter Wrapper & Select Styling persis Checksheet */
         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
@@ -151,29 +170,39 @@
         .custom-filter-wrapper .ips-clear:hover { color: #ef4444 !important; }
         .custom-filter-wrapper { position: relative; top: 0px; }
 
-        /* ===== PRINT VIEW STYLES ===== */
+        /* ===== PRINT VIEW STYLES (STANDAR ISO CHECKSHEET SEPERTI INPROCESS) ===== */
         @media print {
             @page {
                 size: A4 landscape;
                 margin: 6mm 8mm;
             }
 
-            body {
+            * {
+                box-sizing: border-box;
+            }
+
+            html, body {
                 background: #fff !important;
                 font-family: Arial, sans-serif !important;
                 color: #000 !important;
+                font-size: 6.5pt !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                width: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             /* Sembunyikan navigasi, filter, scroll-top, dan tombol */
-            .navbar, .sidebar, #accordionSidebar, .topbar, footer, .no-print, #scheduleFilterForm, .btn, .alert, .scroll-to-top {
+            .navbar, .sidebar, #accordionSidebar, .topbar, footer, .no-print, 
+            #scheduleFilterForm, .btn, .alert, .scroll-to-top {
                 display: none !important;
             }
 
-            #wrapper, #content-wrapper, #content, .container-fluid, .card, .card-body {
+            #wrapper, #content-wrapper, #content, .container-fluid, .main-content-container, .card, .card-body {
                 margin: 0 !important;
                 padding: 0 !important;
+                padding-top: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
                 background: #fff !important;
@@ -181,103 +210,155 @@
                 max-width: 100% !important;
             }
 
+            #content > .container-fluid {
+                padding: 0 !important;
+                padding-top: 0 !important;
+            }
+
+            .card-body {
+                padding: 0 !important;
+                zoom: 82%; /* Skala proporsional agar 31 hari muat presisi di 1 lembar A4 landscape */
+            }
+
             .header-iso-table {
-                margin-bottom: 6px !important;
+                width: 100% !important;
+                margin-top: 0 !important;
+                margin-bottom: 3px !important;
+                border-collapse: collapse !important;
             }
 
             .header-iso-table, .header-iso-table td, .header-iso-table th {
-                border-color: #000 !important;
+                border: 1px solid #000 !important;
                 color: #000 !important;
             }
 
-            .op-schedule-grid-wrapper {
-                max-height: none !important;
-                overflow: visible !important;
-                border: 1px solid #000 !important;
-                box-shadow: none !important;
-                border-radius: 0 !important;
+            /* Metadata Table Cetak (Hanya Muncul Saat Print) */
+            .schedule-meta-table {
+                display: table !important;
                 width: 100% !important;
-                margin-top: 4px !important;
-            }
-
-            body #content-wrapper .op-schedule-grid {
-                width: 100% !important;
-                min-width: 100% !important;
                 border-collapse: collapse !important;
-                table-layout: auto !important;
+                margin-bottom: 3px !important;
+                font-size: 6.5pt !important;
             }
 
-            body #content-wrapper .op-schedule-grid thead th {
-                position: static !important;
-                top: auto !important;
+            .schedule-meta-table td {
                 border: 1px solid #000 !important;
+                padding: 1.5px 4px !important;
                 color: #000 !important;
-                background-color: #f1f5f9 !important;
+            }
+
+            .schedule-meta-table .lbl {
+                background: #f1f5f9 !important;
+                font-weight: 700 !important;
+                color: #000 !important;
+                width: 70px !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
+            /* Grid Matriks Jadwal Cetak */
+            .op-schedule-grid-wrapper {
+                max-height: none !important;
+                overflow: visible !important;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                width: 100% !important;
+                margin-top: 0 !important;
+            }
+
+            body #content-wrapper .op-schedule-grid {
+                width: 100% !important;
+                min-width: 0 !important;
+                border-collapse: collapse !important;
+                table-layout: fixed !important;
+                border: 1px solid #000 !important;
+            }
+
+            body #content-wrapper .op-schedule-grid thead th {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                background-color: #f1f5f9 !important;
+                padding: 2px 1px !important;
+                font-size: 6pt !important;
+                vertical-align: middle !important;
+                text-align: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            body #content-wrapper .op-schedule-grid thead th.week-header {
+                height: 18px !important;
+                background-color: #e2e8f0 !important;
+                font-size: 6.2pt !important;
+                padding: 1px !important;
+            }
+
+            body #content-wrapper .op-schedule-grid thead th.day-header {
+                height: 16px !important;
+                font-size: 5.8pt !important;
+                padding: 1px 0 !important;
+            }
+
             body #content-wrapper .op-schedule-grid thead th.op-col,
             body #content-wrapper .op-schedule-grid tbody td.op-col {
-                position: static !important;
-                width: 18% !important;
+                width: 17% !important;
                 min-width: 0 !important;
-                font-size: 7.5pt !important;
-                padding: 3px 5px !important;
+                font-size: 6.5pt !important;
+                padding: 1.5px 4px !important;
                 border: 1px solid #000 !important;
+                text-align: left !important;
+                font-weight: 700 !important;
+                word-break: break-word !important;
             }
 
             body #content-wrapper .op-schedule-grid thead th.bag-col,
             body #content-wrapper .op-schedule-grid tbody td.bag-col {
-                position: static !important;
-                width: 14% !important;
+                width: 10.5% !important;
                 min-width: 0 !important;
-                font-size: 7pt !important;
-                padding: 3px 4px !important;
+                font-size: 6pt !important;
+                padding: 1.5px 2px !important;
                 border: 1px solid #000 !important;
+                text-align: center !important;
+                word-break: break-word !important;
             }
 
             body #content-wrapper .op-schedule-grid thead th.status-col,
             body #content-wrapper .op-schedule-grid tbody td.status-col {
-                position: static !important;
-                width: 5% !important;
+                width: 4.5% !important;
                 min-width: 0 !important;
-                font-size: 6.5pt !important;
-                padding: 2px !important;
+                font-size: 6pt !important;
+                padding: 1px !important;
                 border: 1px solid #000 !important;
+                text-align: center !important;
+                font-weight: 800 !important;
             }
 
             body #content-wrapper .op-schedule-grid thead th.day-header {
-                position: static !important;
-                top: auto !important;
-                width: auto !important;
                 min-width: 0 !important;
-                padding: 2px 1px !important;
-                font-size: 6.5pt !important;
+                padding: 1px 0 !important;
+                font-size: 5.8pt !important;
                 border: 1px solid #000 !important;
             }
 
-            body #content-wrapper .op-schedule-grid thead th.week-header {
-                position: static !important;
-                top: auto !important;
-                padding: 2px !important;
-                font-size: 7pt !important;
+            body #content-wrapper .op-schedule-grid tbody td {
                 border: 1px solid #000 !important;
-            }
-
-            body #content-wrapper .op-schedule-grid td {
-                height: auto !important;
-                padding: 2px 1px !important;
-                font-size: 6.5pt !important;
-                border: 1px solid #000 !important;
+                color: #000 !important;
+                height: 18px !important;
+                padding: 1px 0 !important;
+                font-size: 5.8pt !important;
+                vertical-align: middle !important;
+                text-align: center !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
             .badge-legend {
-                padding: 1px 4px !important;
-                font-size: 6pt !important;
+                padding: 0.5px 3px !important;
+                font-size: 5.5pt !important;
+                font-weight: 800 !important;
                 border-radius: 2px !important;
+                line-height: 1.1 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -295,13 +376,19 @@
             .day-sunday {
                 background-color: #fef2f2 !important;
                 color: #dc2626 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            tbody tr.sch-op-row {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
         }
     </style>
 
-    <div class="container-fluid">
         <!-- Unified Single Card Container (Satu Card Utuh persis Checksheet Kepatuhan Operator) -->
         <div class="card shadow mb-2">
             <div class="card-body p-2">
@@ -421,6 +508,26 @@
                     </table>
                 </div>
 
+                <!-- 2. Metadata Info Schedule (Standar Dokumen Checksheet - Hanya Tampil Saat Cetak) -->
+                <div class="mb-2 d-none d-print-block">
+                    <table class="schedule-meta-table">
+                        <tr>
+                            <td class="lbl">Plant</td>
+                            <td class="val">: <strong>{{ strtoupper($plantCode) }}</strong></td>
+                            <td class="lbl">Periode</td>
+                            <td class="val">: <strong>{{ $monthNames[$month] }} {{ $year }}</strong></td>
+                            <td class="lbl">Shift</td>
+                            <td class="val">: <strong>{{ $shiftFilter ?: 'Semua Shift' }}</strong></td>
+                            <td class="lbl">Keterangan</td>
+                            <td class="val">
+                                : <span class="badge-legend marker-p">P</span> <strong>Plan</strong> (Jadwal)
+                                &nbsp;&nbsp;|&nbsp;&nbsp;
+                                <span class="badge-legend marker-a">A</span> <strong>Actual</strong> (Realisasi Checksheet)
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show no-print" role="alert">
                         {{ session('success') }}
@@ -430,7 +537,7 @@
                     </div>
                 @endif
 
-                <!-- 2. Bar Filter Data Schedule (Dropdown Operator, Bulan, & Tahun persis Checksheet) -->
+                <!-- 3. Bar Filter Data Schedule (Dropdown Operator, Bulan, & Tahun persis Checksheet) -->
                 <form id="scheduleFilterForm" action="{{ route('checksheet.operator_compliance.schedule') }}" method="GET" 
                     class="d-flex flex-wrap align-items-end bg-white p-0 rounded mb-3 no-print" 
                     style="gap: 14px;">
@@ -521,14 +628,17 @@
                     </div>
                 </form>
 
-                <!-- 3. Matriks Schedule Bulanan (Tanggal 1 - $daysInMonth) -->
+                <!-- 4. Matriks Schedule Bulanan (Tanggal 1 - $daysInMonth) -->
+                @php
+                    $dayColPct = 68.0 / $daysInMonth;
+                @endphp
                 <div class="op-schedule-grid-wrapper">
                     <table class="table table-bordered op-schedule-grid mb-0">
                         <thead>
                             <tr>
-                                <th rowspan="2" class="align-middle op-col text-center">NAMA OPERATOR</th>
-                                <th rowspan="2" class="align-middle bag-col text-center">BAGIAN</th>
-                                <th rowspan="2" class="align-middle status-col text-center">PLAN /<br>ACTUAL</th>
+                                <th rowspan="2" class="align-middle op-col text-center" style="width: 17%;">NAMA OPERATOR</th>
+                                <th rowspan="2" class="align-middle bag-col text-center" style="width: 10.5%;">BAGIAN</th>
+                                <th rowspan="2" class="align-middle status-col text-center" style="width: 4.5%;">PLAN /<br>ACTUAL</th>
                                 @foreach($weeks as $wNum => $wRange)
                                     @if($wRange['start'] <= $daysInMonth)
                                         @php
@@ -542,7 +652,7 @@
                             <tr>
                                 @for($d = 1; $d <= $daysInMonth; $d++)
                                     @php $isSunday = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday(); @endphp
-                                    <th class="day-header text-center {{ $isSunday ? 'day-sunday' : '' }}" style="width: 38px; min-width: 38px;">
+                                    <th class="day-header text-center {{ $isSunday ? 'day-sunday' : '' }}" style="width: {{ number_format($dayColPct, 4, '.', '') }}%;">
                                         {{ $d }}
                                     </th>
                                 @endfor
@@ -597,7 +707,6 @@
 
             </div>
         </div>
-    </div>
 @endsection
 
 @push('scripts')
