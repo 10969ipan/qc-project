@@ -213,6 +213,7 @@
             .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
             .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
             .custom-filter-wrapper { position: relative; top: -1px; }
+            .custom-filter-wrapper select { display: none !important; }
 
             /* Force hide DataTables default elements (failsafe for caching) */
             .dataTables_length, 
@@ -327,43 +328,16 @@
             <div class="card-body">
                 <!-- Filter Bar Minimalis -->
                 <form id="filterFormVerif" action="{{ route('calibration.verifications.index') }}" method="GET" 
-                    class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" 
-                    style="gap: 12px; overflow-x: auto; white-space: nowrap;">
+                    class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm" 
+                    style="gap: 8px; overflow-x: auto;">
                     
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
                     
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
-                        <div style="width: 85px;">
-                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm">
-                                <option value="all" {{ $year == 'all' ? 'selected' : '' }}>Semua</option>
-                                @foreach($availableYears as $ay)
-                                    <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Periode:</label>
-                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                            <input type="date" name="start_date" id="startDateVerif" 
-                                class="form-control form-control-sm border-0" 
-                                style="width: 130px; font-size: 0.75rem;" 
-                                value="{{ request('start_date') }}">
-                            <span class="px-2 text-gray-500 small">-</span>
-                            <input type="date" name="end_date" id="endDateVerif" 
-                                class="form-control form-control-sm border-0" 
-                                style="width: 130px; font-size: 0.75rem;" 
-                                value="{{ request('end_date') }}">
-                        </div>
-                    </div>
-
-                    <!-- Cari Umum -->
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+                    <!-- Cari Umum (Paling Kiri) -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Cari</label>
                         <div style="width: 250px;" class="custom-filter-wrapper">
-                            <select name="search" id="searchVerif" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <select name="search" id="filterSearchVerif" class="form-control form-control-sm border-0 shadow-sm d-none">
                                 <option value="">Semua Alat, Merk, No. Seri...</option>
                                 @foreach($tools as $tool)
                                     <option value="{{ $tool->serial_number }}" 
@@ -378,35 +352,59 @@
                         </div>
                     </div>
 
-                    <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                        <style>
-                            .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                            .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                            .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                            .custom-filter-wrapper { position: relative; top: -1px; }
-                        </style>
-                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
-                            <i class="fas fa-search fa-sm"></i>
+                    <!-- Tahun -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
+                        <div style="width: 90px;">
+                            <select name="year" id="yearVerif" class="form-control form-control-sm border-0 shadow-sm">
+                                <option value="all" {{ $year == 'all' ? 'selected' : '' }}>Semua</option>
+                                @foreach($availableYears as $ay)
+                                    <option value="{{ $ay }}" {{ $year == $ay ? 'selected' : '' }}>{{ $ay }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tanggal -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Tanggal</label>
+                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                            <input type="date" name="start_date" id="startDateVerif" 
+                                class="form-control form-control-sm border-0" 
+                                style="width: 125px; font-size: 0.75rem;" 
+                                value="{{ request('start_date') }}" title="Dari Tanggal">
+                            <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                            <input type="date" name="end_date" id="endDateVerif" 
+                                class="form-control form-control-sm border-0" 
+                                style="width: 125px; font-size: 0.75rem;" 
+                                value="{{ request('end_date') }}" title="Sampai Tanggal">
+                        </div>
+                    </div>
+
+                    <!-- Tombol Filter & Reset -->
+                    <div class="d-flex align-items-center" style="gap: 4px;">
+                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Cari Data">
+                            <i class="fas fa-search fa-sm mr-1"></i> Filter
                         </button>
-                        
                         <a href="{{ route('calibration.verifications.index', ['plant' => $plantCode, 'year' => $year]) }}"
-                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
-                            <i class="fas fa-undo fa-sm"></i>
+                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 no-loader d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Reset Filter">
+                            <i class="fas fa-undo fa-sm mr-1"></i> Reset
                         </a>
-                        
+                    </div>
+
+                    <!-- Tombol Aksi Kanan -->
+                    <div class="ml-auto d-flex align-items-center" style="gap: 5px;">
                         @if($canExport)
                         <a id="printBtnVerif"
                             href="{{ route('calibration.verifications.print', array_merge(request()->all(), ['plant' => $plantCode])) }}"
-                            target="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3"
-                            style="background-color: #17a589; border-color: #17a589; color: white;" title="Print">
-                            <i class="fas fa-print fa-sm"></i>
+                            target="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center"
+                            style="background-color: #17a589; border-color: #17a589; color: white; font-size: 0.72rem; height: 31px;" title="Print">
+                            <i class="fas fa-print fa-sm mr-1"></i> Cetak
                         </a>
-                        
-
                         @endif
                         
-                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalVerifikasiBaru" title="Input Baru">
-                            <i class="fas fa-plus fa-sm"></i>
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" data-toggle="modal" data-target="#modalVerifikasiBaru" title="Input Baru" style="font-size: 0.72rem; height: 31px;">
+                            <i class="fas fa-plus fa-sm mr-1"></i> Input Baru
                         </button>
                     </div>
                 </form>
@@ -1107,7 +1105,7 @@
     <script>
         $(document).ready(function() {
             if (typeof initItemSearch === 'function') {
-                initItemSearch('searchVerif', { placeholder: 'Cari Alat, Merk, No. Seri...', maxResults: 50 });
+                initItemSearch('filterSearchVerif', { placeholder: 'Cari Alat, Merk, No. Seri...', maxResults: 50, hideSelect: true });
             }
         });
     </script>

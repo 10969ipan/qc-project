@@ -240,22 +240,21 @@
     <div class="card-body">
         <!-- Filter Bar Minimalis (Style In-Process) -->
         <form action="{{ route('calibration.tools.index') }}" method="GET"
-            class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-            style="gap: 12px; overflow-x: auto; white-space: nowrap;" id="filterForm">
+            class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm"
+            style="gap: 8px; overflow-x: auto;" id="filterForm">
 
             <input type="hidden" name="plant" value="{{ $plantCode }}">
 
-             <!-- Cari Cepat -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
+            <!-- Cari Cepat -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700">Cari</label>
                 <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
                     placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 250px; font-size: 0.75rem;">
             </div>
 
-
             <!-- Tahun -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
                 <div style="width: 100px;">
                     <select name="year" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                         <option value="all" {{ $year == 'all' ? 'selected' : '' }}>Semua</option>
@@ -266,10 +265,9 @@
                 </div>
             </div>
 
-
             <!-- Status -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Stat:</label>
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700">Status</label>
                 <div style="width: 140px;">
                     <select name="status_kalibrasi" class="form-control form-control-sm border-0 shadow-sm">
                         <option value="">Semua Status</option>
@@ -280,29 +278,33 @@
                 </div>
             </div>
 
-            <!-- Tombol Aksi -->
-            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
-                    <i class="fas fa-search fa-sm"></i>
+            <!-- Tombol Filter & Reset -->
+            <div class="d-flex align-items-center" style="gap: 4px;">
+                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Cari Data">
+                    <i class="fas fa-search fa-sm mr-1"></i> Filter
                 </button>
                 <a href="{{ route('calibration.tools.index', ['plant' => $plantCode]) }}"
-                    class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
-                    <i class="fas fa-undo fa-sm"></i>
+                    class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 no-loader d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Reset Filter">
+                    <i class="fas fa-undo fa-sm mr-1"></i> Reset
                 </a>
-                <button type="submit" formaction="{{ route('calibration.tools.print') }}" formtarget="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
-                    <i class="fas fa-print fa-sm"></i>
+            </div>
+
+            <!-- Tombol Aksi Kanan -->
+            <div class="ml-auto d-flex align-items-center" style="gap: 5px;">
+                <button type="submit" formaction="{{ route('calibration.tools.print') }}" formtarget="_blank" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" title="Print" style="background-color: #17a589; border-color: #17a589; color: white; font-size: 0.72rem; height: 31px;">
+                    <i class="fas fa-print fa-sm mr-1"></i> Cetak
                 </button>
                 <a href="{{ route('calibration.tools.problem-logs', ['plant' => $plantCode]) }}"
-                    class="btn btn-warning btn-sm shadow-sm rounded-pill px-3" title="Problem Log">
-                    <i class="fas fa-exclamation-triangle fa-sm"></i>
+                    class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" title="Problem Log" style="font-size: 0.72rem; height: 31px;">
+                    <i class="fas fa-exclamation-triangle fa-sm mr-1"></i> Problem Log
                 </a>
-                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahAlat" title="Tambah Alat">
-                    <i class="fas fa-plus fa-sm"></i>
+                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" data-toggle="modal" data-target="#modalTambahAlat" title="Tambah Alat" style="font-size: 0.72rem; height: 31px;">
+                    <i class="fas fa-plus fa-sm mr-1"></i> Tambah Alat
                 </button>
                 @if(auth()->check() && auth()->user()->role === 'admin')
                 <button type="button" 
-                    class="btn btn-sm shadow-sm rounded-pill px-3 no-loader d-flex align-items-center" 
-                    style="background-color: #7c3aed; color: white;"
+                    class="btn btn-sm shadow-sm rounded-pill px-3 py-1 no-loader d-flex align-items-center" 
+                    style="background-color: #7c3aed; color: white; font-size: 0.72rem; height: 31px;"
                     data-toggle="modal" data-target="#modalHiddenTools" 
                     title="Kelola Item Tersembunyi">
                     <i class="fas fa-eye-slash fa-sm mr-1"></i> Kelola Item

@@ -122,8 +122,7 @@
         <style>
             /* Force Light Theme for Calibration Schedule - High Specificity */
             #content-wrapper .calibration-schedule-grid-wrapper {
-                overflow: auto;
-                max-height: 75vh;
+                overflow-x: auto;
                 border: 1px solid #e2e8f0 !important;
                 border-radius: 8px;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -153,9 +152,6 @@
                 padding: 8px 4px !important;
                 border: 1px solid #e2e8f0 !important;
                 vertical-align: middle !important;
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 100 !important;
                 box-shadow: none !important;
             }
 
@@ -168,34 +164,30 @@
 
             body #content-wrapper .calibration-schedule-grid thead th.week-header {
                 height: 24px !important;
-                top: 38px !important;
                 background-color: #f8fafc !important;
                 color: #64748b !important;
                 font-size: 0.58rem !important;
                 font-weight: 600 !important;
             }
 
-            /* Sticky Columns - Header Level */
+            /* Columns Styling */
             body #content-wrapper .calibration-schedule-grid thead th.tool-name-col, 
             body #content-wrapper .calibration-schedule-grid thead th.serial-col, 
             body #content-wrapper .calibration-schedule-grid thead th.jenis-col, 
             body #content-wrapper .calibration-schedule-grid thead th.status-col {
-                z-index: 110 !important;
                 background-color: #f1f5f9 !important;
             }
 
-            /* Sticky Columns - Positioning */
-            body #content-wrapper .calibration-schedule-grid .tool-name-col { width: 220px !important; min-width: 220px !important; left: 0 !important; position: sticky !important; z-index: 10 !important; }
-            body #content-wrapper .calibration-schedule-grid .serial-col { width: 140px !important; min-width: 140px !important; left: 220px !important; position: sticky !important; z-index: 10 !important; }
-            body #content-wrapper .calibration-schedule-grid .jenis-col { width: 100px !important; min-width: 100px !important; left: 360px !important; position: sticky !important; z-index: 10 !important; }
-            body #content-wrapper .calibration-schedule-grid .status-col { width: 65px !important; min-width: 65px !important; left: 460px !important; position: sticky !important; z-index: 10 !important; border-right: 2px solid #cbd5e1 !important; }
+            body #content-wrapper .calibration-schedule-grid .tool-name-col { width: 220px !important; min-width: 220px !important; }
+            body #content-wrapper .calibration-schedule-grid .serial-col { width: 140px !important; min-width: 140px !important; }
+            body #content-wrapper .calibration-schedule-grid .jenis-col { width: 100px !important; min-width: 100px !important; }
+            body #content-wrapper .calibration-schedule-grid .status-col { width: 65px !important; min-width: 65px !important; border-right: 2px solid #cbd5e1 !important; }
 
-            /* Sticky Columns - Body Level */
+            /* Body Level */
             body #content-wrapper .calibration-schedule-grid tbody td.tool-name-col,
             body #content-wrapper .calibration-schedule-grid tbody td.serial-col,
             body #content-wrapper .calibration-schedule-grid tbody td.jenis-col {
                 background-color: #fff !important;
-                z-index: 10 !important;
                 color: #334155 !important;
                 font-size: 0.65rem !important;
                 padding: 6px 10px !important;
@@ -208,7 +200,6 @@
                 font-weight: 800 !important;
                 color: #475569 !important;
                 font-size: 0.65rem !important;
-                z-index: 10 !important;
                 border-bottom: 1px solid #f1f5f9 !important;
             }
 
@@ -250,13 +241,22 @@
             <div class="card-body">
                 <!-- Filter Bar Minimalis -->
                 <form action="{{ route('calibration.schedule.index') }}" method="GET" 
-                    class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" 
-                    style="gap: 12px; overflow-x: auto; white-space: nowrap;">
+                    class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm" 
+                    style="gap: 8px; overflow-x: auto;">
                     
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
                     
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tahun:</label>
+                    <!-- Cari (Paling Kiri) -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Cari</label>
+                        <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
+                            style="width: 180px; font-size: 0.75rem;" 
+                            placeholder="Nama / No. Seri..." value="{{ request('search') }}">
+                    </div>
+
+                    <!-- Tahun -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
                         <div style="width: 85px;">
                             <select name="year" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                                 @php
@@ -270,8 +270,9 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Jenis:</label>
+                    <!-- Jenis -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Jenis</label>
                         <div style="width: 100px;">
                             <select name="jenis_kalibrasi" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
                                 <option value="">Semua</option>
@@ -281,34 +282,32 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center">
-                        <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Plan:</label>
-                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                            <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                            <span class="px-2 text-gray-500 small">-</span>
-                            <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                    <!-- Plan -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Plan</label>
+                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
+                            <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                            <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                            <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center">
-                        <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
-                            style="width: 180px; font-size: 0.75rem;" 
-                            placeholder="Nama / No. Seri..." value="{{ request('search') }}">
-                    </div>
-
-                    <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
-                            <i class="fas fa-search fa-sm"></i>
+                    <!-- Tombol Filter & Reset -->
+                    <div class="d-flex align-items-center" style="gap: 4px;">
+                        <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Cari Data">
+                            <i class="fas fa-search fa-sm mr-1"></i> Filter
                         </button>
                         <a href="{{ route('calibration.schedule.index', ['plant' => $plantCode, 'year' => date('Y')]) }}"
-                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
-                            <i class="fas fa-undo fa-sm"></i>
+                            class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 no-loader d-flex align-items-center" style="font-size: 0.72rem; height: 31px;" title="Reset Filter">
+                            <i class="fas fa-undo fa-sm mr-1"></i> Reset
                         </a>
-                        <div class="d-flex align-items-center px-2" style="gap: 5px; border-left: 1px solid #e2e8f0;">
-                            <a href="{{ route('calibration.schedule.print', request()->all()) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" target="_blank" title="Print" style="background-color: #17a589; border-color: #17a589; color: white;">
-                                <i class="fas fa-print fa-sm"></i> Print / Cetak
-                            </a>
-                        </div>
+                    </div>
+
+                    <!-- Tombol Aksi Kanan & Legend -->
+                    <div class="ml-auto d-flex align-items-center" style="gap: 8px;">
+                        <a href="{{ route('calibration.schedule.print', request()->all()) }}" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" target="_blank" title="Print" style="background-color: #17a589; border-color: #17a589; color: white; font-size: 0.72rem; height: 31px;">
+                            <i class="fas fa-print fa-sm mr-1"></i> Cetak
+                        </a>
                         <div class="d-flex align-items-center" style="gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 10px;">
                             <div class="d-flex align-items-center" style="gap: 3px;">
                                 <span class="badge-legend" style="background-color: #10b981; color: white;">P</span>
