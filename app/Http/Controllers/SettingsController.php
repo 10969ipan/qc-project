@@ -77,6 +77,7 @@ class SettingsController extends Controller
             'cross_cut' => 'Cross-Cut',
             'cross_cut_painting' => 'Cross-Cut Painting',
             'customer_claim' => 'List Claim Customer',
+            'durability_test' => 'Durability Test (Master Standard)',
             'master_standard_performance_test' => 'Master Standar Plating',
             'thickness' => 'Thickness Test',
             'corrodkote' => 'Corrodkote Test',

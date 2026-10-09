@@ -1114,7 +1114,7 @@
                     <div class="modal-body p-4">
                         <div class="form-group mb-3">
                             <label class="small font-weight-bold text-dark">Pilih Modul / Laporan</label>
-                            <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3 d-none" required>
+                            <select name="key" id="doc_header_key" class="form-control rounded-pill border-0 bg-light px-3 d-none" style="display: none !important;" required>
                                 <option value="">-- Pilih Modul / Laporan --</option>
                                 <option value="master_data">Master Data Item</option>
                                 @foreach($qcModules as $val => $label)

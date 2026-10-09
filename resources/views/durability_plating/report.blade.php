@@ -168,7 +168,10 @@
 </style>
 
 @php
-    $plantCode = auth()->check() && auth()->user()->plant ? strtolower(auth()->user()->plant->name) : 'jakarta';
+    $plant = request('plant') ?? (auth()->check() && auth()->user()->plant ? auth()->user()->plant->name : 'karawang');
+    $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+    $plantCode = strtolower($plantCode ?: 'karawang');
+
     $docHeader = \App\Models\GeneralSetting::getDocHeader($testType, $plantCode, [
         'no_dokumen' => '-',
         'tgl_terbit' => '-',
@@ -177,20 +180,132 @@
     ]);
 @endphp
 
-<div class="card shadow mb-4">
-    <div class="card-header py-2 px-3">
-        <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">
-            LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST
-        </h6>
-    </div>
+<!-- Logo Tersembunyi untuk Ekspor PDF -->
+<img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+
+<div class="card shadow mb-2">
+    <div class="card-body p-2">
+        <div class="mb-2">
+            <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                <tr>
+                    {{-- ===== [1] KOLOM LOGO ===== --}}
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+
+                    {{-- ===== [2] KOLOM JUDUL ===== --}}
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST{{ !empty($isTrial) ? ' (TRIAL)' : '' }}
+                        </h1>
+                    </td>
+
+                    {{-- ===== [3] KOLOM KANAN: No. Dokumen + Signatures ===== --}}
+                    <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
+
+                        {{-- Wrapper baris — menyamakan tinggi kedua tabel anak --}}
+                        <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                            <tr style="height:100%;">
+
+                                {{-- ===== [3A] Tabel No. Dokumen ===== --}}
+                                <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">
+                                                {{ $docHeader['no_dokumen'] ?? '-' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] ?? '-' }}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                {{-- ===== [3B] Tabel Signatures ===== --}}
+                                <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:388px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Dibuat</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diperiksa</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{-- BARIS 1: Gambar tanda tangan --}}
+                                            <tr>
+                                                <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                        {{ date('d-M-y') }}
+                                                    </div>
+                                                </td>
+
+                                                {{-- Tanda tangan Dibuat --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/mida.png') }}" alt="Mida"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+
+                                                {{-- Tanda tangan Diperiksa --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+
+                                                {{-- Tanda tangan Diketahui --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+                                            </tr>
+
+                                            {{-- BARIS 2: Nama --}}
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Mida</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
+                                            </tr>
+
+                                            {{-- BARIS 3: Jabatan --}}
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QC</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+            </table>
+        </div>
     <div class="card-body">
         <form action="{{ url()->current() }}" method="GET"
-            class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-            style="gap: 8px; overflow-x: auto; white-space: nowrap;">
+            class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm"
+            style="gap: 8px; overflow-x: auto;">
             
-            <!-- Field: Part/Customer -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Part:</label>
+            <!-- 1. Field: Part Name -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
                 <div style="width: 200px;" class="custom-filter-wrapper">
                     <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                         <option value="">Semua Part / Customer...</option>
@@ -203,11 +318,11 @@
                 </div>
             </div>
 
-            <!-- Field: Customer -->
-            <div class="d-flex align-items-center ml-2">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Customer:</label>
+            <!-- 2. Field: Customer -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
                 <div style="width: 150px;" class="custom-filter-wrapper">
-                    <select name="customer_name" id="filterCustomerName" class="form-control form-control-sm border-0 shadow-sm">
+                    <select name="customer_name" id="filterCustomerName" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.72rem; height: 28px;">
                         <option value="">Semua Customer</option>
                         @foreach($customers as $customer)
                             <option value="{{ $customer }}" {{ request('customer_name') == $customer ? 'selected' : '' }}>
@@ -218,11 +333,11 @@
                 </div>
             </div>
 
-            <!-- Field: Kategori -->
-            <div class="d-flex align-items-center ml-2">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Kategori:</label>
+            <!-- 3. Field: Kategori -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Kategori</label>
                 <div style="width: 140px;" class="custom-filter-wrapper">
-                    <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm">
+                    <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.72rem; height: 28px;">
                         <option value="">Semua Kategori</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
@@ -233,23 +348,23 @@
                 </div>
             </div>
 
-            <!-- Field: Tanggal -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Tgl:</label>
-                <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
+            <!-- 4. Field: Tanggal -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="height: 28px;">
                     <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                        style="width: 120px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                    <span class="px-1 text-gray-500 small">-</span>
+                        style="width: 120px; font-size: 0.72rem; height: 28px;" value="{{ request('start_date') }}">
+                    <span class="px-1 text-gray-500 small" style="font-size: 0.68rem;">s/d</span>
                     <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                        style="width: 120px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                        style="width: 120px; font-size: 0.72rem; height: 28px;" value="{{ request('end_date') }}">
                 </div>
             </div>
 
-            <!-- Field: Result -->
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Result:</label>
-                <div style="width: 100px;" class="custom-filter-wrapper">
-                    <select name="result_judgment" id="filterResultJudgment" class="form-control form-control-sm border-0 shadow-sm">
+            <!-- 5. Field: Result -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Result</label>
+                <div style="width: 95px;" class="custom-filter-wrapper">
+                    <select name="result_judgment" id="filterResultJudgment" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.72rem; height: 28px;">
                         <option value="">Semua</option>
                         <option value="OK" {{ strtoupper(request('result_judgment')) == 'OK' ? 'selected' : '' }}>OK</option>
                         <option value="NG" {{ strtoupper(request('result_judgment')) == 'NG' ? 'selected' : '' }}>NG</option>
@@ -257,9 +372,20 @@
                 </div>
             </div>
 
+            <!-- Tombol Filter & Reset -->
+            <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end;">
+                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 28px;" title="Filter">
+                    <i class="fas fa-search fa-sm mr-1"></i> Filter
+                </button>
+                <a href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report') }}"
+                    class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 28px;" title="Reset Filter">
+                    <i class="fas fa-undo fa-sm mr-1"></i> Reset
+                </a>
+            </div>
+
             <!-- Field: Rata-Rata Thickness (Plain Text Centered in Middle Space) -->
             @if($testType == 'thickness' && isset($averages))
-            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+            <div class="d-flex align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000; align-self: flex-end; height: 28px;">
                 <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
                 @if(!$isTrial)
                     <span style="color: #7d7d7dff;">Cr {{ $averages['cr1'] }} | Ni {{ $averages['ni1'] }} | Cu {{ $averages['cu1'] }}</span>
@@ -271,7 +397,7 @@
 
             <!-- Field: Rata-Rata Corrodkote (Plain Text Centered in Middle Space) -->
             @if($testType == 'corrodkote' && isset($averages))
-            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+            <div class="d-flex align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000; align-self: flex-end; height: 28px;">
                 <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
                 @if(!$isTrial)
                     <span style="color: #7d7d7dff;">Aktual % Corrosion {{ $averages['corrosion1'] !== '-' ? $averages['corrosion1'] . '%' : '-' }}</span>
@@ -283,7 +409,7 @@
 
             <!-- Field: Rata-Rata Cass Test (Plain Text Centered in Middle Space) -->
             @if($testType == 'cass' && isset($averages))
-            <div class="flex-grow-1 d-flex justify-content-center align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000;">
+            <div class="d-flex align-items-center mx-2 font-weight-bold" style="font-size: 0.75rem; color: #000000; align-self: flex-end; height: 28px;">
                 <span class="mr-2" style="color: #7d7d7dff;">Avg :</span>
                 @if(!$isTrial)
                     <span style="color: #7d7d7dff;">Aktual RN {{ $averages['rn1'] ?? '-' }}</span>
@@ -293,20 +419,19 @@
             </div>
             @endif
 
-            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+            <div class="ml-auto d-flex flex-nowrap align-items-center" style="gap: 5px; align-self: flex-end;">
                 <style>
                     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); text-transform: none !important; }
+                    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 28px !important; text-transform: none !important; }
                     .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                    .custom-filter-wrapper { position: relative; top: -1px; }
+                    .custom-filter-wrapper { position: relative; top: 0px; }
                 </style>
-                <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Filter">
-                    <i class="fas fa-search fa-sm"></i>
+                <button type="button" class="btn btn-info btn-sm shadow-sm rounded-pill px-3 font-weight-bold d-flex align-items-center" data-toggle="modal" data-target="#modalRekapData" title="Rekap Data Part" style="font-size: 0.68rem; height: 28px;">
+                    <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap
                 </button>
-                <a href="{{ route(!empty($isTrial) ? 'standard-performance-tests-trial.report' : 'standard-performance-tests.report') }}"
-                    class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3" title="Reset Filter">
-                    <i class="fas fa-undo fa-sm"></i>
-                </a>
+                <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 d-flex align-items-center" title="Print Laporan" style="font-size: 0.68rem; height: 28px;">
+                    <i class="fas fa-print fa-sm mr-1"></i> Print
+                </button>
                 <button type="button" class="btn btn-info btn-sm shadow-sm rounded-pill px-3 font-weight-bold" data-toggle="modal" data-target="#modalRekapData" title="Rekap Data Part">
                     <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap
                 </button>

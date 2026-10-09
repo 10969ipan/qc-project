@@ -1426,7 +1426,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initialize item search widget for doc_header_key
         if (typeof initItemSearch === 'function') {
-            initItemSearch('doc_header_key', { placeholder: 'Ketik Nama Modul / Laporan...', maxResults: 50 });
+            initItemSearch('doc_header_key', { 
+                placeholder: 'Ketik Nama Modul / Laporan...', 
+                maxResults: 50,
+                hideSelect: true 
+            });
         }
 
         $('#formDocumentHeader').on('submit', function(e) {

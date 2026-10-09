@@ -9,9 +9,9 @@
         display: none !important;
     }
     .table-responsive {
-        max-height: none !important;
+        max-height: calc(100vh - 220px) !important;
         overflow-x: auto !important;
-        overflow-y: visible !important;
+        overflow-y: auto !important;
         border: none !important;
         box-shadow: none !important;
     }
@@ -82,43 +82,187 @@
 </style>
 
 @php
-    $plantCode = auth()->check() && auth()->user()->plant ? strtolower(auth()->user()->plant->name) : 'jakarta';
-    $docHeader = \App\Models\GeneralSetting::getDocHeader('master_standard_performance_test', $plantCode, [
-        'no_dokumen' => '-',
-        'tgl_terbit' => '-',
-        'revisi' => '- / -',
-        'halaman' => '1 / 1'
-    ]);
+    $plant = request('plant') ?? (auth()->check() && auth()->user()->plant ? auth()->user()->plant->name : 'karawang');
+    $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+    $plantCode = strtolower($plantCode ?: 'karawang');
+
+    $docHeader = \App\Models\GeneralSetting::getDocHeader('durability_test', $plantCode);
+    if (empty($docHeader['no_dokumen']) || $docHeader['no_dokumen'] === '-') {
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('master_standard_performance_test', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0205',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '0',
+            'halaman' => '1 / 1'
+        ]);
+    }
 @endphp
 
-<div class="card shadow mb-4">
-    <div class="card-header py-2 px-3">
-        <h6 class="m-0 font-weight-bold text-dark text-uppercase" style="font-size: 0.80rem;">
-            STANDARD PERFORMANCE TEST PLATING PLASTIC
-        </h6>
-    </div>
-    <div class="card-body">
+<!-- Logo Tersembunyi untuk Ekspor PDF -->
+<img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
+
+<div class="card shadow mb-2">
+    <div class="card-body p-2">
+        <div class="mb-2">
+            <table style="width:100%; border-collapse:collapse; border: 1px solid #dee2e6;">
+                <tr>
+                    {{-- ===== [1] KOLOM LOGO ===== --}}
+                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                    </td>
+
+                    {{-- ===== [2] KOLOM JUDUL ===== --}}
+                    <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                            STANDARD PERFORMANCE TEST PLATING PLASTIC{{ !empty($isTrial) ? ' (TRIAL)' : '' }}
+                        </h1>
+                    </td>
+
+                    {{-- ===== [3] KOLOM KANAN: No. Dokumen + Signatures ===== --}}
+                    <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
+
+                        {{-- Wrapper baris — menyamakan tinggi kedua tabel anak --}}
+                        <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                            <tr style="height:100%;">
+
+                                {{-- ===== [3A] Tabel No. Dokumen ===== --}}
+                                <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">
+                                                {{ $docHeader['no_dokumen'] ?? '-' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] ?? '-' }}</td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                {{-- ===== [3B] Tabel Signatures ===== --}}
+                                <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:388px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Dibuat</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diperiksa</th>
+                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {{-- BARIS 1: Gambar tanda tangan --}}
+                                            <tr>
+                                                <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                        {{ date('d-M-y') }}
+                                                    </div>
+                                                </td>
+
+                                                {{-- Tanda tangan Dibuat --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/mida.png') }}" alt="Mida"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+
+                                                {{-- Tanda tangan Diperiksa --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+
+                                                {{-- Tanda tangan Diketahui --}}
+                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K"
+                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                </td>
+                                            </tr>
+
+                                            {{-- BARIS 2: Nama --}}
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Mida</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
+                                            </tr>
+
+                                            {{-- BARIS 3: Jabatan --}}
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QC</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Filter & Action Bar Standar (Label di atas field) -->
         <form id="filterFormMaster" onsubmit="return false;"
-            class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-            style="gap: 12px;">
+            class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
+            style="gap: 8px;">
             
-            <div class="d-flex align-items-center">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                <div class="input-group input-group-sm shadow-sm rounded" style="width: 250px;">
-                    <input type="text" name="search_master" id="search_master" class="form-control border-0 no-autoupper" 
-                        placeholder="Nama Part / Customer..." value="{{ request('search') }}" style="font-size: 0.75rem; text-transform: none !important;">
+            <!-- 1. Field: Part Name -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
+                <div class="input-group input-group-sm shadow-sm rounded bg-white" style="width: 220px;">
+                    <input type="text" name="search_master" id="search_master" class="form-control form-control-sm border-0 no-autoupper" 
+                        placeholder="Ketik Nama / Part No..." value="{{ request('search') }}" style="font-size: 0.72rem; height: 28px; text-transform: none !important;">
                     <div class="input-group-append" id="btnClearSearchMaster" style="display: none; cursor: pointer;">
-                        <span class="input-group-text bg-white border-0 text-muted" style="padding-left: 4px; padding-right: 8px;">
+                        <span class="input-group-text bg-white border-0 text-muted" style="padding-left: 4px; padding-right: 8px; height: 28px;">
                             <i class="fas fa-times-circle"></i>
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
+            <!-- 2. Field: Customer -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
+                <div style="width: 170px;">
+                    <select id="filterCustomerMaster" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.72rem; height: 28px;">
+                        <option value="">Semua Customer</option>
+                        @foreach($customers as $c)
+                            <option value="{{ $c }}">{{ $c }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tombol Filter & Reset -->
+            <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end;">
+                <button type="button" id="btnFilterMaster" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 28px;" title="Cari Data">
+                    <i class="fas fa-search fa-sm mr-1"></i> Filter
+                </button>
+                <button type="button" id="btnResetMaster" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 28px;" title="Reset Filter">
+                    <i class="fas fa-undo fa-sm mr-1"></i> Reset
+                </button>
+            </div>
+
+            <!-- Tombol Navigasi & Aksi (Paling Kanan) -->
+            <div class="ml-auto d-flex flex-nowrap align-items-center" style="gap: 5px; align-self: flex-end;">
                 <div class="dropdown">
-                    <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window">
-                        <i class="fas fa-file-alt fa-sm"></i> Laporan
+                    <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle d-flex align-items-center" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window" style="font-size: 0.70rem; height: 28px;">
+                        <i class="fas fa-file-alt fa-sm mr-1"></i> Laporan
                     </button>
                     <div class="dropdown-menu dropdown-menu-right shadow-sm border-0 animated--fade-in" aria-labelledby="dropdownMenuLaporan" style="font-size:0.85rem; border-radius:8px; min-width: 200px; z-index: 1050;">
                         <div class="dropdown-header font-weight-bold text-primary text-uppercase" style="font-size:0.7rem; letter-spacing:1px; padding: 0.5rem 1.5rem;">Pilih Laporan</div>
@@ -141,12 +285,12 @@
                 </div>
 
                 @if(auth()->check() && auth()->user()->role === 'admin')
-                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalImport" title="Import Data">
-                    <i class="fas fa-file-excel fa-sm"></i> Import
+                <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-3 d-flex align-items-center" data-toggle="modal" data-target="#modalImport" title="Import Data" style="font-size: 0.70rem; height: 28px;">
+                    <i class="fas fa-file-excel fa-sm mr-1"></i> Import
                 </button>
                 @endif
-                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambah" title="Tambah Data">
-                    <i class="fas fa-plus fa-sm"></i> Tambah
+                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 d-flex align-items-center" data-toggle="modal" data-target="#modalTambah" title="Tambah Data" style="font-size: 0.70rem; height: 28px;">
+                    <i class="fas fa-plus fa-sm mr-1"></i> Tambah
                 </button>
             </div>
         </form>
@@ -881,7 +1025,7 @@
             });
         });
 
-        // Instant smart search on keyup & clear icon handling
+        // Instant smart search & customer filter handling
         function toggleClearBtn() {
             var val = $('#search_master').val();
             if (val && val.length > 0) {
@@ -891,18 +1035,48 @@
             }
         }
 
+        function applyMasterFilters() {
+            var searchVal = $('#search_master').val() || '';
+            var customerVal = $('#filterCustomerMaster').val() || '';
+            
+            table.search(searchVal);
+            if (customerVal) {
+                table.column(3).search('^' + customerVal + '$', true, false);
+            } else {
+                table.column(3).search('');
+            }
+            table.draw();
+        }
+
         $('#search_master').on('keypress', function (e) {
-            if (e.which == 13) e.preventDefault();
+            if (e.which == 13) {
+                e.preventDefault();
+                applyMasterFilters();
+            }
         });
 
         $('#search_master').on('keyup input change', function () {
             toggleClearBtn();
-            table.search($(this).val()).draw();
+            applyMasterFilters();
+        });
+
+        $('#filterCustomerMaster').on('change', function() {
+            applyMasterFilters();
+        });
+
+        $('#btnFilterMaster').on('click', function() {
+            applyMasterFilters();
         });
 
         $('#btnClearSearchMaster').on('click', function () {
             $('#search_master').val('').trigger('input');
-            table.search('').draw();
+        });
+
+        $('#btnResetMaster').on('click', function () {
+            $('#search_master').val('');
+            $('#filterCustomerMaster').val('');
+            toggleClearBtn();
+            table.search('').columns().search('').draw();
         });
         toggleClearBtn();
         // Thickness Modal
