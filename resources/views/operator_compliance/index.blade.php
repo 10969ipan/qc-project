@@ -1168,12 +1168,14 @@
                                         <input type="hidden" id="schEditId" value="">
                                         <div class="form-group mb-2">
                                             <label for="schOperatorId" class="small font-weight-bold text-gray-700">Operator / Inspector <span class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm border-0 shadow-sm" id="schOperatorId">
-                                                <option value="">-- Pilih Operator / Inspector --</option>
-                                                @foreach(($plantOperators ?? $inspectors ?? []) as $op)
-                                                    <option value="{{ $op->id }}" data-bagian="{{ $op->bagian ?? '' }}">{{ $op->name }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="custom-filter-wrapper w-100">
+                                                <select class="form-control form-control-sm filter-select-custom" id="schOperatorId">
+                                                    <option value="">-- Pilih Operator / Inspector --</option>
+                                                    @foreach(($plantOperators ?? $inspectors ?? []) as $op)
+                                                        <option value="{{ $op->id }}" data-name="{{ $op->name }}" data-bagian="{{ $op->bagian ?? '' }}">{{ $op->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="form-group mb-2">
                                             <label for="schBagian" class="small font-weight-bold text-gray-700">Bagian</label>

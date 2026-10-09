@@ -879,6 +879,8 @@ $(document).ready(function () {
                     $('#schBagian').val(existingBagian);
                 }
             }
+        } else {
+            $('#schBagian').val('');
         }
     });
 
@@ -888,9 +890,24 @@ $(document).ready(function () {
         if (savedOpId) {
             sessionStorage.removeItem('reopenScheduleOperatorId');
             $('#schOperatorId').val(savedOpId).trigger('change');
+        } else if (!$('#schOperatorId').val()) {
+            var currentMainOpId = $('#filterOperator').val();
+            if (currentMainOpId) {
+                $('#schOperatorId').val(currentMainOpId).trigger('change');
+            } else {
+                filterScheduleTable();
+            }
         } else {
             filterScheduleTable();
         }
+    });
+
+    // Tutup dropdown pencarian saat modal di-scroll atau ditutup
+    $('#kelolaOperatorModal .modal-body').on('scroll', function () {
+        $('.ips-dropdown').css('display', 'none').empty();
+    });
+    $('#kelolaOperatorModal').on('hide.bs.modal hidden.bs.modal', function () {
+        $('.ips-dropdown').css('display', 'none').empty();
     });
 
     // Tambah baris tanggal plan & shift baru saat klik tombol +
@@ -937,8 +954,7 @@ $(document).ready(function () {
         var date = $btn.data('date');
 
         $('#schEditId').val(id);
-        $('#schOperatorId').val(opId);
-        filterScheduleTable();
+        $('#schOperatorId').val(opId).trigger('change');
 
         // Beri visual highlight pada baris yang sedang diedit
         $('.sch-row').removeClass('table-warning font-weight-bold');
@@ -1025,7 +1041,12 @@ $(document).ready(function () {
             } else {
                 alert('Silakan pilih Operator / Inspector terlebih dahulu.');
             }
-            $('#schOperatorId').focus();
+            var $opSearchInput = $('#schOperatorId').prev('.ips-wrapper').find('.ips-input');
+            if ($opSearchInput.length) {
+                $opSearchInput.focus();
+            } else {
+                $('#schOperatorId').focus();
+            }
             return;
         }
 
@@ -1278,10 +1299,11 @@ $(document).ready(function () {
         });
     }
 
-    // Inisialisasi pencarian cepat (single search input) pada dropdown filter operator
+    // Inisialisasi pencarian cepat (single search input) pada dropdown filter operator & modal kelola jadwal
     if (typeof initItemSearch === 'function') {
         initItemSearch('filterOperator', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50, hideSelect: true });
         initItemSearch('scheduleFilterOperator', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50, hideSelect: true });
+        initItemSearch('schOperatorId', { placeholder: 'Ketik Operator / Inspector...', maxResults: 50, hideSelect: true });
     }
 
     // Hitung & update badge angka masalah saat pertama kali halaman dimuat
