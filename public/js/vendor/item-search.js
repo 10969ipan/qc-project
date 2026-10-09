@@ -95,7 +95,7 @@
 
         opts = opts || {};
         var placeholder = opts.placeholder || 'Cari items / part number / kode sap...';
-        var maxResults = opts.maxResults || 60;
+        var maxResults = opts.maxResults !== undefined ? opts.maxResults : 500;
         var startBtnId = opts.startButtonId !== undefined ? opts.startButtonId : 'startTimerBtn';
 
         injectStyles();

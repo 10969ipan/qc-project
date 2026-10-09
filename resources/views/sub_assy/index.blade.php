@@ -1029,7 +1029,7 @@
 
             // Initialize Custom Search (Matches In-Process behavior)
             if (typeof initItemSearch === 'function') {
-                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 500 });
                 initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
                 initItemSearch('filterMethod', { placeholder: 'Pilih Tipe...', maxResults: 5 });

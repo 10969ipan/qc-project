@@ -1143,7 +1143,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Initialize Smart Autocomplete Search Dropdowns (Matches Sub Assy behavior)
         if (typeof initItemSearch === 'function') {
-            initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+            initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 500 });
             initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
             initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
         }

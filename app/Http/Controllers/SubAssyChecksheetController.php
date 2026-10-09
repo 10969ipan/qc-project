@@ -127,16 +127,21 @@ class SubAssyChecksheetController extends Controller
         // Data for filters (Cached per plant to avoid 4x subquery scans over 44,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
-            return Item::byCategory('Sub Assy')->where(function($q) use ($plantId) {
-                if (!empty($plantId)) {
-                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-                }
-            })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v3_{$plantId}", 1800, function () use ($plantId) {
+            $existingItemIds = SubAssyChecksheet::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)->whereNotNull('customer')->where('customer', '!=', '')->distinct()->pluck('customer')->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_v2_{$plantId}", 1800, function () use ($items) {
+            return $items->pluck('customer')
+                ->filter(fn($c) => !empty($c))
+                ->unique()
+                ->sort()
+                ->values();
         });
 
         $initials = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_init_{$plantId}", 1800, function () use ($plantId) {

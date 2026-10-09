@@ -190,6 +190,8 @@ class DoubleTapeChecksheetService extends BaseService
                 $this->notificationService->notifyNGFinding($checksheet, 'Double Tape');
             }
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             return [
                 'checksheet' => $checksheet,
                 'google_sheets_success' => false,
@@ -248,6 +250,8 @@ class DoubleTapeChecksheetService extends BaseService
 
             $checksheet->update($updateData);
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             DB::commit();
             return $checksheet;
         } catch (\Exception $e) {
@@ -260,9 +264,23 @@ class DoubleTapeChecksheetService extends BaseService
     {
         try {
             $checksheet = DoubleTapeChecksheet::findOrFail($id);
-            return $checksheet->delete();
+            $plantId = $checksheet->plant_id;
+            $deleted = $checksheet->delete();
+            if ($deleted) {
+                $this->clearFilterCache($plantId);
+            }
+            return $deleted;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    protected function clearFilterCache($plantId)
+    {
+        if ($plantId) {
+            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_init_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_items_v2_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_cust_v2_{$plantId}");
         }
     }
 

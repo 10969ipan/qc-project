@@ -170,6 +170,8 @@ class PaintingChecksheetService extends BaseService
                 $this->notificationService->notifyNGFinding($checksheet, 'Painting');
             }
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             return [
                 'checksheet' => $checksheet,
                 'google_sheets_success' => false,
@@ -225,6 +227,8 @@ class PaintingChecksheetService extends BaseService
             
             $checksheet->update($updateData);
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             DB::commit();
             return $checksheet;
         } catch (\Exception $e) {
@@ -237,9 +241,23 @@ class PaintingChecksheetService extends BaseService
     {
         try {
             $checksheet = PaintingChecksheet::findOrFail($id);
-            return $checksheet->delete();
+            $plantId = $checksheet->plant_id;
+            $deleted = $checksheet->delete();
+            if ($deleted) {
+                $this->clearFilterCache($plantId);
+            }
+            return $deleted;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    protected function clearFilterCache($plantId)
+    {
+        if ($plantId) {
+            \Illuminate\Support\Facades\Cache::forget("painting_filter_init_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("painting_filter_items_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("painting_filter_cust_{$plantId}");
         }
     }
 

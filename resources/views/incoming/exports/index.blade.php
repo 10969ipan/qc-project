@@ -674,7 +674,7 @@
 <script>
     $(document).ready(function() {
         if (typeof initItemSearch === 'function') {
-            initItemSearch('filterItem', { placeholder: 'Ketik Material / Part No...', maxResults: 50 });
+            initItemSearch('filterItem', { placeholder: 'Ketik Material / Part No...', maxResults: 500 });
         }
 
         // QR Detail — event delegation agar kompatibel dengan pagination

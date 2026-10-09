@@ -139,16 +139,20 @@ class PaintingChecksheetController extends Controller
         $plantId = \App\Models\Plant::resolveId($plantCode);
         
         $items = \Illuminate\Support\Facades\Cache::remember("painting_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+            $existingItemIds = PaintingChecksheet::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("painting_filter_cust_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)
-                ->whereNotNull('customer')
-                ->where('customer', '!=', '')
-                ->distinct()
-                ->pluck('customer')
-                ->sort();
+        $customers = \Illuminate\Support\Facades\Cache::remember("painting_filter_cust_{$plantId}", 1800, function () use ($items) {
+            return $items->pluck('customer')
+                ->filter(fn($c) => !empty($c))
+                ->unique()
+                ->sort()
+                ->values();
         });
 
         $initials = \Illuminate\Support\Facades\Cache::remember("painting_filter_init_{$plantId}", 1800, function () use ($plantId) {

@@ -1121,7 +1121,7 @@
 
             // Initialize Custom Search (Standardized across modules)
             if (typeof initItemSearch === 'function') {
-                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
+                initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 500 });
                 initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
                 initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
                 initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });

@@ -196,20 +196,20 @@ class InProcessChecksheetController extends Controller
             return $this->getConsolidatedStandards();
         });
 
-        // Data for filters (Direct Item query cached per plant to avoid table scan over checksheets)
-        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v6_{$plantId}", 3600, function () use ($plantId) {
-            return Item::byCategory('INPROSES')
-                ->when($plantId, function($q) use ($plantId) {
-                    $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-                })
-                ->orderBy('name')
-                ->get();
+        // Data for filters (Only items actually present in InProcess checksheets for this plant)
+        $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v7_{$plantId}", 1800, function () use ($plantId) {
+            $usedItemIds = InProcessChecksheet::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $usedItemIds)->orderBy('name')->get();
         });
 
         // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
         $allItems = collect();
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v5_{$plantId}", 3600, function () use ($items) {
+        $customers = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_cust_v6_{$plantId}", 1800, function () use ($items) {
             return $items->pluck('customer')
                 ->filter(function($value) {
                     return !empty($value);

@@ -744,6 +744,8 @@ class InProcessChecksheetService extends BaseService
             // Clear filter cache for this plant so dropdowns refresh immediately
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$checksheet->plant_id}");
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_items_v7_{$checksheet->plant_id}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_cust_v6_{$checksheet->plant_id}");
 
             Log::info('Checksheet In Process berhasil dibuat', [
                 'user_id' => auth()->id(),
@@ -918,7 +920,13 @@ class InProcessChecksheetService extends BaseService
                 $query->withoutGlobalScope('plant');
             }
             $checksheet = $query->findOrFail($id);
+            $plantId = $checksheet->plant_id;
             $checksheet->delete();
+
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_items_v7_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_cust_v6_{$plantId}");
 
             DB::commit();
 

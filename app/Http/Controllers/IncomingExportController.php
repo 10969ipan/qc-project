@@ -86,14 +86,18 @@ class IncomingExportController extends Controller
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        $cacheKey = "incoming_exports_filters_" . md5(json_encode([$plantId]));
+        $cacheKey = "incoming_exports_filters_v2_" . md5(json_encode([$plantId]));
         $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            // ponytail: hanya kategori khusus Outgoing Export — pisah dari item InProcess/Plating
-            $categories = ['Outgoing Export', 'Incoming Export'];
             $jakartaPlantId = Plant::resolveId('jakarta');
             $karawangPlantId = Plant::resolveId('karawang');
             $plantIds = array_unique(array_filter([$plantId, $jakartaPlantId, $karawangPlantId]));
-            return Item::byCategory($categories)->whereIn('plant_id', $plantIds)->orderBy('name')->get();
+
+            $existingItemIds = \App\Models\IncomingExport::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->whereIn('plant_id', $plantIds))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
         });
 
         $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];

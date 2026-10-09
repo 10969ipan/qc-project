@@ -83,7 +83,12 @@ class SortirChecksheetController extends Controller
 
         $plantId = \App\Models\Plant::resolveId($filters['plant'] ?? null);
         $items = \Illuminate\Support\Facades\Cache::remember("sortir_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            return Item::where('plant_id', $plantId)->orderBy('name')->get();
+            $existingItemIds = \App\Models\SortirChecksheet::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
         });
 
         return view('sortir.index', compact('checksheets', 'items'));

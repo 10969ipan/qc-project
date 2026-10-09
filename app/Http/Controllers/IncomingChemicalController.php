@@ -76,9 +76,14 @@ class IncomingChemicalController extends Controller
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'approval_method', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        $cacheKey = "incoming_chemicals_filters_" . md5(json_encode([$plantId]));
+        $cacheKey = "incoming_chemicals_filters_v2_" . md5(json_encode([$plantId]));
         $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            $items = Item::byCategory('Incoming Chemical')->where('plant_id', $plantId)->orderBy('name')->get();
+            $existingItemIds = \App\Models\IncomingChemical::withoutGlobalScope('plant')
+                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
+                ->whereNotNull('item_id')
+                ->distinct()
+                ->pluck('item_id');
+            $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
             $suppliers = $items->pluck('customer')->filter()->unique()->sort()->values();
             return compact('items', 'suppliers');
         });

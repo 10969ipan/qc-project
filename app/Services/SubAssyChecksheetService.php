@@ -246,6 +246,8 @@ class SubAssyChecksheetService extends BaseService
 
             DB::commit();
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             return [
                 'checksheet' => $checksheet,
                 'google_sheets_success' => $googleSheetsSuccess,
@@ -352,6 +354,8 @@ class SubAssyChecksheetService extends BaseService
 
             DB::commit();
 
+            $this->clearFilterCache($checksheet->plant_id);
+
             Log::info('Checksheet Sub Assy berhasil diperbarui', [
                 'user_id' => auth()->id(),
                 'checksheet_id' => $checksheet->id,
@@ -385,9 +389,12 @@ class SubAssyChecksheetService extends BaseService
                 $query->withoutGlobalScope('plant');
             }
             $checksheet = $query->findOrFail($id);
+            $plantId = $checksheet->plant_id;
             $checksheet->delete();
 
             DB::commit();
+
+            $this->clearFilterCache($plantId);
 
             Log::info('Checksheet Sub Assy berhasil dihapus', [
                 'user_id' => auth()->id(),
@@ -403,6 +410,15 @@ class SubAssyChecksheetService extends BaseService
                 'error' => $e->getMessage()
             ]);
             throw $e;
+        }
+    }
+
+    protected function clearFilterCache($plantId)
+    {
+        if ($plantId) {
+            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_items_v3_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_cust_v2_{$plantId}");
+            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_init_{$plantId}");
         }
     }
 

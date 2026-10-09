@@ -1227,7 +1227,7 @@
     <script>
         $(document).ready(function() {
             if (typeof initItemSearch === 'function') {
-                initItemSearch('filterItem', { placeholder: 'Ketik Sub-Part Name...', maxResults: 50 });
+                initItemSearch('filterItem', { placeholder: 'Ketik Sub-Part Name...', maxResults: 500 });
             }
         });
     </script>
