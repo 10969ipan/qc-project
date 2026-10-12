@@ -493,6 +493,8 @@ class ApprovalHelper
             $dateCol = 'qc_datetime';
         } elseif (Schema::hasColumn($table, 'tanggal')) {
             $dateCol = 'tanggal';
+        } elseif (Schema::hasColumn($table, 'tanggal_cek')) {
+            $dateCol = 'tanggal_cek';
         } elseif (Schema::hasColumn($table, 'created_at')) {
             $dateCol = 'created_at';
         }
@@ -505,41 +507,159 @@ class ApprovalHelper
             $shiftCol = 'qc_shift';
         }
 
-        $targetDate = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? ($filters['item_date'] ?? null))));
-        if (!$targetDate && $dateCol) {
-            try {
-                $targetDate = $modelClass::query()->whereNotNull($dateCol)->max($dateCol);
-                if ($targetDate instanceof \DateTimeInterface) {
-                    $targetDate = $targetDate->format('Y-m-d');
-                } elseif (is_string($targetDate) && strlen($targetDate) >= 10) {
-                    $targetDate = substr($targetDate, 0, 10);
+        // Durability: Rule khusus minimal 1 data sampling per customer
+        $isDurability = ($table === 'durability_thickness_reports' || is_a($modelClass, \App\Models\DurabilityThicknessReport::class, true));
+        if ($isDurability) {
+            $required = 1;
+            $scope = 'customer';
+
+            $testType = $filters['test_type'] ?? 'thickness';
+            $dateColName = ($testType === 'porecount') ? 'tanggal_cek_porecount' : 'tanggal_cek';
+            $effectiveDateCol = Schema::hasColumn($table, $dateColName) ? $dateColName : ($dateCol ?? 'tanggal_cek');
+
+            $hasExplicitDate = !empty($filters['start_date']) || !empty($filters['end_date']) || !empty($filters['date']) || !empty($filters['target_date']);
+            $hasOtherFilter = !empty($filters['customer_name']) || !empty($filters['category']) || !empty($filters['item_id']) || !empty($filters['search']);
+
+            $targetDate = null;
+            if ($hasExplicitDate) {
+                $targetDate = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? null)));
+            } elseif (!$hasOtherFilter) {
+                $targetDate = $filters['item_date'] ?? null;
+                if (!$targetDate && $effectiveDateCol) {
+                    try {
+                        $targetDate = $modelClass::query()->whereNotNull($effectiveDateCol)->max($effectiveDateCol);
+                        if ($targetDate instanceof \DateTimeInterface) {
+                            $targetDate = $targetDate->format('Y-m-d');
+                        } elseif (is_string($targetDate) && strlen($targetDate) >= 10) {
+                            $targetDate = substr($targetDate, 0, 10);
+                        }
+                    } catch (\Throwable $e) {}
                 }
-            } catch (\Throwable $e) {
-                // Ignore and use fallback
+                if (!$targetDate) {
+                    $targetDate = \App\Helpers\ShiftHelper::getProductionDate();
+                }
             }
-        }
-        if (!$targetDate) {
-            $targetDate = \App\Helpers\ShiftHelper::getProductionDate();
-        }
 
-        $targetShift = !empty($filters['shift']) ? (string)$filters['shift'] : (!empty($filters['target_shift']) ? (string)$filters['target_shift'] : null);
+            $baseDateQuery = $modelClass::query()
+                ->join('standard_performance_tests', "{$table}.standard_performance_test_id", '=', 'standard_performance_tests.id')
+                ->whereNotNull('standard_performance_tests.customer_name')
+                ->where('standard_performance_tests.customer_name', '!=', '');
 
-        $query = $modelClass::query();
-        if (is_object($user) && $user->role !== 'admin' && method_exists($model, 'scopePlant')) {
-            // let global plant scope apply
-        }
-
-        // Apply plant filter if set and table supports plant_id
-        if (!empty($filters['plant']) && Schema::hasColumn($table, 'plant_id')) {
-            $resolvedPlantId = \App\Models\Plant::resolveId($filters['plant']);
-            if ($resolvedPlantId) {
-                $query->where($table . '.plant_id', $resolvedPlantId);
+            if (isset($filters['is_trial'])) {
+                $baseDateQuery->where("{$table}.is_trial", (bool)$filters['is_trial']);
             }
-        }
 
-        // Filter date if date column exists
-        if ($dateCol) {
-            $query->whereDate($table . '.' . $dateCol, $targetDate);
+            if (!empty($filters['start_date']) && !empty($filters['end_date']) && $filters['start_date'] !== $filters['end_date']) {
+                $baseDateQuery->whereBetween("{$table}.{$effectiveDateCol}", [$filters['start_date'], $filters['end_date']]);
+            } elseif ($targetDate) {
+                $baseDateQuery->whereDate("{$table}.{$effectiveDateCol}", $targetDate);
+            }
+
+            if (!empty($filters['customer_name'])) {
+                $baseDateQuery->where('standard_performance_tests.customer_name', $filters['customer_name']);
+            }
+            if (!empty($filters['category'])) {
+                $baseDateQuery->where('standard_performance_tests.category', $filters['category']);
+            }
+            if (!empty($filters['item_id'])) {
+                $baseDateQuery->where("{$table}.standard_performance_test_id", $filters['item_id']);
+            }
+            if (!empty($filters['search'])) {
+                $search = $filters['search'];
+                $baseDateQuery->where(function($q) use ($search) {
+                    $q->where('standard_performance_tests.part_name', 'like', "%$search%")
+                      ->orWhere('standard_performance_tests.part_number', 'like', "%$search%")
+                      ->orWhere('standard_performance_tests.customer_name', 'like', "%$search%")
+                      ->orWhere('standard_performance_tests.customer_standard', 'like', "%$search%");
+                });
+            }
+
+            // Only check rows that have actual data for this test type
+            $baseDateQuery->where(function ($q) use ($testType, $table) {
+                if ($testType === 'thickness') {
+                    $q->where(function($sub) use ($table) {
+                        $sub->whereNotNull("{$table}.actual_cu")->where("{$table}.actual_cu", '!=', '')->where("{$table}.actual_cu", '!=', '-')
+                            ->orWhereNotNull("{$table}.actual_ni")->where("{$table}.actual_ni", '!=', '')->where("{$table}.actual_ni", '!=', '-')
+                            ->orWhereNotNull("{$table}.actual_cr")->where("{$table}.actual_cr", '!=', '')->where("{$table}.actual_cr", '!=', '-');
+                    });
+                } elseif ($testType === 'corrodkote') {
+                    $q->whereNotNull("{$table}.standar_jam_corrodkote")->where("{$table}.standar_jam_corrodkote", '!=', '')->where("{$table}.standar_jam_corrodkote", '!=', '-');
+                } elseif ($testType === 'cass') {
+                    $q->whereNotNull("{$table}.standar_jam_cass")->where("{$table}.standar_jam_cass", '!=', '')->where("{$table}.standar_jam_cass", '!=', '-');
+                } elseif ($testType === 'salt_spray') {
+                    $q->whereNotNull("{$table}.standar_jam_salt_spray")->where("{$table}.standar_jam_salt_spray", '!=', '')->where("{$table}.standar_jam_salt_spray", '!=', '-');
+                } elseif ($testType === 'porecount') {
+                    $q->whereNotNull("{$table}.actual_porecount")->where("{$table}.actual_porecount", '!=', '')->where("{$table}.actual_porecount", '!=', '-');
+                }
+            });
+
+            $presentCustomers = (clone $baseDateQuery)
+                ->distinct()
+                ->pluck('standard_performance_tests.customer_name')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $roleKeys = [$role];
+            if (in_array($role, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
+                $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
+            } elseif (in_array($role, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
+                $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
+            } elseif (in_array($role, ['manager', 'manager_qc', 'manager_plating'])) {
+                $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
+            }
+
+            $samplingQuery = (clone $baseDateQuery);
+            if (Schema::hasColumn($table, 'approval_methods')) {
+                $samplingQuery->where(function ($q) use ($roleKeys, $table) {
+                    foreach ($roleKeys as $rk) {
+                        $q->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
+                    }
+                });
+            } else {
+                $samplingQuery->whereRaw('1 = 0');
+            }
+
+            $samplingCounts = $samplingQuery
+                ->groupBy('standard_performance_tests.customer_name')
+                ->select('standard_performance_tests.customer_name', \DB::raw('COUNT(*) as total'))
+                ->pluck('total', 'customer_name')
+                ->all();
+
+            $unfulfilledCustomers = [];
+            if (empty($presentCustomers)) {
+                $current = 0;
+                $isFulfilled = true;
+            } else {
+                $minCurrent = 999999;
+                foreach ($presentCustomers as $pc) {
+                    $c = (int)($samplingCounts[$pc] ?? 0);
+                    if ($c < $minCurrent) {
+                        $minCurrent = $c;
+                    }
+                    if ($c < $required) {
+                        $unfulfilledCustomers[$pc] = [
+                            'customer' => $pc,
+                            'current' => $c,
+                            'required' => $required,
+                        ];
+                    }
+                }
+                $current = ($minCurrent === 999999) ? 0 : $minCurrent;
+                $isFulfilled = empty($unfulfilledCustomers);
+            }
+
+            return [
+                'fulfilled' => $isFulfilled,
+                'current' => $current,
+                'required' => $required,
+                'scope' => 'customer',
+                'target_date' => $targetDate,
+                'target_shift' => null,
+                'unfulfilled_customers' => $unfulfilledCustomers,
+                'unfulfilled_shifts' => [],
+            ];
         }
 
         // Filter sampling method for this role or related role keys

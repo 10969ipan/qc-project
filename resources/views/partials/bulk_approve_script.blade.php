@@ -25,12 +25,6 @@
                 var startDate = rawStart || rawEnd || '';
                 var endDate = rawEnd || rawStart || '';
 
-                // Fallback to active screen items date if no date filter was specified at all
-                if (!startDate && defaultItemDate) {
-                    startDate = defaultItemDate;
-                    endDate = defaultItemDate;
-                }
-
                 var shift = '{{ request("shift", "") }}';
                 if (shift === '' && $('#filterShift').length) {
                     shift = $('#filterShift').val() || '';
@@ -46,12 +40,20 @@
                 var plant = '{{ request("plant", "") }}';
                 var resultJudgment = '{{ request("result_judgment", request("judgment", "")) }}';
                 var search = '{{ request("search", "") }}' || ($('#filterSearch').length ? $('#filterSearch').val() : '');
-                var customerName = '{{ request("customer_name", request("customer", "")) }}';
+                var customerName = '{{ request("customer_name", request("customer", "")) }}' || ($('#filterCustomerName').length ? $('#filterCustomerName').val() : ($('#filterCustomer').length ? $('#filterCustomer').val() : ''));
                 var supplier = '{{ request("supplier", "") }}';
                 var approvalStatus = '{{ request("approval_status", "") }}';
-                var category = '{{ request("category", "") }}';
-                var itemId = '{{ request("item_id", "") }}';
+                var category = '{{ request("category", "") }}' || ($('#filterCategory').length ? $('#filterCategory').val() : '');
+                var itemId = '{{ request("item_id", "") }}' || ($('#filterItem').length ? $('#filterItem').val() : '');
                 var userRole = '{{ auth()->user()->role }}';
+
+                var hasOtherFilter = Boolean(customerName || supplier || search || category || itemId || operatorInitials || shift || resultJudgment || approvalStatus || startTglDatang || endTglDatang);
+
+                // Fallback to active screen items date ONLY if no date and no other filters were specified at all
+                if (!startDate && !hasOtherFilter && defaultItemDate) {
+                    startDate = defaultItemDate;
+                    endDate = defaultItemDate;
+                }
 
                 var approvalType = userRole;
                 // Admin needs to pick a type

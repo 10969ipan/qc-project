@@ -1758,6 +1758,58 @@ class StandardPerformanceTestController extends Controller
                 });
             }
 
+            // Validasi Sampling: Wajib ada minimal 1 data sampling per customer yang ada dalam filter
+            if ($user->role !== 'admin') {
+                $testType = $request->input('test_type', 'thickness');
+                $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+
+                // Ambil daftar customer unik yang ada pada data yang difilter
+                $distinctCustomers = (clone $query)
+                    ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                    ->whereNotNull('standard_performance_tests.customer_name')
+                    ->where('standard_performance_tests.customer_name', '!=', '')
+                    ->distinct()
+                    ->pluck('standard_performance_tests.customer_name')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (!empty($distinctCustomers)) {
+                    $unapprovedCustomers = [];
+                    foreach ($distinctCustomers as $cust) {
+                        $hasSampling = DurabilityThicknessReport::query()
+                            ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                            ->where('standard_performance_tests.customer_name', $cust)
+                            ->where('durability_thickness_reports.is_trial', $isTrial)
+                            ->where(function($q) use ($request, $dateCol) {
+                                if ($request->filled('start_date')) {
+                                    $q->whereDate($dateCol, '>=', $request->start_date);
+                                }
+                                if ($request->filled('end_date')) {
+                                    $q->whereDate($dateCol, '<=', $request->end_date);
+                                }
+                            })
+                            ->whereNotNull("durability_thickness_reports.{$field}")
+                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
+                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
+                            ->exists();
+
+                        if (!$hasSampling) {
+                            $unapprovedCustomers[] = $cust;
+                        }
+                    }
+
+                    if (!empty($unapprovedCustomers)) {
+                        $custStr = implode(', ', $unapprovedCustomers);
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Bulk Approval ditolak: Customer berikut belum memiliki approval sampling ({$custStr}). Harap lakukan approval sampling minimal 1 data per customer terlebih dahulu sebelum dapat Approve Semua.",
+                        ], 422);
+                    }
+                }
+            }
+
             // If get_ids mode, return list of pending IDs only
             if ($request->boolean('get_ids')) {
                 $pendingIds = $query->where(function($q) use ($field) {
@@ -1778,53 +1830,6 @@ class StandardPerformanceTestController extends Controller
             $reportsToApprove = $query->where(function($q) use ($field) {
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
             })->get();
-
-            // Skenario 5: SPV / Role wajib melakukan sampling per-customer sebelum bulk approve
-            if (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-                // Get all distinct customer_names on this target date range
-                $distinctCustomers = (clone $query)->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                    ->whereNotNull('standard_performance_tests.customer_name')
-                    ->where('standard_performance_tests.customer_name', '!=', '')
-                    ->distinct()
-                    ->pluck('standard_performance_tests.customer_name')
-                    ->all();
-
-                if (!empty($distinctCustomers)) {
-                    // Check if each customer has at least 1 sampling approved report
-                    $unapprovedCustomers = [];
-                    foreach ($distinctCustomers as $cust) {
-                        $hasSampling = DurabilityThicknessReport::query()
-                            ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                            ->where('standard_performance_tests.customer_name', $cust)
-                            ->where(function($q) use ($request, $testType) {
-                                if ($request->filled('start_date')) {
-                                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
-                                    $q->whereDate($dateCol, '>=', $request->start_date);
-                                }
-                                if ($request->filled('end_date')) {
-                                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
-                                    $q->whereDate($dateCol, '<=', $request->end_date);
-                                }
-                            })
-                            ->whereNotNull("durability_thickness_reports.{$field}")
-                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
-                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
-                            ->exists();
-
-                        if (!$hasSampling) {
-                            $unapprovedCustomers[] = $cust;
-                        }
-                    }
-
-                    if (!empty($unapprovedCustomers)) {
-                        $custStr = implode(', ', $unapprovedCustomers);
-                        return response()->json([
-                            'success' => false,
-                            'message' => "Bulk Approval ditolak: Customer berikut belum memiliki approval sampling ({$custStr}). Harap lakukan approval sampling minimal 1 data per customer terlebih dahulu.",
-                        ], 422);
-                    }
-                }
-            }
 
             $now = now();
             $updatedCount = 0;

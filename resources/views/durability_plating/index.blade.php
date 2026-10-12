@@ -113,7 +113,7 @@
                     {{-- ===== [2] KOLOM JUDUL ===== --}}
                     <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            STANDARD PERFORMANCE TEST PLATING PLASTIC{{ !empty($isTrial) ? ' (TRIAL)' : '' }}
+                            STANDARD PERFORMANCE TEST PLATING PLASTIC
                         </h1>
                     </td>
 

@@ -196,7 +196,7 @@
                     {{-- ===== [2] KOLOM JUDUL ===== --}}
                     <td style="border:1px solid #dee2e6; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
                         <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST{{ !empty($isTrial) ? ' (TRIAL)' : '' }}
+                            LAPORAN {{ strtoupper(str_replace('_', ' ', $testType)) }} TEST
                         </h1>
                     </td>
 
@@ -431,12 +431,6 @@
                 </button>
                 <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 d-flex align-items-center" title="Print Laporan" style="font-size: 0.68rem; height: 28px;">
                     <i class="fas fa-print fa-sm mr-1"></i> Print
-                </button>
-                <button type="button" class="btn btn-info btn-sm shadow-sm rounded-pill px-3 font-weight-bold" data-toggle="modal" data-target="#modalRekapData" title="Rekap Data Part">
-                    <i class="fas fa-list-alt fa-sm mr-1"></i> Rekap
-                </button>
-                <button type="submit" name="print" value="true" formtarget="_blank" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Print Laporan">
-                    <i class="fas fa-print fa-sm"></i> Print
                 </button>
                 <div class="dropdown">
                     <button class="btn btn-warning btn-sm shadow-sm rounded-pill px-3 dropdown-toggle" type="button" id="dropdownMenuLaporan" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Laporan" data-boundary="window">

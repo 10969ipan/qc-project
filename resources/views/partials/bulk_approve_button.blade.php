@@ -25,7 +25,7 @@
         $firstItem = is_array($itemsToCheck) ? ($itemsToCheck[0] ?? null) : $itemsToCheck->first();
         if (is_object($firstItem)) {
             $modelClass = get_class($firstItem);
-            $itemDate = $firstItem->date ?? ($firstItem->tanggal ?? ($firstItem->qc_datetime ?? ($firstItem->tanggal_datang ?? ($firstItem->inspection_date ?? ($firstItem->tanggal_inspeksi ?? null)))));
+            $itemDate = $firstItem->date ?? ($firstItem->tanggal ?? ($firstItem->tanggal_cek ?? ($firstItem->production_date ?? ($firstItem->qc_datetime ?? ($firstItem->tanggal_datang ?? ($firstItem->inspection_date ?? ($firstItem->tanggal_inspeksi ?? null)))))));
             if ($itemDate instanceof \DateTimeInterface) {
                 $itemDate = $itemDate->format('Y-m-d');
             } elseif (is_string($itemDate) && strlen($itemDate) >= 10) {
@@ -52,6 +52,8 @@
     if ($modelClass && $userRole !== 'admin' && function_exists('getSamplingQuotaStatus')) {
         $filters = array_merge([
             'item_date' => $itemDate,
+            'test_type' => $testType ?? request('test_type', 'thickness'),
+            'is_trial' => isset($isTrial) ? ($isTrial ? 1 : 0) : request('is_trial', 0),
         ], request()->all());
         $quotaStatus = getSamplingQuotaStatus($modelClass, $user, $filters);
     }
