@@ -467,6 +467,20 @@ class ApprovalHelper
             ];
         }
 
+        $plantKey = $filters['plant'] ?? (is_object($user) ? ($user->plant_id ?? 'all') : 'all');
+        $dateKey = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? ($filters['item_date'] ?? 'today'))));
+        $cacheKey = "sampling_quota_" . md5($modelClass . '_' . $role . '_' . $plantKey . '_' . $dateKey . '_' . ($filters['shift'] ?? ''));
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($modelClass, $user, $role, $filters) {
+            return self::calculateSamplingQuotaStatus($modelClass, $user, $role, $filters);
+        });
+    }
+
+    /**
+     * Internal calculation of sampling quota status
+     */
+    protected static function calculateSamplingQuotaStatus($modelClass, $user, string $role, array $filters = []): array
+    {
         $config = self::getSamplingQuotaRequirement($role);
         $required = $config['quota'];
         $scope = $config['scope'];
@@ -663,20 +677,12 @@ class ApprovalHelper
         }
 
         $targetDate = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? ($filters['item_date'] ?? null))));
-        if (!$targetDate && $dateCol) {
-            try {
-                $targetDate = $modelClass::query()->whereNotNull($dateCol)->max($dateCol);
-                if ($targetDate instanceof \DateTimeInterface) {
-                    $targetDate = $targetDate->format('Y-m-d');
-                } elseif (is_string($targetDate) && strlen($targetDate) >= 10) {
-                    $targetDate = substr($targetDate, 0, 10);
-                }
-            } catch (\Throwable $e) {
-                // Ignore and use fallback
-            }
-        }
         if (!$targetDate) {
             $targetDate = \App\Helpers\ShiftHelper::getProductionDate();
+        } elseif ($targetDate instanceof \DateTimeInterface) {
+            $targetDate = $targetDate->format('Y-m-d');
+        } elseif (is_string($targetDate) && strlen($targetDate) >= 10) {
+            $targetDate = substr($targetDate, 0, 10);
         }
 
         $targetShift = !empty($filters['shift']) ? (string)$filters['shift'] : (!empty($filters['target_shift']) ? (string)$filters['target_shift'] : null);

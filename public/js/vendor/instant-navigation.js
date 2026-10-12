@@ -30,10 +30,11 @@
         if (url.origin !== window.location.origin) return false;
         if (url.pathname === window.location.pathname && url.search === window.location.search) return false;
 
-        // Skip sensitive / action endpoints
+        // Skip sensitive, action, or heavy index endpoints that could saturate browser socket pools
         const sensitivePatterns = [
             '/logout', '/delete', '/destroy', '/export', '/download',
-            '/pdf', '/excel', '/csv', '/print', '/api/'
+            '/pdf', '/excel', '/csv', '/print', '/api/',
+            '/checksheet', '/in-process', '/sub-assy', '/incoming'
         ];
         const pathnameLower = url.pathname.toLowerCase();
         for (let i = 0; i < sensitivePatterns.length; i++) {
