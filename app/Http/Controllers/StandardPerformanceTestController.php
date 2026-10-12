@@ -1000,18 +1000,17 @@ class StandardPerformanceTestController extends Controller
 
         $masterItems = \App\Models\StandardPerformanceTest::orderBy('part_name', 'asc')->get();
 
-        $customers = \App\Models\StandardPerformanceTest::whereNotNull('customer_name')
-            ->select('customer_name')
-            ->distinct()
-            ->orderBy('customer_name')
-            ->pluck('customer_name');
+        $customers = $items->pluck('customer_name')
+            ->filter(fn($c) => !empty(trim((string)$c)) && $c !== '-')
+            ->unique()
+            ->sort()
+            ->values();
 
-        $categories = \App\Models\StandardPerformanceTest::whereNotNull('category')
-            ->where('category', '!=', '')
-            ->select('category')
-            ->distinct()
-            ->orderBy('category')
-            ->pluck('category');
+        $categories = $items->pluck('category')
+            ->filter(fn($c) => !empty(trim((string)$c)) && $c !== '-')
+            ->unique()
+            ->sort()
+            ->values();
 
         $rekapQuery = (clone $query);
         $rekapQuery->getQuery()->limit = null;
