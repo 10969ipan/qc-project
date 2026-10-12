@@ -662,6 +662,43 @@ class ApprovalHelper
             ];
         }
 
+        $targetDate = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? ($filters['item_date'] ?? null))));
+        if (!$targetDate && $dateCol) {
+            try {
+                $targetDate = $modelClass::query()->whereNotNull($dateCol)->max($dateCol);
+                if ($targetDate instanceof \DateTimeInterface) {
+                    $targetDate = $targetDate->format('Y-m-d');
+                } elseif (is_string($targetDate) && strlen($targetDate) >= 10) {
+                    $targetDate = substr($targetDate, 0, 10);
+                }
+            } catch (\Throwable $e) {
+                // Ignore and use fallback
+            }
+        }
+        if (!$targetDate) {
+            $targetDate = \App\Helpers\ShiftHelper::getProductionDate();
+        }
+
+        $targetShift = !empty($filters['shift']) ? (string)$filters['shift'] : (!empty($filters['target_shift']) ? (string)$filters['target_shift'] : null);
+
+        $query = $modelClass::query();
+        if (is_object($user) && $user->role !== 'admin' && method_exists($model, 'scopePlant')) {
+            // let global plant scope apply
+        }
+
+        // Apply plant filter if set and table supports plant_id
+        if (!empty($filters['plant']) && Schema::hasColumn($table, 'plant_id')) {
+            $resolvedPlantId = \App\Models\Plant::resolveId($filters['plant']);
+            if ($resolvedPlantId) {
+                $query->where($table . '.plant_id', $resolvedPlantId);
+            }
+        }
+
+        // Filter date if date column exists
+        if ($dateCol) {
+            $query->whereDate($table . '.' . $dateCol, $targetDate);
+        }
+
         // Filter sampling method for this role or related role keys
         $roleKeys = [$role];
         if (in_array($role, ['karu_qc', 'kashift', 'kashift_qc'])) {
