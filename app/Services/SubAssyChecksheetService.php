@@ -416,8 +416,6 @@ class SubAssyChecksheetService extends BaseService
     protected function clearFilterCache($plantId)
     {
         if ($plantId) {
-            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_items_v3_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_cust_v2_{$plantId}");
             \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_init_{$plantId}");
         }
     }

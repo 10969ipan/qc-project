@@ -82,13 +82,13 @@ class SortirChecksheetController extends Controller
         $checksheets = $this->sortirService->getFilteredChecksheets($filters);
 
         $plantId = \App\Models\Plant::resolveId($filters['plant'] ?? null);
-        $items = \Illuminate\Support\Facades\Cache::remember("sortir_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            $existingItemIds = \App\Models\SortirChecksheet::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sortir_filter_items_v2_{$plantId}", 43200, function () use ($plantId) {
+            return Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('sortir_checksheets')
+                    ->whereColumn('sortir_checksheets.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('sortir_checksheets.plant_id', $plantId));
+            })->orderBy('name')->get();
         });
 
         return view('sortir.index', compact('checksheets', 'items'));

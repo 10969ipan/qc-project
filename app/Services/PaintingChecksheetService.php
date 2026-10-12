@@ -256,8 +256,6 @@ class PaintingChecksheetService extends BaseService
     {
         if ($plantId) {
             \Illuminate\Support\Facades\Cache::forget("painting_filter_init_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("painting_filter_items_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("painting_filter_cust_{$plantId}");
         }
     }
 

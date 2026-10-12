@@ -9,7 +9,7 @@ $(document).ready(function () {
     }
 
     if (typeof initItemSearch === 'function') {
-        initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 500 });
+        initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No...', maxResults: 50 });
         initItemSearch('filterInisial', { placeholder: 'Ketik Inisial...', maxResults: 20 });
         initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
         initItemSearch('filterMethod', { placeholder: 'Ketik Tipe...', maxResults: 5 });
@@ -365,4 +365,58 @@ $(document).ready(function () {
             sortHiddenTableRows();
         });
     }
+
+    // 8. Modal Detail Alat Ukur Per Point (Single Reusable Dynamic Modal)
+    $(document).on('click', '.btn-detail-alat-ukur', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        var tools = $btn.data('tools');
+        var itemName = $btn.data('item') || '-';
+        var partNumber = $btn.data('part-number') || '-';
+
+        if (typeof tools === 'string') {
+            try {
+                tools = JSON.parse(tools);
+            } catch (err) {
+                tools = {};
+            }
+        }
+
+        var subtitleText = itemName + ' (' + partNumber + ')';
+        $('#alatUkurModalSubtitle').text(subtitleText);
+
+        var $tbody = $('#alatUkurModalTableBody');
+        $tbody.empty();
+
+        if (!tools || typeof tools !== 'object' || Object.keys(tools).length === 0) {
+            $tbody.html('<tr><td colspan="2" class="text-center text-muted py-3">Tidak ada data alat ukur spesifik per point.</td></tr>');
+        } else {
+            var sortedPoints = Object.keys(tools).sort(function (a, b) {
+                return parseInt(a, 10) - parseInt(b, 10);
+            });
+
+            var rowsHtml = '';
+            sortedPoints.forEach(function (pt) {
+                var toolName = tools[pt];
+                if (toolName && String(toolName).trim() !== '') {
+                    rowsHtml += '<tr>' +
+                        '<td class="align-middle text-center font-weight-bold" style="width: 35%; color: #334155; font-size: 0.68rem; padding: 5px 8px; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;">' +
+                            'Ø' + pt +
+                        '</td>' +
+                        '<td class="align-middle text-left font-weight-bold" style="width: 65%; color: #1e293b; font-size: 0.68rem; padding: 5px 8px; border-bottom: 1px solid #f1f5f9;">' +
+                            toolName +
+                        '</td>' +
+                    '</tr>';
+                }
+            });
+
+            if (rowsHtml === '') {
+                rowsHtml = '<tr><td colspan="2" class="text-center text-muted py-3">Tidak ada data alat ukur yang valid.</td></tr>';
+            }
+            $tbody.html(rowsHtml);
+        }
+
+        $('#modalDetailAlatUkur').modal('show');
+    });
 });
+

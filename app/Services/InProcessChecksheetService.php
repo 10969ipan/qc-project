@@ -741,11 +741,9 @@ class InProcessChecksheetService extends BaseService
 
             DB::commit();
 
-            // Clear filter cache for this plant so dropdowns refresh immediately
+            // Clear filter cache for initials & machine so new operators show up
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$checksheet->plant_id}");
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$checksheet->plant_id}");
-            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_items_v7_{$checksheet->plant_id}");
-            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_cust_v6_{$checksheet->plant_id}");
 
             Log::info('Checksheet In Process berhasil dibuat', [
                 'user_id' => auth()->id(),
@@ -925,8 +923,6 @@ class InProcessChecksheetService extends BaseService
 
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$plantId}");
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_items_v7_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("in_proc_filter_cust_v6_{$plantId}");
 
             DB::commit();
 

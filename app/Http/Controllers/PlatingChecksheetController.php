@@ -145,16 +145,16 @@ class PlatingChecksheetController extends Controller
         
         $plantId = \App\Models\Plant::resolveId('karawang');
         
-        $items = \Illuminate\Support\Facades\Cache::remember("plating_filter_items_{$plantId}", 1800, function () use ($plantId) {
-            $existingItemIds = PlatingChecksheet::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("plating_filter_items_v2_{$plantId}", 43200, function () use ($plantId) {
+            return Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('plating_checksheets')
+                    ->whereColumn('plating_checksheets.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('plating_checksheets.plant_id', $plantId));
+            })->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("plating_filter_cust_{$plantId}", 1800, function () use ($items) {
+        $customers = \Illuminate\Support\Facades\Cache::remember("plating_filter_cust_v2_{$plantId}", 43200, function () use ($items) {
             return $items->pluck('customer')
                 ->filter(fn($c) => !empty($c))
                 ->unique()

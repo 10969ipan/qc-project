@@ -127,16 +127,16 @@ class SubAssyChecksheetController extends Controller
         // Data for filters (Cached per plant to avoid 4x subquery scans over 44,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v3_{$plantId}", 1800, function () use ($plantId) {
-            $existingItemIds = SubAssyChecksheet::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v4_{$plantId}", 43200, function () use ($plantId) {
+            return Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('sub_assy_checksheets')
+                    ->whereColumn('sub_assy_checksheets.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('sub_assy_checksheets.plant_id', $plantId));
+            })->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_v2_{$plantId}", 1800, function () use ($items) {
+        $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_v3_{$plantId}", 43200, function () use ($items) {
             return $items->pluck('customer')
                 ->filter(fn($c) => !empty($c))
                 ->unique()

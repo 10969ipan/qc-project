@@ -77,14 +77,14 @@ class IncomingSubPartController extends Controller
         }
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        $cacheKey = "incoming_sub_parts_filters_v2_" . md5(json_encode([$plantId]));
-        $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            $existingItemIds = \App\Models\IncomingSubPart::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $cacheKey = "incoming_sub_parts_filters_v3_" . md5(json_encode([$plantId]));
+        $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function() use ($plantId) {
+            return Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('incoming_sub_parts')
+                    ->whereColumn('incoming_sub_parts.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('incoming_sub_parts.plant_id', $plantId));
+            })->orderBy('name')->get();
         });
 
         $partDimensionStandards = $this->getSubPartDimensionStandards($items);

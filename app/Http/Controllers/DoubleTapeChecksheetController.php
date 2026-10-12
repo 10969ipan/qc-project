@@ -134,16 +134,16 @@ class DoubleTapeChecksheetController extends Controller
         
         $plantId = \App\Models\Plant::resolveId('karawang');
 
-        $items = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
-            $existingItemIds = DoubleTapeChecksheet::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_items_v3_{$plantId}", 43200, function () use ($plantId) {
+            return Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('double_tape_checksheets')
+                    ->whereColumn('double_tape_checksheets.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('double_tape_checksheets.plant_id', $plantId));
+            })->orderBy('name')->get();
         });
 
-        $customers = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_cust_v2_{$plantId}", 1800, function () use ($items) {
+        $customers = \Illuminate\Support\Facades\Cache::remember("doubletape_filter_cust_v3_{$plantId}", 43200, function () use ($items) {
             return $items->pluck('customer')
                 ->filter(fn($c) => !empty($c))
                 ->unique()

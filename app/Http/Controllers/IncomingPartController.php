@@ -142,14 +142,14 @@ class IncomingPartController extends Controller
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
         // Plant-Isolated Query Caching for dropdown filters
-        $cacheKey = "incoming_parts_filters_v2_" . md5(json_encode([$plantId, $categories]));
-        $cachedFilterData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($categories, $plantId) {
-            $existingItemIds = IncomingPart::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $cacheKey = "incoming_parts_filters_v3_" . md5(json_encode([$plantId, $categories]));
+        $cachedFilterData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function() use ($categories, $plantId) {
+            $items = Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('incoming_parts')
+                    ->whereColumn('incoming_parts.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('incoming_parts.plant_id', $plantId));
+            })->orderBy('name')->get();
             $customers = $items->pluck('customer')->filter()->unique()->sort()->values();
 
             $initials = IncomingPart::withoutGlobalScope('plant')

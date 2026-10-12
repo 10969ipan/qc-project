@@ -86,18 +86,18 @@ class IncomingExportController extends Controller
 
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        $cacheKey = "incoming_exports_filters_v2_" . md5(json_encode([$plantId]));
-        $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
+        $cacheKey = "incoming_exports_filters_v3_" . md5(json_encode([$plantId]));
+        $items = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function() use ($plantId) {
             $jakartaPlantId = Plant::resolveId('jakarta');
             $karawangPlantId = Plant::resolveId('karawang');
             $plantIds = array_unique(array_filter([$plantId, $jakartaPlantId, $karawangPlantId]));
 
-            $existingItemIds = \App\Models\IncomingExport::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->whereIn('plant_id', $plantIds))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            return Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+            return Item::whereExists(function ($sub) use ($plantIds) {
+                $sub->select(\DB::raw(1))
+                    ->from('incoming_exports')
+                    ->whereColumn('incoming_exports.item_id', 'items.id')
+                    ->whereIn('incoming_exports.plant_id', $plantIds);
+            })->orderBy('name')->get();
         });
 
         $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];

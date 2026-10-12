@@ -279,8 +279,6 @@ class DoubleTapeChecksheetService extends BaseService
     {
         if ($plantId) {
             \Illuminate\Support\Facades\Cache::forget("doubletape_filter_init_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_items_v2_{$plantId}");
-            \Illuminate\Support\Facades\Cache::forget("doubletape_filter_cust_v2_{$plantId}");
         }
     }
 

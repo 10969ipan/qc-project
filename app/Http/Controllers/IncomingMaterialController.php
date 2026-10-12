@@ -76,14 +76,14 @@ class IncomingMaterialController extends Controller
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'approval_method', 'item_id', 'search', 'supplier', 'start_tgl_datang', 'end_tgl_datang']);
         $checksheets = $this->checksheetService->getFilteredChecksheets($filters);
 
-        $cacheKey = "incoming_materials_filters_v2_" . md5(json_encode([$plantId]));
-        $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function() use ($plantId) {
-            $existingItemIds = \App\Models\IncomingMaterial::withoutGlobalScope('plant')
-                ->when($plantId, fn($q) => $q->where('plant_id', $plantId))
-                ->whereNotNull('item_id')
-                ->distinct()
-                ->pluck('item_id');
-            $items = Item::whereIn('id', $existingItemIds)->orderBy('name')->get();
+        $cacheKey = "incoming_materials_filters_v3_" . md5(json_encode([$plantId]));
+        $cachedData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 43200, function() use ($plantId) {
+            $items = Item::whereExists(function ($sub) use ($plantId) {
+                $sub->select(\DB::raw(1))
+                    ->from('incoming_materials')
+                    ->whereColumn('incoming_materials.item_id', 'items.id')
+                    ->when($plantId, fn($q) => $q->where('incoming_materials.plant_id', $plantId));
+            })->orderBy('name')->get();
             $suppliers = $items->pluck('customer')->filter()->unique()->sort()->values();
             return compact('items', 'suppliers');
         });
