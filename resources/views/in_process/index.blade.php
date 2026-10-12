@@ -1636,7 +1636,7 @@
                 </div>
                 <form id="rejectForm" method="POST" class="ajax-form">
                     @csrf
-                    <div id="reject-modal-errors" class="mx-3 mt-3" style="display: none;"></div>
+                    <div id="modal-errors" class="mx-3 mt-3" style="display: none;"></div>
                     <div class="modal-body p-4" style="background-color: #f8fafc;">
                         <div class="alert alert-warning mb-3">
                             <i class="fas fa-info-circle mr-1"></i> Anda akan menolak checksheet ini sebagai <strong id="rejectRoleLabel">-</strong>

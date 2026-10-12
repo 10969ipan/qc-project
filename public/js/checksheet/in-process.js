@@ -46,7 +46,7 @@ class InProcessIndex {
                 $('#rejectRoleLabel').text(roleLabel);
                 $('#reject_remarks').val('');
                 $('#rejectCharCount').text('0');
-                $('#reject-modal-errors').hide().empty();
+                $('#modal-errors, #reject-modal-errors').hide().empty();
                 $modal.modal('show');
             }
         });
