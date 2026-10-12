@@ -154,10 +154,22 @@ class InProcessChecksheetController extends Controller
 
         $plantId = \App\Models\Plant::resolveId($filters['plant']) ?? optional(auth()->user()->plant)->id;
 
-        $setting = \App\Models\GeneralSetting::where('key', 'hidden_items_inprocess')
-            ->where('plant_code', $plantId ?? 'global')
-            ->first();
+        $plantCodeVal = $plantId ?? 'global';
+        $generalSettings = \Illuminate\Support\Facades\Cache::remember("in_proc_settings_{$plantCodeVal}", 1800, function () use ($plantCodeVal) {
+            return \App\Models\GeneralSetting::whereIn('key', [
+                'hidden_items_inprocess',
+                'hide_ng_rows_inprocess',
+                'hide_no_dimension_rows_inprocess',
+            ])
+            ->where(function ($q) use ($plantCodeVal) {
+                $q->where('plant_code', $plantCodeVal)
+                  ->orWhere('plant_code', 'global');
+            })
+            ->get()
+            ->keyBy('key');
+        });
 
+        $setting = $generalSettings->get('hidden_items_inprocess');
         $hiddenItemIds = [];
         if ($setting && !empty($setting->value)) {
             $decoded = json_decode($setting->value, true);
@@ -166,16 +178,10 @@ class InProcessChecksheetController extends Controller
             }
         }
 
-        $settingNgRows = \App\Models\GeneralSetting::where('key', 'hide_ng_rows_inprocess')
-            ->where('plant_code', $plantId ?? 'global')
-            ->first();
-
+        $settingNgRows = $generalSettings->get('hide_ng_rows_inprocess');
         $hideNgRows = ($settingNgRows && $settingNgRows->value == '1') ? '1' : '0';
 
-        $settingNoDimRows = \App\Models\GeneralSetting::where('key', 'hide_no_dimension_rows_inprocess')
-            ->where('plant_code', $plantId ?? 'global')
-            ->first();
-
+        $settingNoDimRows = $generalSettings->get('hide_no_dimension_rows_inprocess');
         $hideNoDimensionRows = ($settingNoDimRows && $settingNoDimRows->value == '1') ? '1' : '0';
 
         if (auth()->check() && auth()->user()->role !== 'admin') {
@@ -198,12 +204,13 @@ class InProcessChecksheetController extends Controller
 
         // Data for filters (Only items actually present in InProcess checksheets for this plant - optimized via whereExists)
         $items = \Illuminate\Support\Facades\Cache::remember("in_proc_filter_items_v8_{$plantId}", 43200, function () use ($plantId) {
-            return Item::whereExists(function ($sub) use ($plantId) {
-                $sub->select(\DB::raw(1))
-                    ->from('in_process_checksheets')
-                    ->whereColumn('in_process_checksheets.item_id', 'items.id')
-                    ->when($plantId, fn($q) => $q->where('in_process_checksheets.plant_id', $plantId));
-            })->orderBy('name')->get();
+            return Item::select('id', 'name', 'part_number', 'customer')
+                ->whereExists(function ($sub) use ($plantId) {
+                    $sub->select(\DB::raw(1))
+                        ->from('in_process_checksheets')
+                        ->whereColumn('in_process_checksheets.item_id', 'items.id')
+                        ->when($plantId, fn($q) => $q->where('in_process_checksheets.plant_id', $plantId));
+                })->orderBy('name')->get();
         });
 
         // $allItems is loaded via AJAX lazily when the Hidden Items Modal is opened, reducing initial HTML rendering load
@@ -242,8 +249,6 @@ class InProcessChecksheetController extends Controller
                 ->sort(SORT_NUMERIC)
                 ->values();
         });
-
-        $ngItemIds = $this->inProcessService->getDimensionNgItemIds($plantId);
 
         $items_array = $checksheets->items();
         foreach ($items_array as $index => $c) {
@@ -308,7 +313,44 @@ class InProcessChecksheetController extends Controller
             $c->computed_cycle_time_sec = $sec;
         }
 
-        return view('in_process.index', compact('checksheets', 'partDimensionStandards', 'items', 'customers', 'initials', 'machines', 'hiddenItemIds', 'allItems', 'ngItemIds', 'hideNgRows', 'hideNoDimensionRows'));
+        // Precompute view header & permissions to eliminate in-Blade database queries
+        $plantReq = $filters['plant'] ?? auth()->user()->plant_id;
+        $plantCode = null;
+        if (is_string($plantReq) && strlen($plantReq) > 30) {
+            $plantCode = \Illuminate\Support\Facades\Cache::remember("plant_code_{$plantReq}", 86400, function () use ($plantReq) {
+                return \App\Models\Plant::where('id', $plantReq)->value('code');
+            });
+        } else {
+            $plantCode = (string) $plantReq;
+        }
+        $plantCode = strtolower($plantCode ?: 'karawang');
+
+        $menuIds = \Illuminate\Support\Facades\Cache::remember('app_menu_in_process_index', 86400, function () {
+            return \App\Models\AppMenu::where('route', 'in_process.index')->pluck('id');
+        });
+        $canExport = true; $canEdit = true; $canDelete = true;
+        if ($menuIds->isNotEmpty() && auth()->check()) {
+            $canExport = false; $canEdit = false; $canDelete = false;
+            $currentUser = auth()->user();
+            foreach ($menuIds as $mId) {
+                if ($currentUser->hasPermission($mId, 'export')) $canExport = true;
+                if ($currentUser->hasPermission($mId, 'edit')) $canEdit = true;
+                if ($currentUser->hasPermission($mId, 'delete')) $canDelete = true;
+            }
+        }
+
+        $docHeader = \App\Models\GeneralSetting::getDocHeader('in_process', $plantCode, [
+            'no_dokumen' => 'QC-KRW-F-0201',
+            'tgl_terbit' => '01/01/2026',
+            'revisi' => '0',
+            'halaman' => '- / -'
+        ]);
+
+        return view('in_process.index', compact(
+            'checksheets', 'partDimensionStandards', 'items', 'customers',
+            'initials', 'machines', 'hiddenItemIds', 'allItems', 'hideNgRows',
+            'hideNoDimensionRows', 'plantCode', 'canExport', 'canEdit', 'canDelete', 'docHeader'
+        ));
     }
 
     /**

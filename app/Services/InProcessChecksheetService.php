@@ -57,7 +57,9 @@ class InProcessChecksheetService extends BaseService
             $standards[$this->normalizePartNumber($pn)] = $stds;
         }
 
-        $dbItems = Item::whereNotNull('dimension_standards')->get();
+        $dbItems = Item::whereNotNull('dimension_standards')
+            ->select('id', 'part_number', 'dimension_standards')
+            ->get();
         foreach ($dbItems as $item) {
             $partNum = $this->normalizePartNumber($item->part_number ?? '');
             if ($partNum !== '' && !empty($item->dimension_standards)) {
@@ -120,7 +122,10 @@ class InProcessChecksheetService extends BaseService
     public function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
     {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = InProcessChecksheet::with(['item', 'user'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = InProcessChecksheet::with([
+            'item:id,name,part_number,customer,standard_cycle_time',
+            'user:id,name',
+        ])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present
         if (isset($filters['plant'])) {
@@ -253,10 +258,7 @@ class InProcessChecksheetService extends BaseService
             });
         } else {
             // Default: strict regular manual input entries only (excludes verification scan data)
-            $query->where(function ($q) {
-                $q->whereNull('in_process_checksheets.scan_method')
-                  ->orWhere('in_process_checksheets.scan_method', 'manual');
-            });
+            $query->where('in_process_checksheets.scan_method', 'manual');
         }
 
         if (!empty($filters['shift'])) {

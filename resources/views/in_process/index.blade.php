@@ -197,28 +197,8 @@
 
 </style>
     @php
-        $plant = request('plant') ?? auth()->user()->plant_id;
-        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-        $plantCode = strtolower($plantCode ?: 'karawang');
-        
-        // Resolve menu IDs for permission checks (support for duplicate plant routes)
-        $menuIds = \App\Models\AppMenu::where('route', 'in_process.index')->pluck('id');
-        $canExport = true; $canEdit = true; $canDelete = true;
-        if ($menuIds->isNotEmpty()) {
-            $canExport = false; $canEdit = false; $canDelete = false;
-            foreach ($menuIds as $mId) {
-                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
-                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
-                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
-            }
-        }
-
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('in_process', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0201',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '0',
-            'halaman' => '- / -'
-        ]);
+        $qParams = request()->query();
+        $plantContext = $plantCode ?? 'karawang';
     @endphp
 
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
@@ -548,14 +528,7 @@
                 <table class="table table-hover" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
                         @php
-                            $requestPlant = request('plant');
-                            $userPlantCode = optional(auth()->user()->plant)->code;
-                            if (!empty($requestPlant)) {
-                                $plant = \App\Models\Plant::where('code', $requestPlant)->orWhere('id', $requestPlant)->first();
-                                $plantContext = strtolower($plant?->code ?? $requestPlant);
-                            } else {
-                                $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
-                            }
+                            $plantContext = $plantCode ?? 'karawang';
                         @endphp
                         <tr class="text-center">
                             @if(auth()->user()->role === 'admin')
@@ -906,6 +879,7 @@
                                             }
                                         }
                                     @endphp
+
                                      @if($hasUserInputs && ($hasShoot1Data || $hasShoot2Data))
                                          <div>
                                              @if($hasShoot1Data)
@@ -1315,7 +1289,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Kashift)" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'kashift'] + $qParams) }}" data-role-label="{{ $kashiftLabel }}">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'supervisor' && $canApproveSupervisor)
@@ -1324,7 +1298,7 @@
                                                         <i class="fas fa-lock"></i> Approve SPV
                                                     </button>
                                                 @else
-                                                    <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor'] + $qParams) }}" method="POST" class="d-inline ajax-form">
                                                         @csrf
                                                         <input type="hidden" name="page" value="{{ request('page') }}">
                                                         <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1339,7 +1313,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (SPV)" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'supervisor'] + $qParams) }}" data-role-label="Supervisor">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'asst_manager' && $canApproveAsst)
@@ -1348,7 +1322,7 @@
                                                         <i class="fas fa-lock"></i> Approve AM
                                                     </button>
                                                 @else
-                                                    <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager'] + $qParams) }}" method="POST" class="d-inline ajax-form">
                                                         @csrf
                                                         <input type="hidden" name="page" value="{{ request('page') }}">
                                                         <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1363,7 +1337,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Asst Manager)" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'asst_manager'] + $qParams) }}" data-role-label="Asst Manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'manager' && $canApproveManager)
@@ -1372,7 +1346,7 @@
                                                         <i class="fas fa-lock"></i> Approve MGR
                                                     </button>
                                                 @else
-                                                    <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline ajax-form">
+                                                    <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager'] + $qParams) }}" method="POST" class="d-inline ajax-form">
                                                         @csrf
                                                         <input type="hidden" name="page" value="{{ request('page') }}">
                                                         <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1387,7 +1361,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Manager)" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'manager'] + $qParams) }}" data-role-label="Manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @endif
@@ -1424,7 +1398,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'kashift'] + $qParams) }}" data-role-label="{{ $kashiftLabel }}">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -1433,11 +1407,11 @@
                                                     {{-- Approve Supervisor (Admin Only in Dropdown) --}}
                                                     @if($canApproveSupervisor)
                                                         @if($isOpenNextProcess)
-                                                            <button type="button" class="dropdown-item text-muted font-weight-bold btn-blocked-next-process">
+                                                             <button type="button" class="dropdown-item text-muted font-weight-bold btn-blocked-next-process">
                                                                 <i class="fas fa-lock text-warning fa-fw mr-2"></i> Approve SPV
                                                             </button>
                                                         @else
-                                                            <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'supervisor'] + $qParams) }}" method="POST" class="d-inline w-100 ajax-form">
                                                                 @csrf
                                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1452,7 +1426,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'supervisor'] + $qParams) }}" data-role-label="Supervisor">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -1465,7 +1439,7 @@
                                                                 <i class="fas fa-lock text-warning fa-fw mr-2"></i> Approve AM
                                                             </button>
                                                         @else
-                                                            <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'asst_manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'asst_manager'] + $qParams) }}" method="POST" class="d-inline w-100 ajax-form">
                                                                 @csrf
                                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1480,7 +1454,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'asst_manager'] + $qParams) }}" data-role-label="Asst Manager">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject AM
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -1493,7 +1467,7 @@
                                                                 <i class="fas fa-lock text-warning fa-fw mr-2"></i> Approve MGR
                                                             </button>
                                                         @else
-                                                            <form action="{{ route('in_process.approve', array_merge(['id' => $checksheet->id, 'type' => 'manager'], request()->all())) }}" method="POST" class="d-inline w-100 ajax-form">
+                                                            <form action="{{ route('in_process.approve', ['id' => $checksheet->id, 'type' => 'manager'] + $qParams) }}" method="POST" class="d-inline w-100 ajax-form">
                                                                 @csrf
                                                                 <input type="hidden" name="page" value="{{ request('page') }}">
                                                                 <input type="hidden" name="start_date" value="{{ request('start_date') }}">
@@ -1508,7 +1482,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('in_process.reject', ['id' => $checksheet->id, 'type' => 'manager'] + $qParams) }}" data-role-label="Manager">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject MGR
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -1648,100 +1622,56 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Rejection Modal for each checksheet and type -->
-    @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-            @php
-                $user = auth()->user();
-                $isAdmin = $user->role === 'admin';
-                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
-                $canReject = false;
-                if (
-                    $rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) &&
-                        (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))
-                ) {
-                    $canReject = true;
-                } elseif (
-                    $rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc ||
-                        $cs->supervisor_qc === 'REJECTED'))
-                ) {
-                    $canReject = true;
-                } elseif (
-                    $rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc ||
-                        $cs->asst_manager_qc === 'REJECTED'))
-                ) {
-                    $canReject = true;
-                } elseif (
-                    $rejectType == 'manager' && (($user->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc
-                        === 'REJECTED'))
-                ) {
-                    $canReject = true;
-                }
-            @endphp
-            @if($canReject)
-                <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
-                    aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content border-0 shadow-lg">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
-                                </h5>
-                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <form
-                                action="{{ route('in_process.reject', array_merge(['id' => $cs->id, 'type' => $rejectType], request()->all())) }}"
-                                method="POST" class="ajax-form">
-                                @csrf
-                                <div id="modal-errors" class="mx-3 mt-3" style="display: none;"></div>
-                                <div class="modal-body">
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
-                                            Alasan Rejection <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
-                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
-                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
-                                        <small class="form-text text-muted">
-                                            <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
-                                        </small>
-                                        @error('rejection_remarks')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                        <i class="fas fa-times"></i> Batal
-                                    </button>
-                                    <button type="submit" class="btn btn-danger btn-confirm-reject">
-                                        <i class="fas fa-ban"></i> Tolak Checksheet
-                                    </button>
-                                </div>
-                            </form>
+     <!-- Single Reusable Rejection Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-danger text-white py-3 px-4">
+                    <h5 class="modal-title font-weight-bold" id="rejectModalLabel" style="font-size: 0.95rem;">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="rejectForm" method="POST" class="ajax-form">
+                    @csrf
+                    <div id="reject-modal-errors" class="mx-3 mt-3" style="display: none;"></div>
+                    <div class="modal-body p-4" style="background-color: #f8fafc;">
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-info-circle mr-1"></i> Anda akan menolak checksheet ini sebagai <strong id="rejectRoleLabel">-</strong>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="reject_remarks" class="small font-weight-bold text-gray-700">
+                                Alasan Rejection <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control form-control-sm border-0 shadow-sm"
+                                id="reject_remarks" name="rejection_remarks" rows="4"
+                                placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                maxlength="500"></textarea>
+                            <small class="form-text text-muted text-right">
+                                <span id="rejectCharCount">0</span>/500 karakter
+                            </small>
                         </div>
                     </div>
-                </div>
-            @endif
-        @endforeach
-    @endforeach
+                    <div class="modal-footer bg-white py-2 px-4" style="border-top: 1px solid #e2e8f0;">
+                        <button type="button" class="btn btn-light btn-sm border px-3" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-danger btn-sm px-3 shadow-sm btn-confirm-reject">
+                            <i class="fas fa-ban mr-1"></i> Tolak Checksheet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 @endsection
 @push('scripts')
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/vendor/qr-scanner.min.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/checksheet/in-process.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/checksheet/in-process.js') }}?v={{ file_exists(public_path('js/checksheet/in-process.js')) ? filemtime(public_path('js/checksheet/in-process.js')) : '1.0' }}"></script>
     <!-- Modal Import Data Dimensi -->
     <div class="modal fade" id="importMeasurementsModal" tabindex="-1" role="dialog" aria-labelledby="importMeasurementsModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -1936,6 +1866,8 @@
         </div>
     @endif
 
+
+
     @include('partials.qr_scanner_modal')
 
     @php $bulkApproveRoute = route('in_process.bulk_approve'); @endphp
@@ -1964,5 +1896,5 @@
             csrfToken: "{{ csrf_token() }}"
         };
     </script>
-    <script src="{{ asset('js/checksheet/in-process-index.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/checksheet/in-process-index.js') }}?v={{ file_exists(public_path('js/checksheet/in-process-index.js')) ? filemtime(public_path('js/checksheet/in-process-index.js')) : '1.0' }}"></script>
 @endpush

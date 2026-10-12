@@ -16,6 +16,9 @@ class Plant extends Model
         'is_active',
     ];
 
+    protected static array $resolvedIds = [];
+    protected static array $resolvedNames = [];
+
     /**
      * Resolve a plant identifier to a UUID.
      * 
@@ -37,8 +40,13 @@ class Plant extends Model
             return $identifier->id;
         }
 
+        $key = strtolower(trim((string) $identifier));
+        if (isset(self::$resolvedIds[$key])) {
+            return self::$resolvedIds[$key];
+        }
+
         // If it's a name or code (case insensitive)
-        return self::where('name', 'like', $identifier)
+        return self::$resolvedIds[$key] = self::where('name', 'like', $identifier)
             ->orWhere('code', 'like', $identifier)
             ->value('id');
     }
@@ -58,15 +66,20 @@ class Plant extends Model
             return $identifier->name;
         }
 
+        $key = strtolower(trim((string) $identifier));
+        if (isset(self::$resolvedNames[$key])) {
+            return self::$resolvedNames[$key];
+        }
+
         if (is_string($identifier) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
-            return self::where('id', $identifier)->value('name');
+            return self::$resolvedNames[$key] = self::where('id', $identifier)->value('name');
         }
 
         $plant = self::where('name', 'like', $identifier)
             ->orWhere('code', 'like', $identifier)
             ->first();
             
-        return $plant ? $plant->name : (is_string($identifier) ? $identifier : null);
+        return self::$resolvedNames[$key] = ($plant ? $plant->name : (is_string($identifier) ? $identifier : null));
     }
 
     protected $casts = [
