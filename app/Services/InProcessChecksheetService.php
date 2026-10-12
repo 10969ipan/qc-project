@@ -155,43 +155,11 @@ class InProcessChecksheetService extends BaseService
             }
 
             if (!empty($filters['hide_ng_rows']) && $filters['hide_ng_rows'] == '1') {
-                $query->where(function($q) {
-                    $q->where(function($sub) {
-                        $sub->where('in_process_checksheets.judgment', '!=', 'NG')
-                            ->orWhereNull('in_process_checksheets.judgment');
-                    })
-                    ->where(function($sub) {
-                        $sub->whereNull('in_process_checksheets.total_ng')
-                            ->orWhere('in_process_checksheets.total_ng', '<=', 0);
-                    });
-                });
+                $query->where('in_process_checksheets.is_dimension_ng', 0);
             }
 
-            $viewMode = $filters['view_mode'] ?? null;
-            $entryMethod = $filters['entry_method'] ?? null;
-            $isVerificationMode = ($viewMode === 'verifikasi' || $entryMethod === 'verification' || $entryMethod === 'qr');
-
             if (!empty($filters['hide_no_dimension_rows']) && $filters['hide_no_dimension_rows'] == '1') {
-                $query->where(function($q) use ($isVerificationMode) {
-                    if ($isVerificationMode) {
-                        $q->where(function($sub) {
-                            $sub->whereNotNull('in_process_checksheets.qrcode')
-                                ->where('in_process_checksheets.qrcode', '!=', '');
-                        })
-                        ->orWhere(function($sub) {
-                            $sub->whereNotNull('in_process_checksheets.unique_code_id')
-                                ->where('in_process_checksheets.unique_code_id', '!=', '');
-                        })
-                        ->orWhereIn('in_process_checksheets.scan_method', ['hardware', 'camera'])
-                        ->orWhere(function($sub) {
-                            $sub->whereNotNull('in_process_checksheets.dimension_check')
-                                ->whereNotIn('in_process_checksheets.dimension_check', ['', '[]', '{}', 'null', '""']);
-                        });
-                    } else {
-                        $q->whereNotNull('in_process_checksheets.dimension_check')
-                            ->whereNotIn('in_process_checksheets.dimension_check', ['', '[]', '{}', 'null', '""']);
-                    }
-                });
+                $query->where('in_process_checksheets.has_dimension', 1);
             }
         }
 
@@ -693,6 +661,8 @@ class InProcessChecksheetService extends BaseService
                 }
             }
 
+            $dimFlags = $this->determineDimensionFlags($data, $dimensionCheck);
+
             $checksheet = InProcessChecksheet::create([
                 'plant_id' => $plantId,
                 'user_id' => auth()->id(),
@@ -722,6 +692,8 @@ class InProcessChecksheetService extends BaseService
                     ? ($data['next_proses'] ?: 'SORTIR') 
                     : null,
                 'tujuan' => $data['tujuan'] ?? null,
+                'has_dimension' => $dimFlags['has_dimension'],
+                'is_dimension_ng' => $dimFlags['is_dimension_ng'],
             ]);
 
             // Clear manual machine status override
@@ -839,6 +811,10 @@ class InProcessChecksheetService extends BaseService
                 'sap_code' => $data['sap_code'] ?? null,
                 'scan_method' => $data['scan_method'] ?? $checksheet->scan_method,
             ];
+
+            $dimFlags = $this->determineDimensionFlags($data, $dimensionCheck);
+            $updateData['has_dimension'] = $dimFlags['has_dimension'];
+            $updateData['is_dimension_ng'] = $dimFlags['is_dimension_ng'];
 
             // Allow manual correction of inspector if provided
             if (isset($data['user_id'])) {
@@ -1191,5 +1167,51 @@ class InProcessChecksheetService extends BaseService
 
             return $noDimIds;
         });
+    }
+
+    /**
+     * Tentukan flag precomputed has_dimension dan is_dimension_ng secara instan
+     */
+    protected function determineDimensionFlags(array $data, ?string $dimensionCheck): array
+    {
+        $scanMethod = $data['scan_method'] ?? 'manual';
+        $qrCode = $data['qrcode'] ?? null;
+        $uniqueCode = $data['unique_code_id'] ?? null;
+
+        $hasDimension = false;
+        if (!empty($qrCode) || !empty($uniqueCode) || in_array($scanMethod, ['hardware', 'camera'])) {
+            $hasDimension = true;
+        } else {
+            $parsed = !empty($dimensionCheck) ? (is_array($dimensionCheck) ? $dimensionCheck : json_decode($dimensionCheck, true)) : null;
+            if (!empty($parsed) && is_array($parsed)) {
+                foreach ($parsed as $cavPoints) {
+                    if (is_array($cavPoints)) {
+                        foreach ($cavPoints as $val) {
+                            if (is_array($val)) {
+                                foreach ($val as $subV) {
+                                    if ($subV !== null && $subV !== '' && $subV !== '-') {
+                                        $hasDimension = true;
+                                        break 3;
+                                    }
+                                }
+                            } elseif ($val !== null && $val !== '' && $val !== '-') {
+                                $hasDimension = true;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $isNg = ($data['judgment'] ?? '') === 'NG' || ((int)($data['total_ng'] ?? 0) > 0);
+        if (!$isNg && $hasDimension) {
+            $isNg = (bool) $this->isDimensionNg(array_merge($data, ['dimension_check' => $dimensionCheck]));
+        }
+
+        return [
+            'has_dimension' => (bool) $hasDimension,
+            'is_dimension_ng' => (bool) $isNg,
+        ];
     }
 }

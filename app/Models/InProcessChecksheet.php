@@ -49,6 +49,8 @@ class InProcessChecksheet extends Model
         'manager_approved_at',
         'cycle_time',
         'rejection_remarks',
+        'has_dimension',
+        'is_dimension_ng',
     ];
 
     protected $casts = [
@@ -56,6 +58,8 @@ class InProcessChecksheet extends Model
         'dimension_check' => 'array',
         'part_weight' => 'array',
         'date' => 'date',
+        'has_dimension' => 'boolean',
+        'is_dimension_ng' => 'boolean',
     ];
 
     public function item()
