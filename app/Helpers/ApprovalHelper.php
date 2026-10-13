@@ -526,11 +526,11 @@ class ApprovalHelper
             $shiftCol = 'qc_shift';
         }
 
-        // Durability: Rule khusus minimal 1 data sampling per customer
+        // Durability: Rule khusus minimal 1 data sampling per kategori
         $isDurability = ($table === 'durability_thickness_reports' || is_a($modelClass, \App\Models\DurabilityThicknessReport::class, true));
         if ($isDurability) {
             $required = 1;
-            $scope = 'customer';
+            $scope = 'category';
 
             $testType = $filters['test_type'] ?? 'thickness';
             $dateColName = ($testType === 'porecount') ? 'tanggal_cek_porecount' : 'tanggal_cek';
@@ -561,8 +561,8 @@ class ApprovalHelper
 
             $baseDateQuery = $modelClass::query()
                 ->join('standard_performance_tests', "{$table}.standard_performance_test_id", '=', 'standard_performance_tests.id')
-                ->whereNotNull('standard_performance_tests.customer_name')
-                ->where('standard_performance_tests.customer_name', '!=', '');
+                ->whereNotNull('standard_performance_tests.category')
+                ->where('standard_performance_tests.category', '!=', '');
 
             if (isset($filters['is_trial'])) {
                 $baseDateQuery->where("{$table}.is_trial", (bool)$filters['is_trial']);
@@ -612,9 +612,9 @@ class ApprovalHelper
                 }
             });
 
-            $presentCustomers = (clone $baseDateQuery)
+            $presentCategories = (clone $baseDateQuery)
                 ->distinct()
-                ->pluck('standard_performance_tests.customer_name')
+                ->pluck('standard_performance_tests.category')
                 ->filter()
                 ->unique()
                 ->values()
@@ -641,42 +641,43 @@ class ApprovalHelper
             }
 
             $samplingCounts = $samplingQuery
-                ->groupBy('standard_performance_tests.customer_name')
-                ->select('standard_performance_tests.customer_name', \DB::raw('COUNT(*) as total'))
-                ->pluck('total', 'customer_name')
+                ->groupBy('standard_performance_tests.category')
+                ->select('standard_performance_tests.category', \DB::raw('COUNT(*) as total'))
+                ->pluck('total', 'category')
                 ->all();
 
-            $unfulfilledCustomers = [];
-            if (empty($presentCustomers)) {
+            $unfulfilledCategories = [];
+            if (empty($presentCategories)) {
                 $current = 0;
                 $isFulfilled = true;
             } else {
                 $minCurrent = 999999;
-                foreach ($presentCustomers as $pc) {
-                    $c = (int)($samplingCounts[$pc] ?? 0);
+                foreach ($presentCategories as $cat) {
+                    $c = (int)($samplingCounts[$cat] ?? 0);
                     if ($c < $minCurrent) {
                         $minCurrent = $c;
                     }
                     if ($c < $required) {
-                        $unfulfilledCustomers[$pc] = [
-                            'customer' => $pc,
+                        $unfulfilledCategories[$cat] = [
+                            'category' => $cat,
                             'current' => $c,
                             'required' => $required,
                         ];
                     }
                 }
                 $current = ($minCurrent === 999999) ? 0 : $minCurrent;
-                $isFulfilled = empty($unfulfilledCustomers);
+                $isFulfilled = empty($unfulfilledCategories);
             }
 
             return [
                 'fulfilled' => $isFulfilled,
                 'current' => $current,
                 'required' => $required,
-                'scope' => 'customer',
+                'scope' => 'category',
                 'target_date' => $targetDate,
                 'target_shift' => null,
-                'unfulfilled_customers' => $unfulfilledCustomers,
+                'unfulfilled_categories' => $unfulfilledCategories,
+                'unfulfilled_customers' => [],
                 'unfulfilled_shifts' => [],
             ];
         }

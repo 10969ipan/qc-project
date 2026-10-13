@@ -394,6 +394,13 @@ trait HasChecksheetApproval
                     }
                     $shiftsStr = implode(', ', $shiftDetails);
                     $msg = "Strict Blocking: Tidak dapat Approve Semua karena {$shiftsStr} pada tanggal {$dateFormatted} belum memenuhi minimal sampling ({$req}x per shift). Silakan lengkapi sampling pada shift tersebut atau pilih filter Shift yang spesifik.";
+                } elseif (!empty($quotaStatus['unfulfilled_categories'])) {
+                    $catDetails = [];
+                    foreach ($quotaStatus['unfulfilled_categories'] as $uc) {
+                        $catDetails[] = "{$uc['category']} ({$uc['current']}/{$uc['required']})";
+                    }
+                    $catsStr = implode(', ', $catDetails);
+                    $msg = "Strict Blocking: Kategori berikut belum memiliki approval sampling ({$catsStr}). Harap lakukan approval sampling minimal {$req} data per kategori terlebih dahulu sebelum dapat Approve Semua.";
                 } else {
                     $scopeText = $quotaStatus['scope'] === 'shift'
                         ? "Shift {$quotaStatus['target_shift']} pada tanggal {$dateFormatted}"

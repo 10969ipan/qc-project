@@ -1757,29 +1757,29 @@ class StandardPerformanceTestController extends Controller
                 });
             }
 
-            // Validasi Sampling: Wajib ada minimal 1 data sampling per customer yang ada dalam filter
+            // Validasi Sampling: Wajib ada minimal 1 data sampling per kategori yang ada dalam filter
             if ($user->role !== 'admin') {
                 $testType = $request->input('test_type', 'thickness');
                 $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
 
-                // Ambil daftar customer unik yang ada pada data yang difilter
-                $distinctCustomers = (clone $query)
+                // Ambil daftar kategori unik yang ada pada data yang difilter
+                $distinctCategories = (clone $query)
                     ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                    ->whereNotNull('standard_performance_tests.customer_name')
-                    ->where('standard_performance_tests.customer_name', '!=', '')
+                    ->whereNotNull('standard_performance_tests.category')
+                    ->where('standard_performance_tests.category', '!=', '')
                     ->distinct()
-                    ->pluck('standard_performance_tests.customer_name')
+                    ->pluck('standard_performance_tests.category')
                     ->filter()
                     ->unique()
                     ->values()
                     ->all();
 
-                if (!empty($distinctCustomers)) {
-                    $unapprovedCustomers = [];
-                    foreach ($distinctCustomers as $cust) {
+                if (!empty($distinctCategories)) {
+                    $unapprovedCategories = [];
+                    foreach ($distinctCategories as $cat) {
                         $hasSampling = DurabilityThicknessReport::query()
                             ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                            ->where('standard_performance_tests.customer_name', $cust)
+                            ->where('standard_performance_tests.category', $cat)
                             ->where('durability_thickness_reports.is_trial', $isTrial)
                             ->where(function($q) use ($request, $dateCol) {
                                 if ($request->filled('start_date')) {
@@ -1795,15 +1795,15 @@ class StandardPerformanceTestController extends Controller
                             ->exists();
 
                         if (!$hasSampling) {
-                            $unapprovedCustomers[] = $cust;
+                            $unapprovedCategories[] = $cat;
                         }
                     }
 
-                    if (!empty($unapprovedCustomers)) {
-                        $custStr = implode(', ', $unapprovedCustomers);
+                    if (!empty($unapprovedCategories)) {
+                        $catStr = implode(', ', $unapprovedCategories);
                         return response()->json([
                             'success' => false,
-                            'message' => "Bulk Approval ditolak: Customer berikut belum memiliki approval sampling ({$custStr}). Harap lakukan approval sampling minimal 1 data per customer terlebih dahulu sebelum dapat Approve Semua.",
+                            'message' => "Bulk Approval ditolak: Kategori berikut belum memiliki approval sampling ({$catStr}). Harap lakukan approval sampling minimal 1 data per kategori terlebih dahulu sebelum dapat Approve Semua.",
                         ], 422);
                     }
                 }
@@ -1812,8 +1812,8 @@ class StandardPerformanceTestController extends Controller
             // If get_ids mode, return list of pending IDs only
             if ($request->boolean('get_ids')) {
                 $pendingIds = $query->where(function($q) use ($field) {
-                    $q->whereNull($field)->orWhere($field, 'REJECTED');
-                })->pluck('id')->toArray();
+                    $q->whereNull("durability_thickness_reports.{$field}")->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
+                })->pluck('durability_thickness_reports.id')->toArray();
 
                 return response()->json([
                     'success' => true,
@@ -1823,11 +1823,11 @@ class StandardPerformanceTestController extends Controller
             }
 
             if ($request->filled('ids') && is_array($request->input('ids'))) {
-                $query->whereIn('id', $request->input('ids'));
+                $query->whereIn('durability_thickness_reports.id', $request->input('ids'));
             }
 
-            $reportsToApprove = $query->where(function($q) use ($field) {
-                $q->whereNull($field)->orWhere($field, 'REJECTED');
+            $reportsToApprove = $query->select('durability_thickness_reports.*')->where(function($q) use ($field) {
+                $q->whereNull("durability_thickness_reports.{$field}")->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
             })->get();
 
             $now = now();
