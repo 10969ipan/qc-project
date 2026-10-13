@@ -7,6 +7,16 @@ use Illuminate\Support\Facades\Schema;
 
 class ApprovalHelper
 {
+    protected static array $columnsCache = [];
+
+    public static function tableHasColumn(string $table, string $column): bool
+    {
+        if (!isset(static::$columnsCache[$table])) {
+            static::$columnsCache[$table] = Schema::getColumnListing($table);
+        }
+        return in_array($column, static::$columnsCache[$table], true);
+    }
+
     /**
      * Get approval label based on plant and level
      */
@@ -496,23 +506,23 @@ class ApprovalHelper
 
         // Determine date column
         $dateCol = null;
-        if (Schema::hasColumn($table, 'date')) {
+        if (self::tableHasColumn($table, 'date')) {
             $dateCol = 'date';
-        } elseif (Schema::hasColumn($table, 'qc_datetime')) {
+        } elseif (self::tableHasColumn($table, 'qc_datetime')) {
             $dateCol = 'qc_datetime';
-        } elseif (Schema::hasColumn($table, 'tanggal')) {
+        } elseif (self::tableHasColumn($table, 'tanggal')) {
             $dateCol = 'tanggal';
-        } elseif (Schema::hasColumn($table, 'tanggal_cek')) {
+        } elseif (self::tableHasColumn($table, 'tanggal_cek')) {
             $dateCol = 'tanggal_cek';
-        } elseif (Schema::hasColumn($table, 'created_at')) {
+        } elseif (self::tableHasColumn($table, 'created_at')) {
             $dateCol = 'created_at';
         }
 
         // Determine shift column
         $shiftCol = null;
-        if (Schema::hasColumn($table, 'shift')) {
+        if (self::tableHasColumn($table, 'shift')) {
             $shiftCol = 'shift';
-        } elseif (Schema::hasColumn($table, 'qc_shift')) {
+        } elseif (self::tableHasColumn($table, 'qc_shift')) {
             $shiftCol = 'qc_shift';
         }
 
@@ -524,7 +534,7 @@ class ApprovalHelper
 
             $testType = $filters['test_type'] ?? 'thickness';
             $dateColName = ($testType === 'porecount') ? 'tanggal_cek_porecount' : 'tanggal_cek';
-            $effectiveDateCol = Schema::hasColumn($table, $dateColName) ? $dateColName : ($dateCol ?? 'tanggal_cek');
+            $effectiveDateCol = self::tableHasColumn($table, $dateColName) ? $dateColName : ($dateCol ?? 'tanggal_cek');
 
             $hasExplicitDate = !empty($filters['start_date']) || !empty($filters['end_date']) || !empty($filters['date']) || !empty($filters['target_date']);
             $hasOtherFilter = !empty($filters['customer_name']) || !empty($filters['category']) || !empty($filters['item_id']) || !empty($filters['search']);
@@ -620,7 +630,7 @@ class ApprovalHelper
             }
 
             $samplingQuery = (clone $baseDateQuery);
-            if (Schema::hasColumn($table, 'approval_methods')) {
+            if (self::tableHasColumn($table, 'approval_methods')) {
                 $samplingQuery->where(function ($q) use ($roleKeys, $table) {
                     foreach ($roleKeys as $rk) {
                         $q->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
@@ -688,16 +698,21 @@ class ApprovalHelper
         }
 
         // Apply plant filter if set and table supports plant_id
-        if (!empty($filters['plant']) && Schema::hasColumn($table, 'plant_id')) {
-            $resolvedPlantId = \App\Models\Plant::resolveId($filters['plant']);
+        $plantInput = $filters['plant'] ?? (is_object($user) ? ($user->plant_id ?? null) : null);
+        if (!empty($plantInput) && self::tableHasColumn($table, 'plant_id')) {
+            $resolvedPlantId = \App\Models\Plant::resolveId($plantInput);
             if ($resolvedPlantId) {
                 $query->where($table . '.plant_id', $resolvedPlantId);
             }
         }
 
-        // Filter date if date column exists
+        // Filter date if date column exists (use exact equality for date columns to preserve B-Tree index)
         if ($dateCol) {
-            $query->whereDate($table . '.' . $dateCol, $targetDate);
+            if ($dateCol === 'created_at' || $dateCol === 'qc_datetime') {
+                $query->whereBetween($table . '.' . $dateCol, ["{$targetDate} 00:00:00", "{$targetDate} 23:59:59"]);
+            } else {
+                $query->where($table . '.' . $dateCol, $targetDate);
+            }
         }
 
         // Filter sampling method for this role or related role keys
@@ -712,7 +727,7 @@ class ApprovalHelper
             $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
         }
 
-        if (Schema::hasColumn($table, 'approval_methods')) {
+        if (self::tableHasColumn($table, 'approval_methods')) {
             $query->where(function ($q) use ($roleKeys, $table) {
                 foreach ($roleKeys as $rk) {
                     $q->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
@@ -741,14 +756,18 @@ class ApprovalHelper
             } else {
                 // STRICT BLOCKING: Check ALL shifts that have data on this date
                 $baseDateQuery = $modelClass::query();
-                if (!empty($filters['plant']) && Schema::hasColumn($table, 'plant_id')) {
-                    $resolvedPlantId = \App\Models\Plant::resolveId($filters['plant']);
+                if (!empty($plantInput) && self::tableHasColumn($table, 'plant_id')) {
+                    $resolvedPlantId = \App\Models\Plant::resolveId($plantInput);
                     if ($resolvedPlantId) {
                         $baseDateQuery->where($table . '.plant_id', $resolvedPlantId);
                     }
                 }
-                $presentShifts = $baseDateQuery->whereDate($table . '.' . $dateCol, $targetDate)
-                    ->whereNotNull($table . '.' . $shiftCol)
+                if ($dateCol === 'created_at' || $dateCol === 'qc_datetime') {
+                    $baseDateQuery->whereBetween($table . '.' . $dateCol, ["{$targetDate} 00:00:00", "{$targetDate} 23:59:59"]);
+                } else {
+                    $baseDateQuery->where($table . '.' . $dateCol, $targetDate);
+                }
+                $presentShifts = $baseDateQuery->whereNotNull($table . '.' . $shiftCol)
                     ->distinct()
                     ->pluck($table . '.' . $shiftCol)
                     ->map(fn($s) => (string)$s)

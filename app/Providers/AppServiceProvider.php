@@ -72,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
                                   ->with(['children' => function($sq) {
                                       $sq->where('is_active', true)
                                          ->with(['children' => function($ssq) {
-                                             $ssq->where('is_active', true)->orderBy('order');
+                                             $ssq->where('is_active', true)->with('children')->orderBy('order');
                                          }])->orderBy('order');
                                   }])->orderBy('order');
                             }])
@@ -113,6 +113,7 @@ class AppServiceProvider extends ServiceProvider
                                              ->where(function($sssq) use ($permissionCheck) {
                                                  $permissionCheck($sssq);
                                              })
+                                             ->with('children')
                                              ->orderBy('order');
                                      }])
                                      ->orderBy('order');
