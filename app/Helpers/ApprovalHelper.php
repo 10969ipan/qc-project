@@ -467,13 +467,8 @@ class ApprovalHelper
             ];
         }
 
-        $plantKey = $filters['plant'] ?? (is_object($user) ? ($user->plant_id ?? 'all') : 'all');
-        $dateKey = $filters['start_date'] ?? ($filters['end_date'] ?? ($filters['date'] ?? ($filters['target_date'] ?? ($filters['item_date'] ?? 'today'))));
-        $cacheKey = "sampling_quota_" . md5($modelClass . '_' . $role . '_' . $plantKey . '_' . $dateKey . '_' . ($filters['shift'] ?? ''));
-
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($modelClass, $user, $role, $filters) {
-            return self::calculateSamplingQuotaStatus($modelClass, $user, $role, $filters);
-        });
+        // ponytail: no cache — quota must reflect approvals instantly; query is ~12ms with targetDate set.
+        return self::calculateSamplingQuotaStatus($modelClass, $user, $role, $filters);
     }
 
     /**
