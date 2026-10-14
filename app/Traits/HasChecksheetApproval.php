@@ -441,12 +441,19 @@ trait HasChecksheetApproval
             // Apply plant filter if provided
             if ($request->filled('plant')) {
                 $plantValue = $request->input('plant');
-                $query->where(function ($q) use ($plantValue) {
-                    $q->where('plant_id', $plantValue)
-                        ->orWhereHas('plant', function ($pq) use ($plantValue) {
-                            $pq->where('code', $plantValue);
-                        });
+                $resolvedPlantId = \App\Models\Plant::resolveId($plantValue);
+                $query->where(function ($q) use ($plantValue, $resolvedPlantId) {
+                    if ($resolvedPlantId) {
+                        $q->where('plant_id', $resolvedPlantId);
+                    } else {
+                        $q->where('plant_id', $plantValue)
+                            ->orWhereHas('plant', function ($pq) use ($plantValue) {
+                                $pq->where('code', $plantValue);
+                            });
+                    }
                 });
+            } elseif ($user->role !== 'admin' && !empty($user->plant_id)) {
+                $query->where('plant_id', $user->plant_id);
             }
 
             // Filter by IDs or date range & active filters
@@ -498,6 +505,18 @@ trait HasChecksheetApproval
                     }
                 }
 
+                if ($request->filled('tujuan')) {
+                    if (Schema::hasColumn($table, 'tujuan')) {
+                        $query->where("{$table}.tujuan", $request->input('tujuan'));
+                    }
+                }
+
+                if ($request->filled('code_machine')) {
+                    if (Schema::hasColumn($table, 'code_machine')) {
+                        $query->where("{$table}.code_machine", $request->input('code_machine'));
+                    }
+                }
+
                 if ($request->filled('item_id')) {
                     if (Schema::hasColumn($table, 'item_id')) {
                         $query->where("{$table}.item_id", $request->input('item_id'));
@@ -530,7 +549,14 @@ trait HasChecksheetApproval
                         $q->where("{$table}.entry_method", 'regular')
                           ->orWhereNull("{$table}.entry_method");
                     });
-                } elseif (Schema::hasColumn($table, 'qrcode_verifikasi')) {
+                }
+                if (Schema::hasColumn($table, 'scan_method')) {
+                    $query->where(function ($q) use ($table) {
+                        $q->whereNull("{$table}.scan_method")
+                          ->orWhere("{$table}.scan_method", 'manual');
+                    });
+                }
+                if (Schema::hasColumn($table, 'qrcode_verifikasi')) {
                     $query->whereNull("{$table}.qrcode_verifikasi");
                 }
 

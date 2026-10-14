@@ -1,6 +1,6 @@
 {{-- Bulk Approve Button --}}
 @php
-    $hasFilter = request('start_date') || request('end_date') || request('start_tgl_datang') || request('end_tgl_datang') || request('supplier') || request('approval_status') || request('judgment') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id');
+    $hasFilter = request('start_date') || request('end_date') || request('start_tgl_datang') || request('end_tgl_datang') || request('supplier') || request('approval_status') || request('judgment') || request('result_judgment') || request('search') || request('customer_name') || request('customer') || request('category') || request('shift') || request('operator_initials') || request('item_id') || request('tujuan') || request('code_machine') || request('approval_method');
 
     $itemsToCheck = isset($checksheets) ? $checksheets : (isset($reports) ? $reports : null);
     $hasPendingApproval = false;

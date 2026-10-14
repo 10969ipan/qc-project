@@ -35,9 +35,24 @@
                     operatorInitials = $('#filterInisial').val() || '';
                 }
 
+                var tujuan = '{{ request("tujuan", "") }}';
+                if (tujuan === '' && $('#filterTujuan').length) {
+                    tujuan = $('#filterTujuan').val() || '';
+                }
+
+                var codeMachine = '{{ request("code_machine", "") }}';
+                if (codeMachine === '' && $('#filterMachine').length) {
+                    codeMachine = $('#filterMachine').val() || '';
+                }
+
+                var approvalMethod = '{{ request("approval_method", "") }}';
+                if (approvalMethod === '' && $('#filterApprovalMethod').length) {
+                    approvalMethod = $('#filterApprovalMethod').val() || '';
+                }
+
                 var startTglDatang = '{{ request("start_tgl_datang", "") }}';
                 var endTglDatang = '{{ request("end_tgl_datang", "") }}';
-                var plant = '{{ request("plant", "") }}';
+                var plant = '{{ request("plant", "") }}' || ($('input[name="plant"]').length ? $('input[name="plant"]').val() : '');
                 var resultJudgment = '{{ request("result_judgment", request("judgment", "")) }}';
                 var search = '{{ request("search", "") }}' || ($('#filterSearch').length ? $('#filterSearch').val() : '');
                 var customerName = '{{ request("customer_name", request("customer", "")) }}' || ($('#filterCustomerName').length ? $('#filterCustomerName').val() : ($('#filterCustomer').length ? $('#filterCustomer').val() : ''));
@@ -45,12 +60,11 @@
                 var approvalStatus = '{{ request("approval_status", "") }}';
                 var category = '{{ request("category", "") }}' || ($('#filterCategory').length ? $('#filterCategory').val() : '');
                 var itemId = '{{ request("item_id", "") }}' || ($('#filterItem').length ? $('#filterItem').val() : '');
+                var viewMode = '{{ request("view_mode", "") }}' || ($('input[name="view_mode"]').length ? $('input[name="view_mode"]').val() : '');
                 var userRole = '{{ auth()->user()->role }}';
 
-                var hasOtherFilter = Boolean(customerName || supplier || search || category || itemId || operatorInitials || shift || resultJudgment || approvalStatus || startTglDatang || endTglDatang);
-
-                // Fallback to active screen items date ONLY if no date and no other filters were specified at all
-                if (!startDate && !hasOtherFilter && defaultItemDate) {
+                // Fallback to active screen items date if no date was specified to prevent open-ended queries across entire history
+                if (!startDate && defaultItemDate) {
                     startDate = defaultItemDate;
                     endDate = defaultItemDate;
                 }
@@ -82,7 +96,7 @@
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, result.value, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, result.value, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate, tujuan, codeMachine, approvalMethod, viewMode);
                         }
                     });
                 } else {
@@ -93,6 +107,8 @@
                             '<ul class="mb-3" style="font-size: 0.88rem;">' +
                             (startDate ? '<li><strong>Rentang Tanggal:</strong> ' + startDate + (endDate && endDate !== startDate ? ' s/d ' + endDate : '') + '</li>' : '') +
                             (shift ? '<li><strong>Shift:</strong> Shift ' + shift + '</li>' : '<li><strong>Shift:</strong> Semua Shift</li>') +
+                            (tujuan ? '<li><strong>WIP / FG:</strong> ' + tujuan + '</li>' : '') +
+                            (codeMachine ? '<li><strong>Mesin:</strong> Mesin ' + codeMachine + '</li>' : '') +
                             (operatorInitials ? '<li><strong>Inisial Operator:</strong> ' + operatorInitials + '</li>' : '') +
                             (customerName ? '<li><strong>Customer:</strong> ' + customerName + '</li>' : '') +
                             (supplier ? '<li><strong>Supplier:</strong> ' + supplier + '</li>' : '') +
@@ -114,13 +130,13 @@
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate);
+                            doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate, tujuan, codeMachine, approvalMethod, viewMode);
                         }
                     });
                 }
             });
 
-            function doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate) {
+            function doBulkApprove(startDate, endDate, startTglDatang, endTglDatang, plant, approvalType, resultJudgment, search, customerName, supplier, approvalStatus, category, shift, operatorInitials, itemId, defaultItemDate, tujuan, codeMachine, approvalMethod, viewMode) {
                 // Show modal loading while fetching IDs
                 Swal.fire({
                     title: 'Menyiapkan Data...',
@@ -153,7 +169,10 @@
                     shift: shift || '',
                     operator_initials: operatorInitials || '',
                     item_id: itemId || '',
-                    approval_method: '{{ request("approval_method", "") }}',
+                    tujuan: tujuan || '',
+                    code_machine: codeMachine || '',
+                    view_mode: viewMode || '',
+                    approval_method: approvalMethod || '{{ request("approval_method", "") }}',
                     test_type: '{{ $testType ?? "thickness" }}',
                     is_trial: '{{ isset($isTrial) && $isTrial ? 1 : 0 }}'
                 };
