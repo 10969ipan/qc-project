@@ -143,21 +143,28 @@ trait HasChecksheetApproval
             }
 
             // Block approval of verification/QR data — only manual input can be approved
-            $table = $checksheet->getTable();
-            if (Schema::hasColumn($table, 'entry_method')) {
-                if (!in_array($checksheet->entry_method, ['regular', null, ''])) {
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
-                    }
-                    return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+            $entryMethod = $checksheet->getAttribute('entry_method');
+            if ($entryMethod !== null && !in_array($entryMethod, ['regular', ''])) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
                 }
-            } elseif (Schema::hasColumn($table, 'qrcode_verifikasi')) {
-                if (!empty($checksheet->qrcode_verifikasi)) {
-                    if ($request->ajax() || $request->wantsJson()) {
-                        return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
-                    }
-                    return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+                return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+            }
+
+            $scanMethod = $checksheet->getAttribute('scan_method');
+            if ($scanMethod !== null && !in_array($scanMethod, ['manual', ''])) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
                 }
+                return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+            }
+
+            $qrVerif = $checksheet->getAttribute('qrcode_verifikasi');
+            if (!empty($qrVerif)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
+                }
+                return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
             }
 
             if (!$this->validateSequentialApproval($checksheet, $type)) {
@@ -186,7 +193,7 @@ trait HasChecksheetApproval
             // Set global approval status if Supervisor approves (Standard logic)
             // Or usually Supervisor approval triggers 'Approved' status in simplified flow
             if ($type === 'supervisor' || $type === 'supervisor_plating') {
-                if (Schema::hasColumn($checksheet->getTable(), 'approval_status')) {
+                if (array_key_exists('approval_status', $checksheet->getAttributes()) || \App\Helpers\ApprovalHelper::tableHasColumn($checksheet->getTable(), 'approval_status')) {
                     $checksheet->approval_status = 'Approved';
                 }
             }

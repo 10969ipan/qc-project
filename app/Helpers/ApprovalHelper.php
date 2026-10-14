@@ -260,17 +260,17 @@ class ApprovalHelper
 
         // Determine date column
         $dateCol = 'date';
-        if (Schema::hasColumn($table, 'qc_datetime')) {
+        if (static::tableHasColumn($table, 'qc_datetime')) {
             $dateCol = 'qc_datetime';
-        } elseif (Schema::hasColumn($table, 'tanggal')) {
+        } elseif (static::tableHasColumn($table, 'tanggal')) {
             $dateCol = 'tanggal';
         }
 
         // Determine shift column
         $shiftCol = null;
-        if (Schema::hasColumn($table, 'shift')) {
+        if (static::tableHasColumn($table, 'shift')) {
             $shiftCol = 'shift';
-        } elseif (Schema::hasColumn($table, 'qc_shift')) {
+        } elseif (static::tableHasColumn($table, 'qc_shift')) {
             $shiftCol = 'qc_shift';
         }
 
@@ -292,11 +292,15 @@ class ApprovalHelper
             $query->where($table . '.id', '!=', $checksheet->id);
         }
 
-        if (!empty($checksheet->plant_id) && Schema::hasColumn($table, 'plant_id')) {
+        if (!empty($checksheet->plant_id) && static::tableHasColumn($table, 'plant_id')) {
             $query->where($table . '.plant_id', $checksheet->plant_id);
         }
 
-        $query->whereDate($table . '.' . $dateCol, $targetDate);
+        if ($dateCol === 'qc_datetime' || $dateCol === 'production_datetime') {
+            $query->whereBetween($table . '.' . $dateCol, [$targetDate . ' 00:00:00', $targetDate . ' 23:59:59']);
+        } else {
+            $query->where($table . '.' . $dateCol, $targetDate);
+        }
 
         // Filter shift if scope is shift and column exists
         if ($scope === 'shift' && $shiftCol) {
@@ -318,7 +322,8 @@ class ApprovalHelper
             $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
         }
 
-        if (Schema::hasColumn($table, 'approval_methods')) {
+        if (static::tableHasColumn($table, 'approval_methods')) {
+            $query->whereRaw("{$table}.approval_methods LIKE '%\"sampling\"%'");
             $query->where(function ($q) use ($roleKeys, $table) {
                 foreach ($roleKeys as $rk) {
                     $q->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
