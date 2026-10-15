@@ -45,9 +45,9 @@ class SettingsController extends Controller
         // Fetch general settings - use resilient query in case migration hasn't been run
         $query = \App\Models\GeneralSetting::query();
         if (\Illuminate\Support\Facades\Schema::hasColumn('general_settings', 'category')) {
-            $query->where('category', 'security')->orWhereIn('key', ['daily_approval_gate_enabled', 'fpa_categories']);
+            $query->where('category', 'security')->orWhereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools']);
         } else {
-            $query->whereIn('key', ['daily_approval_gate_enabled', 'fpa_categories']);
+            $query->whereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools']);
         }
         $generalSettings = $query->get()->keyBy('key');
 
@@ -546,7 +546,7 @@ class SettingsController extends Controller
         DB::beginTransaction();
         try {
             foreach ($settings as $key => $value) {
-                if ($key === 'fpa_categories' && is_string($value)) {
+                if (in_array($key, ['fpa_categories', 'measuring_tools']) && is_string($value)) {
                     $lines = preg_split('/\r\n|\r|\n|,/', $value);
                     $cleanLines = array_values(array_unique(array_filter(array_map('strtoupper', array_map('trim', $lines)))));
                     $value = implode("\n", $cleanLines);
@@ -841,7 +841,6 @@ class SettingsController extends Controller
             ], 500);
         }
     }
-}
 
     /**
      * Get active users matching an approval role/level.
@@ -858,3 +857,4 @@ class SettingsController extends Controller
             'users' => $users,
         ]);
     }
+}
