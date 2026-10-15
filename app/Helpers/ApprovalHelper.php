@@ -896,17 +896,32 @@ class ApprovalHelper
 
         $targetRoles = $roleMap[$roleNorm] ?? [$roleNorm];
 
-        $query = \App\Models\User::query()
+        // Manager and Asst Manager are corporate / cross-plant leadership
+        $isCrossPlantRole = in_array($roleNorm, [
+            'manager', 'manager_qc', 'manager_plating',
+            'asst_manager', 'asst_manager_qc', 'asst_manager_plating'
+        ]);
+
+        $baseQuery = \App\Models\User::query()
             ->whereIn('role', $targetRoles)
             ->where('is_active', 1);
 
-        if (!empty($plantId)) {
-            $query->where(function ($q) use ($plantId) {
+        if (!empty($plantId) && !$isCrossPlantRole) {
+            $plantUsers = (clone $baseQuery)->where(function ($q) use ($plantId) {
                 $q->where('plant_id', $plantId)->orWhereNull('plant_id');
-            });
+            })->select('id', 'name', 'role', 'plant_id', 'initials')
+              ->orderBy('name', 'asc')
+              ->get()
+              ->toArray();
+
+            // If users exist specifically for this plant, return them
+            if (!empty($plantUsers)) {
+                return $plantUsers;
+            }
         }
 
-        return $query->select('id', 'name', 'role', 'plant_id', 'initials')
+        // Return active users for this role across plants
+        return $baseQuery->select('id', 'name', 'role', 'plant_id', 'initials')
             ->orderBy('name', 'asc')
             ->get()
             ->toArray();

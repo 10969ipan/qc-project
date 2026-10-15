@@ -147,14 +147,12 @@
                         data: { role: selectedLevel, plant: plant },
                         success: function (res) {
                             var users = (res && res.users) ? res.users : [];
-                            if (users.length > 1) {
-                                // Step 2: Show user picker modal if multiple users exist
+                            if (users.length > 0) {
+                                // Step 2: Show user picker modal if users exist
                                 showUserSelectionModal(selectedLevel, selectedLevelLabel, users, filterContext);
                             } else {
-                                // Single user or none: Auto select and proceed to confirmation
-                                var chosenUserId = (users.length === 1) ? users[0].id : null;
-                                var chosenUserName = (users.length === 1) ? users[0].name : 'Administrator';
-                                showConfirmationModal(selectedLevel, selectedLevelLabel, chosenUserId, chosenUserName, null, filterContext);
+                                // No specific user found: Fallback to Administrator
+                                showConfirmationModal(selectedLevel, selectedLevelLabel, null, 'Administrator', null, filterContext);
                             }
                         },
                         error: function () {
@@ -170,16 +168,18 @@
         });
 
         /**
-         * Step 2: Modal to select user / shift assignment for roles with multiple users
+         * Step 2: Modal to select user / shift assignment for roles with users
          */
         function showUserSelectionModal(selectedLevel, selectedLevelLabel, users, filterContext) {
             var isKaruOrKashift = ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating'].indexOf(selectedLevel) !== -1;
 
-            var userOptionsHtml = '<option value="">-- Administrator (Akun Saya) --</option>';
-            users.forEach(function (u) {
+            var userOptionsHtml = '';
+            users.forEach(function (u, idx) {
                 var extra = u.initials ? ' (' + u.initials + ')' : '';
-                userOptionsHtml += '<option value="' + u.id + '">' + u.name + extra + '</option>';
+                var selected = (idx === 0) ? ' selected' : '';
+                userOptionsHtml += '<option value="' + u.id + '"' + selected + '>' + u.name + extra + '</option>';
             });
+            userOptionsHtml += '<option value="">-- Administrator (Akun Saya) --</option>';
 
             var shiftOptionsHtml1 = '<option value="">-- Pilih Approver Shift 1 --</option>' + userOptionsHtml;
             var shiftOptionsHtml2 = '<option value="">-- Pilih Approver Shift 2 --</option>' + userOptionsHtml;
