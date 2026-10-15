@@ -9,7 +9,7 @@
     <script>
         window.bulkApproveConfig = {
             bulkApproveRoute: '{{ $bulkApproveRoute ?? "" }}',
-            usersByRoleRoute: '{{ route("approvals.users_by_role") }}',
+            usersByRoleRoute: '{{ \Illuminate\Support\Facades\Route::has("approvals.users_by_role") ? route("approvals.users_by_role") : url("/approvals/users-by-role") }}',
             csrfToken: '{{ csrf_token() }}',
             userRole: '{{ $userRole }}',
             testType: '{{ $testType ?? "thickness" }}',
