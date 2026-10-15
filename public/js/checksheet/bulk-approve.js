@@ -5,6 +5,82 @@
 (function ($) {
     'use strict';
 
+    /**
+     * Helper to resolve relative safe URLs if domain in full URL mismatches current host
+     * Prevents CORS and DNS failures across different LAN IPs and hostnames.
+     */
+    function resolveSafeUrl(url) {
+        if (!url) return '';
+        try {
+            var parsed = new URL(url, window.location.origin);
+            if (parsed.host !== window.location.host) {
+                return parsed.pathname + parsed.search;
+            }
+            return url;
+        } catch (e) {
+            return url;
+        }
+    }
+
+    /**
+     * Resolves matching approvers locally from preloaded config
+     * Ensures instant modal without network latency or 404/CORS failure.
+     */
+    function getApproversForLevel(selectedLevel, plantCodeOrId, cfg) {
+        var approvers = cfg.approvers;
+        if (!Array.isArray(approvers) || approvers.length === 0) {
+            return null; // Not preloaded, trigger AJAX fallback
+        }
+
+        var roleMap = {
+            'karu_qc': ['karu_qc', 'kashift', 'kashift_qc'],
+            'kashift': ['kashift', 'karu_qc', 'kashift_qc'],
+            'kashift_qc': ['kashift_qc', 'karu_qc', 'kashift'],
+            'kashift_plating': ['kashift_plating', 'karu_qc', 'kashift'],
+            'supervisor': ['supervisor', 'supervisor_qc'],
+            'supervisor_qc': ['supervisor_qc', 'supervisor'],
+            'supervisor_plating': ['supervisor_plating', 'supervisor'],
+            'asst_manager': ['asst_manager', 'asst_manager_qc'],
+            'asst_manager_qc': ['asst_manager_qc', 'asst_manager'],
+            'asst_manager_plating': ['asst_manager_plating', 'asst_manager'],
+            'manager': ['manager', 'manager_qc'],
+            'manager_qc': ['manager_qc', 'manager'],
+            'manager_plating': ['manager_plating', 'manager']
+        };
+
+        var targetRoles = roleMap[selectedLevel] || [selectedLevel];
+        var isCrossPlantRole = ['asst_manager', 'asst_manager_qc', 'asst_manager_plating', 'manager', 'manager_qc', 'manager_plating'].indexOf(selectedLevel) !== -1;
+
+        // Filter users whose role matches target roles
+        var matched = approvers.filter(function (u) {
+            return targetRoles.indexOf(u.role) !== -1;
+        });
+
+        if (!matched.length) return [];
+
+        // Managers and Asst Managers supervise across plants
+        if (isCrossPlantRole || !plantCodeOrId) {
+            return matched;
+        }
+
+        // Resolve plant ID if plantCodeOrId is code/name
+        var targetPlantId = plantCodeOrId;
+        if (cfg.plantList && Array.isArray(cfg.plantList)) {
+            var pFound = cfg.plantList.find(function (p) {
+                return (p.code && p.code.toLowerCase() === String(plantCodeOrId).toLowerCase()) ||
+                       (p.name && p.name.toLowerCase() === String(plantCodeOrId).toLowerCase()) ||
+                       p.id === plantCodeOrId;
+            });
+            if (pFound) targetPlantId = pFound.id;
+        }
+
+        var plantUsers = matched.filter(function (u) {
+            return u.plant_id === targetPlantId || !u.plant_id;
+        });
+
+        return plantUsers.length > 0 ? plantUsers : matched;
+    }
+
     $(document).ready(function () {
         $(document).off('click', '#btnBulkApprove').on('click', '#btnBulkApprove', function (e) {
             e.preventDefault();
@@ -130,7 +206,18 @@
                     var selectedLevel = result.value;
                     var selectedLevelLabel = levelOptions[selectedLevel] || selectedLevel;
 
-                    // Loading indicator while checking users for this role
+                    // 1. Try resolving approvers from preloaded config (Zero-Network, Bulletproof for Production)
+                    var localUsers = getApproversForLevel(selectedLevel, plant, cfg);
+                    if (localUsers !== null) {
+                        if (localUsers.length > 0) {
+                            showUserSelectionModal(selectedLevel, selectedLevelLabel, localUsers, filterContext);
+                        } else {
+                            showConfirmationModal(selectedLevel, selectedLevelLabel, null, 'Administrator', null, filterContext);
+                        }
+                        return;
+                    }
+
+                    // 2. Fallback to AJAX if approvers were not preloaded
                     Swal.fire({
                         title: 'Memeriksa Pengguna...',
                         html: '<div class="small text-muted mb-2">Mengambil data approver aktif untuk ' + selectedLevelLabel + '...</div>',
@@ -140,23 +227,20 @@
                         }
                     });
 
-                    // Fetch users for this role
                     $.ajax({
-                        url: usersByRoleRoute,
+                        url: resolveSafeUrl(usersByRoleRoute),
                         type: 'GET',
                         data: { role: selectedLevel, plant: plant },
                         success: function (res) {
                             var users = (res && res.users) ? res.users : [];
                             if (users.length > 0) {
-                                // Step 2: Show user picker modal if users exist
                                 showUserSelectionModal(selectedLevel, selectedLevelLabel, users, filterContext);
                             } else {
-                                // No specific user found: Fallback to Administrator
                                 showConfirmationModal(selectedLevel, selectedLevelLabel, null, 'Administrator', null, filterContext);
                             }
                         },
-                        error: function () {
-                            // Fallback to Administrator if lookup fails
+                        error: function (xhr, status, error) {
+                            console.error('Failed to fetch users by role:', status, error);
                             showConfirmationModal(selectedLevel, selectedLevelLabel, null, 'Administrator', null, filterContext);
                         }
                     });
@@ -385,7 +469,7 @@
 
             // Step 1: Fetch IDs & sampling allocation
             $.ajax({
-                url: filterContext.bulkApproveRoute,
+                url: resolveSafeUrl(filterContext.bulkApproveRoute),
                 type: 'POST',
                 data: $.extend({}, baseData, { get_ids: 1 }),
                 success: function (res) {
@@ -490,7 +574,7 @@
                         });
 
                         $.ajax({
-                            url: filterContext.bulkApproveRoute,
+                            url: resolveSafeUrl(filterContext.bulkApproveRoute),
                             type: 'POST',
                             data: postData,
                             success: function (batchRes) {

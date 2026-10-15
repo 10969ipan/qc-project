@@ -903,8 +903,13 @@ class ApprovalHelper
         ]);
 
         $baseQuery = \App\Models\User::query()
-            ->whereIn('role', $targetRoles)
-            ->where('is_active', 1);
+            ->whereIn('role', $targetRoles);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'is_active')) {
+            $baseQuery->where(function ($q) {
+                $q->where('is_active', 1)->orWhereNull('is_active');
+            });
+        }
 
         if (!empty($plantId) && !$isCrossPlantRole) {
             $plantUsers = (clone $baseQuery)->where(function ($q) use ($plantId) {
