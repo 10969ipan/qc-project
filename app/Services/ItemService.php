@@ -78,13 +78,21 @@ class ItemService extends BaseService
         DB::beginTransaction();
         try {
             // Pre-validate uniqueness in DB to avoid moving files if SQL insert will fail
-            if (!empty($data['sap_code'])) {
+            if (!empty($data['sap_code']) && $data['sap_code'] !== '-') {
                 $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id);
-                if (Item::where('sap_code', $data['sap_code'])
+                $partNumber = $data['part_number'] ?? null;
+                $query = Item::where('sap_code', $data['sap_code'])
                     ->where('plant_id', $plantId)
-                    ->where('category_id', $data['category_id'])
-                    ->exists()) {
-                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
+                    ->where('category_id', $data['category_id']);
+                if (!empty($partNumber) && $partNumber !== '-') {
+                    $query->where('part_number', $partNumber);
+                } else {
+                    $query->where(function ($q) {
+                        $q->whereNull('part_number')->orWhere('part_number', '')->orWhere('part_number', '-');
+                    });
+                }
+                if ($query->exists()) {
+                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for part number '{$partNumber}'");
                 }
             }
 
@@ -145,15 +153,23 @@ class ItemService extends BaseService
         DB::beginTransaction();
         try {
             // Pre-validate uniqueness in DB to avoid moving files if SQL update will fail
-            if (!empty($data['sap_code'])) {
+            if (!empty($data['sap_code']) && $data['sap_code'] !== '-') {
                 $itemCurrent = Item::find($id);
                 $plantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? ($itemCurrent ? $itemCurrent->plant_id : auth()->user()->plant_id));
-                if (Item::where('sap_code', $data['sap_code'])
+                $partNumber = $data['part_number'] ?? ($itemCurrent ? $itemCurrent->part_number : null);
+                $query = Item::where('sap_code', $data['sap_code'])
                     ->where('plant_id', $plantId)
                     ->where('category_id', $data['category_id'])
-                    ->where('id', '!=', $id)
-                    ->exists()) {
-                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for key 'items.items_sap_code_unique'");
+                    ->where('id', '!=', $id);
+                if (!empty($partNumber) && $partNumber !== '-') {
+                    $query->where('part_number', $partNumber);
+                } else {
+                    $query->where(function ($q) {
+                        $q->whereNull('part_number')->orWhere('part_number', '')->orWhere('part_number', '-');
+                    });
+                }
+                if ($query->exists()) {
+                    throw new \Exception("Duplicate entry '{$data['sap_code']}' for part number '{$partNumber}'");
                 }
             }
 
