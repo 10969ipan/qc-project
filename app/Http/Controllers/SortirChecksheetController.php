@@ -63,8 +63,15 @@ class SortirChecksheetController extends Controller
     protected function getApprovalMapping($type)
     {
         $mappings = [
+            'karu_qc' => ['field' => 'kashift_qc', 'time' => 'kashift_qc_time', 'label' => 'Kepala Regu'],
             'kashift' => ['field' => 'kashift_qc', 'time' => 'kashift_qc_time', 'label' => 'Kashift QC'],
+            'kashift_qc' => ['field' => 'kashift_qc', 'time' => 'kashift_qc_time', 'label' => 'Kashift QC'],
             'supervisor' => ['field' => 'supervisor_qc', 'time' => 'supervisor_qc_time', 'label' => 'Supervisor QC'],
+            'supervisor_qc' => ['field' => 'supervisor_qc', 'time' => 'supervisor_qc_time', 'label' => 'Supervisor QC'],
+            'asst_manager' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_qc_time', 'label' => 'Asst Manager QC'],
+            'asst_manager_qc' => ['field' => 'asst_manager_qc', 'time' => 'asst_manager_qc_time', 'label' => 'Asst Manager QC'],
+            'manager' => ['field' => 'manager_qc', 'time' => 'manager_qc_time', 'label' => 'Manager QC'],
+            'manager_qc' => ['field' => 'manager_qc', 'time' => 'manager_qc_time', 'label' => 'Manager QC'],
         ];
         return $mappings[$type] ?? null;
     }
