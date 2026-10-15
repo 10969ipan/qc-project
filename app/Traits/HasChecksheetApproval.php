@@ -696,10 +696,111 @@ trait HasChecksheetApproval
             $approvedCount = count($checksheetIds);
 
             if ($request->boolean('get_ids')) {
+                $samplingIds = [];
+                $bulkIds = [];
+
+                if ($user->role === 'admin' && $approvedCount > 0) {
+                    $quotaConfig = \App\Helpers\ApprovalHelper::getSamplingQuotaRequirement($type);
+                    $quota = (int) ($quotaConfig['quota'] ?? 1);
+                    $scope = $quotaConfig['scope'] ?? 'shift';
+
+                    $shiftCol = Schema::hasColumn($table, 'qc_shift') ? 'qc_shift' : (Schema::hasColumn($table, 'shift') ? 'shift' : null);
+
+                    $dateColName = $dateColumn ?? 'date';
+                    if (!Schema::hasColumn($table, $dateColName)) {
+                        if (Schema::hasColumn($table, 'qc_datetime')) {
+                            $dateColName = 'qc_datetime';
+                        } elseif (Schema::hasColumn($table, 'tanggal')) {
+                            $dateColName = 'tanggal';
+                        } elseif (Schema::hasColumn($table, 'tanggal_cek')) {
+                            $dateColName = 'tanggal_cek';
+                        }
+                    }
+
+                    $selectCols = ["{$table}.id"];
+                    if (Schema::hasColumn($table, $dateColName)) {
+                        $selectCols[] = "{$table}.{$dateColName} as group_date";
+                    }
+                    if ($shiftCol && Schema::hasColumn($table, $shiftCol)) {
+                        $selectCols[] = "{$table}.{$shiftCol} as group_shift";
+                    }
+
+                    $candidateRecords = (clone $query)->select($selectCols)->get();
+
+                    $grouped = [];
+                    foreach ($candidateRecords as $rec) {
+                        $gDate = !empty($rec->group_date) ? substr((string)$rec->group_date, 0, 10) : 'unknown';
+                        $gShift = ($scope === 'shift' && isset($rec->group_shift) && $rec->group_shift !== '') ? (string)$rec->group_shift : 'all';
+                        $groupKey = ($scope === 'shift') ? "{$gDate}_{$gShift}" : $gDate;
+
+                        $grouped[$groupKey][] = [
+                            'id' => $rec->id,
+                            'date' => $gDate,
+                            'shift' => $gShift,
+                        ];
+                    }
+
+                    // Alias role keys for checking existing sampling
+                    $roleKeys = [$type];
+                    if (in_array($type, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating'])) {
+                        $roleKeys = array_unique(array_merge($roleKeys, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating']));
+                    } elseif (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
+                        $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
+                    } elseif (in_array($type, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
+                        $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
+                    } elseif (in_array($type, ['manager', 'manager_qc', 'manager_plating'])) {
+                        $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
+                    }
+
+                    foreach ($grouped as $groupKey => $groupItems) {
+                        $itemIds = array_column($groupItems, 'id');
+                        $firstItem = $groupItems[0];
+                        $targetDate = $firstItem['date'];
+                        $targetShift = $firstItem['shift'];
+
+                        $existingCount = 0;
+                        if (Schema::hasColumn($table, 'approval_methods') && $targetDate !== 'unknown') {
+                            $existQ = $modelClass::withoutGlobalScopes();
+                            if ($request->filled('plant') && Schema::hasColumn($table, 'plant_id')) {
+                                $resolvedP = \App\Models\Plant::resolveId($request->input('plant'));
+                                if ($resolvedP) $existQ->where('plant_id', $resolvedP);
+                            }
+                            $existQ->whereDate("{$table}.{$dateColName}", $targetDate);
+                            if ($scope === 'shift' && $targetShift !== 'all' && $shiftCol) {
+                                $existQ->where("{$table}.{$shiftCol}", $targetShift);
+                            }
+                            $existQ->where(function ($eq) use ($roleKeys, $table) {
+                                foreach ($roleKeys as $rk) {
+                                    $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
+                                }
+                            });
+                            $existingCount = $existQ->count();
+                        }
+
+                        $needed = max(0, $quota - $existingCount);
+                        if ($needed > 0 && !empty($itemIds)) {
+                            $shuffled = collect($itemIds)->shuffle();
+                            $picked = $shuffled->take($needed)->all();
+                            $leftovers = $shuffled->slice($needed)->all();
+
+                            $samplingIds = array_merge($samplingIds, $picked);
+                            $bulkIds = array_merge($bulkIds, $leftovers);
+                        } else {
+                            $bulkIds = array_merge($bulkIds, $itemIds);
+                        }
+                    }
+                } else {
+                    $bulkIds = $checksheetIds;
+                }
+
                 DB::rollBack();
                 return response()->json([
                     'success' => true,
                     'ids' => $checksheetIds,
+                    'sampling_ids' => array_values($samplingIds),
+                    'bulk_ids' => array_values($bulkIds),
+                    'sampling_count' => count($samplingIds),
+                    'bulk_count' => count($bulkIds),
                     'total' => $approvedCount,
                 ]);
             }
@@ -710,30 +811,92 @@ trait HasChecksheetApproval
                 $now = now();
                 $lastTimeStr = $now->toDateTimeString();
 
-                $updateData = [
-                    $field => $user->name,
-                    $timeField => $now,
-                ];
-                
-                $dummyModel = new $modelClass();
-                $table = $dummyModel->getTable();
+                $shiftCol = Schema::hasColumn($table, 'qc_shift') ? 'qc_shift' : (Schema::hasColumn($table, 'shift') ? 'shift' : null);
 
-                // Set global approval status if Supervisor approves
-                if ($type === 'supervisor' || $type === 'supervisor_plating') {
-                    if (Schema::hasColumn($table, 'approval_status')) {
-                        $updateData['approval_status'] = 'Approved';
+                // Determine Approver Name
+                $approverName = $user->name;
+                if ($user->role === 'admin' && $request->filled('selected_user_id')) {
+                    $selUser = \App\Models\User::find($request->input('selected_user_id'));
+                    if ($selUser) {
+                        $approverName = $selUser->name;
                     }
                 }
 
-                // Clear rejection if it was rejected
-                if (Schema::hasColumn($table, 'rejection_remarks')) {
-                    $updateData['rejection_remarks'] = null;
+                $userByShift = $request->input('user_by_shift');
+                $isShiftMode = ($user->role === 'admin' && !empty($userByShift) && is_array($userByShift) && $shiftCol && Schema::hasColumn($table, $shiftCol));
+
+                $shiftApproverMap = [];
+                if ($isShiftMode) {
+                    $uids = array_unique(array_filter($userByShift));
+                    $foundUsers = \App\Models\User::whereIn('id', $uids)->pluck('name', 'id')->toArray();
+                    foreach ($userByShift as $sNum => $uId) {
+                        if (isset($foundUsers[$uId])) {
+                            $shiftApproverMap[(string)$sNum] = $foundUsers[$uId];
+                        }
+                    }
                 }
 
-                // Generic Actual Time & Mark as Bulk Approval
-                $updateData['approval_methods'] = DB::raw("JSON_SET(COALESCE({$table}.approval_methods, '{}'), '$.\"{$type}\"', 'bulk')");
+                $reqSamplingIds = (array) $request->input('sampling_ids', []);
+                $batchSampling = array_intersect($checksheetIds, $reqSamplingIds);
+                $batchBulk = array_diff($checksheetIds, $batchSampling);
 
-                $modelClass::whereIn('id', $checksheetIds)->update($updateData);
+                if ($isShiftMode) {
+                    $itemsShift = $modelClass::whereIn('id', $checksheetIds)->pluck($shiftCol, 'id')->toArray();
+                    foreach ($checksheetIds as $cid) {
+                        $cShift = (string)($itemsShift[$cid] ?? '');
+                        $rowApprover = $shiftApproverMap[$cShift] ?? $approverName;
+                        $methodType = in_array($cid, $batchSampling) ? 'sampling' : 'bulk';
+
+                        $upData = [
+                            $field => $rowApprover,
+                            $timeField => $now,
+                            'approval_methods' => DB::raw("JSON_SET(COALESCE({$table}.approval_methods, '{}'), '$.\"{$type}\"', '{$methodType}')"),
+                        ];
+                        if ($type === 'supervisor' || $type === 'supervisor_plating') {
+                            if (Schema::hasColumn($table, 'approval_status')) {
+                                $upData['approval_status'] = 'Approved';
+                            }
+                        }
+                        if (Schema::hasColumn($table, 'rejection_remarks')) {
+                            $upData['rejection_remarks'] = null;
+                        }
+                        $modelClass::where('id', $cid)->update($upData);
+                    }
+                } else {
+                    if (!empty($batchSampling)) {
+                        $samplingUpdate = [
+                            $field => $approverName,
+                            $timeField => $now,
+                            'approval_methods' => DB::raw("JSON_SET(COALESCE({$table}.approval_methods, '{}'), '$.\"{$type}\"', 'sampling')"),
+                        ];
+                        if ($type === 'supervisor' || $type === 'supervisor_plating') {
+                            if (Schema::hasColumn($table, 'approval_status')) {
+                                $samplingUpdate['approval_status'] = 'Approved';
+                            }
+                        }
+                        if (Schema::hasColumn($table, 'rejection_remarks')) {
+                            $samplingUpdate['rejection_remarks'] = null;
+                        }
+                        $modelClass::whereIn('id', $batchSampling)->update($samplingUpdate);
+                    }
+
+                    if (!empty($batchBulk)) {
+                        $bulkUpdate = [
+                            $field => $approverName,
+                            $timeField => $now,
+                            'approval_methods' => DB::raw("JSON_SET(COALESCE({$table}.approval_methods, '{}'), '$.\"{$type}\"', 'bulk')"),
+                        ];
+                        if ($type === 'supervisor' || $type === 'supervisor_plating') {
+                            if (Schema::hasColumn($table, 'approval_status')) {
+                                $bulkUpdate['approval_status'] = 'Approved';
+                            }
+                        }
+                        if (Schema::hasColumn($table, 'rejection_remarks')) {
+                            $bulkUpdate['rejection_remarks'] = null;
+                        }
+                        $modelClass::whereIn('id', $batchBulk)->update($bulkUpdate);
+                    }
+                }
             }
 
             if ($approvedCount > 0) {

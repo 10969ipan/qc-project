@@ -97,4 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('items/{id}/logs', [\App\Http\Controllers\ActivityLogController::class, 'getItemLogs'])->name('items.logs');
 
     Route::get('monthly-reports/{id}/pdf', [MonthlyReportController::class, 'servePdf'])->name('monthly_reports.pdf');
+
+    // Approvals: Fetch users by role for bulk approval assignment
+    Route::get('approvals/users-by-role', [\App\Http\Controllers\SettingsController::class, 'getUsersByRole'])->name('approvals.users_by_role');
 });

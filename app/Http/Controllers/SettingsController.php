@@ -842,3 +842,19 @@ class SettingsController extends Controller
         }
     }
 }
+
+    /**
+     * Get active users matching an approval role/level.
+     */
+    public function getUsersByRole(Request $request)
+    {
+        $role = $request->input('role', '');
+        $plant = $request->input('plant');
+        $plantId = !empty($plant) ? \App\Models\Plant::resolveId($plant) : null;
+        $users = \App\Helpers\ApprovalHelper::getUsersByRole($role, $plantId);
+
+        return response()->json([
+            'success' => true,
+            'users' => $users,
+        ]);
+    }

@@ -1690,6 +1690,12 @@ class StandardPerformanceTestController extends Controller
             $timeField = $mapping['time'];
             $user = auth()->user();
             $userName = $user->name ?? $user->username ?? 'User';
+            if ($user->role === 'admin' && $request->filled('selected_user_id')) {
+                $selUser = \App\Models\User::find($request->input('selected_user_id'));
+                if ($selUser) {
+                    $userName = $selUser->name;
+                }
+            }
 
             $isTrial = $request->boolean('is_trial', false);
             $testType = $request->input('test_type', 'thickness');
@@ -1811,13 +1817,51 @@ class StandardPerformanceTestController extends Controller
 
             // If get_ids mode, return list of pending IDs only
             if ($request->boolean('get_ids')) {
-                $pendingIds = $query->where(function($q) use ($field) {
+                $pendingIds = $query->where(function ($q) use ($field) {
                     $q->whereNull("durability_thickness_reports.{$field}")->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
                 })->pluck('durability_thickness_reports.id')->toArray();
+
+                $samplingIds = [];
+                $bulkIds = [];
+
+                if ($user->role === 'admin' && !empty($pendingIds)) {
+                    $cats = (clone $query)
+                        ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                        ->whereIn('durability_thickness_reports.id', $pendingIds)
+                        ->select('durability_thickness_reports.id', 'standard_performance_tests.category')
+                        ->get()
+                        ->groupBy('category');
+
+                    foreach ($cats as $catName => $recs) {
+                        $idsInCat = $recs->pluck('id')->toArray();
+                        $hasSampling = DurabilityThicknessReport::query()
+                            ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                            ->where('standard_performance_tests.category', $catName)
+                            ->where('durability_thickness_reports.is_trial', $isTrial)
+                            ->whereNotNull("durability_thickness_reports.{$field}")
+                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
+                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
+                            ->exists();
+
+                        if (!$hasSampling && !empty($idsInCat)) {
+                            $shuffled = collect($idsInCat)->shuffle();
+                            $samplingIds[] = $shuffled->first();
+                            $bulkIds = array_merge($bulkIds, $shuffled->slice(1)->all());
+                        } else {
+                            $bulkIds = array_merge($bulkIds, $idsInCat);
+                        }
+                    }
+                } else {
+                    $bulkIds = $pendingIds;
+                }
 
                 return response()->json([
                     'success' => true,
                     'ids' => $pendingIds,
+                    'sampling_ids' => array_values($samplingIds),
+                    'bulk_ids' => array_values($bulkIds),
+                    'sampling_count' => count($samplingIds),
+                    'bulk_count' => count($bulkIds),
                     'total' => count($pendingIds),
                 ]);
             }
@@ -1826,17 +1870,19 @@ class StandardPerformanceTestController extends Controller
                 $query->whereIn('durability_thickness_reports.id', $request->input('ids'));
             }
 
-            $reportsToApprove = $query->select('durability_thickness_reports.*')->where(function($q) use ($field) {
+            $reportsToApprove = $query->select('durability_thickness_reports.*')->where(function ($q) use ($field) {
                 $q->whereNull("durability_thickness_reports.{$field}")->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
             })->get();
 
+            $reqSamplingIds = (array) $request->input('sampling_ids', []);
             $now = now();
             $updatedCount = 0;
             foreach ($reportsToApprove as $rep) {
+                $methodType = in_array($rep->id, $reqSamplingIds) ? 'sampling' : 'bulk';
                 $rep->update([
                     $field => $userName,
                     $timeField => $now,
-                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'bulk')"),
+                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', '{$methodType}')"),
                 ]);
 
                 // Sync paired report (Data 1 / Data 2 Trial) if it also matches the result filter (and is not NG)
@@ -1847,12 +1893,12 @@ class StandardPerformanceTestController extends Controller
                 $judgmentFilter = $request->filled('result_judgment') ? $request->result_judgment : 'OK';
                 $this->applyResultJudgmentFilter($pairedQuery, $testType, $judgmentFilter);
 
-                $pairedQuery->where(function($q) use ($field) {
+                $pairedQuery->where(function ($q) use ($field) {
                     $q->whereNull($field)->orWhere($field, 'REJECTED');
                 })->update([
                     $field => $userName,
                     $timeField => $now,
-                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'bulk')"),
+                    'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', '{$methodType}')"),
                 ]);
                 $updatedCount++;
             }

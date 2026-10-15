@@ -870,6 +870,47 @@ class ApprovalHelper
 
         return '<span class="badge badge-warning text-dark px-2 py-1"><i class="fas fa-clock mr-1"></i> PENDING</span>';
     }
+
+    /**
+     * Get active users matching an approval role/level.
+     */
+    public static function getUsersByRole(string $role, $plantId = null): array
+    {
+        $roleNorm = strtolower(trim($role));
+
+        $roleMap = [
+            'karu_qc' => ['karu_qc', 'kashift', 'kashift_qc'],
+            'kashift' => ['kashift', 'karu_qc', 'kashift_qc'],
+            'kashift_qc' => ['kashift_qc', 'karu_qc', 'kashift'],
+            'kashift_plating' => ['kashift_plating', 'karu_qc', 'kashift'],
+            'supervisor' => ['supervisor', 'supervisor_qc'],
+            'supervisor_qc' => ['supervisor_qc', 'supervisor'],
+            'supervisor_plating' => ['supervisor_plating', 'supervisor'],
+            'asst_manager' => ['asst_manager', 'asst_manager_qc'],
+            'asst_manager_qc' => ['asst_manager_qc', 'asst_manager'],
+            'asst_manager_plating' => ['asst_manager_plating', 'asst_manager'],
+            'manager' => ['manager', 'manager_qc'],
+            'manager_qc' => ['manager_qc', 'manager'],
+            'manager_plating' => ['manager_plating', 'manager'],
+        ];
+
+        $targetRoles = $roleMap[$roleNorm] ?? [$roleNorm];
+
+        $query = \App\Models\User::query()
+            ->whereIn('role', $targetRoles)
+            ->where('is_active', 1);
+
+        if (!empty($plantId)) {
+            $query->where(function ($q) use ($plantId) {
+                $q->where('plant_id', $plantId)->orWhereNull('plant_id');
+            });
+        }
+
+        return $query->select('id', 'name', 'role', 'plant_id', 'initials')
+            ->orderBy('name', 'asc')
+            ->get()
+            ->toArray();
+    }
 }
 }
 
