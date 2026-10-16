@@ -13,6 +13,10 @@ Fitur-fitur utama di modul ini:
 - **Mode Scan QR Code & Manual**: Bisa input barang manual atau scan QR code/barcode label barang secara otomatis.
 - **Kolom Qty Gabungan**: Total Qty dan Sampling Qty digabung dalam 1 box input & 1 kolom tabel (`Total / Sampling Pcs`).
 - **Pemeriksaan Dimensi & Berat Part**: Validasi otomatis batas toleransi ukuran per cavity/point dan pengukuran berat part (AHM).
+- **Integrasi Otomatis Alat Ukur Master Part**: Header tabel dimensi otomatis memunculkan nama alat ukur (Caliper, Thickness Gauge, dll.) sesuai yang diatur pada Master Item.
+- **Fleksibilitas Tombol Cavity & Point**: Tombol manual **+ Cavity**, **- Cavity**, **+ Point**, dan **- Point** tetap aktif dan dapat dimanipulasi bebas meskipun kolom dimensi sudah otomatis mengikuti master data.
+- **Dynamic Fallback Data Lama (Zero N+1 Query)**: Data checksheet lama yang kolom `alat_ukur`-nya masih kosong otomatis mewarisi alat ukur dari Master Item yang bersangkutan di halaman index.
+- **Modal Reusable Detail Alat Ukur**: Jika terdapat lebih dari 2 jenis alat ukur dalam 1 checksheet, tabel index menampilkan ringkasan padat dan tombol pop-up modal (`#modalDetailAlatUkur`).
 - **Segmented Control Tipe Check**: Pilihan antara *Sampling (AQL 0.65)* atau *Fullcheck 100%*.
 - **Optimalisasi 6 Pilar Blueprint**: Response halaman index super kenceng (**< 28 ms**) karena filter dropdown di-cache per plant, Eager Loading relasi, Pre-computation controller, dan Permission Memory Cache.
 - **Instant Delete & Bulk Approval**: Hapus data via AJAX (**< 20 ms**) dan dukungan alias role approval seragam (`supervisor_qc`, `asst_manager_qc`, `karu_qc`, `kashift_qc`, `manager_qc`).
@@ -66,6 +70,7 @@ Ini skema kolom yang ada di database tabel `in_process_checksheets`:
 | `total_ng` | `int` | Yes | Jumlah barang NG (Default: 0) |
 | `judgment` | `enum('OK','NG')` | No | Keputusan akhir (`OK` / `NG`) |
 | `dimension_check` | `json` | Yes | Data pengukuran dimensi (Cavity & Point) |
+| `alat_ukur` | `text` | Yes | Pemetaan JSON alat ukur per point (contoh: `{"1":"CALIPER","2":"THICKNESS GAUGE"}`) |
 | `part_weight` | `json` | Yes | Data pengukuran berat part per cavity |
 | `defects` | `json` | Yes | Detail defect (JSON) |
 | `approval_status` | `varchar` | Yes | Status approval (`Pending`/`Approved`/`Rejected`) |
@@ -158,6 +163,55 @@ public function bulkApprove(Request $request)
 
     // Sub-query matching role alias (supervisor_qc, asst_manager_qc, karu_qc, manager_qc)
 }
+```
+
+### 5. Integrasi Alat Ukur Dinamis & Fallback Otomatis
+Form create dan edit secara otomatis membaca alat ukur dari master item per point. Tombol manual **+ Cavity**, **- Cavity**, **+ Point**, dan **- Point** tetap dapat digunakan bebas.
+
+Contoh Kode Fallback Accessor Model (`app/Models/InProcessChecksheet.php`):
+```php
+public function getAlatUkurArrayAttribute()
+{
+    // 1. Jika data checksheet sudah memiliki data alat_ukur (data baru / pernah diedit)
+    if (!empty($this->alat_ukur)) {
+        if (is_array($this->alat_ukur)) return $this->alat_ukur;
+        $decoded = json_decode($this->alat_ukur, true);
+        if (is_array($decoded)) return $decoded;
+        return ['1' => (string) $this->alat_ukur];
+    }
+
+    // 2. Dynamic Fallback: Jika data lama, ambil langsung dari Master Item (0 Query Tambahan)
+    if ($this->relationLoaded('item') && $this->item && !empty($this->item->dimension_standards)) {
+        $standards = is_string($this->item->dimension_standards) 
+            ? json_decode($this->item->dimension_standards, true) 
+            : $this->item->dimension_standards;
+            
+        if (is_array($standards)) {
+            $tools = [];
+            foreach ($standards as $index => $std) {
+                if (is_array($std) && !empty($std['alat_ukur'])) {
+                    $pt = !empty($std['point']) ? (int) $std['point'] : ($index + 1);
+                    $tools[(string) $pt] = trim((string) $std['alat_ukur']);
+                }
+            }
+            if (!empty($tools)) return $tools;
+        }
+    }
+
+    return [];
+}
+```
+
+Contoh Kode Event Modal Detail Alat Ukur (`public/js/checksheet/in-process-index.js`):
+```javascript
+// Render tabel detail alat ukur di dalam modal reusable #modalDetailAlatUkur
+$(document).on('click', '.btn-detail-alat-ukur', function (e) {
+    e.preventDefault();
+    const tools = $(this).data('tools');
+    $('#alatUkurModalSubtitle').text($(this).data('item') + ' (' + $(this).data('part-number') + ')');
+    // Render list point dan alat ukur ke #alatUkurModalTableBody...
+    $('#modalDetailAlatUkur').modal('show');
+});
 ```
 
 ---
@@ -256,5 +310,5 @@ node -c public/js/checksheet/in-process.js
 ```
 
 ---
-*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 14 September 2026.*
+*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 16 Oktober 2026.*
 
