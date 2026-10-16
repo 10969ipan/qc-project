@@ -73,17 +73,39 @@ class FirstPieceApproval extends Model
 
     public function getAlatUkurArrayAttribute()
     {
-        if (empty($this->alat_ukur)) {
-            return [];
+        if (!empty($this->alat_ukur)) {
+            if (is_array($this->alat_ukur)) {
+                return $this->alat_ukur;
+            }
+            $decoded = json_decode($this->alat_ukur, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+            return ['1' => (string) $this->alat_ukur];
         }
-        if (is_array($this->alat_ukur)) {
-            return $this->alat_ukur;
+
+        // Fallback: Jika data checksheet lama belum memiliki alat_ukur,
+        // ambil secara dinamis dari dimension_standards Master Item terkait
+        if ($this->relationLoaded('item') && $this->item && !empty($this->item->dimension_standards)) {
+            $standards = $this->item->dimension_standards;
+            if (is_string($standards)) {
+                $standards = json_decode($standards, true);
+            }
+            if (is_array($standards)) {
+                $tools = [];
+                foreach ($standards as $index => $std) {
+                    if (is_array($std) && !empty($std['alat_ukur'])) {
+                        $pt = !empty($std['point']) ? (int) $std['point'] : ($index + 1);
+                        $tools[(string) $pt] = trim((string) $std['alat_ukur']);
+                    }
+                }
+                if (!empty($tools)) {
+                    return $tools;
+                }
+            }
         }
-        $decoded = json_decode($this->alat_ukur, true);
-        if (is_array($decoded)) {
-            return $decoded;
-        }
-        return ['1' => (string) $this->alat_ukur];
+
+        return [];
     }
 
     public function getAlatUkurFormattedAttribute()
