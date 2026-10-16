@@ -492,12 +492,14 @@ class ItemService extends BaseService
         $dimensionStandards = [];
         foreach ($data['dimension_points'] as $key => $point) {
             if (!empty($point)) {
+                $alatUkur = !empty($data['dimension_alat_ukur'][$key]) ? trim((string)$data['dimension_alat_ukur'][$key]) : null;
                 $dimensionStandards[] = [
                     'point' => $point,
                     'size' => $data['dimension_sizes'][$key] ?? null,
                     'tolerance' => $data['dimension_tolerances'][$key] ?? null,
                     'min' => $data['dimension_mins'][$key] ?? null,
                     'max' => $data['dimension_maxs'][$key] ?? null,
+                    'alat_ukur' => $alatUkur,
                 ];
             }
         }

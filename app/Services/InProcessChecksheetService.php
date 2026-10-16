@@ -67,8 +67,9 @@ class InProcessChecksheetService extends BaseService
                 foreach ($item->dimension_standards as $index => $std) {
                     $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
                     $hasMinMax = (isset($std['min']) && $std['min'] !== '') || (isset($std['max']) && $std['max'] !== '');
+                    $hasTool = !empty($std['alat_ukur']);
 
-                    if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
+                    if (is_array($std) && ($hasSizeTol || $hasMinMax || $hasTool)) {
                         $pointKey = (string) ($index + 1);
 
                         // Flexible conversion that preserves +/- operators and asymmetric tolerances
@@ -89,6 +90,7 @@ class InProcessChecksheetService extends BaseService
                             'tolerance' => $processValue($std['tolerance'] ?? null),
                             'min' => $processValue($std['min'] ?? null),
                             'max' => $processValue($std['max'] ?? null),
+                            'alat_ukur' => !empty($std['alat_ukur']) ? trim((string)$std['alat_ukur']) : null,
                         ];
                     }
                 }
@@ -678,6 +680,7 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? null,
                 'dimension_check' => $dimensionCheck,
+                'alat_ukur' => $this->formatAlatUkurPayload($data['alat_ukur'] ?? null),
                 'cycle_time' => $cycleTime,
                 'defects' => json_encode($defects),
                 'part_weight' => $data['part_weight'] ?? null,
@@ -798,6 +801,7 @@ class InProcessChecksheetService extends BaseService
                 'operator_initials' => $data['operator_initials'] ?? null,
                 'remarks' => $data['remarks'] ?? $data['description'] ?? null,
                 'dimension_check' => $dimensionCheck,
+                'alat_ukur' => array_key_exists('alat_ukur', $data) ? $this->formatAlatUkurPayload($data['alat_ukur']) : $checksheet->alat_ukur,
                 'defects' => $defects,
                 'part_weight' => $data['part_weight'] ?? null,
                 'next_proses' => ($data['judgment'] === 'NG') 

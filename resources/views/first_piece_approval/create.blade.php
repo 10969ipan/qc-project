@@ -63,50 +63,146 @@
     }
 
     /* ─── Inner Dimension Table ─── */
+    .dimension-table,
     #dimensionTable,
     #checksheetTable .table-sm {
-        border-collapse: collapse !important;
-        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
         margin: 0 !important;
         background: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        width: 100% !important;
     }
+    .dimension-table td,
+    .dimension-table th,
     #dimensionTable td,
     #dimensionTable th {
-        background-color: transparent !important;
-        border: 1px solid #e2e8f0 !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
+        border-left: none !important;
         padding: 4px 6px !important;
         text-align: center !important;
-        font-size: 0.68rem !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
     }
+    .dimension-table th:last-child,
+    .dimension-table td:last-child,
+    #dimensionTable th:last-child,
+    #dimensionTable td:last-child {
+        border-right: none !important;
+    }
+    .dimension-table tr:last-child td,
+    #dimensionTable tr:last-child td {
+        border-bottom: none !important;
+    }
+    .dimension-table th:first-child,
+    .dimension-table td:first-child,
+    #dimensionTable th:first-child,
+    #dimensionTable td:first-child {
+        min-width: 65px !important;
+        width: 65px !important;
+    }
+    .dimension-table .point-header,
+    .dimension-table .point-cell,
+    #dimensionTable .point-header,
+    #dimensionTable .point-cell {
+        min-width: 65px !important;
+    }
+    .dimension-table thead th,
     #dimensionTable thead th {
-        background-color: #f1f5f9 !important;
-        color: #475569 !important;
+        background-color: #ffffff !important;
+        color: #334155 !important;
         font-weight: 700 !important;
         text-transform: uppercase !important;
-        font-size: 0.58rem !important;
-        border-bottom: 2px solid #cbd5e1 !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.2px;
+        border-bottom: 1px solid #cbd5e1 !important;
         position: sticky;
         top: 0;
         z-index: 2;
     }
+    .dimension-table thead th:first-child,
+    #dimensionTable thead th:first-child {
+        background-color: #ffffff !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 0.7rem !important;
+    }
+    .dimension-table tbody td,
     #dimensionTable tbody td {
-        color: #1e293b !important;
-        font-size: 0.65rem !important;
+        color: #334155 !important;
+        font-size: 0.72rem !important;
+        background-color: #ffffff !important;
     }
+    .dimension-table tbody td:first-child,
+    #dimensionTable tbody td:first-child {
+        background-color: #ffffff !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+        font-size: 0.72rem !important;
+    }
+    .dimension-table .dimension-input,
     #dimensionTable .dimension-input {
-        font-size: 0.68rem !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 4px !important;
-        background: #f8fafc !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        color: #1e293b !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        background: #ffffff !important;
         text-align: center;
-        padding: 2px 4px !important;
-        min-width: 55px;
+        padding: 3px 5px !important;
+        width: 100%;
+        min-width: 45px;
     }
+    .dimension-table .dimension-input::placeholder,
+    #dimensionTable .dimension-input::placeholder {
+        color: #94a3b8 !important;
+        font-weight: 500;
+        font-size: 0.75rem !important;
+        opacity: 0.85;
+    }
+    .dimension-table .dimension-input:focus,
     #dimensionTable .dimension-input:focus {
         border-color: #6366f1 !important;
         background: #fff !important;
         box-shadow: 0 0 0 2px rgba(99,102,241,0.1) !important;
+    }
+    .dimension-table .dimension-input.is-invalid,
+    #dimensionTable .dimension-input.is-invalid {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+        color: #dc2626 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+        animation: ngPulse 1.2s infinite ease-in-out;
+    }
+    .dimension-table .dimension-input.is-valid,
+    #dimensionTable .dimension-input.is-valid {
+        border-color: #22c55e !important;
+        background-color: #f0fdf4 !important;
+        color: #15803d !important;
+    }
+
+    @keyframes ngPulse {
+        0% {
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+            transform: scale(1);
+        }
+        50% {
+            background-color: #fee2e2;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+            transform: scale(1.02);
+        }
+        100% {
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+            transform: scale(1);
+        }
     }
 
     /* ─── OK/NG Labels ─── */
@@ -364,7 +460,7 @@
                                 @else
                                     <th rowspan="2" class="align-middle">Qty Check</th>
                                 @endif
-                                <th rowspan="2" class="align-middle">Check Dimensi</th>
+                                <th rowspan="2" class="align-middle" style="min-width: 440px;">Check Dimensi</th>
                                 <th rowspan="2" class="align-middle" style="min-width: 280px;">Jenis (OK/NG) &amp; Detail NG</th>
                                 <th rowspan="2" class="align-middle">Total (OK/NG)</th>
                                 <th rowspan="2" class="align-middle">Judgment</th>
@@ -467,26 +563,26 @@
                                 </td>
 
                                 <!-- Check Dimensi (Cavity & Points) -->
-                                <td class="align-middle">
-                                    <div class="d-flex justify-content-start mb-2">
-                                        <div class="btn-toolbar bg-white border rounded shadow-sm p-1" role="toolbar" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;">
-                                            <div class="btn-group mr-2" role="group">
+                                <td class="align-middle" style="min-width: 440px;">
+                                    <div class="d-flex align-items-center mb-2 flex-nowrap" style="gap: 4px;">
+                                        <div class="btn-toolbar bg-white border rounded shadow-sm flex-shrink-0" role="toolbar" style="padding: 2px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;">
+                                            <div class="btn-group" role="group" style="margin-right: 2px;">
                                                 <button type="button" class="btn btn-primary btn-xs" id="addCavityBtn"
-                                                    title="Tambah Cavity">
+                                                    title="Tambah Cavity" style="font-size: 0.65rem; padding: 2px 5px;">
                                                     <i class="fas fa-plus"></i> Cavity
                                                 </button>
                                                 <button type="button" class="btn btn-outline-danger btn-xs"
-                                                    id="deleteCavityBtn" title="Hapus Cavity Terakhir">
+                                                    id="deleteCavityBtn" title="Hapus Cavity Terakhir" style="font-size: 0.65rem; padding: 2px 4px;">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>
                                             <div class="btn-group" role="group">
                                                 <button type="button" class="btn btn-info btn-xs" id="addPointBtn"
-                                                    title="Tambah Point">
+                                                    title="Tambah Point" style="font-size: 0.65rem; padding: 2px 5px;">
                                                     <i class="fas fa-plus"></i> Point
                                                 </button>
                                                 <button type="button" class="btn btn-outline-danger btn-xs"
-                                                    id="deletePointBtn" title="Hapus Point Terakhir">
+                                                    id="deletePointBtn" title="Hapus Point Terakhir" style="font-size: 0.65rem; padding: 2px 4px;">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>
@@ -494,27 +590,32 @@
                                     </div>
                                     <div class="table-responsive" style="max-height: 400px; overflow: auto;">
                                         <table class="table table-sm table-bordered mb-0 dimension-table" id="dimensionTable">
-                                            <thead class="text-center bg-light">
+                                            <thead class="text-center bg-white">
                                                 <tr id="dimensionHeadRow">
-                                                    <th
-                                                        style="min-width: 65px; width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa;">
-                                                        Cavity</th>
+                                                    <th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #ffffff !important; vertical-align: middle;"><div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">CAVITY</div></th>
                                                     @for ($j = 1; $j <= 5; $j++)
-                                                        <th class="point-header">Point {{ $j }}</th>
+                                                        <th class="point-header text-center align-middle p-1" data-point="{{ $j }}" style="min-width: 90px; background: #ffffff !important;">
+                                                            <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT {{ $j }}</div>
+                                                            <div class="point-tool-wrapper mt-1">
+                                                                <span class="point-tool-text text-muted font-weight-bold" data-point="{{ $j }}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                                                                <input type="hidden" name="alat_ukur[{{ $j }}]" class="point-alat-ukur-val" data-point="{{ $j }}" value="">
+                                                            </div>
+                                                        </th>
                                                     @endfor
                                                 </tr>
                                             </thead>
                                             <tbody id="dimensionBody">
                                                 @for ($i = 1; $i <= 2; $i++)
                                                     <tr class="cavity-row" data-cavity="{{ $i }}">
-                                                        <td class="text-center font-weight-bold bg-light"
-                                                            style="position: sticky; left: 0; z-index: 1;">Cav {{ $i }}</td>
+                                                        <td class="text-center font-weight-bold align-middle"
+                                                            style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155; background: #ffffff !important;">Cav {{ $i }}</td>
                                                         @for ($j = 1; $j <= 5; $j++)
-                                                            <td class="point-cell">
+                                                            <td class="point-cell p-1 text-center" style="background: #ffffff !important;">
                                                                 <input type="text"
                                                                     class="form-control form-control-sm dimension-input"
-                                                                    style="min-width: 60px;" name="dimensions[{{ $i }}][{{ $j }}]"
-                                                                    placeholder="P{{ $j }}">
+                                                                    style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;"
+                                                                    placeholder="P{{ $j }}"
+                                                                    name="dimensions[{{ $i }}][{{ $j }}]">
                                                             </td>
                                                         @endfor
                                                     </tr>

@@ -502,6 +502,9 @@ class InProcessChecksheetController extends Controller
         $defaultShift = ShiftHelper::getShift($now);
 
         $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $plantModel = \App\Models\Plant::find($plant);
+        $plantCode = $plantModel ? strtolower($plantModel->code) : 'karawang';
+
         $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
             ->where('module', 'in_process')
             ->where('is_active', true)
@@ -513,8 +516,9 @@ class InProcessChecksheetController extends Controller
             'defaultDate' => $defaultDate,
             'defaultShift' => $defaultShift,
             'plant' => $plant,
+            'plantCode' => $plantCode,
             'nextProcesses' => $nextProcesses,
-            'partDimensionStandards' => json_encode($this->getConsolidatedStandards())
+            'partDimensionStandards' => json_encode($this->getConsolidatedStandards()),
         ]);
     }
 
@@ -591,7 +595,7 @@ class InProcessChecksheetController extends Controller
                 'items' => $items,
                 'partDimensionStandards' => $partDimensionStandards,
                 'users' => $users,
-                'nextProcesses' => $nextProcesses
+                'nextProcesses' => $nextProcesses,
             ]);
         }
 
@@ -600,7 +604,7 @@ class InProcessChecksheetController extends Controller
             'items' => $items,
             'partDimensionStandards' => $partDimensionStandards,
             'users' => $users,
-            'nextProcesses' => $nextProcesses
+            'nextProcesses' => $nextProcesses,
         ]);
     }
 

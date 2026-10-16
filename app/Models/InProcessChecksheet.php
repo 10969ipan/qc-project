@@ -36,6 +36,7 @@ class InProcessChecksheet extends Model
         'next_proses',
         'tujuan',
         'dimension_check', // New field
+        'alat_ukur',
         'part_weight', // Added for AHM
         'defects', // JSON or serialized
         'approval_status',
@@ -78,5 +79,43 @@ class InProcessChecksheet extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getAlatUkurArrayAttribute()
+    {
+        if (empty($this->alat_ukur)) {
+            return [];
+        }
+        if (is_array($this->alat_ukur)) {
+            return $this->alat_ukur;
+        }
+        $decoded = json_decode($this->alat_ukur, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        return ['1' => (string) $this->alat_ukur];
+    }
+
+    public function getAlatUkurFormattedAttribute()
+    {
+        $tools = $this->alat_ukur_array;
+        if (empty($tools)) {
+            return '-';
+        }
+        $filtered = array_filter($tools, function ($val) {
+            return $val !== null && trim((string)$val) !== '';
+        });
+        if (empty($filtered)) {
+            return '-';
+        }
+        $unique = array_unique(array_values($filtered));
+        if (count($unique) === 1) {
+            return reset($unique);
+        }
+        $parts = [];
+        foreach ($filtered as $pt => $tool) {
+            $parts[] = "P{$pt}: {$tool}";
+        }
+        return implode(', ', $parts);
     }
 }

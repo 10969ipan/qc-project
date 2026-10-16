@@ -140,4 +140,18 @@ trait ChecksheetServiceTrait
             $checksheet->approval_status = 'Pending';
         }
     }
+
+    /**
+     * Standardize and format alat ukur array into JSON string or null
+     */
+    protected function formatAlatUkurPayload($val)
+    {
+        if (is_array($val)) {
+            $filtered = array_filter($val, function ($v) {
+                return $v !== null && trim((string)$v) !== '';
+            });
+            return !empty($filtered) ? json_encode($filtered) : null;
+        }
+        return !empty($val) ? (string)$val : null;
+    }
 }

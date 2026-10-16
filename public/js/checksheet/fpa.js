@@ -84,12 +84,89 @@ class FpaIndex {
                 },
             });
         });
+
+        // Modal Detail Alat Ukur Per Point (Single Reusable Dynamic Modal)
+        $(document).on("click", ".btn-detail-alat-ukur", function (e) {
+            e.preventDefault();
+            var $btn = $(this);
+            var tools = $btn.data("tools");
+            var itemName = $btn.data("item") || "-";
+            var partNumber = $btn.data("part-number") || "-";
+
+            if (typeof tools === "string") {
+                try {
+                    tools = JSON.parse(tools);
+                } catch (err) {
+                    tools = {};
+                }
+            }
+
+            var subtitleText = itemName + " (" + partNumber + ")";
+            $("#alatUkurModalSubtitle").text(subtitleText);
+
+            var $tbody = $("#alatUkurModalTableBody");
+            $tbody.empty();
+
+            if (!tools || typeof tools !== "object" || Object.keys(tools).length === 0) {
+                $tbody.html('<tr><td colspan="2" class="text-center text-muted py-3">Tidak ada data alat ukur spesifik per point.</td></tr>');
+            } else {
+                var sortedPoints = Object.keys(tools).sort(function (a, b) {
+                    return parseInt(a, 10) - parseInt(b, 10);
+                });
+
+                var rowsHtml = "";
+                sortedPoints.forEach(function (pt) {
+                    var toolName = tools[pt];
+                    if (toolName && String(toolName).trim() !== "") {
+                        rowsHtml += "<tr>" +
+                            '<td class="align-middle text-center font-weight-bold" style="width: 35%; color: #334155; font-size: 0.68rem; padding: 5px 8px; border-bottom: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;">' +
+                                "Ø" + pt +
+                            "</td>" +
+                            '<td class="align-middle text-left font-weight-bold" style="width: 65%; color: #1e293b; font-size: 0.68rem; padding: 5px 8px; border-bottom: 1px solid #f1f5f9;">' +
+                                toolName +
+                            "</td>" +
+                        "</tr>";
+                    }
+                });
+
+                if (rowsHtml === "") {
+                    rowsHtml = '<tr><td colspan="2" class="text-center text-muted py-3">Tidak ada data alat ukur yang valid.</td></tr>';
+                }
+                $tbody.html(rowsHtml);
+            }
+
+            $("#modalDetailAlatUkur").modal("show");
+        });
+
+        // Direct Print (Tanpa Buka Halaman Baru & Tanpa Double Dialog)
+        $(document).on("click", ".btn-print-direct", function (e) {
+            e.preventDefault();
+            var printUrl = $(this).attr("href");
+            if (!printUrl || printUrl === "#") return;
+
+            var oldIframe = document.getElementById("silentPrintIframe");
+            if (oldIframe) {
+                oldIframe.parentNode.removeChild(oldIframe);
+            }
+
+            var iframe = document.createElement("iframe");
+            iframe.id = "silentPrintIframe";
+            iframe.style.position = "fixed";
+            iframe.style.right = "0";
+            iframe.style.bottom = "0";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "0";
+            iframe.style.opacity = "0";
+            iframe.src = printUrl;
+
+            document.body.appendChild(iframe);
+        });
     }
 
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", (e) => {
             const $form = $(e.currentTarget);
-
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');
             const $modalErrors = $form.find("#modal-errors");
@@ -590,9 +667,9 @@ class FpaCreate {
         const nextIdx = $("#dimensionBody tr").length + 1;
         const pointCount = $("#dimensionHeadRow th").length - 1;
         let rowHtml = `<tr class="cavity-row" data-cavity="${nextIdx}">
-            <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${nextIdx}</td>`;
+            <td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155; background: #ffffff !important;">Cav ${nextIdx}</td>`;
         for (let j = 1; j <= pointCount; j++) {
-            rowHtml += `<td><input type="text" class="form-control form-control-sm dimension-input" name="dimensions[${nextIdx}][${j}]" placeholder="P${j}"></td>`;
+            rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${nextIdx}][${j}]"></td>`;
         }
         rowHtml += "</tr>";
         $("#dimensionBody").append(rowHtml);
@@ -609,22 +686,32 @@ class FpaCreate {
     addPoint() {
         const nextIdx = $("#dimensionHeadRow th").length;
         $("#dimensionHeadRow").append(
-            `<th class="point-header">Point ${nextIdx}</th>`,
+            `<th class="point-header text-center align-middle p-1" data-point="${nextIdx}" style="min-width: 90px; background: #ffffff !important;">
+                <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${nextIdx}</div>
+                <div class="point-tool-wrapper mt-1">
+                    <span class="point-tool-text text-muted font-weight-bold" data-point="${nextIdx}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                    <input type="hidden" name="alat_ukur[${nextIdx}]" class="point-alat-ukur-val" data-point="${nextIdx}" value="">
+                </div>
+            </th>`,
         );
         $("#dimensionBody tr").each(function () {
             const cavIdx = $(this).data("cavity");
             $(this).append(
-                `<td><input type="text" class="form-control form-control-sm dimension-input" name="dimensions[${cavIdx}][${nextIdx}]" placeholder="P${nextIdx}"></td>`,
+                `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${nextIdx}" name="dimensions[${cavIdx}][${nextIdx}]"></td>`,
             );
         });
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const dimStandards = selectedOption.data("dimension-standards");
+        this.populateAlatUkurFromStandards(dimStandards, nextIdx);
     }
 
     deleteLastPoint() {
         if ($("#dimensionHeadRow th").length > 2) {
             $("#dimensionHeadRow th:last").remove();
             $("#dimensionBody tr").each(function () {
-                $(this).find("td:last").remove();
+                $(this).find("td.point-cell:last-child").remove();
             });
+            this.updateJudgment();
         }
     }
 
@@ -754,11 +841,12 @@ class FpaCreate {
             }
         }
 
-        // Update cavity rows dinamis jika plantContext === 'karawang'
-        if (this.config.plantContext === 'karawang') {
-            this.updateCavityRows(cavityData || 1, pointCount);
-            $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').hide();
-        }
+        // Update cavity & point rows dinamis mengikuti master data part
+        const targetCavity = cavityData ? parseInt(cavityData) : 1;
+        this.updateCavityRows(targetCavity > 0 ? targetCavity : 1, pointCount > 0 ? pointCount : 5);
+        // Button +cav & +point atau hapus cav&point tetap ada walaupun kolom dimensi sudah otomatis mengikuti master data
+        $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').show();
+        this.populateAlatUkurFromStandards(dimStds, pointCount);
 
         // Store standards for validation
         this.config.currentDimensionStandards =
@@ -1036,18 +1124,50 @@ class FpaCreate {
         const theadRow = $("#dimensionHeadRow");
         tbody.empty();
 
-        let headerHtml = '<th style="min-width:100px;position:sticky;left:0;z-index:2;background:#f8f9fa;">Cavity</th>';
-        for (let j = 1; j <= pointCount; j++)
-            headerHtml += `<th class="point-header">Point ${j}</th>`;
+        let headerHtml = '<th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #ffffff !important; vertical-align: middle;"><div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">CAVITY</div></th>';
+        for (let j = 1; j <= pointCount; j++) {
+            headerHtml += `<th class="point-header text-center align-middle p-1" data-point="${j}" style="min-width: 90px; background: #ffffff !important;">
+                <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${j}</div>
+                <div class="point-tool-wrapper mt-1">
+                    <span class="point-tool-text text-muted font-weight-bold" data-point="${j}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                    <input type="hidden" name="alat_ukur[${j}]" class="point-alat-ukur-val" data-point="${j}" value="">
+                </div>
+            </th>`;
+        }
         theadRow.html(headerHtml);
 
         for (let i = 1; i <= cavityCount; i++) {
-            let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold bg-light" style="position:sticky;left:0;z-index:1;">Cav ${i}</td>`;
+            let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155; background: #ffffff !important;">Cav ${i}</td>`;
             for (let j = 1; j <= pointCount; j++) {
-                rowHtml += `<td class="point-cell"><input type="text" class="form-control form-control-sm dimension-input" style="min-width:60px;" name="dimensions[${i}][${j}]" placeholder="P${j}"></td>`;
+                rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}]"></td>`;
             }
             rowHtml += '</tr>';
             tbody.append(rowHtml);
+        }
+    }
+
+    populateAlatUkurFromStandards(dimStandards, pointCount = 5) {
+        for (let j = 1; j <= pointCount; j++) {
+            let tool = "";
+            if (dimStandards) {
+                if (Array.isArray(dimStandards)) {
+                    const found = dimStandards.find(d => d && (d.point == j || d.point_number == j));
+                    if (found && found.alat_ukur) tool = found.alat_ukur;
+                    else if (dimStandards[j - 1] && dimStandards[j - 1].alat_ukur) tool = dimStandards[j - 1].alat_ukur;
+                } else if (typeof dimStandards === "object") {
+                    if (dimStandards[j] && dimStandards[j].alat_ukur) tool = dimStandards[j].alat_ukur;
+                    else if (dimStandards[j - 1] && dimStandards[j - 1].alat_ukur) tool = dimStandards[j - 1].alat_ukur;
+                }
+            }
+            const $label = $(`.point-tool-text[data-point="${j}"]`);
+            const $hidden = $(`.point-alat-ukur-val[data-point="${j}"]`);
+            if (tool && tool.trim() !== "") {
+                $label.text(tool).removeClass("text-muted text-primary").addClass("text-dark font-weight-bold").css("color", "#1e293b");
+                $hidden.val(tool);
+            } else {
+                $label.text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
+                $hidden.val("");
+            }
         }
     }
 
@@ -1448,6 +1568,10 @@ class FpaCreate {
 
     resetForm() {
         $("#checksheetForm")[0].reset();
+        this.updateCavityRows(2, 5);
+        $(".point-tool-text").text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
+        $(".point-alat-ukur-val").val("");
+        $('#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn').show();
 
         if (this.timer) {
             clearInterval(this.timer.interval);
@@ -1510,6 +1634,7 @@ class FpaEdit {
     initDimensionTable() {
         $("#editAddCavityBtn").on("click", () => this.addCavity());
         $("#editAddPointBtn").on("click", () => this.addPoint());
+
         $(document).on("input", ".edit-dimension-input", () =>
             this.validateDimensions(),
         );
@@ -1519,13 +1644,13 @@ class FpaEdit {
         if (this.config.currentCavities < this.config.maxCavities) {
             this.config.currentCavities++;
             let newRow = `<tr class="edit-cavity-row" data-cavity="${this.config.currentCavities}">
-                <td class="text-center font-weight-bold bg-light" style="position: sticky; left: 0; z-index: 1;">Cav ${this.config.currentCavities}</td>`;
+                <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">Cavity ${this.config.currentCavities}</td>`;
             for (let j = 1; j <= this.config.currentPoints; j++) {
-                newRow += `<td class="point-cell">
-                    <input type="text" class="form-control form-control-sm edit-dimension-input"
-                        style="min-width: 60px;"
+                newRow += `<td class="p-0">
+                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
                         name="dimensions[${this.config.currentCavities}][${j}]"
-                        placeholder="P${j}">
+                        placeholder="-">
                 </td>`;
             }
             newRow += `</tr>`;
@@ -1539,15 +1664,21 @@ class FpaEdit {
         if (this.config.currentPoints < this.config.maxPoints) {
             this.config.currentPoints++;
             $("#editDimensionHeadRow").append(
-                `<th class="point-header">Point ${this.config.currentPoints}</th>`,
+                `<th class="point-header p-1" data-point="${this.config.currentPoints}" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9; min-width: 90px;">
+                    <div>P${this.config.currentPoints}</div>
+                    <div class="mt-1">
+                        <span class="edit-point-tool-text text-muted font-weight-bold" data-point="${this.config.currentPoints}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                        <input type="hidden" name="alat_ukur[${this.config.currentPoints}]" class="point-alat-ukur-val" data-point="${this.config.currentPoints}" value="">
+                    </div>
+                </th>`,
             );
             $(".edit-cavity-row").each((_, row) => {
                 let cavityNum = $(row).data("cavity");
-                $(row).append(`<td class="point-cell">
-                    <input type="text" class="form-control form-control-sm edit-dimension-input"
-                        style="min-width: 60px;"
+                $(row).append(`<td class="p-0">
+                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                        style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;"
                         name="dimensions[${cavityNum}][${this.config.currentPoints}]"
-                        placeholder="P${this.config.currentPoints}">
+                        placeholder="-">
                 </td>`);
             });
         } else {

@@ -731,6 +731,7 @@
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Min</th>
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Max</th>
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Toleransi (+/-)</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important; min-width: 130px;">Alat Ukur</th>
                                                     <th style="width: 30px; background-color: #ffffff !important; color: #333 !important;">
                                                         <button type="button"
                                                             class="btn btn-xs btn-success add-edit-dimension-row">
@@ -1028,6 +1029,7 @@
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Min</th>
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Max</th>
                                                     <th style="background-color: #ffffff !important; color: #333 !important;">Toleransi (+/-)</th>
+                                                    <th style="background-color: #ffffff !important; color: #333 !important; min-width: 130px;">Alat Ukur</th>
                                                     <th style="width: 30px; background-color: #ffffff !important; color: #333 !important;">
                                                         <button type="button" class="btn btn-xs btn-success add-dimension-row">
                                                             <i class="fas fa-plus"></i>
@@ -1042,6 +1044,14 @@
                                                     <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm border-0 shadow-sm"></td>
                                                     <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm border-0 shadow-sm"></td>
                                                     <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm border-0 shadow-sm"></td>
+                                                    <td>
+                                                        <select name="dimension_alat_ukur[]" class="form-control form-control-sm border-0 shadow-sm" style="font-size: 0.75rem;">
+                                                            <option value="">-- Pilih --</option>
+                                                            @foreach(($measuringTools ?? \App\Models\GeneralSetting::getMeasuringTools()) as $tool)
+                                                                <option value="{{ $tool }}">{{ $tool }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
                                                     <td class="text-center">
                                                         <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
                                                             <i class="fas fa-trash"></i>
@@ -1117,7 +1127,8 @@
                 },
                 csrfToken: "{{ csrf_token() }}",
                 plant: "{{ $plantCode ?? '' }}",
-                userRole: "{{ auth()->user()->role ?? '' }}"
+                userRole: "{{ auth()->user()->role ?? '' }}",
+                measuringTools: @json($measuringTools ?? \App\Models\GeneralSetting::getMeasuringTools())
             };
         </script>
         <script src="{{ asset('js/vendor/pdf.min.js') }}"></script>

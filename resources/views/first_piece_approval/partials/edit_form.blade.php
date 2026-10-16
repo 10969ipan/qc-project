@@ -238,23 +238,43 @@
 
 
     <!-- 4. Footer Row: Check Dimensi (Full Width) -->
-    <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center mt-3" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+    <div class="font-weight-bold text-primary mb-3 pb-2 d-flex justify-content-between align-items-center mt-3 flex-wrap" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem; gap: 8px;">
         <span class="font-weight-bold">PEMERIKSAAN DIMENSI (MM)</span>
-        <div class="btn-group shadow-sm">
-            @if(auth()->check() && auth()->user()->role === 'admin')
-                <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editCopyDimensionsBtn" title="Copy Semua Dimensi" style="font-size: 0.7rem;">
-                    <i class="fas fa-copy mr-1"></i> Copy Dimensi
+        <div class="d-flex align-items-center flex-nowrap" style="gap: 8px;">
+                    @php
+                        $dims = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
+                        $maxC = count($dims) > 0 ? max(array_keys($dims)) : 5;
+                        $maxP = 5;
+                        foreach($dims as $pts) { if(is_array($pts) && count($pts) > 0) $maxP = max($maxP, max(array_keys($pts))); }
+                        $toolsArray = $checksheet->alat_ukur_array;
+                        $rawAlat = $checksheet->alat_ukur;
+                        $isJsonAlat = is_string($rawAlat) && (str_starts_with(trim($rawAlat), '{') || str_starts_with(trim($rawAlat), '['));
+                        $globalToolVal = '';
+                        if (!$isJsonAlat && !empty($rawAlat)) {
+                            $globalToolVal = $rawAlat;
+                        } elseif (!empty($toolsArray)) {
+                            $uniqueTools = array_unique(array_filter($toolsArray));
+                            if (count($uniqueTools) === 1) {
+                                $globalToolVal = reset($uniqueTools);
+                            }
+                        }
+                    @endphp
+            <div class="btn-group shadow-sm flex-shrink-0">
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editCopyDimensionsBtn" title="Copy Semua Dimensi" style="font-size: 0.7rem;">
+                        <i class="fas fa-copy mr-1"></i> Copy Dimensi
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editPasteDimensionsBtn" title="Paste Data Dimensi" style="font-size: 0.7rem;">
+                        <i class="fas fa-paste mr-1"></i> Paste Dimensi
+                    </button>
+                @endif
+                <button type="button" class="btn btn-primary btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity" style="font-size: 0.7rem;">
+                    <i class="fas fa-plus mr-1"></i> Cavity
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-xs px-2" id="editPasteDimensionsBtn" title="Paste Data Dimensi" style="font-size: 0.7rem;">
-                    <i class="fas fa-paste mr-1"></i> Paste Dimensi
+                <button type="button" class="btn btn-info btn-xs px-3" id="editAddPointBtn" title="Tambah Point" style="font-size: 0.7rem;">
+                    <i class="fas fa-plus mr-1"></i> Point
                 </button>
-            @endif
-            <button type="button" class="btn btn-primary btn-xs px-3" id="editAddCavityBtn" title="Tambah Cavity" style="font-size: 0.7rem;">
-                <i class="fas fa-plus mr-1"></i> Cavity
-            </button>
-            <button type="button" class="btn btn-info btn-xs px-3" id="editAddPointBtn" title="Tambah Point" style="font-size: 0.7rem;">
-                <i class="fas fa-plus mr-1"></i> Point
-            </button>
+            </div>
         </div>
     </div>
 
@@ -262,15 +282,18 @@
         <table class="table table-sm table-bordered table-hover mb-0" id="editDimensionTable">
             <thead class="bg-light text-center small font-weight-bold">
                 <tr id="editDimensionHeadRow">
-                    <th style="min-width: 100px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
-                    @php
-                        $dims = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true) ?? [];
-                        $maxC = count($dims) > 0 ? max(array_keys($dims)) : 5;
-                        $maxP = 5;
-                        foreach($dims as $pts) { if(is_array($pts) && count($pts) > 0) $maxP = max($maxP, max(array_keys($pts))); }
-                    @endphp
+                    <th style="min-width: 65px; width: 65px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
                     @for ($j = 1; $j <= $maxP; $j++)
-                        <th class="point-header" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9;">P{{ $j }}</th>
+                        @php
+                            $currentPtTool = $toolsArray[$j] ?? ($toolsArray[(string)$j] ?? ($isJsonAlat ? '' : ($rawAlat ?? '')));
+                        @endphp
+                        <th class="point-header p-1" data-point="{{ $j }}" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9; min-width: 90px;">
+                            <div>P{{ $j }}</div>
+                            <div class="point-tool-wrapper mt-1">
+                                <span class="point-tool-text {{ $currentPtTool ? 'text-dark' : 'text-muted' }} font-weight-bold" data-point="{{ $j }}" style="font-size: 0.62rem; display: block; line-height: 1.2; {{ $currentPtTool ? 'color: #1e293b;' : '' }}">{{ $currentPtTool ?: '-' }}</span>
+                                <input type="hidden" name="alat_ukur[{{ $j }}]" class="point-alat-ukur-val" data-point="{{ $j }}" value="{{ $currentPtTool }}">
+                            </div>
+                        </th>
                     @endfor
                 </tr>
             </thead>
@@ -357,7 +380,15 @@
 
         $('#editAddPointBtn').click(function() {
             currentPoints++;
-            $('#editDimensionHeadRow').append(`<th class="point-header">P${currentPoints}</th>`);
+            $('#editDimensionHeadRow').append(`
+                <th class="point-header p-1" data-point="${currentPoints}" style="background-color: #f8f9fc !important; color: #475569 !important; min-width: 90px;">
+                    <div>P${currentPoints}</div>
+                    <div class="point-tool-wrapper mt-1">
+                        <span class="point-tool-text text-muted font-weight-bold" data-point="${currentPoints}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                        <input type="hidden" name="alat_ukur[${currentPoints}]" class="point-alat-ukur-val" data-point="${currentPoints}" value="">
+                    </div>
+                </th>
+            `);
             $('.edit-cavity-row').each(function() {
                 const c = $(this).data('cavity');
                 $(this).append(`<td class="p-0"><input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold" style="min-width: 60px; font-size: 0.8rem; height: 38px; border-radius: 0;" name="dimensions[${c}][${currentPoints}]" placeholder="-"></td>`);

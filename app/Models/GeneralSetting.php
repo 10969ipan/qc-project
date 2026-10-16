@@ -126,4 +126,54 @@ class GeneralSetting extends Model
 
         return $defaults;
     }
+
+    /**
+     * Helper to get Measuring Tools (Alat Ukur) for In Process & FPA
+     */
+    public static function getMeasuringTools()
+    {
+        $defaults = [
+            'CALIPER',
+            'THICKNESS GAUGE',
+            'FEELER GAUGE',
+            'PUSH-PULL',
+        ];
+
+        $settingVal = self::getValue('measuring_tools');
+        if ($settingVal !== null && $settingVal !== '') {
+            $raw = [];
+            if (is_array($settingVal)) {
+                $raw = $settingVal;
+            } else {
+                $str = trim((string) $settingVal);
+                if ((str_starts_with($str, '"') && str_ends_with($str, '"')) || (str_starts_with($str, "'") && str_ends_with($str, "'"))) {
+                    $str = trim(substr($str, 1, -1));
+                    $str = stripslashes($str);
+                }
+                $decoded = json_decode($str, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $raw = $decoded;
+                } else {
+                    $raw = preg_split('/\r\n|\r|\n|,/', $str);
+                }
+            }
+
+            $clean = [];
+            foreach ($raw as $item) {
+                if (is_string($item) || is_numeric($item)) {
+                    $val = strtoupper(trim((string) $item));
+                    $val = trim($val, "[]\"'");
+                    if ($val !== '') {
+                        $clean[] = $val;
+                    }
+                }
+            }
+
+            if (!empty($clean)) {
+                return array_values(array_unique($clean));
+            }
+        }
+
+        return $defaults;
+    }
 }

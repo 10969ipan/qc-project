@@ -56,6 +56,7 @@ class StoreFirstPieceApprovalRequest extends FormRequest
             'part_weight.*' => 'nullable|numeric|min:0',
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
+            'alat_ukur' => 'nullable',
             'cycle_time' => 'nullable|integer',
             'defect_types' => 'nullable|array',
             'defect_quantities' => 'nullable|array',

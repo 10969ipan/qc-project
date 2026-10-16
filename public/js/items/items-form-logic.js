@@ -154,13 +154,28 @@
     /* ============================================================
      *  DIMENSION ROW TEMPLATES
      * ============================================================ */
-    const dimensionRowTemplate = () => `
+    const buildAlatUkurOptions = (selectedVal) => {
+        let opts = '<option value="">-- Pilih --</option>';
+        const tools = (window.__ITEMS__ && window.__ITEMS__.measuringTools) || ['CALIPER', 'THICKNESS GAUGE', 'FEELER GAUGE', 'PUSH-PULL'];
+        tools.forEach(function (tool) {
+            const isSel = (selectedVal && selectedVal.toUpperCase() === tool.toUpperCase()) ? 'selected' : '';
+            opts += `<option value="${tool}" ${isSel}>${tool}</option>`;
+        });
+        return opts;
+    };
+
+    const dimensionRowTemplate = (selectedTool) => `
         <tr>
             <td><input type="text" name="dimension_points[]" class="form-control form-control-sm" readonly style="background:#f8f9fa; color:#495057;"></td>
             <td><input type="text" name="dimension_sizes[]" class="form-control form-control-sm"></td>
             <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm"></td>
             <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm"></td>
             <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm"></td>
+            <td>
+                <select name="dimension_alat_ukur[]" class="form-control form-control-sm" style="font-size: 0.75rem;">
+                    ${buildAlatUkurOptions(selectedTool)}
+                </select>
+            </td>
             <td class="text-center">
                 <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
                     <i class="fas fa-trash"></i>
@@ -175,13 +190,22 @@
         });
     }
 
+    // Autofill dinamis: saat dropdown alat ukur diubah, baris-baris di bawahnya otomatis mengikuti (cascading downwards)
+    $(document).on('change', 'select[name="dimension_alat_ukur[]"]', function () {
+        const chosenTool = $(this).val();
+        const $row = $(this).closest('tr');
+        $row.nextAll('tr').find('select[name="dimension_alat_ukur[]"]').val(chosenTool);
+    });
+
     $('.add-dimension-row').on('click', function () {
-        $('#modal-dimension-table tbody').append(dimensionRowTemplate());
+        const lastTool = $('#modal-dimension-table tbody tr:last-child select[name="dimension_alat_ukur[]"]').val() || '';
+        $('#modal-dimension-table tbody').append(dimensionRowTemplate(lastTool));
         renumberDimensionRows('#modal-dimension-table tbody');
     });
 
     $(document).on('click', '.add-edit-dimension-row', function () {
-        $('#edit-modal-dimension-table tbody').append(dimensionRowTemplate());
+        const lastTool = $('#edit-modal-dimension-table tbody tr:last-child select[name="dimension_alat_ukur[]"]').val() || '';
+        $('#edit-modal-dimension-table tbody').append(dimensionRowTemplate(lastTool));
         renumberDimensionRows('#edit-modal-dimension-table tbody');
     });
 
@@ -348,6 +372,11 @@
                                 <td><input type="text" name="dimension_mins[]" class="form-control form-control-sm" value="${dim.min || ''}"></td>
                                 <td><input type="text" name="dimension_maxs[]" class="form-control form-control-sm" value="${dim.max || ''}"></td>
                                 <td><input type="text" name="dimension_tolerances[]" class="form-control form-control-sm" value="${dim.tolerance || ''}"></td>
+                                <td>
+                                    <select name="dimension_alat_ukur[]" class="form-control form-control-sm" style="font-size: 0.75rem;">
+                                        ${buildAlatUkurOptions(dim.alat_ukur || '')}
+                                    </select>
+                                </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-xs btn-outline-danger remove-dimension-row">
                                         <i class="fas fa-trash"></i>

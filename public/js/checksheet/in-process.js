@@ -114,7 +114,6 @@ class InProcessIndex {
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", function (e) {
             const $form = $(this);
-
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');
             const $modalErrors = $form.find("#modal-errors");
@@ -140,7 +139,7 @@ class InProcessIndex {
                             icon: 'success',
                             title: 'Berhasil',
                             text: response.message || 'Data berhasil disimpan.',
-                            timer: 2000,
+                            timer: 900,
                             showConfirmButton: false
                         }).then(() => {
                             window.location.href = response.redirect || window.location.href;
@@ -1316,6 +1315,11 @@ class InProcessCreate {
             if (quantity)
                 $('input[name="total_qty"]').val(quantity).trigger("input");
 
+            const currentScanMethod = $("#scanMethodInput").val();
+            if (currentScanMethod === "hardware" || currentScanMethod === "camera") {
+                this.fillDimensionsWithDash();
+            }
+
             if (callback) callback(true);
         } else {
             window.playAppAudio('item_not_found');
@@ -1502,7 +1506,7 @@ class InProcessCreate {
             // Pembaruan Daftar Defect
             _this.updateDefectDropdown(defectsData);
 
-            // Logika Cavity & Point (Khusus plant Karawang)
+            // Logika Cavity & Point dinamis mengikuti master data part (seperti FPA)
             let pointCount = 5;
             const dimStandards = selectedOption.data("dimension-standards");
             if (dimStandards) {
@@ -1515,10 +1519,10 @@ class InProcessCreate {
                     if (keys.length > 0) pointCount = Math.max(...keys);
                 }
             }
-            if (_this.config.plantContext === "karawang") {
-                _this.updateCavityRows(cavityData || 1, pointCount);
-                _this.toggleManualCavityButtons(true);
-            }
+            const targetCavity = cavityData ? parseInt(cavityData) : 1;
+            _this.updateCavityRows(targetCavity > 0 ? targetCavity : 1, pointCount > 0 ? pointCount : 5);
+            _this.toggleManualCavityButtons(false);
+            _this.populateAlatUkurFromStandards(dimStandards, pointCount);
             _this.calculateTotalNG();
         });
 
@@ -1846,8 +1850,8 @@ class InProcessCreate {
         $("#addCavityBtn").click(() => {
             if (this.currentCavities < this.maxCavities) {
                 this.currentCavities++;
-                let newRow1 = `<tr class="cavity-row cavity-row-s1" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
-                let newRow2 = `<tr class="cavity-row cavity-row-s2" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${this.currentCavities}</td>`;
+                let newRow1 = `<tr class="cavity-row cavity-row-s1" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; background: #ffffff !important;">Cav ${this.currentCavities}</td>`;
+                let newRow2 = `<tr class="cavity-row cavity-row-s2" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; background: #ffffff !important;">Cav ${this.currentCavities}</td>`;
                 for (let j = 1; j <= this.currentPoints; j++) {
                     newRow1 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p1]"></td>`;
                     newRow2 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p2]"></td>`;
@@ -1872,10 +1876,21 @@ class InProcessCreate {
             if (this.currentPoints < this.maxPoints) {
                 this.currentPoints++;
                 $("#dimensionHeadRowShoot1").append(
-                    `<th class="point-header text-center align-middle" data-point="${this.currentPoints}">POINT ${this.currentPoints}</th>`
+                    `<th class="point-header text-center align-middle p-1" data-point="${this.currentPoints}" style="min-width: 90px; background: #ffffff !important;">
+                        <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${this.currentPoints}</div>
+                        <div class="point-tool-wrapper mt-1">
+                            <span class="point-tool-text text-muted font-weight-bold" data-point="${this.currentPoints}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                            <input type="hidden" name="alat_ukur[${this.currentPoints}]" class="point-alat-ukur-val" data-point="${this.currentPoints}" value="">
+                        </div>
+                    </th>`
                 );
                 $("#dimensionHeadRowShoot2").append(
-                    `<th class="point-header text-center align-middle" data-point="${this.currentPoints}">POINT ${this.currentPoints}</th>`
+                    `<th class="point-header text-center align-middle p-1" data-point="${this.currentPoints}" style="min-width: 90px; background: #ffffff !important;">
+                        <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${this.currentPoints}</div>
+                        <div class="point-tool-wrapper mt-1">
+                            <span class="point-tool-text text-muted font-weight-bold" data-point="${this.currentPoints}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                        </div>
+                    </th>`
                 );
                 $(".cavity-row-s1").each((index, element) => {
                     const cavityNum = $(element).data("cavity");
@@ -1889,6 +1904,9 @@ class InProcessCreate {
                         `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${this.currentPoints}" name="dimensions[${cavityNum}][${this.currentPoints}][p2]"></td>`
                     );
                 });
+                const selectedOption = $("#itemSelect").find("option:selected");
+                const dimStandards = selectedOption.data("dimension-standards");
+                this.populateAlatUkurFromStandards(dimStandards, this.currentPoints);
             }
         });
 
@@ -1914,7 +1932,6 @@ class InProcessCreate {
     }
 
     updateCavityRows(cavityCount, pointCount = 5) {
-        if (this.config.plantContext !== "karawang") return;
         const tbody1 = $("#dimensionBodyShoot1");
         const tbody2 = $("#dimensionBodyShoot2");
         const headRow1 = $("#dimensionHeadRowShoot1");
@@ -1922,16 +1939,29 @@ class InProcessCreate {
         tbody1.empty();
         tbody2.empty();
 
-        let headHtml = '<th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #f8f9fa; vertical-align: middle;">CAVITY</th>';
+        let headHtml1 = '<th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #ffffff !important; vertical-align: middle;"><div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">CAVITY</div></th>';
+        let headHtml2 = '<th style="min-width: 65px; position: sticky; left: 0; z-index: 2; background: #ffffff !important; vertical-align: middle;"><div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">CAVITY</div></th>';
         for (let j = 1; j <= pointCount; j++) {
-            headHtml += `<th class="point-header text-center align-middle" data-point="${j}">POINT ${j}</th>`;
+            headHtml1 += `<th class="point-header text-center align-middle p-1" data-point="${j}" style="min-width: 90px; background: #ffffff !important;">
+                <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${j}</div>
+                <div class="point-tool-wrapper mt-1">
+                    <span class="point-tool-text text-muted font-weight-bold" data-point="${j}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                    <input type="hidden" name="alat_ukur[${j}]" class="point-alat-ukur-val" data-point="${j}" value="">
+                </div>
+            </th>`;
+            headHtml2 += `<th class="point-header text-center align-middle p-1" data-point="${j}" style="min-width: 90px; background: #ffffff !important;">
+                <div class="font-weight-bold" style="font-size: 0.7rem; color: #334155;">POINT ${j}</div>
+                <div class="point-tool-wrapper mt-1">
+                    <span class="point-tool-text text-muted font-weight-bold" data-point="${j}" style="font-size: 0.62rem; display: block; line-height: 1.2; color: #1e293b;">-</span>
+                </div>
+            </th>`;
         }
-        headRow1.html(headHtml);
-        headRow2.html(headHtml);
+        headRow1.html(headHtml1);
+        headRow2.html(headHtml2);
 
         for (let i = 1; i <= cavityCount; i++) {
-            let row1Html = `<tr class="cavity-row cavity-row-s1" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
-            let row2Html = `<tr class="cavity-row cavity-row-s2" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1;">Cav ${i}</td>`;
+            let row1Html = `<tr class="cavity-row cavity-row-s1" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155;">Cav ${i}</td>`;
+            let row2Html = `<tr class="cavity-row cavity-row-s2" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155;">Cav ${i}</td>`;
             for (let j = 1; j <= pointCount; j++) {
                 row1Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p1]"></td>`;
                 row2Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p2]"></td>`;
@@ -1946,18 +1976,36 @@ class InProcessCreate {
     }
 
     toggleManualCavityButtons(isDynamic) {
-        if (this.config.plantContext !== "karawang") return;
-        if (isDynamic)
-            $(
-                "#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn",
-            ).hide();
-        else
-            $(
-                "#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn",
-            ).show();
+        // Tombol +cav, -cav, +point, -point selalu tetap ada walaupun kolom dimensi otomatis mengikuti master data
+        $(
+            "#addCavityBtn, #deleteCavityBtn, #addPointBtn, #deletePointBtn",
+        ).show();
     }
 
-
+    populateAlatUkurFromStandards(dimStandards, pointCount = 5) {
+        for (let j = 1; j <= pointCount; j++) {
+            let tool = "";
+            if (dimStandards) {
+                if (Array.isArray(dimStandards)) {
+                    const found = dimStandards.find(d => d && (d.point == j || d.point_number == j));
+                    if (found && found.alat_ukur) tool = found.alat_ukur;
+                    else if (dimStandards[j - 1] && dimStandards[j - 1].alat_ukur) tool = dimStandards[j - 1].alat_ukur;
+                } else if (typeof dimStandards === "object") {
+                    if (dimStandards[j] && dimStandards[j].alat_ukur) tool = dimStandards[j].alat_ukur;
+                    else if (dimStandards[j - 1] && dimStandards[j - 1].alat_ukur) tool = dimStandards[j - 1].alat_ukur;
+                }
+            }
+            const $label = $(`.point-tool-text[data-point="${j}"]`);
+            const $hidden = $(`.point-alat-ukur-val[data-point="${j}"]`);
+            if (tool && tool.trim() !== "") {
+                $label.text(tool).removeClass("text-muted text-primary").addClass("text-dark font-weight-bold").css("color", "#1e293b");
+                $hidden.val(tool);
+            } else {
+                $label.text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
+                $hidden.val("");
+            }
+        }
+    }
 
     updateDefectDropdown(defects) {
         let defectsData = defects;
@@ -2607,6 +2655,10 @@ class InProcessCreate {
 
     resetForm() {
         $("#checksheetForm")[0].reset();
+        this.updateCavityRows(2, 5);
+        this.toggleManualCavityButtons(false);
+        $(".point-tool-text").text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
+        $(".point-alat-ukur-val").val("");
         $("#code_machine").val("").trigger("change");
         clearInterval(this.timerInterval);
         this.timerRunning = false;

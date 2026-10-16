@@ -79,6 +79,7 @@ class UpdateInProcessChecksheetRequest extends FormRequest
             'remarks' => 'nullable|string',
             'description' => 'nullable|string',
             'dimensions' => 'nullable',
+            'alat_ukur' => 'nullable',
             'part_weight' => 'nullable|array',
             'part_weight.*' => 'nullable|numeric|min:0',
             'cycle_time' => 'nullable|integer',

@@ -879,7 +879,55 @@
                                             }
                                         }
                                     @endphp
-
+                                     @php
+                                         $toolsArray = $checksheet->alat_ukur_array;
+                                         $filteredTools = [];
+                                         if (!empty($toolsArray)) {
+                                             foreach ($toolsArray as $ptKey => $toolVal) {
+                                                 if ($toolVal !== null && trim((string)$toolVal) !== '') {
+                                                     $filteredTools[(int)$ptKey] = trim((string)$toolVal);
+                                                 }
+                                             }
+                                             ksort($filteredTools);
+                                         }
+                                         $uniqueTools = array_unique(array_values($filteredTools));
+                                         $totalTools = count($filteredTools);
+                                     @endphp
+                                     @if($totalTools > 0)
+                                         @if(count($uniqueTools) === 1)
+                                             <div class="px-2 pt-1 pb-1 text-left">
+                                                 <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                     Alat Ukur: {{ reset($uniqueTools) }}
+                                                 </span>
+                                             </div>
+                                         @else
+                                             @php
+                                                 $previewParts = [];
+                                                 $prevCount = 0;
+                                                 foreach ($filteredTools as $pt => $tool) {
+                                                     $previewParts[] = "P{$pt}: {$tool}";
+                                                     if (++$prevCount >= 2) break;
+                                                 }
+                                                 $previewText = implode(', ', $previewParts);
+                                             @endphp
+                                             <div class="px-2 pt-1 pb-1 text-left d-flex align-items-center flex-wrap" style="gap: 4px;">
+                                                 <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                     Alat Ukur: {{ $previewText }}{{ $totalTools > 2 ? '...' : '' }}
+                                                 </span>
+                                                 @if($totalTools > 2)
+                                                     <a href="#" 
+                                                         class="btn-detail-alat-ukur font-weight-bold text-dark ml-1" 
+                                                         data-tools='@json($filteredTools)'
+                                                         data-item="{{ $checksheet->item->name ?? '-' }}"
+                                                         data-part-number="{{ $checksheet->item->part_number ?? '-' }}"
+                                                         title="Lihat seluruh alat ukur per point"
+                                                         style="font-size: 0.65rem; color: #1e293b !important; text-decoration: underline; cursor: pointer;">
+                                                         (Lihat Selengkapnya)
+                                                     </a>
+                                                 @endif
+                                             </div>
+                                         @endif
+                                     @endif
                                      @if($hasUserInputs && ($hasShoot1Data || $hasShoot2Data))
                                          <div>
                                              @if($hasShoot1Data)
@@ -1866,7 +1914,44 @@
         </div>
     @endif
 
-
+    <!-- Modal Detail Alat Ukur Per Point (Single Reusable Modal) -->
+    <div class="modal fade" id="modalDetailAlatUkur" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-sm" style="max-width: 440px;" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
+                <div class="modal-header bg-white py-3 px-4" style="border-radius: 12px 12px 0 0; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0" style="font-size: 0.85rem;">
+                            <i class="fas fa-tools mr-2 text-dark"></i>Daftar Alat Ukur Per Point
+                        </h6>
+                        <small class="text-muted font-weight-bold" id="alatUkurModalSubtitle" style="font-size: 0.68rem;">-</small>
+                    </div>
+                    <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-3" style="background-color: #f8fafc; max-height: 60vh; overflow-y: auto;">
+                    <div class="table-responsive bg-white rounded shadow-sm" style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+                        <table class="table-sm mb-0 text-center" style="width: 100%; border-collapse: separate; border-spacing: 0; background: #ffffff;">
+                            <thead style="position: sticky; top: 0; z-index: 5;">
+                                <tr>
+                                    <th style="width: 35%; background-color: #f8fafc !important; color: #475569 !important; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; padding: 6px 8px; text-align: center; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">Point</th>
+                                    <th style="width: 65%; background-color: #f8fafc !important; color: #475569 !important; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; padding: 6px 8px; text-align: left; border-bottom: 1px solid #cbd5e1;">Alat Ukur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alatUkurModalTableBody">
+                                <!-- Populated dynamically via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white py-2 px-4" style="border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-light btn-sm border px-3" data-dismiss="modal" style="font-size: 0.72rem;">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @include('partials.qr_scanner_modal')
 

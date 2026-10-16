@@ -116,6 +116,29 @@
                                     <textarea id="fpaCategoriesInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="awal produksi&#10;operator istirahat&#10;...">{!! e($categoriesText) !!}</textarea>
                                 </div>
 
+                                <div class="premium-setting-item p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-ruler-combined mr-2 text-primary"></i>Daftar Alat Ukur (In Process & FPA)</h6>
+                                            <small class="text-muted">Daftar opsi alat ukur yang tampil pada form Cek Dimensi modul In Process & First Piece Approval (pisahkan tiap alat ukur dengan baris baru)</small>
+                                        </div>
+                                    </div>
+                                    @php
+                                        $toolsSetting = isset($generalSettings['measuring_tools']) ? $generalSettings['measuring_tools']->value : null;
+                                        if ($toolsSetting !== null && $toolsSetting !== '') {
+                                            $decodedTools = json_decode($toolsSetting, true);
+                                            if (is_array($decodedTools)) {
+                                                $toolsText = implode("\n", $decodedTools);
+                                            } else {
+                                                $toolsText = $toolsSetting;
+                                            }
+                                        } else {
+                                            $toolsText = implode("\n", \App\Models\GeneralSetting::getMeasuringTools());
+                                        }
+                                    @endphp
+                                    <textarea id="measuringToolsInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="CALIPER&#10;THICKNESS GAUGE&#10;FEELER GAUGE&#10;PUSH-PULL">{!! e($toolsText) !!}</textarea>
+                                </div>
+
                                 <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
 
                                 <div class="d-flex justify-content-between align-items-center mb-4">

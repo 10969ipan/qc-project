@@ -1089,7 +1089,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             var settings = {
                 'daily_approval_gate_enabled': $('#dailyApprovalGate').is(':checked') ? '1' : '0',
-                'fpa_categories': $('#fpaCategoriesInput').val()
+                'fpa_categories': $('#fpaCategoriesInput').val(),
+                'measuring_tools': $('#measuringToolsInput').val()
             };
 
             btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...').prop('disabled', true);

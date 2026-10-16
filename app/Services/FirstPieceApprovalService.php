@@ -73,8 +73,9 @@ class FirstPieceApprovalService extends BaseService
                     $hasMinMax =
                         (isset($std["min"]) && $std["min"] !== "") ||
                         (isset($std["max"]) && $std["max"] !== "");
+                    $hasTool = !empty($std["alat_ukur"]);
 
-                    if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
+                    if (is_array($std) && ($hasSizeTol || $hasMinMax || $hasTool)) {
                         $pointKey = (string) ($index + 1);
 
                         // Flexible conversion that preserves +/- operators and asymmetric tolerances
@@ -94,6 +95,7 @@ class FirstPieceApprovalService extends BaseService
                             "tolerance" => $processValue($std["tolerance"] ?? null),
                             "min" => $processValue($std["min"] ?? null),
                             "max" => $processValue($std["max"] ?? null),
+                            "alat_ukur" => !empty($std["alat_ukur"]) ? trim((string)$std["alat_ukur"]) : null,
                         ];
                     }
                 }
@@ -613,6 +615,7 @@ class FirstPieceApprovalService extends BaseService
                 "part_weight" => $data["part_weight"] ?? null,
                 "remarks" => $data["remarks"] ?? null,
                 "dimension_check" => $dimensionCheck,
+                "alat_ukur" => $this->formatAlatUkurPayload($data["alat_ukur"] ?? null),
                 "cycle_time" => $data["cycle_time"] ?? null,
                 "defects" => $defects,
                 "next_proses" =>
@@ -715,6 +718,7 @@ class FirstPieceApprovalService extends BaseService
                 "part_weight" => $data["part_weight"] ?? null,
                 "remarks" => $data["remarks"] ?? null,
                 "dimension_check" => $dimensionCheck,
+                "alat_ukur" => array_key_exists("alat_ukur", $data) ? $this->formatAlatUkurPayload($data["alat_ukur"]) : $checksheet->alat_ukur,
                 "defects" => $defects,
                 "next_proses" =>
                     $data["judgment"] === "NG"
