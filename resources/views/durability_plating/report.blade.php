@@ -603,6 +603,7 @@
                             $evAfterTrialTime = $evAfterTrial . '_uploaded_at';
                             
                             $reportData = $report->toArray();
+                            $reportData['aktual_rn_trial'] = $report->aktual_rn_trial ?? null;
                             $reportData['evidence_before'] = $report->$evBefore;
                             $reportData['evidence_after'] = $report->$evAfter;
                             $reportData['evidence_after_trial'] = $report->$evAfterTrial;
