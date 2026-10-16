@@ -4,8 +4,8 @@
 | Metadata Dokumen | Deskripsi |
 | :--- | :--- |
 | **Nama Dokumen** | PRD - Admin Bulk Approval with Auto-Sampling & Multi-User Assignment |
-| **Versi** | 1.0.0 (Draft Review) |
-| **Status** | In Review (Menunggu Persetujuan Pengguna) |
+| **Versi** | 1.1.0 (Production Release) |
+| **Status** | Completed / Implemented (Production Ready) |
 | **Target User** | Super Admin / Administrator QC |
 | **Modul Terdampak** | In-Process Checksheet, Sub Assy, First Piece Approval (FPA), Incoming (Parts, Material, Chemical, Sub Part), Double Tape, Cross Cut, & Performance Test |
 | **Tanggal Pembuatan** | 15 Oktober 2026 |

@@ -56,9 +56,10 @@ Semua 5 jenis tes disimpen di **satu baris tabel** (`durability_thickness_report
 | `cass_actual` / `cass_hours` | `varchar` | Hasil & waktu chamber CASS |
 | `salt_spray_actual` / `salt_spray_hours` | `varchar` | Hasil & waktu chamber Salt Spray |
 | `porecount_actual` / `porecount_hours` | `varchar` | Hasil & waktu chamber Porecount |
-| `evidence_before` | `text` | Path foto sebelum diuji |
-| `evidence_after` | `text` | Path foto sesudah diuji (Data 1) |
+| `aktual_rn` | `varchar` | Hasil Aktual Rust Number (RN) untuk pengujian korosi (tersimpan berpasangan pada Data 1 & Data 2) |
+| `evidence_before` / `evidence_after` | `text` | Path foto sebelum dan sesudah diuji (Data 1) |
 | `evidence_after_trial` | `text` | Path foto sesudah diuji (Data 2 Trial) |
+| `evidence_before_test` / `evidence_after_test` | `text` / `json` | Path foto evidence spesifik per jenis pengujian |
 | `supervisor_qc` / `supervisor_plating` | `varchar` | Status Approval Supervisor QC & Plating |
 | `asst_manager_qc` / `asst_manager_plating` | `varchar` | Status Approval Asst Manager QC & Plating |
 
@@ -154,4 +155,4 @@ php -l app/Http/Controllers/DurabilityThicknessReportController.php
 ```
 
 ---
-*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 27 Agustus 2026.*
+*Dokumentasi ini dibuat oleh Irfan (Service Quality) — diperbarui 16 Oktober 2026.*
