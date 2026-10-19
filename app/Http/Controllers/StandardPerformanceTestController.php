@@ -1641,6 +1641,42 @@ class StandardPerformanceTestController extends Controller
         return $mappings[$type] ?? null;
     }
 
+    protected function getApprovalSequence()
+    {
+        return [
+            'supervisor',           // supervisor_qc
+            'supervisor_plating',   // supervisor_plating
+            'asst_manager',         // asst_manager_qc
+            'asst_manager_plating', // asst_manager_plating
+        ];
+    }
+
+    protected function applySequentialApprovalFilter($query, $type)
+    {
+        $normalizedType = match ($type) {
+            'supervisor_qc' => 'supervisor',
+            'asst_manager_qc' => 'asst_manager',
+            default => $type,
+        };
+
+        $sequence = $this->getApprovalSequence();
+        $idx = array_search($normalizedType, $sequence);
+
+        if ($idx === false || $idx === 0) {
+            return;
+        }
+
+        for ($i = $idx - 1; $i >= 0; $i--) {
+            $prevType = $sequence[$i];
+            $prevMap = $this->getApprovalMapping($prevType);
+            if ($prevMap) {
+                $prevField = $prevMap['field'];
+                $query->whereNotNull("durability_thickness_reports.{$prevField}")
+                      ->where("durability_thickness_reports.{$prevField}", '!=', 'REJECTED');
+            }
+        }
+    }
+
     public function approve(Request $request, $id, $type)
     {
         try {
@@ -1659,6 +1695,29 @@ class StandardPerformanceTestController extends Controller
             }
 
             $report = DurabilityThicknessReport::findOrFail($id);
+
+            // Validasi hierarki approval berjenjang
+            $sequence = $this->getApprovalSequence();
+            $normalizedType = match ($type) {
+                'supervisor_qc' => 'supervisor',
+                'asst_manager_qc' => 'asst_manager',
+                default => $type,
+            };
+            $idx = array_search($normalizedType, $sequence);
+            if ($idx !== false && $idx > 0) {
+                for ($i = $idx - 1; $i >= 0; $i--) {
+                    $prevType = $sequence[$i];
+                    $prevMap = $this->getApprovalMapping($prevType);
+                    if ($prevMap) {
+                        $prevField = $prevMap['field'];
+                        if (empty($report->$prevField) || $report->$prevField === 'REJECTED') {
+                            $prevLabel = $prevMap['label'];
+                            return redirect()->back()->with('error', "Approval ditolak: Menunggu persetujuan dari {$prevLabel} terlebih dahulu.");
+                        }
+                    }
+                }
+            }
+
             $field = $mapping['field'];
             $timeField = $mapping['time'];
             $label = $mapping['label'];
@@ -1682,12 +1741,13 @@ class StandardPerformanceTestController extends Controller
 
             $report->save();
 
-            // Sync to paired report (Data 1 / Data 2 Trial) if it is also OK (not NG)
+            // Sync to paired report (Data 1 / Data 2 Trial) if it is also OK (not NG) dan memenuhi hierarki berjenjang
             $pairedQuery = $report->data1_id
                 ? DurabilityThicknessReport::where('id', $report->data1_id)
                 : DurabilityThicknessReport::where('data1_id', $report->id);
 
             $this->applyResultJudgmentFilter($pairedQuery, $testType ?? 'thickness', 'OK');
+            $this->applySequentialApprovalFilter($pairedQuery, $type);
 
             $pairedQuery->where(function($q) use ($field) {
                 $q->whereNull($field)->orWhere($field, 'REJECTED');
@@ -1851,6 +1911,9 @@ class StandardPerformanceTestController extends Controller
                 });
             }
 
+            // Terapkan filter hierarki approval berjenjang
+            $this->applySequentialApprovalFilter($query, $type);
+
             // Validasi Sampling: Wajib ada minimal 1 data sampling per kategori yang ada dalam filter
             if ($user->role !== 'admin') {
                 $testType = $request->input('test_type', 'thickness');
@@ -1973,13 +2036,14 @@ class StandardPerformanceTestController extends Controller
                     'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', '{$methodType}')"),
                 ]);
 
-                // Sync paired report (Data 1 / Data 2 Trial) if it also matches the result filter (and is not NG)
+                // Sync paired report (Data 1 / Data 2 Trial) if it also matches the result filter (and is not NG) dan memenuhi hierarki berjenjang
                 $pairedQuery = $rep->data1_id
                     ? DurabilityThicknessReport::where('id', $rep->data1_id)
                     : DurabilityThicknessReport::where('data1_id', $rep->id);
 
                 $judgmentFilter = $request->filled('result_judgment') ? $request->result_judgment : 'OK';
                 $this->applyResultJudgmentFilter($pairedQuery, $testType, $judgmentFilter);
+                $this->applySequentialApprovalFilter($pairedQuery, $type);
 
                 $pairedQuery->where(function ($q) use ($field) {
                     $q->whereNull($field)->orWhere($field, 'REJECTED');

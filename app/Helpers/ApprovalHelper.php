@@ -442,6 +442,23 @@ class ApprovalHelper
         };
 
         // Sequential checks for prior approval steps
+        $table = method_exists($checksheet, 'getTable') ? $checksheet->getTable() : '';
+        $isDurability = ($table === 'durability_thickness_reports' || $checksheet instanceof \App\Models\DurabilityThicknessReport || array_key_exists('standar_jam_corrodkote', $attrs) || array_key_exists('actual_cr', $attrs));
+
+        if ($isDurability) {
+            if ($role === 'asst_manager_plating') {
+                if (!$isPriorStepSatisfied('asst_manager_qc')) return false;
+                if (!$isPriorStepSatisfied('supervisor_plating')) return false;
+                if (!$isPriorStepSatisfied('supervisor_qc')) return false;
+            } elseif (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+                if (!$isPriorStepSatisfied('supervisor_plating')) return false;
+                if (!$isPriorStepSatisfied('supervisor_qc')) return false;
+            } elseif ($role === 'supervisor_plating') {
+                if (!$isPriorStepSatisfied('supervisor_qc')) return false;
+            }
+            return true;
+        }
+
         if (in_array($role, ['manager', 'manager_qc'])) {
             if (!$isPriorStepSatisfied(['asst_manager_qc', 'asst_manager'])) return false;
             if (!$isPriorStepSatisfied(['supervisor_qc', 'supervisor'])) return false;
