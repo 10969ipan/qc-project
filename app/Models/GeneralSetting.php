@@ -130,8 +130,17 @@ class GeneralSetting extends Model
     /**
      * Helper to get Measuring Tools (Alat Ukur) for In Process & FPA
      */
-    public static function getMeasuringTools()
+    public static function getMeasuringTools($plantIdentifier = null)
     {
+        if ($plantIdentifier !== null) {
+            $tools = MeasuringTool::getForPlant($plantIdentifier);
+            if ($tools->isNotEmpty()) {
+                return $tools->map(function ($tool) {
+                    return $tool->display_name;
+                })->values()->toArray();
+            }
+        }
+
         $defaults = [
             'CALIPER',
             'THICKNESS GAUGE',

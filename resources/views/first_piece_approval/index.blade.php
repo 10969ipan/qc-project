@@ -818,7 +818,12 @@
                                                                             }
                                                                         }
 
-                                                                        if ($std && is_numeric($cleanValStr)) {
+                                                                        $upperVal = strtoupper($cleanValStr);
+                                                                        if ($upperVal === 'NG') {
+                                                                            $isNG = true;
+                                                                        } elseif ($upperVal === 'OK') {
+                                                                            $isNG = false;
+                                                                        } elseif ($std && is_numeric($cleanValStr)) {
                                                                             $fVal = (float)$cleanValStr;
                                                                             $epsilon = 0.00001;
                                                                             $normStd = function($v) {

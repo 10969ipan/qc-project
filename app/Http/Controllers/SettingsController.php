@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\ActivityLogger;
 use App\Models\GeneralSetting;
 use App\Models\NextProcess;
+use App\Models\MeasuringTool;
 
 class SettingsController extends Controller
 {
@@ -91,7 +92,16 @@ class SettingsController extends Controller
             'laporan_problem_alat_ukur' => 'Laporan Problem Alat Ukur',
         ];
 
-        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings', 'nextProcesses', 'qcModules'));
+        $measuringToolsByPlant = MeasuringTool::with('plant')
+            ->whereHas('plant', function($query) {
+                $query->where('name', '!=', 'TOTAL');
+            })
+            ->orderBy('order_no')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('plant_id');
+
+        return view('settings.index', compact('users', 'plants', 'roles', 'menus', 'permissions', 'selectedRole', 'generalSettings', 'nextProcesses', 'qcModules', 'measuringToolsByPlant'));
     }
 
     /**
@@ -855,6 +865,170 @@ class SettingsController extends Controller
         return response()->json([
             'success' => true,
             'users' => $users,
+        ]);
+    }
+
+    /**
+     * Store a new measuring tool for a plant
+     */
+    public function storeMeasuringTool(Request $request)
+    {
+        $request->validate([
+            'plant_id' => 'required|exists:plants,id',
+            'name' => 'required|string|max:100',
+            'serial_number' => 'nullable|string|max:100',
+            'category' => 'required|in:numeric,ok_ng',
+            'order_no' => 'nullable|integer',
+        ]);
+
+        $name = strtoupper(trim($request->name));
+
+        // Check if tool with same name already exists in this plant
+        $exists = MeasuringTool::where('plant_id', $request->plant_id)
+            ->where('name', $name)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Alat ukur '{$name}' sudah ada untuk plant ini."
+            ], 422);
+        }
+
+        $tool = MeasuringTool::create([
+            'plant_id' => $request->plant_id,
+            'name' => $name,
+            'serial_number' => $request->serial_number ? trim($request->serial_number) : null,
+            'category' => $request->category ?? 'numeric',
+            'code' => $request->code ? trim($request->code) : null,
+            'method' => $request->method ? trim($request->method) : null,
+            'description' => $request->description ? trim($request->description) : null,
+            'order_no' => $request->order_no ?? 0,
+            'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
+        ]);
+
+        ActivityLogger::log('created', $tool, "Menambahkan Alat Ukur baru: {$tool->display_name} ({$tool->category_label})");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Alat ukur berhasil ditambahkan.',
+            'tool' => $tool
+        ]);
+    }
+
+    /**
+     * Update an existing measuring tool
+     */
+    public function updateMeasuringTool(Request $request, $id)
+    {
+        $tool = MeasuringTool::findOrFail($id);
+
+        $request->validate([
+            'plant_id' => 'required|exists:plants,id',
+            'name' => 'required|string|max:100',
+            'serial_number' => 'nullable|string|max:100',
+            'category' => 'required|in:numeric,ok_ng',
+            'order_no' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $newName = strtoupper(trim($request->name));
+
+        // Check uniqueness in plant excluding self
+        $exists = MeasuringTool::where('plant_id', $request->plant_id)
+            ->where('name', $newName)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Alat ukur '{$newName}' sudah terdaftar untuk plant ini."
+            ], 422);
+        }
+
+        $oldName = $tool->name;
+        $tool->update([
+            'plant_id' => $request->plant_id,
+            'name' => $newName,
+            'serial_number' => $request->serial_number ? trim($request->serial_number) : null,
+            'category' => $request->category ?? 'numeric',
+            'code' => $request->code ? trim($request->code) : null,
+            'method' => $request->method ? trim($request->method) : null,
+            'description' => $request->description ? trim($request->description) : null,
+            'order_no' => $request->order_no ?? 0,
+            'is_active' => $request->has('is_active') ? (bool) $request->is_active : true,
+        ]);
+
+        // Auto-sinkronisasi ke Master Item jika nama alat berubah
+        if ($oldName !== $newName) {
+            try {
+                $items = \App\Models\Item::where('plant_id', $tool->plant_id)
+                    ->whereNotNull('dimension_standards')
+                    ->get();
+
+                foreach ($items as $item) {
+                    $stds = $item->dimension_standards;
+                    if (is_array($stds)) {
+                        $modified = false;
+                        foreach ($stds as $k => $v) {
+                            if (!empty($v['alat_ukur']) && strtoupper(trim($v['alat_ukur'])) === $oldName) {
+                                $stds[$k]['alat_ukur'] = $newName;
+                                $modified = true;
+                            }
+                        }
+                        if ($modified) {
+                            $item->dimension_standards = $stds;
+                            $item->saveQuietly();
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Gagal auto-sync nama alat ukur ke item: " . $e->getMessage());
+            }
+        }
+
+        MeasuringTool::clearCacheForPlant($tool->plant_id);
+        ActivityLogger::log('updated', $tool, "Memperbarui Alat Ukur: {$tool->display_name}");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Alat ukur berhasil diperbarui.',
+            'tool' => $tool
+        ]);
+    }
+
+    /**
+     * Delete a measuring tool
+     */
+    public function deleteMeasuringTool($id)
+    {
+        $tool = MeasuringTool::findOrFail($id);
+        $name = $tool->display_name;
+        $plantId = $tool->plant_id;
+
+        $tool->delete();
+        MeasuringTool::clearCacheForPlant($plantId);
+
+        ActivityLogger::log('deleted', null, "Menghapus Alat Ukur: {$name}");
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Alat ukur berhasil dihapus.'
+        ]);
+    }
+
+    /**
+     * Batch Sync / Flush cache for measuring tools
+     */
+    public function syncMeasuringToolsToItems(Request $request)
+    {
+        $plantId = \App\Models\Plant::resolveId($request->input('plant_id'));
+        MeasuringTool::clearCacheForPlant($plantId);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Sinkronisasi dan peremajaan cache alat ukur berhasil dilakukan.'
         ]);
     }
 }

@@ -58,7 +58,7 @@ class InProcessChecksheetService extends BaseService
         }
 
         $dbItems = Item::whereNotNull('dimension_standards')
-            ->select('id', 'part_number', 'dimension_standards')
+            ->select('id', 'part_number', 'plant_id', 'dimension_standards')
             ->get();
         foreach ($dbItems as $item) {
             $partNum = $this->normalizePartNumber($item->part_number ?? '');
@@ -85,12 +85,20 @@ class InProcessChecksheetService extends BaseService
                             return is_numeric($val) ? (float) $val : $val; // Keep as string if not strictly numeric but might be valid special format
                         };
 
+                        $resolvedTool = !empty($std['alat_ukur']) 
+                            ? \App\Models\MeasuringTool::resolveDisplayName(trim((string)$std['alat_ukur']), $item->plant_id)
+                            : null;
+                        $toolCategory = !empty($std['alat_ukur'])
+                            ? \App\Models\MeasuringTool::resolveCategory(trim((string)$std['alat_ukur']), $item->plant_id)
+                            : 'numeric';
+
                         $itemStandards[$pointKey] = [
                             'size' => $processValue($std['size'] ?? null),
                             'tolerance' => $processValue($std['tolerance'] ?? null),
                             'min' => $processValue($std['min'] ?? null),
                             'max' => $processValue($std['max'] ?? null),
-                            'alat_ukur' => !empty($std['alat_ukur']) ? trim((string)$std['alat_ukur']) : null,
+                            'alat_ukur' => $resolvedTool,
+                            'tool_category' => $toolCategory,
                         ];
                     }
                 }
@@ -292,7 +300,9 @@ class InProcessChecksheetService extends BaseService
                 $hasSizeTol = isset($std['size']) && $std['size'] !== '' && isset($std['tolerance']) && $std['tolerance'] !== '';
                 $hasMinMax = (isset($std['min']) && $std['min'] !== '') || (isset($std['max']) && $std['max'] !== '');
 
-                if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
+                $hasTool = !empty($std['alat_ukur']);
+
+                if (is_array($std) && ($hasSizeTol || $hasMinMax || $hasTool)) {
                     $pointKey = (string) ($index + 1);
                     $processValue = function ($val) {
                         $val = $this->normalizeStandardValue($val);
@@ -308,6 +318,7 @@ class InProcessChecksheetService extends BaseService
                         'tolerance' => $processValue($std['tolerance'] ?? null),
                         'min' => $processValue($std['min'] ?? null),
                         'max' => $processValue($std['max'] ?? null),
+                        'alat_ukur' => $std['alat_ukur'] ?? null,
                     ];
                 }
             }
@@ -343,6 +354,17 @@ class InProcessChecksheetService extends BaseService
 
                     foreach ($valuesToCheck as $val) {
                         if ($val === null || $val === '') continue;
+
+                        $trimmedVal = strtoupper(trim((string)$val));
+                        if ($trimmedVal === 'NG') {
+                            $isAnyInvalid = true;
+                            $hasValidDimensions = true;
+                            continue;
+                        }
+                        if ($trimmedVal === 'OK') {
+                            $hasValidDimensions = true;
+                            continue;
+                        }
 
                         $valStr = str_replace(',', '.', (string)$val);
                         if (!is_numeric($valStr)) continue;

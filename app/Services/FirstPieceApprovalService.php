@@ -59,7 +59,9 @@ class FirstPieceApprovalService extends BaseService
             $standards[$this->normalizePartNumber($pn)] = $stds;
         }
 
-        $dbItems = Item::whereNotNull("dimension_standards")->get();
+        $dbItems = Item::whereNotNull("dimension_standards")
+            ->select('id', 'part_number', 'plant_id', 'dimension_standards')
+            ->get();
         foreach ($dbItems as $item) {
             $partNum = $this->normalizePartNumber($item->part_number ?? "");
             if ($partNum !== "" && !empty($item->dimension_standards)) {
@@ -90,12 +92,20 @@ class FirstPieceApprovalService extends BaseService
                             return is_numeric($val) ? (float) $val : $val;
                         };
 
+                        $resolvedTool = !empty($std['alat_ukur']) 
+                            ? \App\Models\MeasuringTool::resolveDisplayName(trim((string)$std['alat_ukur']), $item->plant_id)
+                            : null;
+                        $toolCategory = !empty($std['alat_ukur'])
+                            ? \App\Models\MeasuringTool::resolveCategory(trim((string)$std['alat_ukur']), $item->plant_id)
+                            : 'numeric';
+
                         $itemStandards[$pointKey] = [
                             "size" => $processValue($std["size"] ?? null),
                             "tolerance" => $processValue($std["tolerance"] ?? null),
                             "min" => $processValue($std["min"] ?? null),
                             "max" => $processValue($std["max"] ?? null),
-                            "alat_ukur" => !empty($std["alat_ukur"]) ? trim((string)$std["alat_ukur"]) : null,
+                            "alat_ukur" => $resolvedTool,
+                            "tool_category" => $toolCategory,
                         ];
                     }
                 }
@@ -297,7 +307,9 @@ class FirstPieceApprovalService extends BaseService
                     (isset($std["min"]) && $std["min"] !== "") ||
                     (isset($std["max"]) && $std["max"] !== "");
 
-                if (is_array($std) && ($hasSizeTol || $hasMinMax)) {
+                $hasTool = !empty($std["alat_ukur"]);
+
+                if (is_array($std) && ($hasSizeTol || $hasMinMax || $hasTool)) {
                     $pointKey = (string) ($index + 1);
                     $processValue = function ($val) {
                         $val = $this->normalizeStandardValue($val);
@@ -313,6 +325,7 @@ class FirstPieceApprovalService extends BaseService
                         "tolerance" => $processValue($std["tolerance"] ?? null),
                         "min" => $processValue($std["min"] ?? null),
                         "max" => $processValue($std["max"] ?? null),
+                        "alat_ukur" => $std["alat_ukur"] ?? null,
                     ];
                 }
             }
@@ -366,9 +379,25 @@ class FirstPieceApprovalService extends BaseService
                     if (
                         $std &&
                         $value !== null &&
-                        $value !== "" &&
-                        is_numeric($value)
+                        $value !== ""
                     ) {
+                        $trimmedVal = strtoupper(trim((string)$value));
+                        if ($trimmedVal === 'NG') {
+                            $hasValidDimensions = true;
+                            $isAnyInvalid = true;
+                            $ngPointsCount++;
+                            continue;
+                        }
+                        if ($trimmedVal === 'OK') {
+                            $hasValidDimensions = true;
+                            $okPointsCount++;
+                            continue;
+                        }
+
+                        if (!is_numeric($value)) {
+                            continue;
+                        }
+
                         $hasValidDimensions = true;
                         $floatValue = (float) $value;
                         $isPointNG = false;

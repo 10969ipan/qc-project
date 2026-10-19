@@ -1802,7 +1802,14 @@ class InProcessCreate {
 
 
     fillDimensionsWithDash() {
-        $(".dimension-input").val("-");
+        $(".dimension-input").each(function () {
+            if ($(this).is("select")) {
+                $(this).val("");
+            } else {
+                $(this).val("-");
+            }
+            $(this).removeClass("is-invalid is-valid text-danger text-success font-weight-bold");
+        });
     }
 
     initMachinePersistence() {
@@ -1846,6 +1853,93 @@ class InProcessCreate {
         });
     }
 
+    isPointOkNg(pointIndex, dimStandards = null) {
+        // 1. Check from this.config.partDimensionStandards for current item
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const rawPn = selectedOption.data("part-number") || "";
+        const itemPartNumber = this.normalizePartNumber(rawPn);
+        const standards = (this.config && this.config.partDimensionStandards) ? (this.config.partDimensionStandards[itemPartNumber] || {}) : {};
+
+        const std = standards[pointIndex] || standards[String(pointIndex)];
+        if (std && std.tool_category) {
+            return std.tool_category === "ok_ng";
+        }
+
+        // 2. Check from selectedOption.data("dimension-standards")
+        if (!dimStandards) {
+            dimStandards = selectedOption.data("dimension-standards");
+            if (typeof dimStandards === "string") {
+                try {
+                    dimStandards = JSON.parse(dimStandards);
+                } catch (e) {
+                    dimStandards = null;
+                }
+            }
+        }
+        let foundStd = null;
+        if (Array.isArray(dimStandards)) {
+            foundStd = dimStandards.find((d) => d && (d.point == pointIndex || d.point_number == pointIndex)) || dimStandards[pointIndex - 1];
+        } else if (dimStandards && typeof dimStandards === "object") {
+            foundStd = dimStandards[pointIndex] || dimStandards[pointIndex - 1];
+        }
+        if (foundStd) {
+            if (foundStd.tool_category) {
+                return foundStd.tool_category === "ok_ng";
+            }
+            if (foundStd.alat_ukur && this.isToolOkNg(foundStd.alat_ukur)) {
+                return true;
+            }
+        }
+
+        // 3. Check label text rendered in point header
+        const labelText = $(`.point-tool-text[data-point="${pointIndex}"]`).text().trim();
+        if (labelText && labelText !== "-") {
+            return this.isToolOkNg(labelText);
+        }
+
+        return false;
+    }
+
+    isToolOkNg(toolName) {
+        if (!toolName) return false;
+        const upper = String(toolName).trim().toUpperCase();
+
+        if (this.config && this.config.measuringToolCategories) {
+            if (this.config.measuringToolCategories[upper] === "ok_ng") return true;
+        }
+
+        // Heuristic detection for fixtures, jigs, gauges with judgment
+        if (
+            upper.includes("JIG") ||
+            upper.includes("FIXTURE") ||
+            upper.includes("OK/NG") ||
+            upper.includes("GO/NO-GO") ||
+            upper.includes("PIN GAUGE")
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    renderDimensionCell(cavityNum, pointNum, pass, isOkNg, currentValue = "") {
+        const valStr = (currentValue !== null && currentValue !== undefined) ? String(currentValue).trim() : "";
+        const upperVal = valStr.toUpperCase();
+        const isOk = upperVal === "OK";
+        const isNg = upperVal === "NG";
+
+        if (isOkNg) {
+            const validClass = isOk ? "is-valid text-success" : (isNg ? "is-invalid text-danger" : "");
+            return `<select class="form-control form-control-sm dimension-input dim-pass-${pass} ${validClass}" style="width: 100%; min-width: 52px; font-size: 0.75rem; padding: 2px 2px; text-align: center; text-align-last: center; font-weight: bold; cursor: pointer;" name="dimensions[${cavityNum}][${pointNum}][p${pass}]">
+                <option value="">-</option>
+                <option value="OK" ${isOk ? "selected" : ""}>OK</option>
+                <option value="NG" ${isNg ? "selected" : ""}>NG</option>
+            </select>`;
+        }
+
+        return `<input type="text" class="form-control form-control-sm dimension-input dim-pass-${pass}" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${pointNum}" name="dimensions[${cavityNum}][${pointNum}][p${pass}]" value="${valStr}">`;
+    }
+
     initDimensionControls() {
         $("#addCavityBtn").click(() => {
             if (this.currentCavities < this.maxCavities) {
@@ -1853,8 +1947,9 @@ class InProcessCreate {
                 let newRow1 = `<tr class="cavity-row cavity-row-s1" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; background: #ffffff !important;">Cav ${this.currentCavities}</td>`;
                 let newRow2 = `<tr class="cavity-row cavity-row-s2" data-cavity="${this.currentCavities}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; background: #ffffff !important;">Cav ${this.currentCavities}</td>`;
                 for (let j = 1; j <= this.currentPoints; j++) {
-                    newRow1 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p1]"></td>`;
-                    newRow2 += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${this.currentCavities}][${j}][p2]"></td>`;
+                    const isOkNg = this.isPointOkNg(j);
+                    newRow1 += `<td class="point-cell p-1 text-center">${this.renderDimensionCell(this.currentCavities, j, 1, isOkNg)}</td>`;
+                    newRow2 += `<td class="point-cell p-1 text-center">${this.renderDimensionCell(this.currentCavities, j, 2, isOkNg)}</td>`;
                 }
                 newRow1 += `</tr>`;
                 newRow2 += `</tr>`;
@@ -1895,13 +1990,13 @@ class InProcessCreate {
                 $(".cavity-row-s1").each((index, element) => {
                     const cavityNum = $(element).data("cavity");
                     $(element).append(
-                        `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${this.currentPoints}" name="dimensions[${cavityNum}][${this.currentPoints}][p1]"></td>`
+                        `<td class="point-cell p-1 text-center">${this.renderDimensionCell(cavityNum, this.currentPoints, 1, false)}</td>`
                     );
                 });
                 $(".cavity-row-s2").each((index, element) => {
                     const cavityNum = $(element).data("cavity");
                     $(element).append(
-                        `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${this.currentPoints}" name="dimensions[${cavityNum}][${this.currentPoints}][p2]"></td>`
+                        `<td class="point-cell p-1 text-center">${this.renderDimensionCell(cavityNum, this.currentPoints, 2, false)}</td>`
                     );
                 });
                 const selectedOption = $("#itemSelect").find("option:selected");
@@ -1921,12 +2016,12 @@ class InProcessCreate {
             }
         });
 
-        $(document).on("input", ".dimension-input", function () {
+        $(document).on("input", "input.dimension-input", function () {
             let val = $(this).val();
             if (val.startsWith("+0")) $(this).val(val.replace(/^\+0/, ""));
         });
 
-        $(document).on("input", ".dimension-input", () =>
+        $(document).on("input change", ".dimension-input", () =>
             this.validateDimensions(),
         );
     }
@@ -1963,8 +2058,9 @@ class InProcessCreate {
             let row1Html = `<tr class="cavity-row cavity-row-s1" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155;">Cav ${i}</td>`;
             let row2Html = `<tr class="cavity-row cavity-row-s2" data-cavity="${i}"><td class="text-center font-weight-bold bg-light align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155;">Cav ${i}</td>`;
             for (let j = 1; j <= pointCount; j++) {
-                row1Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-1" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p1]"></td>`;
-                row2Html += `<td class="point-cell p-1 text-center"><input type="text" class="form-control form-control-sm dimension-input dim-pass-2" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}][p2]"></td>`;
+                const isOkNg = this.isPointOkNg(j);
+                row1Html += `<td class="point-cell p-1 text-center">${this.renderDimensionCell(i, j, 1, isOkNg)}</td>`;
+                row2Html += `<td class="point-cell p-1 text-center">${this.renderDimensionCell(i, j, 2, isOkNg)}</td>`;
             }
             row1Html += `</tr>`;
             row2Html += `</tr>`;
@@ -1983,6 +2079,7 @@ class InProcessCreate {
     }
 
     populateAlatUkurFromStandards(dimStandards, pointCount = 5) {
+        const _this = this;
         for (let j = 1; j <= pointCount; j++) {
             let tool = "";
             if (dimStandards) {
@@ -2004,6 +2101,41 @@ class InProcessCreate {
                 $label.text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
                 $hidden.val("");
             }
+
+            // Transform cells in column j based on tool category (OK/NG select vs Numeric input)
+            const isOkNg = this.isPointOkNg(j, dimStandards);
+
+            // Shoot 1
+            $("#dimensionBodyShoot1 tr.cavity-row").each(function () {
+                const cav = $(this).data("cavity");
+                const $cell = $(this).find(`td.point-cell:eq(${j - 1})`);
+                if ($cell.length) {
+                    const $existing = $cell.find(".dimension-input");
+                    const currentVal = $existing.val() || "";
+                    const isSelect = $existing.is("select");
+                    if (isOkNg && !isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, 1, true, currentVal));
+                    } else if (!isOkNg && isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, 1, false, currentVal));
+                    }
+                }
+            });
+
+            // Shoot 2
+            $("#dimensionBodyShoot2 tr.cavity-row").each(function () {
+                const cav = $(this).data("cavity");
+                const $cell = $(this).find(`td.point-cell:eq(${j - 1})`);
+                if ($cell.length) {
+                    const $existing = $cell.find(".dimension-input");
+                    const currentVal = $existing.val() || "";
+                    const isSelect = $existing.is("select");
+                    if (isOkNg && !isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, 2, true, currentVal));
+                    } else if (!isOkNg && isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, 2, false, currentVal));
+                    }
+                }
+            });
         }
     }
 
@@ -2744,7 +2876,7 @@ class InProcessCreate {
             ];
         }
 
-        $('input[name^="dimensions"]').each(function () {
+        $('[name^="dimensions"]').each(function () {
             const name = $(this).attr("name");
             const match = name.match(/\[(\d+)\]\[(\d+)\]/);
             if (!match) return;
@@ -2761,10 +2893,25 @@ class InProcessCreate {
                     standard = dimensionStandards[point] || dimensionStandards[parseInt(point) - 1] || null;
                 }
             }
-            const valStr = $(this).val().trim();
-            const value = parseFloat(valStr.replace(",", "."));
+            const valStr = ($(this).val() || "").trim();
+            const upperVal = valStr.toUpperCase();
 
-            $(this).removeClass("is-invalid is-valid");
+            $(this).removeClass("is-invalid is-valid text-danger text-success font-weight-bold");
+
+            if (valStr === "" || valStr === "-") {
+                return;
+            }
+
+            if (upperVal === "NG") {
+                $(this).addClass("is-invalid text-danger font-weight-bold");
+                return;
+            }
+            if (upperVal === "OK") {
+                $(this).addClass("is-valid text-success font-weight-bold");
+                return;
+            }
+
+            const value = parseFloat(valStr.replace(",", "."));
 
             if (standard && valStr !== "" && !isNaN(value)) {
                 let isInvalid = false;

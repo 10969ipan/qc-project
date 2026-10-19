@@ -927,6 +927,7 @@
                 pdfRoutePattern: dataEl.getAttribute('data-pdf-route-pattern'),
                 currentPlant: dataEl.getAttribute('data-current-plant'),
                 partDimensionStandards: partDimensionStandards,
+                measuringToolCategories: @json($measuringToolCategories ?? []),
                 initialLock: true
             });
             window.initItemSearch('itemSelect');

@@ -649,16 +649,105 @@ class FpaCreate {
         });
     }
 
+    isPointOkNg(pointIndex, dimStandards = null) {
+        // 1. Check from this.config.partDimensionStandards for current item
+        const selectedOption = $("#itemSelect").find("option:selected");
+        const rawPn = selectedOption.data("part-number") || "";
+        const itemPartNumber = this.normalizePartNumber(rawPn);
+        const standards = (this.config && this.config.partDimensionStandards) ? (this.config.partDimensionStandards[itemPartNumber] || {}) : {};
+
+        const std = standards[pointIndex] || standards[String(pointIndex)];
+        if (std && std.tool_category) {
+            return std.tool_category === "ok_ng";
+        }
+
+        // 2. Check from selectedOption.data("dimension-standards")
+        if (!dimStandards) {
+            dimStandards = selectedOption.data("dimension-standards");
+            if (typeof dimStandards === "string") {
+                try {
+                    dimStandards = JSON.parse(dimStandards);
+                } catch (e) {
+                    dimStandards = null;
+                }
+            }
+        }
+        let foundStd = null;
+        if (Array.isArray(dimStandards)) {
+            foundStd = dimStandards.find((d) => d && (d.point == pointIndex || d.point_number == pointIndex)) || dimStandards[pointIndex - 1];
+        } else if (dimStandards && typeof dimStandards === "object") {
+            foundStd = dimStandards[pointIndex] || dimStandards[pointIndex - 1];
+        }
+        if (foundStd) {
+            if (foundStd.tool_category) {
+                return foundStd.tool_category === "ok_ng";
+            }
+            if (foundStd.alat_ukur && this.isToolOkNg(foundStd.alat_ukur)) {
+                return true;
+            }
+        }
+
+        // 3. Check label text rendered in point header
+        const labelText = $(`.point-tool-text[data-point="${pointIndex}"]`).text().trim();
+        if (labelText && labelText !== "-") {
+            return this.isToolOkNg(labelText);
+        }
+
+        return false;
+    }
+
+    isToolOkNg(toolName) {
+        if (!toolName) return false;
+        const upper = String(toolName).trim().toUpperCase();
+
+        if (this.config && this.config.measuringToolCategories) {
+            if (this.config.measuringToolCategories[upper] === "ok_ng") return true;
+        }
+
+        if (
+            upper.includes("JIG") ||
+            upper.includes("FIXTURE") ||
+            upper.includes("OK/NG") ||
+            upper.includes("GO/NO-GO") ||
+            upper.includes("PIN GAUGE")
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    renderDimensionCell(cavityNum, pointNum, isOkNg, currentValue = "") {
+        const valStr = (currentValue !== null && currentValue !== undefined) ? String(currentValue).trim() : "";
+        const upperVal = valStr.toUpperCase();
+        const isOk = upperVal === "OK";
+        const isNg = upperVal === "NG";
+
+        if (isOkNg) {
+            const validClass = isOk ? "is-valid text-success" : (isNg ? "is-invalid text-danger" : "");
+            return `<select class="form-control form-control-sm dimension-input ${validClass}" style="width: 100%; min-width: 52px; font-size: 0.75rem; padding: 2px 2px; text-align: center; text-align-last: center; font-weight: bold; cursor: pointer;" name="dimensions[${cavityNum}][${pointNum}]">
+                <option value="">-</option>
+                <option value="OK" ${isOk ? "selected" : ""}>OK</option>
+                <option value="NG" ${isNg ? "selected" : ""}>NG</option>
+            </select>`;
+        }
+
+        return `<input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${pointNum}" name="dimensions[${cavityNum}][${pointNum}]" value="${valStr}">`;
+    }
+
     initDimensionTable() {
         $("#addCavityBtn").on("click", () => this.addCavity());
         $("#deleteCavityBtn").on("click", () => this.deleteLastCavity());
         $("#addPointBtn").on("click", () => this.addPoint());
         $("#deletePointBtn").on("click", () => this.deleteLastPoint());
 
-        $(document).on("input", ".dimension-input", (e) => {
+        $(document).on("input", "input.dimension-input", (e) => {
             let val = e.target.value.replace(",", ".");
             if (val.startsWith("+0")) val = val.substring(2);
             e.target.value = val;
+            this.validateDimensions();
+        });
+        $(document).on("change", "select.dimension-input", () => {
             this.validateDimensions();
         });
     }
@@ -669,7 +758,8 @@ class FpaCreate {
         let rowHtml = `<tr class="cavity-row" data-cavity="${nextIdx}">
             <td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155; background: #ffffff !important;">Cav ${nextIdx}</td>`;
         for (let j = 1; j <= pointCount; j++) {
-            rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${nextIdx}][${j}]"></td>`;
+            const isOkNg = this.isPointOkNg(j);
+            rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;">${this.renderDimensionCell(nextIdx, j, isOkNg)}</td>`;
         }
         rowHtml += "</tr>";
         $("#dimensionBody").append(rowHtml);
@@ -694,10 +784,11 @@ class FpaCreate {
                 </div>
             </th>`,
         );
+        const _this = this;
         $("#dimensionBody tr").each(function () {
             const cavIdx = $(this).data("cavity");
             $(this).append(
-                `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${nextIdx}" name="dimensions[${cavIdx}][${nextIdx}]"></td>`,
+                `<td class="point-cell p-1 text-center" style="background: #ffffff !important;">${_this.renderDimensionCell(cavIdx, nextIdx, false)}</td>`,
             );
         });
         const selectedOption = $("#itemSelect").find("option:selected");
@@ -1025,7 +1116,7 @@ class FpaCreate {
 
         let anyNG = false;
 
-        $('input[name^="dimensions"]').each((_, input) => {
+        $('[name^="dimensions"]').each((_, input) => {
             const $input = $(input);
             const name = $input.attr('name');
             const match = name.match(/\[(\d+)\]\[(\d+)\]/);
@@ -1043,10 +1134,26 @@ class FpaCreate {
                 }
             }
 
-            const valStr = $input.val().trim();
-            const value = parseFloat(valStr.replace(',', '.'));
+            const valStr = ($input.val() || '').trim();
+            const upperVal = valStr.toUpperCase();
 
-            $input.removeClass('is-invalid is-valid text-danger font-weight-bold');
+            $input.removeClass('is-invalid is-valid text-danger text-success font-weight-bold');
+
+            if (valStr === '' || valStr === '-') {
+                return;
+            }
+
+            if (upperVal === 'NG') {
+                $input.addClass('is-invalid text-danger font-weight-bold');
+                anyNG = true;
+                return;
+            }
+            if (upperVal === 'OK') {
+                $input.addClass('is-valid text-success font-weight-bold');
+                return;
+            }
+
+            const value = parseFloat(valStr.replace(',', '.'));
 
             if (standard && valStr !== '' && !isNaN(value)) {
                 let isInvalid = false;
@@ -1139,7 +1246,8 @@ class FpaCreate {
         for (let i = 1; i <= cavityCount; i++) {
             let rowHtml = `<tr class="cavity-row" data-cavity="${i}"><td class="text-center font-weight-bold align-middle" style="position: sticky; left: 0; z-index: 1; font-size: 0.72rem; color: #334155; background: #ffffff !important;">Cav ${i}</td>`;
             for (let j = 1; j <= pointCount; j++) {
-                rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;"><input type="text" class="form-control form-control-sm dimension-input" style="width: 100%; min-width: 45px; font-size: 0.75rem; padding: 2px 3px; text-align: center;" placeholder="P${j}" name="dimensions[${i}][${j}]"></td>`;
+                const isOkNg = this.isPointOkNg(j);
+                rowHtml += `<td class="point-cell p-1 text-center" style="background: #ffffff !important;">${this.renderDimensionCell(i, j, isOkNg)}</td>`;
             }
             rowHtml += '</tr>';
             tbody.append(rowHtml);
@@ -1147,6 +1255,7 @@ class FpaCreate {
     }
 
     populateAlatUkurFromStandards(dimStandards, pointCount = 5) {
+        const _this = this;
         for (let j = 1; j <= pointCount; j++) {
             let tool = "";
             if (dimStandards) {
@@ -1168,6 +1277,23 @@ class FpaCreate {
                 $label.text("-").removeClass("text-dark text-primary font-weight-bold").addClass("text-muted").css("color", "");
                 $hidden.val("");
             }
+
+            // Transform cells in column j based on tool category (OK/NG select vs Numeric input)
+            const isOkNg = this.isPointOkNg(j, dimStandards);
+            $("#dimensionBody tr.cavity-row").each(function () {
+                const cav = $(this).data("cavity");
+                const $cell = $(this).find(`td.point-cell:eq(${j - 1})`);
+                if ($cell.length) {
+                    const $existing = $cell.find(".dimension-input");
+                    const currentVal = $existing.val() || "";
+                    const isSelect = $existing.is("select");
+                    if (isOkNg && !isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, true, currentVal));
+                    } else if (!isOkNg && isSelect) {
+                        $cell.html(_this.renderDimensionCell(cav, j, false, currentVal));
+                    }
+                }
+            });
         }
     }
 
@@ -1927,6 +2053,19 @@ class FpaEdit {
                 ? dimensionStandards[point]
                 : null;
             const valStr = $input.val().trim();
+            const upperVal = valStr.toUpperCase();
+
+            $input.removeClass("is-invalid is-valid text-danger font-weight-bold");
+
+            if (upperVal === "NG") {
+                $input.addClass("is-invalid text-danger font-weight-bold");
+                return;
+            }
+            if (upperVal === "OK") {
+                $input.addClass("is-valid");
+                return;
+            }
+
             const value = parseFloat(valStr.replace(",", "."));
 
             if (standard && valStr !== "" && !isNaN(value)) {

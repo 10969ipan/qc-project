@@ -228,6 +228,12 @@ class FirstPieceApprovalController extends Controller
             'plant' => $plant,
             'nextProcesses' => $nextProcesses,
             'partDimensionStandards' => $this->getConsolidatedStandards(),
+            'measuringToolCategories' => \App\Models\MeasuringTool::forPlant($plant)->get()->mapWithKeys(function($t) {
+                return [
+                    strtoupper(trim($t->name)) => $t->category,
+                    strtoupper(trim($t->display_name)) => $t->category,
+                ];
+            })->all(),
             'fpaCategories' => \App\Models\GeneralSetting::getFpaCategories(),
         ]);
     }

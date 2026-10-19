@@ -157,10 +157,26 @@
     const buildAlatUkurOptions = (selectedVal) => {
         let opts = '<option value="">-- Pilih --</option>';
         const tools = (window.__ITEMS__ && window.__ITEMS__.measuringTools) || ['CALIPER', 'THICKNESS GAUGE', 'FEELER GAUGE', 'PUSH-PULL'];
+        let matched = false;
+        const selUpper = (selectedVal || '').trim().toUpperCase();
+
         tools.forEach(function (tool) {
-            const isSel = (selectedVal && selectedVal.toUpperCase() === tool.toUpperCase()) ? 'selected' : '';
+            const toolUpper = (tool || '').trim().toUpperCase();
+            let isSel = '';
+            if (selUpper !== '') {
+                if (selUpper === toolUpper || toolUpper.indexOf(selUpper) === 0 || selUpper.indexOf(toolUpper) === 0) {
+                    if (!matched) {
+                        isSel = 'selected';
+                        matched = true;
+                    }
+                }
+            }
             opts += `<option value="${tool}" ${isSel}>${tool}</option>`;
         });
+
+        if (selectedVal && !matched && selUpper !== '') {
+            opts += `<option value="${selectedVal}" selected>${selectedVal}</option>`;
+        }
         return opts;
     };
 

@@ -83,39 +83,48 @@ class InProcessChecksheet extends Model
 
     public function getAlatUkurArrayAttribute()
     {
+        $plantId = $this->plant_id ?? ($this->relationLoaded('item') && $this->item ? $this->item->plant_id : null);
+        $rawTools = [];
+
         if (!empty($this->alat_ukur)) {
             if (is_array($this->alat_ukur)) {
-                return $this->alat_ukur;
+                $rawTools = $this->alat_ukur;
+            } else {
+                $decoded = json_decode($this->alat_ukur, true);
+                if (is_array($decoded)) {
+                    $rawTools = $decoded;
+                } else {
+                    $rawTools = ['1' => (string) $this->alat_ukur];
+                }
             }
-            $decoded = json_decode($this->alat_ukur, true);
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-            return ['1' => (string) $this->alat_ukur];
-        }
-
-        // Fallback: Jika data checksheet lama belum memiliki alat_ukur,
-        // ambil secara dinamis dari dimension_standards Master Item terkait
-        if ($this->relationLoaded('item') && $this->item && !empty($this->item->dimension_standards)) {
+        } elseif ($this->relationLoaded('item') && $this->item && !empty($this->item->dimension_standards)) {
+            // Fallback: Jika data checksheet lama belum memiliki alat_ukur,
+            // ambil secara dinamis dari dimension_standards Master Item terkait
             $standards = $this->item->dimension_standards;
             if (is_string($standards)) {
                 $standards = json_decode($standards, true);
             }
             if (is_array($standards)) {
-                $tools = [];
                 foreach ($standards as $index => $std) {
                     if (is_array($std) && !empty($std['alat_ukur'])) {
                         $pt = !empty($std['point']) ? (int) $std['point'] : ($index + 1);
-                        $tools[(string) $pt] = trim((string) $std['alat_ukur']);
+                        $rawTools[(string) $pt] = trim((string) $std['alat_ukur']);
                     }
-                }
-                if (!empty($tools)) {
-                    return $tools;
                 }
             }
         }
 
-        return [];
+        if (empty($rawTools)) {
+            return [];
+        }
+
+        // Resolusi dinamis nama alat ukur + nomor seri sesuai plant checksheet (O(1) memory cached)
+        $resolved = [];
+        foreach ($rawTools as $pt => $tool) {
+            $resolved[(string)$pt] = MeasuringTool::resolveDisplayName($tool, $plantId);
+        }
+
+        return $resolved;
     }
 
     public function getAlatUkurFormattedAttribute()

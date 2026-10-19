@@ -109,4 +109,12 @@ class Plant extends Model
     {
         return $this->hasMany(Category::class, 'plant_id');
     }
+
+    /**
+     * Get all measuring tools for this plant
+     */
+    public function measuringTools()
+    {
+        return $this->hasMany(MeasuringTool::class, 'plant_id');
+    }
 }

@@ -164,7 +164,7 @@ class ItemController extends Controller
         $settingCustomers = $settingsCustomersQuery->pluck('name')->filter()->values()->toArray();
         
         $customers = collect(array_merge($itemCustomers, $settingCustomers))->unique()->sort()->values();
-        $measuringTools = \App\Models\GeneralSetting::getMeasuringTools();
+        $measuringTools = \App\Models\GeneralSetting::getMeasuringTools($plantId);
 
         return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers', 'measuringTools'));
     }

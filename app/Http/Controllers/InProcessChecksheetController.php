@@ -519,6 +519,12 @@ class InProcessChecksheetController extends Controller
             'plantCode' => $plantCode,
             'nextProcesses' => $nextProcesses,
             'partDimensionStandards' => json_encode($this->getConsolidatedStandards()),
+            'measuringToolCategories' => \App\Models\MeasuringTool::forPlant($plant)->get()->mapWithKeys(function($t) {
+                return [
+                    strtoupper(trim($t->name)) => $t->category,
+                    strtoupper(trim($t->display_name)) => $t->category,
+                ];
+            })->all(),
         ]);
     }
 

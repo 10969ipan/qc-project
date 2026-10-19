@@ -116,27 +116,143 @@
                                     <textarea id="fpaCategoriesInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="awal produksi&#10;operator istirahat&#10;...">{!! e($categoriesText) !!}</textarea>
                                 </div>
 
-                                <div class="premium-setting-item p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-                                    <div class="d-flex align-items-center mb-2">
+                                @php
+                                    $toolsSetting = isset($generalSettings['measuring_tools']) ? $generalSettings['measuring_tools']->value : null;
+                                    if ($toolsSetting !== null && $toolsSetting !== '') {
+                                        $decodedTools = json_decode($toolsSetting, true);
+                                        $toolsText = is_array($decodedTools) ? implode("\n", $decodedTools) : $toolsSetting;
+                                    } else {
+                                        $toolsText = implode("\n", \App\Models\GeneralSetting::getMeasuringTools());
+                                    }
+                                @endphp
+                                <textarea id="measuringToolsInput" style="display: none;">{!! e($toolsText) !!}</textarea>
+
+                                <div class="premium-setting-item p-3 rounded-xl mb-4" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                                    <div class="mb-3">
+                                        <h6 class="mb-1 font-weight-bold text-dark" style="font-size: 0.95rem;">
+                                            Manajemen Alat Ukur Per Plant (In Process & FPA)
+                                        </h6>
+                                        <p class="text-muted small mb-0">
+                                            Kelola daftar alat ukur, nomor seri fisik per plant (contoh: <code>54A05051</code> di Jakarta / <code>5TA05048</code> di Karawang), serta kategori pengukurannya (Angka Dimensi atau Cukup OK/NG).
+                                        </p>
+                                    </div>
+
+                                    @php
+                                        $activePlants = $plants->filter(fn($p) => strtoupper($p->name) !== 'TOTAL');
+                                    @endphp
+
+                                    <!-- Action Bar (Gaya Index Checksheet) -->
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px;">
+                                        <ul class="nav nav-pills" id="pillsPlantMeasuringTools" role="tablist" style="gap: 6px;">
+                                            @foreach($activePlants as $index => $plant)
+                                                <li class="nav-item">
+                                                    <a class="nav-link rounded-pill py-1 px-3 small font-weight-bold {{ $index === 0 ? 'active' : '' }}" 
+                                                       id="tab-mtool-{{ $plant->id }}" 
+                                                       data-toggle="pill" 
+                                                       href="#content-mtool-{{ $plant->id }}" 
+                                                       role="tab"
+                                                       style="font-size: 0.75rem;">
+                                                        Plant {{ $plant->name }}
+                                                        <span class="badge badge-light ml-1 text-dark">{{ count($measuringToolsByPlant[$plant->id] ?? []) }}</span>
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
                                         <div>
-                                            <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-ruler-combined mr-2 text-primary"></i>Daftar Alat Ukur (In Process & FPA)</h6>
-                                            <small class="text-muted">Daftar opsi alat ukur yang tampil pada form Cek Dimensi modul In Process & First Piece Approval (pisahkan tiap alat ukur dengan baris baru)</small>
+                                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalAddMeasuringTool" style="font-size: 0.72rem;">
+                                                <i class="fas fa-plus mr-1"></i> Tambah Alat Ukur
+                                            </button>
                                         </div>
                                     </div>
-                                    @php
-                                        $toolsSetting = isset($generalSettings['measuring_tools']) ? $generalSettings['measuring_tools']->value : null;
-                                        if ($toolsSetting !== null && $toolsSetting !== '') {
-                                            $decodedTools = json_decode($toolsSetting, true);
-                                            if (is_array($decodedTools)) {
-                                                $toolsText = implode("\n", $decodedTools);
-                                            } else {
-                                                $toolsText = $toolsSetting;
-                                            }
-                                        } else {
-                                            $toolsText = implode("\n", \App\Models\GeneralSetting::getMeasuringTools());
-                                        }
-                                    @endphp
-                                    <textarea id="measuringToolsInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="CALIPER&#10;THICKNESS GAUGE&#10;FEELER GAUGE&#10;PUSH-PULL">{!! e($toolsText) !!}</textarea>
+
+                                    <div class="tab-content" id="pillsPlantMeasuringToolsContent">
+                                        @foreach($activePlants as $index => $plant)
+                                            <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="content-mtool-{{ $plant->id }}" role="tabpanel">
+                                                <div class="table-responsive rounded border" style="max-height: 420px; overflow: auto;">
+                                                    <table class="table table-hover table-sm mb-0 text-nowrap">
+                                                        <thead class="text-uppercase" style="position: sticky; top: 0; z-index: 10; background: #f8fafc; color: #475569; font-size: 0.62rem; letter-spacing: 0.5px;">
+                                                            <tr>
+                                                                <th style="width: 45px; padding: 6px 8px;" class="text-center">#</th>
+                                                                <th style="padding: 6px 8px;">Nama Alat Ukur</th>
+                                                                <th style="padding: 6px 8px;">No. Seri (Serial Number)</th>
+                                                                <th style="padding: 6px 8px;" class="text-center">Kategori Input</th>
+                                                                <th style="width: 80px; padding: 6px 8px;" class="text-center">Status</th>
+                                                                <th style="width: 100px; padding: 6px 8px;" class="text-center">Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody style="color: #334155; font-size: 0.68rem;">
+                                                            @forelse($measuringToolsByPlant[$plant->id] ?? [] as $toolIdx => $tool)
+                                                                <tr>
+                                                                    <td class="text-center align-middle font-weight-bold text-muted" style="padding: 4px 6px;">
+                                                                        {{ $tool->order_no ?? ($toolIdx + 1) }}
+                                                                    </td>
+                                                                    <td class="align-middle" style="padding: 4px 6px;">
+                                                                        <span class="font-weight-bold text-dark" style="font-size: 0.72rem;">{{ $tool->name }}</span>
+                                                                    </td>
+                                                                    <td class="align-middle" style="padding: 4px 6px;">
+                                                                        @if(!empty($tool->serial_number))
+                                                                            <span class="badge badge-light border text-dark font-weight-bold px-2 py-1 shadow-sm" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                                                                {{ $tool->serial_number }}
+                                                                            </span>
+                                                                        @else
+                                                                            <span class="text-muted font-italic" style="font-size: 0.65rem;">- belum diisi -</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                        @if($tool->isOkNg())
+                                                                            <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.62rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+                                                                                OK / NG (JUDGMENT)
+                                                                            </span>
+                                                                        @else
+                                                                            <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.62rem; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                                                                ANGKA (NUMERIC)
+                                                                            </span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                        @if($tool->is_active)
+                                                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.62rem;">Aktif</span>
+                                                                        @else
+                                                                            <span class="badge badge-secondary px-2 py-1" style="font-size: 0.62rem;">Non-aktif</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                        <button type="button" 
+                                                                                class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-measuring-tool mr-1"
+                                                                                style="padding: 0.2rem 0.4rem; font-size: 0.6rem;"
+                                                                                data-id="{{ $tool->id }}"
+                                                                                data-plant-id="{{ $tool->plant_id }}"
+                                                                                data-name="{{ $tool->name }}"
+                                                                                data-serial="{{ $tool->serial_number }}"
+                                                                                data-category="{{ $tool->category ?? 'numeric' }}"
+                                                                                data-order="{{ $tool->order_no }}"
+                                                                                data-active="{{ $tool->is_active ? 1 : 0 }}"
+                                                                                title="Edit Alat Ukur">
+                                                                            <i class="fas fa-edit"></i>
+                                                                        </button>
+                                                                        <button type="button" 
+                                                                                class="btn btn-sm btn-outline-danger py-0 px-2 btn-delete-measuring-tool"
+                                                                                style="padding: 0.2rem 0.4rem; font-size: 0.6rem;"
+                                                                                data-id="{{ $tool->id }}"
+                                                                                data-name="{{ $tool->display_name }}"
+                                                                                title="Hapus Alat Ukur">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            @empty
+                                                                <tr>
+                                                                    <td colspan="6" class="text-center py-4 text-muted" style="font-size: 0.75rem;">
+                                                                        Belum ada alat ukur terdaftar untuk Plant {{ $plant->name }}. Klik <strong>Tambah Alat Ukur</strong> untuk menambahkan.
+                                                                    </td>
+                                                                </tr>
+                                                            @endforelse
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
 
                                 <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
@@ -1121,6 +1237,153 @@
         </div>
     </div>
 
+    <!-- Modal Add Measuring Tool -->
+    <div class="modal fade" id="modalAddMeasuringTool" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-xl overflow-hidden" style="border-radius: 12px;">
+                <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                    <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
+                        Tambah Alat Ukur Plant
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formAddMeasuringTool">
+                    @csrf
+                    <div class="modal-body p-4" style="background: #f8fafc;">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Plant <span class="text-danger">*</span></label>
+                            <select name="plant_id" id="add_mt_plant_id" class="form-control form-control-sm border-0 shadow-sm" required>
+                                @foreach($plants as $plant)
+                                    @if(strtoupper($plant->name) !== 'TOTAL')
+                                        <option value="{{ $plant->id }}">{{ $plant->name }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Nama Alat Ukur <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="add_mt_name" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-uppercase" required placeholder="Contoh: DIGIMATIC CALIPER / CHECKING FIXTURE">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">
+                                No. Seri Fisik (Serial Number)
+                            </label>
+                            <input type="text" name="serial_number" id="add_mt_serial" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-primary" placeholder="Contoh: 54A05051 (JKT) / 5TA05048 (KRW)">
+                            <small class="text-muted d-block mt-1">Akan tampil otomatis di index checksheet: <em>Digimatic Caliper (54A05051)</em></small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Kategori Input Dimensi <span class="text-danger">*</span></label>
+                                <select name="category" id="add_mt_category" class="form-control form-control-sm border-0 shadow-sm font-weight-bold" required>
+                                    <option value="numeric">Pengukuran Angka (Numeric / Min - Max)</option>
+                                    <option value="ok_ng">Cukup OK / NG (Judgment / Fixture / Jig)</option>
+                                </select>
+                                <small class="text-muted d-block mt-1">
+                                    Pilih <strong>OK / NG</strong> jika part hanya cukup di-cek status fitting tanpa input angka.
+                                </small>
+                            </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Urutan</label>
+                                <input type="number" name="order_no" id="add_mt_order" class="form-control form-control-sm border-0 shadow-sm" value="0">
+                            </div>
+                        </div>
+
+                        <div class="custom-control custom-switch mt-2">
+                            <input type="checkbox" class="custom-control-input" id="add_mt_active" name="is_active" value="1" checked>
+                            <label class="custom-control-label small font-weight-bold text-dark" for="add_mt_active">Aktifkan alat ukur ini pada form dropdown checksheet</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-white border-top py-3 px-4">
+                        <button type="button" class="btn btn-light border rounded-pill px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm font-weight-bold">
+                            <i class="fas fa-save mr-1"></i> Simpan Alat Ukur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Measuring Tool -->
+    <div class="modal fade" id="modalEditMeasuringTool" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-xl overflow-hidden" style="border-radius: 12px;">
+                <div class="modal-header bg-dark text-white border-0 py-3 px-4">
+                    <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
+                        Edit Alat Ukur Plant
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formEditMeasuringTool">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="id" id="edit_mt_id">
+                    <div class="modal-body p-4" style="background: #f8fafc;">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Plant <span class="text-danger">*</span></label>
+                            <select name="plant_id" id="edit_mt_plant_id" class="form-control form-control-sm border-0 shadow-sm" required>
+                                @foreach($plants as $plant)
+                                    @if(strtoupper($plant->name) !== 'TOTAL')
+                                        <option value="{{ $plant->id }}">{{ $plant->name }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">Nama Alat Ukur <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="edit_mt_name" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-uppercase" required>
+                            <small class="text-muted d-block mt-1">Perubahan nama akan otomatis tersinkronisasi ke Master Item plant ini.</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-gray-700">
+                                No. Seri Fisik (Serial Number)
+                            </label>
+                            <input type="text" name="serial_number" id="edit_mt_serial" class="form-control form-control-sm border-0 shadow-sm font-weight-bold text-primary">
+                            <small class="text-muted d-block mt-1">Contoh: <code>54A05051</code> untuk Jakarta / <code>5TA05048</code> untuk Karawang.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8 form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Kategori Input Dimensi <span class="text-danger">*</span></label>
+                                <select name="category" id="edit_mt_category" class="form-control form-control-sm border-0 shadow-sm font-weight-bold" required>
+                                    <option value="numeric">Pengukuran Angka (Numeric / Min - Max)</option>
+                                    <option value="ok_ng">Cukup OK / NG (Judgment / Fixture / Jig)</option>
+                                </select>
+                                <small class="text-muted d-block mt-1">
+                                    Pilih <strong>OK / NG</strong> jika part hanya cukup di-cek status fitting tanpa input angka.
+                                </small>
+                            </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label class="small font-weight-bold text-gray-700">Urutan</label>
+                                <input type="number" name="order_no" id="edit_mt_order" class="form-control form-control-sm border-0 shadow-sm">
+                            </div>
+                        </div>
+
+                        <div class="custom-control custom-switch mt-2">
+                            <input type="checkbox" class="custom-control-input" id="edit_mt_active" name="is_active" value="1">
+                            <label class="custom-control-label small font-weight-bold text-dark" for="edit_mt_active">Aktifkan alat ukur ini pada form dropdown checksheet</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-white border-top py-3 px-4">
+                        <button type="button" class="btn btn-light border rounded-pill px-4" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm font-weight-bold">
+                            <i class="fas fa-save mr-1"></i> Perbarui Alat Ukur
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Add/Edit Document Header -->
     <div class="modal fade" id="modalAddDocumentHeader" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -1249,6 +1512,9 @@
         var_14: "{{ route('admin.settings.document-headers.store') }}",
         var_15: "{{ url('admin/settings/document-headers') }}",
         var_backup: "{{ url('admin/backup') }}",
+        var_mt_store: "{{ route('admin.settings.measuring-tools.store') }}",
+        var_mt_url: "{{ url('admin/settings/measuring-tools') }}",
+        var_mt_sync: "{{ route('admin.settings.measuring-tools.sync-items') }}",
     };
 </script>
 
@@ -1257,4 +1523,5 @@
     <script src="{{ asset('js/vendor/moment-id.min.js') }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script src="{{ asset('js/settings/index.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/settings/measuring-tools.js') }}?v={{ time() }}"></script>
 @endpush

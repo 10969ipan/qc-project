@@ -586,9 +586,18 @@
                     </thead>
                     <tbody>
                         @php
-                            // Helper function for single value NG validation
                             $checkValueNG = function($val, $std) {
-                                if ($val === '-' || $val === '' || $val === null || !is_numeric($val) || empty($std)) {
+                                if ($val === '-' || $val === '' || $val === null) {
+                                    return false;
+                                }
+                                $strVal = strtoupper(trim((string)$val));
+                                if ($strVal === 'NG') {
+                                    return true;
+                                }
+                                if ($strVal === 'OK') {
+                                    return false;
+                                }
+                                if (!is_numeric($val) || empty($std)) {
                                     return false;
                                 }
                                 $fVal = (float)$val;

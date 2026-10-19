@@ -1153,7 +1153,8 @@
                 pdfWorkerSrc: "{{ asset('js/vendor/pdf.worker.min.js') }}",
                 plantContext: "{{ $plantCode }}",
                 useQueue: {{ $plantCode === 'karawang' ? 'true' : 'false' }},
-                partDimensionStandards: {!! $partDimensionStandards !!}
+                partDimensionStandards: {!! $partDimensionStandards !!},
+                measuringToolCategories: @json($measuringToolCategories ?? [])
             });
             // Pasang autocomplete di field Item Part
             window.initItemSearch('itemSelect');

@@ -56,6 +56,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'updateNextProcess'])->name('settings.next-processes.update');
         Route::delete('settings/next-processes/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteNextProcess'])->name('settings.next-processes.delete');
         
+        // Measuring Tools Management
+        Route::post('settings/measuring-tools', [\App\Http\Controllers\SettingsController::class, 'storeMeasuringTool'])->name('settings.measuring-tools.store');
+        Route::put('settings/measuring-tools/{id}', [\App\Http\Controllers\SettingsController::class, 'updateMeasuringTool'])->name('settings.measuring-tools.update');
+        Route::delete('settings/measuring-tools/{id}', [\App\Http\Controllers\SettingsController::class, 'deleteMeasuringTool'])->name('settings.measuring-tools.delete');
+        Route::post('settings/measuring-tools/sync-items', [\App\Http\Controllers\SettingsController::class, 'syncMeasuringToolsToItems'])->name('settings.measuring-tools.sync-items');
+        
         // Document Header Management
         Route::get('settings/document-headers', [\App\Http\Controllers\SettingsController::class, 'getDocumentHeaders'])->name('settings.document-headers');
         Route::post('settings/document-headers', [\App\Http\Controllers\SettingsController::class, 'storeDocumentHeader'])->name('settings.document-headers.store');
