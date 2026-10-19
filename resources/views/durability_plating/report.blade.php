@@ -178,6 +178,13 @@
         'revisi' => '- / -',
         'halaman' => '1 / 1'
     ]);
+
+    if (empty($docHeader['no_dokumen']) || $docHeader['no_dokumen'] === '-') {
+        $fallbackHeader = \App\Models\GeneralSetting::getDocHeader('durability_test', $plantCode);
+        if (!empty($fallbackHeader) && !empty($fallbackHeader['no_dokumen']) && $fallbackHeader['no_dokumen'] !== '-') {
+            $docHeader = array_merge($docHeader, $fallbackHeader);
+        }
+    }
 @endphp
 
 <!-- Logo Tersembunyi untuk Ekspor PDF -->

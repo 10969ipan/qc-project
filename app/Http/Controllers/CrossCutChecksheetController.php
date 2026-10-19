@@ -609,17 +609,12 @@ class CrossCutChecksheetController extends Controller
             $filters['entry_method'] = 'regular';
         }
 
-        // Default ke hari ini jika tidak ada filter tanggal
-        if (empty($filters['start_date']) && empty($filters['end_date']) && 
-            empty($filters['item_id']) && empty($filters['operator_initials']) && 
-            empty($filters['customer']) && empty($filters['search'])) {
-            $filters['start_date'] = now()->toDateString();
-            $filters['end_date'] = now()->toDateString();
-        }
+        // ponytail: ambil seluruh data sesuai filter aktif tanpa limitasi paginasi (10)
+        $checksheets = $this->crossCutService->buildFilteredQuery($filters)->get();
 
-        $checksheets = $this->crossCutService->getFilteredChecksheets($filters);
-
-        $plantCode = strtolower($request->input('plant', auth()->user()->plant_id == 1 ? 'karawang' : 'jakarta'));
+        $plantInput = $request->input('plant') ?? (auth()->check() && auth()->user()->plant ? auth()->user()->plant->code ?? auth()->user()->plant->name : 'karawang');
+        $plantCode = (is_string($plantInput) && strlen($plantInput) > 30) ? \App\Models\Plant::where('id', $plantInput)->value('code') : (string) $plantInput;
+        $plantCode = strtolower($plantCode ?: 'karawang');
         $plantName = \App\Models\Plant::resolveName($plantCode);
         $startDate = !empty($filters['start_date']) ? \Carbon\Carbon::parse($filters['start_date'])->format('d/m/Y') : 'Semua';
         $endDate   = !empty($filters['end_date'])   ? \Carbon\Carbon::parse($filters['end_date'])->format('d/m/Y')   : 'Semua';

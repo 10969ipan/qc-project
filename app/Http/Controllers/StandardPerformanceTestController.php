@@ -879,12 +879,26 @@ class StandardPerformanceTestController extends Controller
         
         if ($request->has('print')) {
             $reports = $query->get();
-            $docHeader = \App\Models\GeneralSetting::getDocHeader('report_standard_performance_test', auth()->check() && auth()->user()->plant ? strtolower(auth()->user()->plant->name) : 'jakarta', [
+
+            $plant = $request->input('plant') ?? (auth()->check() && auth()->user()->plant ? auth()->user()->plant->name : 'karawang');
+            $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
+            $plantCode = strtolower($plantCode ?: 'karawang');
+
+            $docHeader = \App\Models\GeneralSetting::getDocHeader($testType, $plantCode, [
                 'no_dokumen' => '-',
                 'tgl_terbit' => '-',
                 'revisi' => '- / -',
                 'halaman' => '1 / 1'
             ]);
+
+            // Fallback ke durability_test jika modul spesifik belum diset nomor dokumennya
+            if (empty($docHeader['no_dokumen']) || $docHeader['no_dokumen'] === '-') {
+                $fallbackHeader = \App\Models\GeneralSetting::getDocHeader('durability_test', $plantCode);
+                if (!empty($fallbackHeader) && !empty($fallbackHeader['no_dokumen']) && $fallbackHeader['no_dokumen'] !== '-') {
+                    $docHeader = array_merge($docHeader, $fallbackHeader);
+                }
+            }
+
             return view('durability_plating.print', compact('reports', 'docHeader', 'testType', 'isTrial'));
         }
 
