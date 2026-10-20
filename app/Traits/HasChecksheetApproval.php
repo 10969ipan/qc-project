@@ -832,7 +832,11 @@ trait HasChecksheetApproval
                                     $batchExistQ->where('plant_id', $resolvedP);
                                 }
                             }
-                            $batchExistQ->whereIn(DB::raw("DATE({$table}.{$dateColName})"), $targetDates);
+                            $batchExistQ->where(function ($dateQ) use ($table, $dateColName, $targetDates) {
+                                foreach ($targetDates as $td) {
+                                    $dateQ->orWhereDate("{$table}.{$dateColName}", $td);
+                                }
+                            });
                             $batchExistQ->where(function ($eq) use ($roleKeys, $table) {
                                 foreach ($roleKeys as $rk) {
                                     $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
@@ -840,12 +844,14 @@ trait HasChecksheetApproval
                             });
 
                             if ($scope === 'shift' && $shiftCol && Schema::hasColumn($table, $shiftCol)) {
-                                $existingCounts = $batchExistQ->groupBy(DB::raw("DATE({$table}.{$dateColName})"), "{$table}.{$shiftCol}")
+                                $existingCounts = $batchExistQ
                                     ->selectRaw("CONCAT(DATE({$table}.{$dateColName}), '_', {$table}.{$shiftCol}) as gkey, COUNT(*) as aggregate")
+                                    ->groupByRaw("CONCAT(DATE({$table}.{$dateColName}), '_', {$table}.{$shiftCol})")
                                     ->pluck('aggregate', 'gkey')->toArray();
                             } else {
-                                $existingCounts = $batchExistQ->groupBy(DB::raw("DATE({$table}.{$dateColName})"))
+                                $existingCounts = $batchExistQ
                                     ->selectRaw("DATE({$table}.{$dateColName}) as gdate, COUNT(*) as aggregate")
+                                    ->groupByRaw("DATE({$table}.{$dateColName})")
                                     ->pluck('aggregate', 'gdate')->toArray();
                             }
                         }
