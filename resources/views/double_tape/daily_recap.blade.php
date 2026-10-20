@@ -408,7 +408,7 @@
                 <i class="fas fa-print fa-sm mr-1"></i> Print Rekap Ini
             </button>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-3">
             <div class="table-responsive">
                 <table class="table mb-0" id="ngRecapTable">
                     <thead>
@@ -427,26 +427,26 @@
                         @php $globalNgIndex = 1; @endphp
                         @forelse($ngRecap as $itemIndex => $row)
                             @foreach($row->defects as $defectIndex => $defect)
-                                <tr>
-                                    <td class="text-center font-weight small align-middle">
+                                <tr data-item-id="{{ $row->item_id ?? $itemIndex }}">
+                                    <td class="text-center font-weight small align-middle cell-no" data-original-no="{{ $globalNgIndex }}">
                                         {{ $globalNgIndex++ }}
                                     </td>
-                                    <td class="font-weight align-middle">
+                                    <td class="font-weight align-middle cell-item-name" data-val="{{ $row->item->name ?? '-' }}">
                                         {{ $row->item->name ?? '-' }}
                                     </td>
-                                    <td class="text-uppercase small font-weight align-middle">
+                                    <td class="text-uppercase small font-weight align-middle cell-part-no" data-val="{{ $row->item->part_number ?? '-' }}">
                                         {{ $row->item->part_number ?? '-' }}
                                     </td>
-                                    <td class="small align-middle">
+                                    <td class="small align-middle cell-customer" data-val="{{ $row->item->customer ?? '-' }}">
                                         {{ $row->item->customer ?? '-' }}
                                     </td>
-                                    <td class="text-center font-weight align-middle">
+                                    <td class="text-center font-weight align-middle cell-checked" data-checked="{{ (int)$row->total_qty_sum }}" data-val="{{ number_format($row->total_qty_sum) }} pcs">
                                         {{ number_format($row->total_qty_sum) }} pcs
                                     </td>
                                     <td class="font-weight-bold text-danger align-middle">
                                         {{ $defect->defect_type }}
                                     </td>
-                                    <td class="text-center font-weight text-danger align-middle">
+                                    <td class="text-center font-weight text-danger align-middle" data-ng="{{ (int)$defect->defect_qty }}">
                                         {{ number_format($defect->defect_qty) }} pcs
                                     </td>
                                     <td class="text-center font-weight-bold text-danger align-middle">
@@ -467,6 +467,25 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot id="ngRecapTableFooter" style="display: none;">
+                        <tr class="bg-light font-weight-bold border-top border-bottom">
+                            <td class="text-center align-middle text-muted small">Total</td>
+                            <td colspan="4" class="align-middle text-dark font-weight-bold" id="ngFooterLabel">
+                                TOTAL NG
+                            </td>
+                            <td class="text-center font-weight-bold text-danger align-middle">
+                                TOTAL NG
+                            </td>
+                            <td class="text-center font-weight-bold text-danger align-middle" id="ngFooterQty">
+                                0 pcs
+                            </td>
+                            <td class="text-center font-weight-bold text-danger align-middle">
+                                <span class="badge badge-dark px-2 py-1" id="ngFooterPct" style="font-size: 0.75rem;">
+                                    0.00%
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -522,6 +541,84 @@
                         last: "Terakhir",
                         next: "Lanjut",
                         previous: "Kembali"
+                    }
+                },
+                drawCallback: function(settings) {
+                    var api = this.api();
+                    var searchTerm = api.search().trim();
+                    var footer = $('#ngRecapTableFooter');
+
+                    // 1. Nomor urut dinamis: jika sedang difilter/dicari, urutkan dari 1 s/d N (atau per halaman)
+                    var pageInfo = api.page.info();
+                    var startNumber = pageInfo.start + 1;
+                    api.rows({ page: 'current' }).nodes().each(function(row, idx) {
+                        var cellNo = $(row).find('.cell-no');
+                        if (searchTerm.length > 0) {
+                            cellNo.text(startNumber + idx);
+                        } else {
+                            cellNo.text(cellNo.data('original-no') || (startNumber + idx));
+                        }
+                    });
+
+                    // 2. Grouping visual: kosongkan nama barang, part no, customer, total checked jika baris di atasnya memiliki item yang sama
+                    var lastItemId = null;
+                    $('#ngRecapTable tbody tr').each(function() {
+                        var row = $(this);
+                        var itemId = row.attr('data-item-id');
+                        if (!itemId) return;
+
+                        var cellName = row.find('.cell-item-name');
+                        var cellPart = row.find('.cell-part-no');
+                        var cellCust = row.find('.cell-customer');
+                        var cellCheck = row.find('.cell-checked');
+
+                        if (lastItemId !== null && lastItemId === itemId) {
+                            // Data sama persis dengan baris sebelumnya pada tampilan aktif: sembunyikan teksnya
+                            cellName.text('');
+                            cellPart.text('');
+                            cellCust.text('');
+                            cellCheck.text('');
+                        } else {
+                            // Baris pertama dari item ini (atau hasil filter): tampilkan teks aslinya
+                            cellName.text(cellName.data('val') || '');
+                            cellPart.text(cellPart.data('val') || '');
+                            cellCust.text(cellCust.data('val') || '');
+                            cellCheck.text(cellCheck.data('val') || '');
+                            lastItemId = itemId;
+                        }
+                    });
+
+                    // 3. TOTAL NG hanya muncul jika pengguna melakukan pencarian
+                    if (searchTerm.length > 0) {
+                        var totalNg = 0;
+                        var uniqueCheckedMap = {};
+
+                        api.rows({ filter: 'applied' }).nodes().each(function(row) {
+                            var $r = $(row);
+                            var itemId = $r.attr('data-item-id');
+                            var ngVal = parseInt($r.find('td[data-ng]').data('ng')) || 0;
+                            var checkedVal = parseInt($r.find('td[data-checked]').data('checked')) || 0;
+
+                            totalNg += ngVal;
+                            // Catat checkedVal per item agar tidak terduplikasi saat menjumlahkan total checked
+                            if (itemId && !(itemId in uniqueCheckedMap)) {
+                                uniqueCheckedMap[itemId] = checkedVal;
+                            }
+                        });
+
+                        var totalChecked = 0;
+                        for (var k in uniqueCheckedMap) {
+                            totalChecked += uniqueCheckedMap[k];
+                        }
+
+                        var pct = totalChecked > 0 ? ((totalNg / totalChecked) * 100).toFixed(2) : '0.00';
+
+                        $('#ngFooterLabel').html('Total NG Pencarian: <strong>' + $('<div>').text(searchTerm).html() + '</strong>');
+                        $('#ngFooterQty').text(new Intl.NumberFormat().format(totalNg) + ' pcs');
+                        $('#ngFooterPct').text(pct + '%');
+                        footer.show();
+                    } else {
+                        footer.hide();
                     }
                 }
             });
