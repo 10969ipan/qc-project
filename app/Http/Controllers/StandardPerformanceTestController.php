@@ -1976,28 +1976,110 @@ class StandardPerformanceTestController extends Controller
                 $bulkIds = [];
 
                 if ($user->role === 'admin' && !empty($pendingIds)) {
-                    $cats = (clone $query)
+                    $testType = $request->input('test_type', 'thickness');
+                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+
+                    // Group pending items by category
+                    $candidateRecords = (clone $query)
                         ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
                         ->whereIn('durability_thickness_reports.id', $pendingIds)
-                        ->select('durability_thickness_reports.id', 'standard_performance_tests.category')
-                        ->get()
-                        ->groupBy('category');
+                        ->select(
+                            'durability_thickness_reports.id',
+                            'standard_performance_tests.category',
+                            'standard_performance_tests.customer_name'
+                        )
+                        ->get();
+
+                    $cats = $candidateRecords->groupBy(function ($item) {
+                        return !empty($item->category) ? trim($item->category) : '__uncategorized__';
+                    });
+
+                    // Priority customers list (case-insensitive)
+                    $priorityPatterns = [
+                        'PT. YAMAHA INDONESIA MOTOR MANUFACTURING',
+                        'PT. ASTRA HONDA MOTOR',
+                        'PT. AHM',
+                        'PT. YAMAHA',
+                        'PT. YAMAHA MUSIC MANUFACTURING ASIA'
+                    ];
 
                     foreach ($cats as $catName => $recs) {
-                        $idsInCat = $recs->pluck('id')->toArray();
+                        $itemsInCat = $recs->all();
+                        $idsInCat = array_column($itemsInCat, 'id');
+
+                        // Check if this category ALREADY has sampling within the active filtered dates
                         $hasSampling = DurabilityThicknessReport::query()
                             ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                            ->where('standard_performance_tests.category', $catName)
                             ->where('durability_thickness_reports.is_trial', $isTrial)
                             ->whereNotNull("durability_thickness_reports.{$field}")
                             ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
                             ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
-                            ->exists();
+                            ->where(function ($q) use ($request, $dateCol) {
+                                if ($request->filled('start_date')) {
+                                    $q->whereDate($dateCol, '>=', $request->start_date);
+                                }
+                                if ($request->filled('end_date')) {
+                                    $q->whereDate($dateCol, '<=', $request->end_date);
+                                }
+                            });
 
-                        if (!$hasSampling && !empty($idsInCat)) {
-                            $shuffled = collect($idsInCat)->shuffle();
-                            $samplingIds[] = $shuffled->first();
-                            $bulkIds = array_merge($bulkIds, $shuffled->slice(1)->all());
+                        if ($catName === '__uncategorized__') {
+                            $hasSampling->where(function ($cq) {
+                                $cq->whereNull('standard_performance_tests.category')
+                                   ->orWhere('standard_performance_tests.category', '');
+                            });
+                        } else {
+                            $hasSampling->where('standard_performance_tests.category', $catName);
+                        }
+
+                        $alreadySampled = $hasSampling->exists();
+
+                        if (!$alreadySampled && !empty($idsInCat)) {
+                            // Split into priority customers vs regular
+                            $priorityItems = [];
+                            $normalItems = [];
+
+                            foreach ($itemsInCat as $item) {
+                                $custUpper = strtoupper(trim($item->customer_name ?? ''));
+                                $isPriority = false;
+                                if (!empty($custUpper)) {
+                                    foreach ($priorityPatterns as $pat) {
+                                        if (strpos($custUpper, $pat) !== false) {
+                                            $isPriority = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if ($isPriority) {
+                                    $priorityItems[] = $item->id;
+                                } else {
+                                    $normalItems[] = $item->id;
+                                }
+                            }
+
+                            // Shuffle candidates
+                            $shuffledPriority = collect($priorityItems)->shuffle();
+                            $shuffledNormal = collect($normalItems)->shuffle();
+
+                            // Pick 1 sampling per category: priority customer first, otherwise normal
+                            $pickedId = null;
+                            $leftovers = [];
+
+                            if ($shuffledPriority->isNotEmpty()) {
+                                $pickedId = $shuffledPriority->first();
+                                $leftovers = array_merge(
+                                    $shuffledPriority->slice(1)->all(),
+                                    $shuffledNormal->all()
+                                );
+                            } else {
+                                $pickedId = $shuffledNormal->first();
+                                $leftovers = $shuffledNormal->slice(1)->all();
+                            }
+
+                            if ($pickedId) {
+                                $samplingIds[] = $pickedId;
+                            }
+                            $bulkIds = array_merge($bulkIds, $leftovers);
                         } else {
                             $bulkIds = array_merge($bulkIds, $idsInCat);
                         }
