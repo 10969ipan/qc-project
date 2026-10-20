@@ -66,7 +66,8 @@
             padding: 0;
             background: #fff !important;
         }
-        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3, .card-header {
+        .navbar, .topbar, .sidebar, .footer, .btn, .no-print, .custom-filter-card, .d-flex.align-items-center.justify-content-between.mb-3, .card-header,
+        .dataTables_filter, .dataTables_length, .dataTables_info, .dataTables_paginate, .dataTables_wrapper .row:first-child, .dataTables_wrapper .row:last-child {
             display: none !important;
         }
         #content-wrapper {
@@ -126,7 +127,7 @@
         }
         .text-success { color: #28a745 !important; }
         .text-danger { color: #dc3545 !important; }
-        #recapTable .badge {
+        #recapTable .badge, #performanceTable .badge, #ngRecapTable .badge {
             background-color: transparent !important;
             border: none !important;
             padding: 0 !important;
@@ -167,7 +168,7 @@
                     <img src="{{ asset('master item/ipp.jpg') }}" style="max-width: 100px; max-height: 60px; object-fit: contain;">
                 </td>
                 <td class="title" style="border-left: none !important; text-align: center;">
-                    <div style="font-size: 16px;">REKAP HARIAN VERIFICATION DOUBLE TAPE</div>
+                    <div style="font-size: 16px;" id="printDocTitle">REKAP HARIAN VERIFICATION DOUBLE TAPE</div>
                 </td>
             </tr>
         </table>
@@ -626,10 +627,37 @@
     });
 
     function printCardSection(cardId) {
+        var printTitleEl = $('#printDocTitle');
+        var defaultTitle = printTitleEl.text();
+        var tableId = $('#' + cardId).find('table.dataTable').attr('id');
+        var dt = tableId && $.fn.DataTable.isDataTable('#' + tableId) ? $('#' + tableId).DataTable() : null;
+        var originalPageLen = dt ? dt.page.len() : null;
+
+        if (cardId === 'cardNgDefect') {
+            printTitleEl.text('REKAP DATA NG PER DEFECT - DOUBLE TAPE');
+        } else if (cardId === 'cardPerformanceInspector') {
+            printTitleEl.text('REKAP PERFORMANCE INSPECTOR - DOUBLE TAPE');
+        } else if (cardId === 'cardVerifikasiItem') {
+            printTitleEl.text('REKAP VERIFIKASI PER ITEM - DOUBLE TAPE');
+        }
+
+        // Tampilkan semua baris saat dicetak agar tidak terpotong paginasi
+        if (dt) {
+            dt.page.len(-1).draw();
+        }
+
         $('.recap-card').addClass('d-print-none');
         $('#' + cardId).removeClass('d-print-none');
-        window.print();
-        $('.recap-card').removeClass('d-print-none');
+
+        setTimeout(function() {
+            window.print();
+            // Kembalikan ke state semula setelah dialog cetak selesai
+            $('.recap-card').removeClass('d-print-none');
+            printTitleEl.text(defaultTitle);
+            if (dt && originalPageLen !== null) {
+                dt.page.len(originalPageLen).draw();
+            }
+        }, 150);
     }
 </script>
 @endpush
