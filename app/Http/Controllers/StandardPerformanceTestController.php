@@ -1983,17 +1983,15 @@ class StandardPerformanceTestController extends Controller
                     $roleKeys = [$type];
                     if (in_array($type, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
                         $roleKeys = ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'];
-                    } elseif (in_array($type, ['manager', 'manager_qc', 'manager_plating'])) {
-                        $roleKeys = ['manager', 'manager_qc', 'manager_plating'];
                     } elseif (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
                         $roleKeys = ['supervisor', 'supervisor_qc', 'supervisor_plating'];
                     }
 
-                    // Scope: Asst Manager & Manager = 1 data sampling per hari per kategori
-                    // Supervisor = 1 data sampling per shift (or date) per kategori
+                    // Scope: Durability Plating approval hierarki hanya sampai Asst Manager (SPV QC, SPV Plating, Asst Mgr QC, Asst Mgr Plating)
+                    // Asst Manager = 1 data sampling per hari per kategori
+                    // Supervisor = 1 data sampling per shift per kategori
                     $isDailyScope = in_array($type, [
-                        'asst_manager', 'asst_manager_qc', 'asst_manager_plating',
-                        'manager', 'manager_qc', 'manager_plating'
+                        'asst_manager', 'asst_manager_qc', 'asst_manager_plating'
                     ]);
 
                     // Fetch candidate records directly without mutating the base query
