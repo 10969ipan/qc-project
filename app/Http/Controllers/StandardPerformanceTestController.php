@@ -1968,7 +1968,7 @@ class StandardPerformanceTestController extends Controller
 
             // If get_ids mode, return list of pending IDs only
             if ($request->boolean('get_ids')) {
-                $pendingIds = $query->where(function ($q) use ($field) {
+                $pendingIds = (clone $query)->where(function ($q) use ($field) {
                     $q->whereNull("durability_thickness_reports.{$field}")->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
                 })->pluck('durability_thickness_reports.id')->toArray();
 
@@ -1977,22 +1977,32 @@ class StandardPerformanceTestController extends Controller
 
                 if ($user->role === 'admin' && !empty($pendingIds)) {
                     $testType = $request->input('test_type', 'thickness');
-                    $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+                    $dateCol = ($testType === 'porecount') ? 'tanggal_cek_porecount' : 'tanggal_cek';
 
-                    // Group pending items by category
-                    $candidateRecords = (clone $query)
-                        ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                        ->whereIn('durability_thickness_reports.id', $pendingIds)
-                        ->select(
-                            'durability_thickness_reports.id',
-                            'standard_performance_tests.category',
-                            'standard_performance_tests.customer_name'
-                        )
-                        ->get();
+                    // Determine alias role keys to inspect existing sampling in DB
+                    $roleKeys = [$type];
+                    if (in_array($type, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
+                        $roleKeys = ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'];
+                    } elseif (in_array($type, ['manager', 'manager_qc', 'manager_plating'])) {
+                        $roleKeys = ['manager', 'manager_qc', 'manager_plating'];
+                    } elseif (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
+                        $roleKeys = ['supervisor', 'supervisor_qc', 'supervisor_plating'];
+                    }
 
-                    $cats = $candidateRecords->groupBy(function ($item) {
-                        return !empty($item->category) ? trim($item->category) : '__uncategorized__';
-                    });
+                    // Scope: Asst Manager & Manager = 1 data sampling per hari per kategori
+                    // Supervisor = 1 data sampling per shift (or date) per kategori
+                    $isDailyScope = in_array($type, [
+                        'asst_manager', 'asst_manager_qc', 'asst_manager_plating',
+                        'manager', 'manager_qc', 'manager_plating'
+                    ]);
+
+                    // Fetch candidate records directly without mutating the base query
+                    $candidateRecords = DurabilityThicknessReport::query()
+                        ->whereIn('id', $pendingIds)
+                        ->with(['standard' => function ($sq) {
+                            $sq->select('id', 'category', 'customer_name');
+                        }])
+                        ->get(['id', 'standard_performance_test_id', 'shift', 'tanggal_cek', 'tanggal_cek_porecount']);
 
                     // Priority customers list (case-insensitive)
                     $priorityPatterns = [
@@ -2003,25 +2013,56 @@ class StandardPerformanceTestController extends Controller
                         'PT. YAMAHA MUSIC MANUFACTURING ASIA'
                     ];
 
-                    foreach ($cats as $catName => $recs) {
-                        $itemsInCat = $recs->all();
-                        $idsInCat = array_column($itemsInCat, 'id');
+                    // Group pending records by Category + Date (or Category + Date + Shift)
+                    // ponytail: Grouping by category & date satisfies '1 hari 1 data sampling per kategori'
+                    $groupedCandidates = [];
+                    foreach ($candidateRecords as $rec) {
+                        $rawDate = ($testType === 'porecount' && !empty($rec->tanggal_cek_porecount))
+                            ? $rec->tanggal_cek_porecount
+                            : $rec->tanggal_cek;
+                        $gDate = !empty($rawDate) ? substr((string)$rawDate, 0, 10) : 'unknown';
+                        $cat = !empty($rec->standard->category) ? trim($rec->standard->category) : '__uncategorized__';
+                        $shift = !empty($rec->shift) ? (string)$rec->shift : 'all';
 
-                        // Check if this category ALREADY has sampling within the active filtered dates
+                        $gKey = $isDailyScope ? "{$cat}___{$gDate}" : "{$cat}___{$gDate}___{$shift}";
+
+                        $groupedCandidates[$gKey][] = [
+                            'id' => $rec->id,
+                            'category' => $cat,
+                            'date' => $gDate,
+                            'shift' => $shift,
+                            'customer' => $rec->standard->customer_name ?? '',
+                        ];
+                    }
+
+                    foreach ($groupedCandidates as $gKey => $groupItems) {
+                        $sampleItem = $groupItems[0];
+                        $catName = $sampleItem['category'];
+                        $targetDate = $sampleItem['date'];
+                        $targetShift = $sampleItem['shift'];
+
+                        // Check if this category on this date (and shift if applicable) ALREADY has sampling approved
                         $hasSampling = DurabilityThicknessReport::query()
                             ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
                             ->where('durability_thickness_reports.is_trial', $isTrial)
                             ->whereNotNull("durability_thickness_reports.{$field}")
                             ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
-                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
-                            ->where(function ($q) use ($request, $dateCol) {
-                                if ($request->filled('start_date')) {
-                                    $q->whereDate($dateCol, '>=', $request->start_date);
-                                }
-                                if ($request->filled('end_date')) {
-                                    $q->whereDate($dateCol, '<=', $request->end_date);
+                            ->where(function ($eq) use ($roleKeys) {
+                                foreach ($roleKeys as $rk) {
+                                    $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
                                 }
                             });
+
+                        if ($targetDate !== 'unknown') {
+                            $hasSampling->whereDate(
+                                ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(durability_thickness_reports.tanggal_cek_porecount, durability_thickness_reports.tanggal_cek)') : 'durability_thickness_reports.tanggal_cek',
+                                $targetDate
+                            );
+                        }
+
+                        if (!$isDailyScope && $targetShift !== 'all') {
+                            $hasSampling->where('durability_thickness_reports.shift', $targetShift);
+                        }
 
                         if ($catName === '__uncategorized__') {
                             $hasSampling->where(function ($cq) {
@@ -2034,13 +2075,13 @@ class StandardPerformanceTestController extends Controller
 
                         $alreadySampled = $hasSampling->exists();
 
-                        if (!$alreadySampled && !empty($idsInCat)) {
-                            // Split into priority customers vs regular
+                        if (!$alreadySampled && !empty($groupItems)) {
+                            // Split into priority customers vs general
                             $priorityItems = [];
                             $normalItems = [];
 
-                            foreach ($itemsInCat as $item) {
-                                $custUpper = strtoupper(trim($item->customer_name ?? ''));
+                            foreach ($groupItems as $item) {
+                                $custUpper = strtoupper(trim($item['customer']));
                                 $isPriority = false;
                                 if (!empty($custUpper)) {
                                     foreach ($priorityPatterns as $pat) {
@@ -2051,17 +2092,16 @@ class StandardPerformanceTestController extends Controller
                                     }
                                 }
                                 if ($isPriority) {
-                                    $priorityItems[] = $item->id;
+                                    $priorityItems[] = $item['id'];
                                 } else {
-                                    $normalItems[] = $item->id;
+                                    $normalItems[] = $item['id'];
                                 }
                             }
 
-                            // Shuffle candidates
+                            // Shuffle candidates so it's not always the first record
                             $shuffledPriority = collect($priorityItems)->shuffle();
                             $shuffledNormal = collect($normalItems)->shuffle();
 
-                            // Pick 1 sampling per category: priority customer first, otherwise normal
                             $pickedId = null;
                             $leftovers = [];
 
@@ -2081,7 +2121,8 @@ class StandardPerformanceTestController extends Controller
                             }
                             $bulkIds = array_merge($bulkIds, $leftovers);
                         } else {
-                            $bulkIds = array_merge($bulkIds, $idsInCat);
+                            // Already sampled or no items, all pending items in this group become bulk
+                            $bulkIds = array_merge($bulkIds, array_column($groupItems, 'id'));
                         }
                     }
                 } else {
