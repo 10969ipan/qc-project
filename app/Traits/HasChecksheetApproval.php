@@ -761,7 +761,11 @@ trait HasChecksheetApproval
                         }
                     }
 
+                    $hasItemCol = Schema::hasColumn($table, 'item_id');
                     $selectCols = ["{$table}.id"];
+                    if ($hasItemCol) {
+                        $selectCols[] = "{$table}.item_id";
+                    }
                     if (Schema::hasColumn($table, $dateColName)) {
                         $selectCols[] = "{$table}.{$dateColName} as group_date";
                     }
@@ -769,7 +773,13 @@ trait HasChecksheetApproval
                         $selectCols[] = "{$table}.{$shiftCol} as group_shift";
                     }
 
-                    $candidateRecords = (clone $query)->select($selectCols)->get();
+                    $candidateQuery = (clone $query)->select($selectCols);
+                    if ($hasItemCol) {
+                        $candidateQuery->with(['item' => function ($iq) {
+                            $iq->select('id', 'customer');
+                        }]);
+                    }
+                    $candidateRecords = $candidateQuery->get();
 
                     $grouped = [];
                     foreach ($candidateRecords as $rec) {
@@ -777,10 +787,16 @@ trait HasChecksheetApproval
                         $gShift = ($scope === 'shift' && isset($rec->group_shift) && $rec->group_shift !== '') ? (string)$rec->group_shift : 'all';
                         $groupKey = ($scope === 'shift') ? "{$gDate}_{$gShift}" : $gDate;
 
+                        $customerName = '';
+                        if ($hasItemCol && $rec->item && !empty($rec->item->customer)) {
+                            $customerName = (string)$rec->item->customer;
+                        }
+
                         $grouped[$groupKey][] = [
                             'id' => $rec->id,
                             'date' => $gDate,
                             'shift' => $gShift,
+                            'customer' => $customerName,
                         ];
                     }
 
@@ -796,40 +812,105 @@ trait HasChecksheetApproval
                         $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
                     }
 
-                    foreach ($grouped as $groupKey => $groupItems) {
-                        $itemIds = array_column($groupItems, 'id');
-                        $firstItem = $groupItems[0];
-                        $targetDate = $firstItem['date'];
-                        $targetShift = $firstItem['shift'];
+                    // Optimized: Batch query existing sampling counts to eliminate N+1 query loop
+                    $existingCounts = [];
+                    if (Schema::hasColumn($table, 'approval_methods') && !empty($grouped)) {
+                        $targetDates = [];
+                        foreach ($grouped as $gItems) {
+                            $d = $gItems[0]['date'] ?? 'unknown';
+                            if ($d !== 'unknown') {
+                                $targetDates[$d] = true;
+                            }
+                        }
+                        $targetDates = array_keys($targetDates);
 
-                        $existingCount = 0;
-                        if (Schema::hasColumn($table, 'approval_methods') && $targetDate !== 'unknown') {
-                            $existQ = $modelClass::withoutGlobalScopes();
+                        if (!empty($targetDates)) {
+                            $batchExistQ = $modelClass::withoutGlobalScopes();
                             if ($request->filled('plant') && Schema::hasColumn($table, 'plant_id')) {
                                 $resolvedP = \App\Models\Plant::resolveId($request->input('plant'));
-                                if ($resolvedP) $existQ->where('plant_id', $resolvedP);
+                                if ($resolvedP) {
+                                    $batchExistQ->where('plant_id', $resolvedP);
+                                }
                             }
-                            $existQ->whereDate("{$table}.{$dateColName}", $targetDate);
-                            if ($scope === 'shift' && $targetShift !== 'all' && $shiftCol) {
-                                $existQ->where("{$table}.{$shiftCol}", $targetShift);
-                            }
-                            $existQ->where(function ($eq) use ($roleKeys, $table) {
+                            $batchExistQ->whereIn(DB::raw("DATE({$table}.{$dateColName})"), $targetDates);
+                            $batchExistQ->where(function ($eq) use ($roleKeys, $table) {
                                 foreach ($roleKeys as $rk) {
                                     $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$table}.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
                                 }
                             });
-                            $existingCount = $existQ->count();
+
+                            if ($scope === 'shift' && $shiftCol && Schema::hasColumn($table, $shiftCol)) {
+                                $existingCounts = $batchExistQ->groupBy(DB::raw("DATE({$table}.{$dateColName})"), "{$table}.{$shiftCol}")
+                                    ->selectRaw("CONCAT(DATE({$table}.{$dateColName}), '_', {$table}.{$shiftCol}) as gkey, COUNT(*) as aggregate")
+                                    ->pluck('aggregate', 'gkey')->toArray();
+                            } else {
+                                $existingCounts = $batchExistQ->groupBy(DB::raw("DATE({$table}.{$dateColName})"))
+                                    ->selectRaw("DATE({$table}.{$dateColName}) as gdate, COUNT(*) as aggregate")
+                                    ->pluck('aggregate', 'gdate')->toArray();
+                            }
                         }
+                    }
 
+                    // Priority customers list (case-insensitive)
+                    $priorityPatterns = ['PT. YAMAHA INDONESIA MOTOR MANUFACTURING', 'PT. ASTRA HONDA MOTOR', 'PT. AHM', 'PT. YAMAHA', 'PT. YAMAHA MUSIC MANUFACTURING ASIA'];
+
+                    foreach ($grouped as $groupKey => $groupItems) {
+                        $firstItem = $groupItems[0];
+                        $targetDate = $firstItem['date'];
+                        $targetShift = $firstItem['shift'];
+
+                        $existingCount = (int) ($existingCounts[$groupKey] ?? ($existingCounts[$targetDate] ?? 0));
                         $needed = max(0, $quota - $existingCount);
-                        if ($needed > 0 && !empty($itemIds)) {
-                            $shuffled = collect($itemIds)->shuffle();
-                            $picked = $shuffled->take($needed)->all();
-                            $leftovers = $shuffled->slice($needed)->all();
 
-                            $samplingIds = array_merge($samplingIds, $picked);
-                            $bulkIds = array_merge($bulkIds, $leftovers);
+                        if ($needed > 0 && !empty($groupItems)) {
+                            // Split into priority customers vs general
+                            $priorityItems = [];
+                            $normalItems = [];
+
+                            foreach ($groupItems as $item) {
+                                $custUpper = strtoupper(trim($item['customer'] ?? ''));
+                                $isPriority = false;
+                                if (!empty($custUpper)) {
+                                    foreach ($priorityPatterns as $pat) {
+                                        if (strpos($custUpper, $pat) !== false) {
+                                            $isPriority = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if ($isPriority) {
+                                    $priorityItems[] = $item['id'];
+                                } else {
+                                    $normalItems[] = $item['id'];
+                                }
+                            }
+
+                            // Shuffle candidate pools
+                            $shuffledPriority = collect($priorityItems)->shuffle();
+                            $shuffledNormal = collect($normalItems)->shuffle();
+
+                            // Pick from priority items first
+                            $picked = $shuffledPriority->take($needed)->all();
+                            $stillNeeded = $needed - count($picked);
+
+                            // Leftover priority items go to bulk
+                            $leftoverPriority = $shuffledPriority->slice(count($picked))->all();
+
+                            // If priority items weren't enough, pick remainder from normal items
+                            $pickedNormal = [];
+                            $leftoverNormal = $shuffledNormal->all();
+                            if ($stillNeeded > 0) {
+                                $pickedNormal = $shuffledNormal->take($stillNeeded)->all();
+                                $leftoverNormal = $shuffledNormal->slice($stillNeeded)->all();
+                            }
+
+                            $allPicked = array_merge($picked, $pickedNormal);
+                            $allLeftovers = array_merge($leftoverPriority, $leftoverNormal);
+
+                            $samplingIds = array_merge($samplingIds, $allPicked);
+                            $bulkIds = array_merge($bulkIds, $allLeftovers);
                         } else {
+                            $itemIds = array_column($groupItems, 'id');
                             $bulkIds = array_merge($bulkIds, $itemIds);
                         }
                     }
