@@ -45,10 +45,26 @@ trait HasChecksheetApproval
         return ['kashift', 'supervisor', 'asst_manager', 'manager'];
     }
 
+    protected function normalizeApprovalType($type)
+    {
+        $map = [
+            'karu_qc' => 'kashift',
+            'kashift_qc' => 'kashift',
+            'supervisor_qc' => 'supervisor',
+            'asst_manager_qc' => 'asst_manager',
+            'manager_qc' => 'manager',
+        ];
+        return $map[$type] ?? $type;
+    }
+
     protected function validateSequentialApproval($checksheet, $type)
     {
         $sequence = $this->getApprovalSequence();
-        $idx = array_search($type, $sequence);
+        $normalizedType = $this->normalizeApprovalType($type);
+        $idx = array_search($normalizedType, $sequence);
+        if ($idx === false) {
+            $idx = array_search($type, $sequence);
+        }
         
         if ($idx === false || $idx === 0) return true; // Not in sequence or is the first one
 
@@ -161,6 +177,22 @@ trait HasChecksheetApproval
 
             $qrVerif = $checksheet->getAttribute('qrcode_verifikasi');
             if (!empty($qrVerif)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
+                }
+                return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+            }
+
+            $qrVal = $checksheet->getAttribute('qrcode');
+            if (!empty($qrVal)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
+                }
+                return redirect()->back()->with('error', 'Data verifikasi tidak dapat di-approve.');
+            }
+
+            $uniqueCodeVal = $checksheet->getAttribute('unique_code_id');
+            if (!empty($uniqueCodeVal)) {
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Data verifikasi tidak dapat di-approve.'], 403);
                 }
@@ -566,6 +598,18 @@ trait HasChecksheetApproval
                 if (Schema::hasColumn($table, 'qrcode_verifikasi')) {
                     $query->whereNull("{$table}.qrcode_verifikasi");
                 }
+                if (Schema::hasColumn($table, 'qrcode')) {
+                    $query->where(function ($q) use ($table) {
+                        $q->whereNull("{$table}.qrcode")
+                          ->orWhere("{$table}.qrcode", '');
+                    });
+                }
+                if (Schema::hasColumn($table, 'unique_code_id')) {
+                    $query->where(function ($q) use ($table) {
+                        $q->whereNull("{$table}.unique_code_id")
+                          ->orWhere("{$table}.unique_code_id", '');
+                    });
+                }
 
                 // Filter by Approval Method (Sampling vs Bulk) if requested
                 if ($request->filled('approval_method')) {
@@ -926,7 +970,11 @@ trait HasChecksheetApproval
     protected function applySequentialApprovalFilter($query, $type)
     {
         $sequence = $this->getApprovalSequence();
-        $idx = array_search($type, $sequence);
+        $normalizedType = $this->normalizeApprovalType($type);
+        $idx = array_search($normalizedType, $sequence);
+        if ($idx === false) {
+            $idx = array_search($type, $sequence);
+        }
         
         if ($idx === false || $idx === 0) return;
 

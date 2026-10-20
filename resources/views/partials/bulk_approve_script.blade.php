@@ -47,7 +47,7 @@
             approvalMethod: '{{ request("approval_method", "") }}',
             startTglDatang: '{{ request("start_tgl_datang", "") }}',
             endTglDatang: '{{ request("end_tgl_datang", "") }}',
-            plant: '{{ request("plant", "") }}',
+            plant: '{{ request("plant") ?: (isset($plant) ? (is_object($plant) ? ($plant->code ?? $plant->id ?? "") : (is_array($plant) ? ($plant["code"] ?? $plant["id"] ?? "") : $plant)) : (optional(auth()->user()->plant)->code ?? "")) }}',
             resultJudgment: '{{ request("result_judgment", request("judgment", "")) }}',
             search: '{{ request("search", "") }}',
             customerName: '{{ request("customer_name", request("customer", "")) }}',

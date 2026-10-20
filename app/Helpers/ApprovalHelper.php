@@ -378,6 +378,32 @@ class ApprovalHelper
     {
         if (!$checksheet) return false;
 
+        // Block verification data: only manual input can be approved
+        $entryMethod = is_object($checksheet) ? ($checksheet->entry_method ?? null) : ($checksheet['entry_method'] ?? null);
+        if ($entryMethod !== null && !in_array($entryMethod, ['regular', ''])) {
+            return false;
+        }
+
+        $scanMethod = is_object($checksheet) ? ($checksheet->scan_method ?? null) : ($checksheet['scan_method'] ?? null);
+        if ($scanMethod !== null && !in_array($scanMethod, ['manual', ''])) {
+            return false;
+        }
+
+        $qrVerif = is_object($checksheet) ? ($checksheet->qrcode_verifikasi ?? null) : ($checksheet['qrcode_verifikasi'] ?? null);
+        if (!empty($qrVerif)) {
+            return false;
+        }
+
+        $qrCode = is_object($checksheet) ? ($checksheet->qrcode ?? null) : ($checksheet['qrcode'] ?? null);
+        if (!empty($qrCode)) {
+            return false;
+        }
+
+        $uniqueCode = is_object($checksheet) ? ($checksheet->unique_code_id ?? null) : ($checksheet['unique_code_id'] ?? null);
+        if (!empty($uniqueCode)) {
+            return false;
+        }
+
         $role = strtolower(trim($role));
         $attrs = method_exists($checksheet, 'getAttributes') ? $checksheet->getAttributes() : (array)$checksheet;
 
