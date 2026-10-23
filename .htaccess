@@ -1,9 +1,35 @@
+Options -Indexes
+
+# ---------------------------------------------------------------------------
+# Security: blokir akses ke file/folder sensitif.
+# DocumentRoot Apache menunjuk ke /var/www/htdocs (bukan qc/public), sehingga
+# seluruh isi project (.env, .git, vendor, storage, dll.) ikut terekspos.
+# ---------------------------------------------------------------------------
+
+# Dotfile & dot-folder (.env, .git, .gitignore, .htaccess, .DS_Store, ...)
+# kecuali .well-known (dipakai untuk verifikasi SSL/ACME).
+RedirectMatch 404 "/\.(?!well-known(/|$))"
+
+# File konfigurasi, dependency, dokumentasi, backup, log & database
+<FilesMatch "(?i)(^(artisan|composer\.(json|lock|phar)|package(-lock)?\.json|yarn\.lock|phpunit\.xml(\.dist)?|vite\.config\.js|webpack\.mix\.js|gulpfile\.js|server\.php|request_debug\.php)$|\.(env|log|sql|sqlite|sqlite3|db|bak|backup|old|orig|save|swp|swo|tmp|dist|md|ya?ml|ini|conf|sh|zip|tar|gz|rar|7z)$)">
+    Require all denied
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
+
+    # Hanya folder public/ dan index.php yang boleh diakses langsung.
+    # File/folder lain yang benar-benar ada di disk (app, bootstrap, config,
+    # database, docs, resources, routes, scratch, storage, tests, vendor,
+    # node_modules, ...) dijawab 404. URL route Laravel (tidak ada di disk)
+    # tetap diteruskan ke index.php seperti biasa.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule !^(public/|index\.php$|$) - [R=404,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
