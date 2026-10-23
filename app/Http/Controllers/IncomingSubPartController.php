@@ -213,6 +213,69 @@ class IncomingSubPartController extends Controller
         return redirect()->route('incoming.sub_parts.index', $redirectParams)->with('success', 'Incoming Sub-Part berhasil dihapus.');
     }
 
+    public function editApproval($id)
+    {
+        $checksheet = IncomingSubPart::with(['item', 'plant'])->findOrFail($id);
+
+        if (request()->ajax()) {
+            return view('incoming.sub_parts.partials.edit_approval_form', compact('checksheet'));
+        }
+        return view('incoming.sub_parts.edit_approval', compact('checksheet'));
+    }
+
+    public function updateApproval(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'kashift_qc' => 'required|in:Pending,Approved,Rejected',
+            'supervisor_qc' => 'required|in:Pending,Approved,Rejected',
+            'asst_manager_qc' => 'required|in:Pending,Approved,Rejected',
+            'manager_qc' => 'required|in:Pending,Approved,Rejected',
+        ]);
+
+        try {
+            $this->checksheetService->updateApprovalStatus($id, $validated);
+            $checksheet = IncomingSubPart::find($id);
+
+            // Jika status dirubah menjadi Rejected melalui modal admin, kirim notifikasi dan berikan remarks
+            if ($checksheet->approval_status === 'Rejected' && empty($checksheet->rejection_remarks)) {
+                $checksheet->rejection_remarks = "[Admin] Status dirubah menjadi Rejected via Edit Status - " . auth()->user()->name . " (" . now()->format('d/m/Y H:i') . ")";
+                $checksheet->save();
+
+                try {
+                    $notificationService = app(\App\Services\NotificationService::class);
+                    $notificationService->notifyRejection($checksheet, 'Incoming Sub-Part', auth()->user()->name);
+                } catch (\Exception $ne) {
+                    \Illuminate\Support\Facades\Log::error('Gagal kirim notifikasi rejection: ' . $ne->getMessage());
+                }
+            }
+
+            if ($checksheet && $checksheet->item) {
+                ActivityLogger::log('updated', $checksheet, "Memperbarui status approval (Admin) pada checksheet Incoming Sub-Part: {$checksheet->item->name}");
+            }
+
+            $preservationKeys = ['page', 'plant', 'start_date', 'end_date', 'approval_status', 'search', 'item_id', 'entry_method', 'view_mode'];
+            $redirectParams = $request->only($preservationKeys);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Status approval Incoming Sub-Part berhasil diperbarui oleh Admin.',
+                    'redirect' => route('incoming.sub_parts.index', $redirectParams)
+                ]);
+            }
+
+            return redirect()->route('incoming.sub_parts.index', $redirectParams)->with('success', 'Status approval Incoming Sub-Part berhasil diperbarui oleh Admin.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui status: ' . $e->getMessage()
+                ], 500);
+            }
+            return redirect()->back()->with('error', 'Gagal memperbarui status: ' . $e->getMessage());
+        }
+    }
+
     public function exportPdf(Request $request)
     {
         $filters = $request->only(['id', 'plant', 'start_date', 'end_date', 'approval_status', 'item_id', 'search']);

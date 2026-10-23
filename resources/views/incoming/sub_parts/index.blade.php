@@ -468,7 +468,7 @@
                                 $canApproveKashift = (in_array($user->role, ['kashift', 'kashift_qc']) || $isAdmin || $isSpvJakarta || $isKaruJakarta) 
                                     && (empty($cs->kashift_qc) || $cs->kashift_qc === 'REJECTED');
 
-                                $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) 
+                                $canApproveSupervisor = (in_array($user->role, ['supervisor', 'supervisor_qc']) || $isAdmin) 
                                     && (empty($cs->supervisor_qc) || $cs->supervisor_qc === 'REJECTED')
                                     && (!empty($cs->kashift_qc) && $cs->kashift_qc !== 'REJECTED');
 
@@ -997,7 +997,7 @@
                 ) {
                     $canReject = true;
                 } elseif (
-                    $rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (empty($cs->supervisor_qc) ||
+                    $rejectType == 'supervisor' && ((in_array($user->role, ['supervisor', 'supervisor_qc']) || $isAdmin) && (empty($cs->supervisor_qc) ||
                         $cs->supervisor_qc === 'REJECTED'))
                 ) {
                     $canReject = true;
@@ -1042,7 +1042,7 @@
                                         </label>
                                         <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
                                             id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                            placeholder="Masukkan alasan rejection (minimal 5 karakter)" required minlength="5"
                                             maxlength="500">{{ old('rejection_remarks') }}</textarea>
                                         <small class="form-text text-muted">
                                             <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
@@ -1098,6 +1098,44 @@
                     $('#statusModalBody').html(data);
                 }).fail(function() {
                     $('#statusModalBody').html('<div class="alert alert-danger">Gagal memuat data. Silakan coba lagi.</div>');
+                });
+            });
+
+            // Submit Status Approval Form via AJAX
+            $(document).on('submit', '#statusApprovalForm', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var btn = form.find('button[type="submit"]');
+                var origHtml = btn.html();
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: form.serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(response) {
+                        $('#statusModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message || 'Status approval berhasil diperbarui.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(function() {
+                            if (response.redirect) {
+                                window.location.href = response.redirect;
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html(origHtml);
+                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal memperbarui status approval.';
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                    }
                 });
             });
 

@@ -90,6 +90,22 @@ document.addEventListener('DOMContentLoaded', function () {
     $(document).on('click', '.btn-confirm-reject', function (e) {
         e.preventDefault();
         const form = $(this).closest('form');
+        const textarea = form.find('textarea[name="rejection_remarks"]');
+        if (textarea.length) {
+            const val = (textarea.val() || '').trim();
+            if (val.length < 5) {
+                textarea.addClass('is-invalid').focus();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Alasan Belum Lengkap',
+                    text: 'Mohon masukkan alasan rejection minimal 5 karakter sebelum melanjutkan.',
+                    confirmButtonColor: '#e74a3b'
+                });
+                return;
+            }
+            textarea.removeClass('is-invalid');
+        }
+
         Swal.fire({
             title: 'Konfirmasi Penolakan',
             text: "Apakah Anda yakin ingin menolak data checksheet ini?",
@@ -105,6 +121,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 form.submit();
             }
         });
+    });
+
+    // Realtime Character Counter for rejection remarks
+    $(document).on('input', 'textarea[name="rejection_remarks"]', function () {
+        const id = $(this).attr('id');
+        if (id && id.indexOf('rejection_remarks') === 0) {
+            const suffix = id.replace('rejection_remarks', '');
+            $('#charCount' + suffix).text(this.value.length);
+        }
     });
 
     // Rejection Alerts for Inspectors

@@ -223,10 +223,17 @@ class IncomingSubPartService extends BaseService
 
             $this->updateApprovalLevel($checksheet, 'kashift', $data['kashift_qc'], $user);
             $this->updateApprovalLevel($checksheet, 'supervisor', $data['supervisor_qc'], $user);
+            $this->updateApprovalLevel($checksheet, 'asst_manager', $data['asst_manager_qc'], $user);
+            $this->updateApprovalLevel($checksheet, 'manager', $data['manager_qc'], $user);
 
-            if (in_array('REJECTED', [$checksheet->supervisor_qc, $checksheet->kashift_qc])) {
+            if (
+                $checksheet->manager_qc === 'REJECTED' ||
+                $checksheet->asst_manager_qc === 'REJECTED' ||
+                $checksheet->supervisor_qc === 'REJECTED' ||
+                $checksheet->kashift_qc === 'REJECTED'
+            ) {
                 $checksheet->approval_status = 'Rejected';
-            } elseif ($checksheet->supervisor_qc && $checksheet->supervisor_qc !== 'Pending') {
+            } elseif ($checksheet->manager_qc && $checksheet->manager_qc !== 'Pending') {
                 $checksheet->approval_status = 'Approved';
             } else {
                 $checksheet->approval_status = 'Pending';
@@ -260,7 +267,9 @@ class IncomingSubPartService extends BaseService
     private function applyApprovalStatusFilter($query, string $status): void
     {
         if ($status === 'Pending') {
-            $query->where('approval_status', 'Pending')->orWhereNull('approval_status');
+            $query->where(function ($q) {
+                $q->where('approval_status', 'Pending')->orWhereNull('approval_status');
+            });
         } else {
             $query->where('approval_status', $status);
         }
@@ -272,11 +281,15 @@ class IncomingSubPartService extends BaseService
         $dateField = "{$level}_approved_at";
 
         if ($status === 'Approved') {
-            $checksheet->$nameField = $user->name;
-            $checksheet->$dateField = now();
+            if (is_null($checksheet->$nameField) || $checksheet->$nameField === 'REJECTED') {
+                $checksheet->$nameField = $user->name;
+                $checksheet->$dateField = now();
+            }
         } elseif ($status === 'Rejected') {
-            $checksheet->$nameField = 'REJECTED';
-            $checksheet->$dateField = now();
+            if ($checksheet->$nameField !== 'REJECTED') {
+                $checksheet->$nameField = 'REJECTED';
+                $checksheet->$dateField = now();
+            }
         } else {
             $checksheet->$nameField = null;
             $checksheet->$dateField = null;

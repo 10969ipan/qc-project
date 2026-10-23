@@ -118,7 +118,7 @@ trait HasChecksheetApproval
                 $isAllowed = false;
 
                 // Standard role match (e.g. kashift role for kashift type, karu_qc for karu_qc type)
-                if ($type === $user->role || ($user->role !== '' && strpos($type, $user->role) !== false)) {
+                if ($type === $user->role || ($user->role !== '' && (strpos($type, $user->role) !== false || strpos($user->role, $type) !== false))) {
                     $isAllowed = true;
                 }
 
@@ -293,7 +293,7 @@ trait HasChecksheetApproval
                 }
 
                 $isAllowed = false;
-                if ($type === $user->role || ($user->role !== '' && strpos($type, $user->role) !== false)) {
+                if ($type === $user->role || ($user->role !== '' && (strpos($type, $user->role) !== false || strpos($user->role, $type) !== false))) {
                     $isAllowed = true;
                 }
 
