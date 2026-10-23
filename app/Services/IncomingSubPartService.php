@@ -239,6 +239,11 @@ class IncomingSubPartService extends BaseService
                 $checksheet->approval_status = 'Pending';
             }
 
+            // Keterangan reject cuma relevan selama masih ada level yang REJECTED
+            if ($checksheet->approval_status !== 'Rejected') {
+                $checksheet->rejection_remarks = null;
+            }
+
             $checksheet->save();
             DB::commit();
             return $checksheet;
