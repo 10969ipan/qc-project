@@ -2,7 +2,7 @@
 @php
     $headerPlantCode = isset($plantCode) ? $plantCode : (isset($plant) && is_string($plant) ? strtolower($plant) : 'karawang');
     $docHeader = isset($docHeader) ? $docHeader : \App\Models\GeneralSetting::getDocHeader('double_tape', $headerPlantCode, [
-        'judul'      => 'LAPORAN CHECK SHEET DOUBLE TAPE',
+        'judul'      => 'LAPORAN CHECK SHEET OUTGOING DOUBLE TAPE',
         'no_dokumen' => 'QC-KRW-F-0213',
         'tgl_terbit' => '25/03/2015',
         'revisi'     => '3',

@@ -2068,6 +2068,7 @@ class DoubleTapeCreate {
                             } else {
                                 $("#checksheetForm")[0].reset();
                                 this.resetState();
+                                saveBtn.prop("disabled", true).html(originalHtml);
                             }
                         });
                     }
@@ -2102,7 +2103,10 @@ class DoubleTapeCreate {
 
         this.formInputs.prop("disabled", true);
         $("#checksheetForm").addClass("inputs-locked");
-        $("#saveBtn").prop("disabled", true);
+        $("#saveBtn")
+            .prop("disabled", true)
+            .html('<i class="fas fa-save fa-sm"></i> Simpan Data');
+        $("#scanMethodInput").val("manual");
 
         $("#addDefectBtn").hide();
         $("#defectContainer").find(".defect-row").not(":first").remove();
