@@ -55,4 +55,31 @@ class AppMenu
 
         return false;
     }
+
+    /**
+     * Check if user has permission to any menus under a group or globally.
+     *
+     * @param array $routes
+     * @param string $action
+     * @return bool
+     */
+    public static function hasAnyRoutePermission(array $routes, $action = 'view')
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        foreach ($routes as $route) {
+            if (self::checkPermission($route, $action)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

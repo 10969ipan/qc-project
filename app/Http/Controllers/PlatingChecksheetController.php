@@ -210,7 +210,7 @@ class PlatingChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $user = auth()->user();
-        $items = Item::whereHas('category', function ($q) {
+        $items = Item::approved()->whereHas('category', function ($q) {
             $q->where('name', 'Plating');
         })->whereHas('plant', function ($q) {
             $q->where('code', 'karawang');

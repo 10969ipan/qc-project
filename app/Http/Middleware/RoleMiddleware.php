@@ -25,7 +25,13 @@ class RoleMiddleware
         $allowedRoles = array_map('strtolower', array_map('trim', $roles));
 
         if (!in_array($userRole, $allowedRoles)) {
-            // Jika role tidak sesuai, lempar 403 Forbidden atau redirect
+            // Dynamic fallback: Jika role tidak ada di daftar kaku, periksa apakah user/role diberi izin di menu Pengaturan
+            $routeName = $request->route() ? $request->route()->getName() : null;
+            if ($routeName && \App\Helpers\AppMenu::checkPermission($routeName, 'view')) {
+                return $next($request);
+            }
+
+            // Jika di pengaturan juga tidak diberi hak akses, lempar 403 Forbidden
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

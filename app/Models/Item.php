@@ -40,12 +40,29 @@ class Item extends Model
         'defects',
         'cavity',
         'standard_cycle_time',
+        'approval_status',
+        'approved_by',
+        'approved_at',
+        'spv_approved_by',
+        'spv_approved_at',
+        'asst_mgr_approved_by',
+        'asst_mgr_approved_at',
+        'mgr_approved_by',
+        'mgr_approved_at',
+        'rejection_reason',
+        'requested_by',
+        'pending_changes',
     ];
 
     protected $casts = [
         'defects' => 'array',
         'dimension_standards' => 'array',
         'file_paths' => 'array',
+        'pending_changes' => 'array',
+        'approved_at' => 'datetime',
+        'spv_approved_at' => 'datetime',
+        'asst_mgr_approved_at' => 'datetime',
+        'mgr_approved_at' => 'datetime',
     ];
 
     /**
@@ -65,6 +82,45 @@ class Item extends Model
     }
 
     /**
+     * Get user who requested this item.
+     */
+    public function requester()
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /**
+     * Get user who approved this item.
+     */
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function spvApprover()
+    {
+        return $this->belongsTo(User::class, 'spv_approved_by');
+    }
+
+    public function asstMgrApprover()
+    {
+        return $this->belongsTo(User::class, 'asst_mgr_approved_by');
+    }
+
+    public function mgrApprover()
+    {
+        return $this->belongsTo(User::class, 'mgr_approved_by');
+    }
+
+    /**
+     * Scope query to only approved items.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where($this->getTable() . '.approval_status', 'approved');
+    }
+
+    /**
      * Scope a query to filter items by category.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
@@ -73,6 +129,9 @@ class Item extends Model
      */
     public function scopeByCategory($query, $category)
     {
+        // By default, checksheets and transactions querying items by category only receive approved items
+        $query->where($this->getTable() . '.approval_status', 'approved');
+
         if (is_array($category)) {
             // If array of category names, get IDs first
             if (count($category) > 0 && is_string($category[0])) {

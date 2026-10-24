@@ -23,12 +23,19 @@
     <hr class="sidebar-divider">
 
     @php
-        $canViewAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
-
-        $canInputAllPlants = auth()->check() && in_array(auth()->user()->role, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
+        $userRole = auth()->check() ? auth()->user()->role : '';
+        $canViewAllPlants = auth()->check() && in_array($userRole, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
+        $canInputAllPlants = auth()->check() && in_array($userRole, ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc']);
+        
+        // Dynamic permission check: apakah user memiliki izin menu apa pun yang telah diatur di Settings
+        $hasAnyDynamicPerm = auth()->check() && (
+            in_array($userRole, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating'])
+            || \App\Models\RolePermission::where('role', $userRole)->where('can_view', 1)->exists()
+            || \App\Models\UserPermission::where('user_id', auth()->id())->where('can_view', 1)->exists()
+        );
     @endphp
 
-    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'asst_manager', 'manager', 'inspector', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating'])))
+    @if(auth()->check() && $hasAnyDynamicPerm)
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQC" aria-expanded="true"
                 aria-controls="collapseQC">
@@ -42,7 +49,7 @@
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantJKT">Plant Jakarta</a>
                         <div id="qcPlantJKT" class="collapse pl-2">
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['admin.items.index', 'admin.categories.index', 'admin.monthly-reports.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterJKT">Master data</a>
                                 <div id="qcMasterJKT" class="collapse pl-2">
@@ -55,7 +62,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['analysis.monthly_ng', 'analysis.monthly_ng_in_process']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportJKT">Report</a>
                                 <div id="qcReportJKT" class="collapse pl-2">
@@ -68,7 +75,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']))
+                            @if(in_array($userRole, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['incoming.parts.create', 'checksheet.sub_assy', 'in_process.create', 'first_piece_approval.create', 'cross_cut_painting.create', 'painting.create', 'sortir.create', 'checksheet.operator_compliance.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
                                 <div id="qcCheckJKT" class="collapse pl-2">
@@ -83,7 +90,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['incoming.parts.index', 'admin.checksheets.index', 'in_process.index', 'first_piece_approval.index', 'cross_cut_painting.index', 'painting.index', 'sortir.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanJKT">Laporan</a>
                                 <div id="qcLaporanJKT" class="collapse pl-2">
@@ -105,7 +112,7 @@
                         <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                             data-target="#qcPlantKRW">Plant Karawang</a>
                         <div id="qcPlantKRW" class="collapse pl-2">
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['admin.items.index', 'admin.categories.index', 'admin.monthly-reports.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcMasterKRW">Master data</a>
                                 <div id="qcMasterKRW" class="collapse pl-2">
@@ -118,7 +125,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['analysis.monthly_ng', 'analysis.monthly_ng_in_process', 'analysis.monthly_ng_cross_cut']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcReportKRW">Report</a>
                                 <div id="qcReportKRW" class="collapse pl-2">
@@ -134,7 +141,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']))
+                            @if(in_array($userRole, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['incoming.parts.create', 'checksheet.sub_assy', 'in_process.create', 'first_piece_approval.create', 'cross_cut.create', 'cross_cut_painting.create', 'plating.create', 'painting.create', 'double_tape.create', 'sortir.create', 'checksheet.operator_compliance.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckKRW">Checksheet</a>
                                 <div id="qcCheckKRW" class="collapse pl-2">
@@ -158,7 +165,7 @@
                                 </div>
                             @endif
 
-                            @if(in_array(auth()->user()->role, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating']))
+                            @if(in_array($userRole, ['admin', 'supervisor', 'inspector', 'kashift', 'asst_manager', 'manager', 'karu_qc', 'supervisor_plating', 'asst_manager_plating', 'manager_plating']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['incoming.parts.index', 'admin.checksheets.index', 'in_process.index', 'first_piece_approval.index', 'cross_cut.index', 'cross_cut_painting.index', 'plating.index', 'painting.index', 'double_tape.index', 'sortir.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcLaporanKRW">Laporan</a>
                                 <div id="qcLaporanKRW" class="collapse pl-2">
@@ -188,7 +195,7 @@
         </li>
     @endif
 
-    @if(auth()->check() && (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager'])))
+    @if(auth()->check() && (in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['admin.customer-claims.index', 'admin.customer-claim-records.index'])))
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseQA" aria-expanded="true"
                 aria-controls="collapseQA">

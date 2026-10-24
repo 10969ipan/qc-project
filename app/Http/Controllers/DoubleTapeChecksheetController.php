@@ -169,7 +169,7 @@ class DoubleTapeChecksheetController extends Controller
         $this->restrictToKarawang();
 
         $user = auth()->user();
-        $items = Item::whereHas('category', function ($q) {
+        $items = Item::approved()->whereHas('category', function ($q) {
             $q->where('name', 'Double Tape');
         })->whereHas('plant', function ($q) {
             $q->where('code', 'karawang');

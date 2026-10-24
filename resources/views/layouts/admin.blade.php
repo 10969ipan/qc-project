@@ -1608,6 +1608,7 @@
 
     @stack('fusioncharts')
     <script src="{{ asset('js/checksheet/approval-guard.js') }}"></script>
+    @include('partials.pending_approval_modal')
     @stack('scripts')
     <script src="{{ asset('js/vendor/instant-navigation.js') }}" defer></script>
 

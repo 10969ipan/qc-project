@@ -46,6 +46,10 @@ class ActivityLogController extends Controller
 
     public function getItemLogs(Request $request, $itemId)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Akses ditolak: Hanya Admin yang dapat melihat log item.');
+        }
+
         $paginator = ActivityLog::with('user:id,name')
             ->where('model_type', Item::class)
             ->where('model_id', $itemId)

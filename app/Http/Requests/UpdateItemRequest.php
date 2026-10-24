@@ -12,7 +12,18 @@ class UpdateItemRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift']);
+        if (!auth()->check()) {
+            return false;
+        }
+
+        // Standard roles allowed
+        if (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
+            return true;
+        }
+
+        // Dynamic fallback: cek izin 'edit' dari menu Pengaturan
+        return \App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit')
+            || \App\Helpers\AppMenu::checkPermission('admin.items.index', 'view');
     }
 
     /**

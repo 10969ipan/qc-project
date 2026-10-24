@@ -8,7 +8,16 @@ class StoreCategoryRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift']);
+        if (!auth()->check()) {
+            return false;
+        }
+
+        if (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
+            return true;
+        }
+
+        return \App\Helpers\AppMenu::checkPermission('admin.categories.index', 'input')
+            || \App\Helpers\AppMenu::checkPermission('admin.categories.index', 'view');
     }
 
     public function rules(): array

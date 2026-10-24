@@ -432,7 +432,7 @@ class FirstPieceApprovalController extends Controller
         } else {
             $checksheets = $query->get();
         }
-        $items = Item::orderBy('name')->get();
+        $items = Item::approved()->orderBy('name')->get();
         $partDimensionStandards = $this->getConsolidatedStandards();
 
         $user = auth()->user();

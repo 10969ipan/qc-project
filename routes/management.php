@@ -20,6 +20,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('items/bulk-upload-pdf', [ItemController::class, 'bulkUploadPdf'])->name('items.bulk-upload-pdf');
         Route::post('items/add-customer', [ItemController::class, 'addCustomer'])->name('items.add-customer');
         Route::post('items/delete-customer', [ItemController::class, 'deleteCustomer'])->name('items.delete-customer');
+        Route::get('items/pending-approval', [ItemController::class, 'getPendingApprovalItems'])->name('items.pending-approval');
+        Route::post('items/{id}/approve', [ItemController::class, 'approve'])->name('items.approve');
+        Route::post('items/{id}/reject', [ItemController::class, 'reject'])->name('items.reject');
         Route::resource('items', ItemController::class)->except(['create']);
 
         // Categories

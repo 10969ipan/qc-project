@@ -16,11 +16,19 @@ class ItemService extends BaseService
      */
     public function getFilteredItems(array $filters)
     {
-        $query = Item::with('category');
+        $query = Item::with(['category', 'requester', 'approver', 'spvApprover', 'asstMgrApprover', 'mgrApprover']);
 
         // Apply plant filter if present
-        if (!empty($filters['plant'])) {
-            $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
+        if (!empty($filters['plant']) && $filters['plant'] !== 'all' && $filters['plant'] !== 'total') {
+            $resolvedPlant = $this->resolvePlantId($filters['plant']);
+            if ($resolvedPlant) {
+                $query->where($query->getModel()->getTable() . '.plant_id', $resolvedPlant);
+            }
+        }
+
+        // Apply approval status filter
+        if (!empty($filters['approval_status'])) {
+            $query->where('approval_status', $filters['approval_status']);
         }
 
         // Apply specific ID filter (Highest Priority)
@@ -115,11 +123,51 @@ class ItemService extends BaseService
                 $data['similar_part_file_path'] = $this->handleItemFileUpload($data['similar_part_file'], $data['customer'] ?? null);
             }
 
-            // Create item
+            $creatorRole = auth()->user()->role ?? '';
+            $isLeadershipCreator = in_array($creatorRole, ['supervisor', 'supervisor_qc', 'asst_manager', 'asst_manager_qc', 'admin']);
+            $currentUserId = auth()->id();
+            $now = now();
+
+            $resolvedPlantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id);
+
+            // Jika dibuat oleh SPV QC, asst_mgr_approved_by menggunakan user Asst Manager dari plant tersebut
+            $spvApprovedBy = null;
+            $asstMgrApprovedBy = null;
+            if ($isLeadershipCreator) {
+                if (in_array($creatorRole, ['asst_manager', 'asst_manager_qc'])) {
+                    $spvApprovedBy = $currentUserId;
+                    $asstMgrApprovedBy = $currentUserId;
+                } elseif (in_array($creatorRole, ['supervisor', 'supervisor_qc'])) {
+                    $spvApprovedBy = $currentUserId;
+                    // Cari user Asst Manager QC (prioritaskan plant terkait, atau Asst Manager QC lintas plant)
+                    $asstMgrUser = \App\Models\User::whereIn('role', ['asst_manager', 'asst_manager_qc'])
+                        ->where('plant_id', $resolvedPlantId)
+                        ->first() 
+                        ?: \App\Models\User::whereIn('role', ['asst_manager', 'asst_manager_qc'])->first();
+                    $asstMgrApprovedBy = $asstMgrUser ? $asstMgrUser->id : $currentUserId;
+                } else {
+                    // Admin
+                    $spvApprovedBy = $currentUserId;
+                    $asstMgrApprovedBy = $currentUserId;
+                }
+            }
+
+            // Create item (jika dibuat oleh SPV QC / Asst Mgr / Admin, langsung approved tanpa perlu approval lagi)
             $item = Item::create([
-                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? auth()->user()->plant_id),
+                'plant_id' => $resolvedPlantId,
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
+                'approval_status' => $isLeadershipCreator ? 'approved' : 'pending',
+                'approved_by' => $isLeadershipCreator ? ($asstMgrApprovedBy ?? $currentUserId) : null,
+                'approved_at' => $isLeadershipCreator ? $now : null,
+                'spv_approved_by' => $spvApprovedBy,
+                'spv_approved_at' => $isLeadershipCreator ? $now : null,
+                'asst_mgr_approved_by' => $asstMgrApprovedBy,
+                'asst_mgr_approved_at' => $isLeadershipCreator ? $now : null,
+                'mgr_approved_by' => null,
+                'mgr_approved_at' => null,
+                'rejection_reason' => null,
+                'requested_by' => $currentUserId ?? ($data['requested_by'] ?? null),
                 'file_path' => $filePaths[0] ?? null, // Fallback for legacy
                 'file_paths' => $filePaths,
                 'similar_part_file_path' => $data['similar_part_file_path'] ?? null,
@@ -221,11 +269,101 @@ class ItemService extends BaseService
             // Process dimension standards
             $dimensionStandards = $this->processDimensionStandards($data);
 
-            // Update item
+            // Track pending changes (Before vs After) for approval modal
+            $resolvedPlantId = $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? $item->plant_id);
+            $trackedFields = [
+                'name' => ['label' => 'Nama Item', 'old' => $item->name, 'new' => $data['name']],
+                'part_number' => ['label' => 'No Part', 'old' => $item->part_number, 'new' => $data['part_number'] ?? null],
+                'customer' => ['label' => 'Customer', 'old' => $item->customer, 'new' => $data['customer'] ?? null],
+                'sap_code' => ['label' => 'Kode SAP', 'old' => $item->sap_code, 'new' => $data['sap_code'] ?? null],
+                'cavity' => ['label' => 'Cavity', 'old' => $item->cavity, 'new' => $data['cavity'] ?? 1],
+                'weight_standard' => ['label' => 'Standar Berat', 'old' => $item->weight_standard, 'new' => $data['weight_standard'] ?? null],
+                'standard_cycle_time' => ['label' => 'SCT (Plating)', 'old' => $item->standard_cycle_time, 'new' => $data['standard_cycle_time'] ?? null],
+                'defects' => [
+                    'label' => 'List Defect',
+                    'old' => is_array($item->defects) ? implode(', ', $item->defects) : '',
+                    'new' => is_array($defects) ? implode(', ', $defects) : '',
+                ],
+                'dimension_standards' => [
+                    'label' => 'Standar Dimensi In-Process',
+                    'old' => !empty($item->dimension_standards) ? count($item->dimension_standards) . ' point dimensi' : 'Tidak Ada Data',
+                    'new' => !empty($dimensionStandards) ? count($dimensionStandards) . ' point dimensi' : 'Tidak Ada Data',
+                ],
+            ];
+
+            // Category change
+            if ($item->category_id != $data['category_id']) {
+                $oldCatName = optional($item->category)->name ?? '-';
+                $newCatName = \App\Models\Category::withoutGlobalScope('plant')->where('id', $data['category_id'])->value('name') ?? '-';
+                $trackedFields['category'] = ['label' => 'Kategori', 'old' => $oldCatName, 'new' => $newCatName];
+            }
+
+            // Plant change
+            if ($item->plant_id != $resolvedPlantId) {
+                $oldPlantName = optional($item->plant)->name ?? '-';
+                $newPlantName = \App\Models\Plant::where('id', $resolvedPlantId)->value('name') ?? '-';
+                $trackedFields['plant'] = ['label' => 'Plant', 'old' => $oldPlantName, 'new' => $newPlantName];
+            }
+
+            $diffChanges = [];
+            foreach ($trackedFields as $key => $info) {
+                $oldVal = trim((string)($info['old'] ?? ''));
+                $newVal = trim((string)($info['new'] ?? ''));
+                if ($oldVal !== $newVal) {
+                    $beforeText = ($oldVal !== '' && $oldVal !== '-') ? $info['old'] : 'Tidak Ada Data';
+                    $afterText = ($newVal !== '' && $newVal !== '-') ? $info['new'] : 'Tidak Ada Data';
+                    $diffChanges[$key] = [
+                        'label' => $info['label'],
+                        'before' => $beforeText,
+                        'after' => $afterText,
+                    ];
+                }
+            }
+
+            $updaterRole = auth()->user()->role ?? '';
+            $isLeadershipUpdater = in_array($updaterRole, ['supervisor', 'supervisor_qc', 'asst_manager', 'asst_manager_qc', 'admin']);
+            $currentUserId = auth()->id();
+            $now = now();
+
+            // Jika diedit oleh SPV QC, asst_mgr_approved_by menggunakan user Asst Manager dari plant tersebut
+            $spvApprovedBy = null;
+            $asstMgrApprovedBy = null;
+            if ($isLeadershipUpdater) {
+                if (in_array($updaterRole, ['asst_manager', 'asst_manager_qc'])) {
+                    $spvApprovedBy = $item->spv_approved_by ?: $currentUserId;
+                    $asstMgrApprovedBy = $currentUserId;
+                } elseif (in_array($updaterRole, ['supervisor', 'supervisor_qc'])) {
+                    $spvApprovedBy = $currentUserId;
+                    // Cari user Asst Manager QC (prioritaskan plant terkait, atau Asst Manager QC lintas plant)
+                    $asstMgrUser = \App\Models\User::whereIn('role', ['asst_manager', 'asst_manager_qc'])
+                        ->where('plant_id', $resolvedPlantId)
+                        ->first() 
+                        ?: \App\Models\User::whereIn('role', ['asst_manager', 'asst_manager_qc'])->first();
+                    $asstMgrApprovedBy = $asstMgrUser ? $asstMgrUser->id : $currentUserId;
+                } else {
+                    // Admin
+                    $spvApprovedBy = $item->spv_approved_by ?: $currentUserId;
+                    $asstMgrApprovedBy = $item->asst_mgr_approved_by ?: $currentUserId;
+                }
+            }
+
+            // Update item: jika diedit oleh SPV QC / Asst Mgr / Admin, langsung fully approved tanpa perlu approval lagi
             $item->update([
                 'name' => $data['name'],
                 'category_id' => $data['category_id'],
-                'plant_id' => $this->resolvePlantId($data['plant_id'] ?? $data['plant'] ?? $item->plant_id),
+                'approval_status' => $isLeadershipUpdater ? 'approved' : 'pending',
+                'approved_by' => $isLeadershipUpdater ? ($asstMgrApprovedBy ?? $currentUserId) : null,
+                'approved_at' => $isLeadershipUpdater ? $now : null,
+                'spv_approved_by' => $spvApprovedBy,
+                'spv_approved_at' => $isLeadershipUpdater ? $now : null,
+                'asst_mgr_approved_by' => $asstMgrApprovedBy,
+                'asst_mgr_approved_at' => $isLeadershipUpdater ? $now : null,
+                'mgr_approved_by' => null,
+                'mgr_approved_at' => null,
+                'rejection_reason' => null,
+                'requested_by' => $currentUserId ?? ($data['requested_by'] ?? $item->requested_by),
+                'pending_changes' => $isLeadershipUpdater ? null : (!empty($diffChanges) ? $diffChanges : null),
+                'plant_id' => $resolvedPlantId,
                 'customer' => $data['customer'] ?? null,
                 'part_number' => $data['part_number'] ?? null,
                 'sap_code' => $data['sap_code'] ?? null,
@@ -239,12 +377,209 @@ class ItemService extends BaseService
                 'dimension_standards' => $dimensionStandards,
             ]);
 
+            // Jika diedit oleh leadership (langsung approved), simpan riwayat perubahan sekarang
+            if ($isLeadershipUpdater && !empty($diffChanges)) {
+                foreach ($diffChanges as $fieldName => $diff) {
+                    \App\Models\ItemChangeHistory::create([
+                        'item_id' => $item->id,
+                        'plant_id' => $resolvedPlantId,
+                        'user_id' => $currentUserId,
+                        'field_name' => $fieldName,
+                        'field_label' => $diff['label'],
+                        'before_value' => $diff['before'],
+                        'after_value' => $diff['after'],
+                    ]);
+                }
+            }
+
             DB::commit();
             return $item;
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Approve master item by tier (spv, asst_mgr, mgr)
+     * 
+     * @param string $id
+     * @param int $userId
+     * @param string $tier 'spv', 'asst_mgr', 'mgr'
+     * @return Item
+     */
+    public function approveItemTier(string $id, int $userId, string $tier): Item
+    {
+        $query = Item::query();
+        if (in_array(auth()->user()->role ?? '', ['admin', 'asst_manager', 'asst_manager_qc', 'manager', 'manager_qc'])) {
+            $query->withoutGlobalScope('plant');
+        }
+        $item = $query->findOrFail($id);
+
+        $now = now();
+        $updates = [
+            'rejection_reason' => null,
+        ];
+
+        if ($tier === 'spv') {
+            $updates['spv_approved_by'] = $userId;
+            $updates['spv_approved_at'] = $now;
+        } elseif ($tier === 'asst_mgr') {
+            // Wajib Supervisor QC menyetujui terlebih dahulu
+            if (empty($item->spv_approved_at)) {
+                throw new \InvalidArgumentException('Item ini belum disetujui oleh Supervisor QC. Persetujuan harus dilakukan oleh Supervisor QC terlebih dahulu.');
+            }
+
+            $updates['asst_mgr_approved_by'] = $userId;
+            $updates['asst_mgr_approved_at'] = $now;
+        }
+
+        // Cek apakah seluruh jenjang (SPV & Asst Mgr) telah menyetujui
+        $spvApproved = !empty($item->spv_approved_at) || ($tier === 'spv');
+        $asstMgrApproved = !empty($item->asst_mgr_approved_at) || ($tier === 'asst_mgr');
+
+        if ($spvApproved && $asstMgrApproved) {
+            $updates['approval_status'] = 'approved';
+            $updates['approved_by'] = $userId;
+            $updates['approved_at'] = $now;
+
+            // Bersihkan notifikasi approval yang sudah selesai
+            \App\Models\Notification::where('type', 'master_item_approval')
+                ->whereRaw("JSON_EXTRACT(data, '$.item_id') = ?", [(string) $item->id])
+                ->delete();
+
+            // Simpan riwayat perubahan saat sudah di-approve
+            if (!empty($item->pending_changes)) {
+                foreach ($item->pending_changes as $fieldName => $diff) {
+                    \App\Models\ItemChangeHistory::create([
+                        'item_id' => $item->id,
+                        'plant_id' => $item->plant_id,
+                        'user_id' => $item->requested_by ?? $userId,
+                        'field_name' => $fieldName,
+                        'field_label' => $diff['label'],
+                        'before_value' => $diff['before'],
+                        'after_value' => $diff['after'],
+                    ]);
+                }
+                $updates['pending_changes'] = null;
+            }
+        } else {
+            $updates['approval_status'] = 'pending';
+        }
+
+        $item->update($updates);
+        return $item;
+    }
+
+    /**
+     * Approve master item by supervisor or above (Legacy / Admin one-shot)
+     */
+    public function approveItem(string $id, int $userId): Item
+    {
+        $query = Item::query();
+        if (in_array(auth()->user()->role ?? '', ['admin', 'asst_manager', 'asst_manager_qc', 'manager', 'manager_qc'])) {
+            $query->withoutGlobalScope('plant');
+        }
+        $item = $query->findOrFail($id);
+        $now = now();
+
+        // Simpan riwayat perubahan saat sudah di-approve
+        if (!empty($item->pending_changes)) {
+            foreach ($item->pending_changes as $fieldName => $diff) {
+                \App\Models\ItemChangeHistory::create([
+                    'item_id' => $item->id,
+                    'plant_id' => $item->plant_id,
+                    'user_id' => $item->requested_by ?? $userId,
+                    'field_name' => $fieldName,
+                    'field_label' => $diff['label'],
+                    'before_value' => $diff['before'],
+                    'after_value' => $diff['after'],
+                ]);
+            }
+        }
+
+        $item->update([
+            'approval_status' => 'approved',
+            'approved_by' => $userId,
+            'approved_at' => $now,
+            'spv_approved_by' => $item->spv_approved_by ?: $userId,
+            'spv_approved_at' => $item->spv_approved_at ?: $now,
+            'asst_mgr_approved_by' => $item->asst_mgr_approved_by ?: $userId,
+            'asst_mgr_approved_at' => $item->asst_mgr_approved_at ?: $now,
+            'mgr_approved_by' => $item->mgr_approved_by ?: $userId,
+            'mgr_approved_at' => $item->mgr_approved_at ?: $now,
+            'pending_changes' => null,
+            'rejection_reason' => null,
+        ]);
+
+        \App\Models\Notification::where('type', 'master_item_approval')
+            ->whereRaw("JSON_EXTRACT(data, '$.item_id') = ?", [(string) $item->id])
+            ->delete();
+
+        return $item;
+    }
+
+    /**
+     * Reject master item
+     * 
+     * @param string $id
+     * @param int $userId
+     * @param string|null $reason
+     * @return Item
+     */
+    public function rejectItem(string $id, int $userId, ?string $reason = null): Item
+    {
+        $query = Item::query();
+        if (in_array(auth()->user()->role ?? '', ['admin', 'asst_manager', 'asst_manager_qc', 'manager', 'manager_qc'])) {
+            $query->withoutGlobalScope('plant');
+        }
+        $item = $query->findOrFail($id);
+
+        $item->update([
+            'approval_status' => 'rejected',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'spv_approved_by' => null,
+            'spv_approved_at' => null,
+            'asst_mgr_approved_by' => null,
+            'asst_mgr_approved_at' => null,
+            'mgr_approved_by' => null,
+            'mgr_approved_at' => null,
+            'rejection_reason' => $reason,
+        ]);
+
+        // Bersihkan notifikasi pending approval dari approver
+        \App\Models\Notification::where('type', 'master_item_approval')
+            ->whereRaw("JSON_EXTRACT(data, '$.item_id') = ?", [(string) $item->id])
+            ->delete();
+
+        // Buat notifikasi untuk user yang mengajukan (requester)
+        if (!empty($item->requested_by)) {
+            $rejecter = \App\Models\User::find($userId);
+            $rejecterName = $rejecter ? $rejecter->name : 'Atasan';
+            $plantCode = optional($item->plant)->code ?: 'total';
+            $itemUrl = route('admin.items.index', [
+                'plant' => $plantCode,
+                'f_item_id' => $item->id,
+                'item_id' => $item->id
+            ]);
+
+            \App\Models\Notification::create([
+                'user_id' => $item->requested_by,
+                'type' => 'master_item_rejected',
+                'title' => 'Master Item Ditolak: ' . $item->name,
+                'message' => "Pengajuan ditolak oleh {$rejecterName}. Alasan: \"{$reason}\". Silakan update/perbaiki data item.",
+                'data' => [
+                    'item_id' => (string) $item->id,
+                    'url' => $itemUrl,
+                    'rejection_reason' => $reason,
+                    'rejected_by' => $rejecterName,
+                ],
+                'is_read' => false,
+            ]);
+        }
+
+        return $item;
     }
 
     /**

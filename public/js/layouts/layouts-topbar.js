@@ -55,7 +55,13 @@ document.addEventListener('DOMContentLoaded', function () {
             let iconClass = 'bg-primary';
             let icon = 'fas fa-info-circle';
 
-            if (notif.type === 'ng_finding') {
+            if (notif.type === 'master_item_approval') {
+                iconClass = 'bg-primary';
+                icon = 'fas fa-clipboard-check';
+            } else if (notif.type === 'master_item_rejected') {
+                iconClass = 'bg-danger';
+                icon = 'fas fa-times-circle';
+            } else if (notif.type === 'ng_finding') {
                 iconClass = 'bg-danger';
                 icon = 'fas fa-exclamation-triangle';
             } else if (notif.type === 'approval') {
@@ -71,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const unreadClass = notif.is_read ? '' : 'font-weight-bold bg-light';
 
             return `
-                <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}">
+                <a class="dropdown-item d-flex align-items-center notification-item ${unreadClass}" href="${detailUrl}" data-id="${notif.id}" data-type="${notif.type || ''}">
                     <div class="mr-3">
                         <div class="icon-circle ${iconClass}">
                             <i class="${icon} text-white"></i>
@@ -89,27 +95,33 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', function (e) {
                 const id = this.getAttribute('data-id');
+                const type = this.getAttribute('data-type');
                 const href = this.getAttribute('href');
 
-                // Immediately remove the clicked element from the dropdown list
-                this.remove();
+                // Master item approval notifications stay persistent until approved/rejected
+                const isMasterApproval = type === 'master_item_approval';
 
-                // Show 'No notifications' if list is empty
-                const remaining = document.querySelectorAll('.notification-item');
-                if (remaining.length === 0) {
-                    if (notificationList) {
-                        notificationList.innerHTML = '<div class="text-center p-3 small text-muted">No notifications</div>';
+                if (!isMasterApproval) {
+                    // Immediately remove the clicked element from the dropdown list
+                    this.remove();
+
+                    // Show 'No notifications' if list is empty
+                    const remaining = document.querySelectorAll('.notification-item');
+                    if (remaining.length === 0) {
+                        if (notificationList) {
+                            notificationList.innerHTML = '<div class="text-center p-3 small text-muted">No notifications</div>';
+                        }
                     }
-                }
 
-                // Update/decrement badge count
-                let currentBadgeText = notificationBadge ? notificationBadge.textContent : '0';
-                if (currentBadgeText.includes('+')) {
-                    fetchNotifications();
-                } else {
-                    let count = parseInt(currentBadgeText) || 0;
-                    if (count > 0) {
-                        updateBadge(count - 1);
+                    // Update/decrement badge count
+                    let currentBadgeText = notificationBadge ? notificationBadge.textContent : '0';
+                    if (currentBadgeText.includes('+')) {
+                        fetchNotifications();
+                    } else {
+                        let count = parseInt(currentBadgeText) || 0;
+                        if (count > 0) {
+                            updateBadge(count - 1);
+                        }
                     }
                 }
 
@@ -226,6 +238,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
         return date.toLocaleDateString();
     }
+
+    window.fetchTopNotifications = fetchNotifications;
+    window.addEventListener('notification-updated', fetchNotifications);
 
     fetchNotifications();
 

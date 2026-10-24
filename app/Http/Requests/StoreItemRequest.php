@@ -12,7 +12,18 @@ class StoreItemRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift']);
+        if (!auth()->check()) {
+            return false;
+        }
+
+        // Standard roles allowed
+        if (in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
+            return true;
+        }
+
+        // Dynamic fallback: cek izin 'input' dari menu Pengaturan
+        return \App\Helpers\AppMenu::checkPermission('admin.items.index', 'input')
+            || \App\Helpers\AppMenu::checkPermission('admin.items.index', 'view');
     }
 
     /**

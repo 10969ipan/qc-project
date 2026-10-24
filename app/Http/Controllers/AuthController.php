@@ -79,6 +79,37 @@ class AuthController extends Controller
             }
 
             session()->flash('success', 'Selamat datang kembali, ' . Auth::user()->name . '!');
+            
+            // Set flag agar modal pending item muncul saat baru login untuk level SPV QC & Asst Mgr QC (khusus jika ada item pending di plant user)
+            $user = Auth::user();
+            $role = $user->role ?? '';
+            $approverRoles = [
+                'supervisor', 'supervisor_qc',
+                'asst_manager', 'asst_manager_qc'
+            ];
+            if (in_array($role, $approverRoles)) {
+                $pendingQuery = \App\Models\Item::withoutGlobalScope('plant')->where('approval_status', 'pending');
+                $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
+                $isCrossPlantApprover = in_array($role, ['asst_manager', 'asst_manager_qc']);
+
+                // Filter per plant untuk SPV QC, sedangkan Asst Manager QC wajib mengecek kedua plant (Jakarta & Karawang)
+                if (!$isCrossPlantApprover && !empty($user->plant_id) && $user->plant_id !== $totalPlantId) {
+                    $pendingQuery->where('plant_id', $user->plant_id);
+                }
+
+                if (in_array($role, ['supervisor', 'supervisor_qc'])) {
+                    $pendingQuery->whereNull('spv_approved_at');
+                } elseif (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+                    // Wajib SPV approve dulu baru pop-up modal login muncul untuk Asst Manager
+                    $pendingQuery->whereNotNull('spv_approved_at')
+                        ->whereNull('asst_mgr_approved_at');
+                }
+
+                if ($pendingQuery->exists()) {
+                    session()->flash('show_pending_items_modal', true);
+                }
+            }
+
             return redirect('/dashboard');
         }
 

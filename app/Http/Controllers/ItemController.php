@@ -85,12 +85,29 @@ class ItemController extends Controller
             'plant' => $request->plant,
             'item_id' => $request->f_item_id ?? $request->item_id,
             'search' => $request->f_search ?? $request->search,
+            'approval_status' => $request->approval_status,
             'name' => $request->name,
             'customer' => $request->customer,
             'part_number' => $request->part_number,
             'sap_code' => $request->sap_code,
             'category' => $request->category,
         ];
+
+        // Jika data item spesifik sedang dibuka, tandai notifikasinya sebagai terbaca agar counter mengurang/tereset
+        if (!empty($filters['item_id']) && auth()->check()) {
+            \App\Models\Notification::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'type' => 'master_item_approval',
+                    'title' => 'Item: ' . $filters['item_id'],
+                ],
+                [
+                    'message' => 'Read master item ' . $filters['item_id'],
+                    'data' => ['item_id' => (string) $filters['item_id']],
+                    'is_read' => true,
+                ]
+            );
+        }
 
         $items = $this->itemService->getFilteredItems($filters);
 
@@ -142,7 +159,7 @@ class ItemController extends Controller
             $allItemsQuery->where('plant_id', $plantId);
         }
         if (!empty($filters['category'])) {
-            $allItemsQuery->byCategory($filters['category']);
+            $allItemsQuery->where('category_id', $filters['category']);
         }
         if (!empty($filters['customer'])) {
             $allItemsQuery->where('customer', $filters['customer']);
@@ -166,7 +183,48 @@ class ItemController extends Controller
         $customers = collect(array_merge($itemCustomers, $settingCustomers))->unique()->sort()->values();
         $measuringTools = \App\Models\GeneralSetting::getMeasuringTools($plantId);
 
-        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers', 'measuringTools'));
+        // Riwayat perubahan data item yang sudah di-approve per plant (5 data per halaman agar ringan)
+        // Jika dalam 1 sesi update ada lebih dari 1 field yang diubah, gabungkan menjadi 1 baris (kolom field/before/after tidak dipisah baris)
+        $changeHistoriesQuery = \App\Models\ItemChangeHistory::with(['item.category', 'user', 'plant'])
+            ->latest();
+
+        if ($plantId && !$isTotalView) {
+            $changeHistoriesQuery->where('plant_id', $plantId);
+        }
+
+        if (!empty($filters['item_id'])) {
+            $changeHistoriesQuery->where('item_id', $filters['item_id']);
+        }
+
+        $allHistories = $changeHistoriesQuery->get();
+        $groupedHistories = $allHistories->groupBy(function ($h) {
+            return $h->item_id . '_' . ($h->created_at ? $h->created_at->format('Y-m-d H:i:s') : '') . '_' . $h->user_id;
+        })->map(function ($items) {
+            $first = $items->first();
+            return (object)[
+                'item' => $first->item,
+                'user' => $first->user,
+                'plant' => $first->plant,
+                'created_at' => $first->created_at,
+                'changes' => $items,
+            ];
+        })->values();
+
+        $page = (int) $request->input('history_page', 1);
+        $perPage = 5;
+        $changeHistories = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groupedHistories->forPage($page, $perPage)->values(),
+            $groupedHistories->count(),
+            $perPage,
+            $page,
+            [
+                'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                'pageName' => 'history_page',
+                'query' => $request->query(),
+            ]
+        );
+
+        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers', 'measuringTools', 'changeHistories'));
     }
 
 
@@ -934,9 +992,9 @@ class ItemController extends Controller
      */
     public function import(Request $request)
     {
-        // Check authorization
-        if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'supervisor', 'kashift'])) {
-            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk melakukan tindakan ini.');
+        // Check authorization: khusus Admin saja
+        if (!auth()->check() || auth()->user()->role !== 'admin') {
+            return redirect()->back()->with('error', 'Akses ditolak: Fitur import Excel master item khusus untuk Admin.');
         }
 
         $request->validate([
@@ -1082,12 +1140,42 @@ class ItemController extends Controller
                     'defects' => $defects,
                 ];
 
+                $currentUser = auth()->user();
+                $importerRole = $currentUser->role ?? '';
+                $isLeadershipImporter = in_array($importerRole, ['supervisor', 'supervisor_qc', 'asst_manager', 'asst_manager_qc', 'admin']);
+                $now = now();
+
                 if ($existingItem) {
                     // Update
+                    if ($isLeadershipImporter) {
+                        $itemData['approval_status'] = 'approved';
+                        $itemData['approved_by'] = $currentUser->id;
+                        $itemData['approved_at'] = $now;
+                        $itemData['spv_approved_by'] = $existingItem->spv_approved_by ?: $currentUser->id;
+                        $itemData['spv_approved_at'] = $existingItem->spv_approved_at ?: $now;
+                        $itemData['asst_mgr_approved_by'] = $existingItem->asst_mgr_approved_by ?: $currentUser->id;
+                        $itemData['asst_mgr_approved_at'] = $existingItem->asst_mgr_approved_at ?: $now;
+                        $itemData['rejection_reason'] = null;
+                    } else {
+                        $itemData['approval_status'] = 'pending';
+                        $itemData['requested_by'] = $currentUser->id;
+                    }
                     $existingItem->update($itemData);
                     $updatedCount++;
                 } else {
                     // Insert
+                    if ($isLeadershipImporter) {
+                        $itemData['approval_status'] = 'approved';
+                        $itemData['approved_by'] = $currentUser->id;
+                        $itemData['approved_at'] = $now;
+                        $itemData['spv_approved_by'] = $currentUser->id;
+                        $itemData['spv_approved_at'] = $now;
+                        $itemData['asst_mgr_approved_by'] = $currentUser->id;
+                        $itemData['asst_mgr_approved_at'] = $now;
+                    } else {
+                        $itemData['approval_status'] = 'pending';
+                        $itemData['requested_by'] = $currentUser->id;
+                    }
                     Item::create($itemData);
                     $insertedCount++;
                 }
@@ -1112,5 +1200,199 @@ class ItemController extends Controller
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memproses data import: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Check if current user is authorized to approve/reject master items (SPV or above)
+     */
+    private function checkApproverRole(): void
+    {
+        $role = auth()->user()->role ?? '';
+        $approverRoles = [
+            'admin', 'supervisor', 'supervisor_qc',
+            'asst_manager', 'asst_manager_qc'
+        ];
+
+        if (!in_array($role, $approverRoles)) {
+            abort(403, 'Akses ditolak: Hanya level Supervisor QC dan Asst Manager QC yang dapat melakukan approval item.');
+        }
+    }
+
+    /**
+     * Resolve tier based on user role or request
+     */
+    private function resolveApproverTier(string $requestedTier = ''): string
+    {
+        $role = auth()->user()->role ?? '';
+
+        if ($role === 'admin') {
+            return in_array($requestedTier, ['spv', 'asst_mgr']) ? $requestedTier : 'all';
+        }
+
+        if (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+            return 'asst_mgr';
+        }
+
+        if (in_array($role, ['supervisor', 'supervisor_qc'])) {
+            return 'spv';
+        }
+
+        abort(403, 'Akses ditolak: Hanya level Supervisor QC dan Asst Manager QC yang dapat melakukan approval item.');
+    }
+
+    /**
+     * Approve master item
+     */
+    public function approve(Request $request, string $id)
+    {
+        $tier = $this->resolveApproverTier($request->input('tier', ''));
+
+        try {
+            if ($tier === 'all') {
+                $item = $this->itemService->approveItem($id, auth()->id());
+                $tierLabel = 'Semua Jenjang';
+            } else {
+                $item = $this->itemService->approveItemTier($id, auth()->id(), $tier);
+                $tierLabels = [
+                    'spv' => 'Spv. QC',
+                    'asst_mgr' => 'Asst. Mgr Quality',
+                ];
+                $tierLabel = $tierLabels[$tier] ?? strtoupper($tier);
+            }
+
+            ActivityLogger::log('approved', $item, "Menyetujui master item [{$tierLabel}]: {$item->name} ({$item->part_number})");
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Item {$item->name} berhasil disetujui ({$tierLabel}).",
+                    'status' => $item->approval_status,
+                    'is_fully_approved' => ($item->approval_status === 'approved'),
+                    'tier' => $tier,
+                    'approver' => auth()->user()->name,
+                    'approved_at' => now()->translatedFormat('d M Y H:i'),
+                    'spv_approved' => !empty($item->spv_approved_at),
+                    'spv_approver' => optional($item->spvApprover)->name,
+                    'spv_at' => optional($item->spv_approved_at)->translatedFormat('d/m/Y H:i'),
+                    'asst_mgr_approved' => !empty($item->asst_mgr_approved_at),
+                    'asst_mgr_approver' => optional($item->asstMgrApprover)->name,
+                    'asst_mgr_at' => optional($item->asst_mgr_approved_at)->translatedFormat('d/m/Y H:i'),
+                ]);
+            }
+
+            return redirect()->back()->with('success', "Item {$item->name} berhasil disetujui ({$tierLabel}).");
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject master item
+     */
+    public function reject(Request $request, string $id)
+    {
+        $this->checkApproverRole();
+
+        $request->validate([
+            'reason' => 'required|string|max:255',
+        ]);
+
+        try {
+            $item = $this->itemService->rejectItem($id, auth()->id(), $request->input('reason'));
+            ActivityLogger::log('rejected', $item, "Menolak master item: {$item->name} alasan: {$request->input('reason')}");
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Item {$item->name} ditolak.",
+                    'status' => 'rejected',
+                    'reason' => $request->input('reason'),
+                ]);
+            }
+
+            return redirect()->back()->with('success', "Item {$item->name} telah ditolak.");
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Get items pending approval specifically for the logged-in user's tier
+     */
+    public function getPendingApprovalItems(Request $request)
+    {
+        $role = auth()->user()->role ?? '';
+        $approverRoles = [
+            'supervisor', 'supervisor_qc',
+            'asst_manager', 'asst_manager_qc', 'admin'
+        ];
+
+        if (!in_array($role, $approverRoles)) {
+            return response()->json(['success' => false, 'data' => []]);
+        }
+
+        $user = auth()->user();
+        $userPlantId = $user ? $user->plant_id : null;
+        $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
+
+        $query = Item::withoutGlobalScope('plant')
+            ->with(['category', 'plant', 'requester', 'spvApprover', 'asstMgrApprover'])
+            ->where('approval_status', 'pending');
+
+        // Approval per plant: Jika user memiliki plant_id (dan bukan plant 'total' atau admin / asst manager lintas-plant),
+        // hanya tampilkan item pending dari plant yang sama untuk role spv/lainnya.
+        // Asst Manager QC wajib dapat melakukan approval di dua plant (Jakarta & Karawang) sekaligus.
+        $isCrossPlantApprover = in_array($role, ['admin', 'asst_manager', 'asst_manager_qc', 'manager', 'manager_qc']);
+        if (!$isCrossPlantApprover && !empty($userPlantId) && $userPlantId !== $totalPlantId) {
+            $query->where('plant_id', $userPlantId);
+        }
+
+        if (in_array($role, ['supervisor', 'supervisor_qc'])) {
+            $query->whereNull('spv_approved_at');
+        } elseif (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+            // Wajib Supervisor QC menyetujui terlebih dahulu
+            $query->whereNotNull('spv_approved_at')
+                ->whereNull('asst_mgr_approved_at');
+        }
+
+        $pendingItems = $query->latest('updated_at')->take(50)->get()->map(function ($item) use ($role) {
+            $tier = 'spv';
+            $tierLabel = 'Supervisor QC';
+            if (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+                $tier = 'asst_mgr';
+                $tierLabel = 'Asst Manager QC';
+            }
+
+            $isNewItem = empty($item->pending_changes) && $item->created_at && $item->updated_at && $item->created_at->diffInSeconds($item->updated_at) < 60;
+
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'part_number' => $item->part_number ?? '-',
+                'customer' => $item->customer ?? '-',
+                'category' => optional($item->category)->name ?? '-',
+                'plant' => optional($item->plant)->name ?? '-',
+                'requester_name' => optional($item->requester)->name ?? '-',
+                'updated_at' => $item->updated_at ? $item->updated_at->format('d/m/Y H:i') : '-',
+                'tier' => $tier,
+                'tier_label' => $tierLabel,
+                'spv_done' => !empty($item->spv_approved_at),
+                'asst_mgr_done' => !empty($item->asst_mgr_approved_at),
+                'is_new' => $isNewItem,
+                'pending_changes' => $item->pending_changes ?? [],
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'count' => $pendingItems->count(),
+            'data' => $pendingItems,
+        ]);
     }
 }

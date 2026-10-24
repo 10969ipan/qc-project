@@ -18,20 +18,76 @@ class NotificationController extends Controller
         }
 
         $user = auth()->user();
-        $sevenDaysAgo = now()->subDays(7);
+        $role = $user->role ?? '';
+        $approverRoles = ['supervisor', 'supervisor_qc', 'asst_manager', 'asst_manager_qc', 'admin'];
+        $notifications = collect();
+        $unreadCount = 0;
 
-        // Utilize composite index (user_id, is_read, type) first
-        $query = Notification::where(function ($q) use ($user) {
+        // 1. Approval Master Data Item untuk Approver
+        if (in_array($role, $approverRoles)) {
+            $pendingQuery = \App\Models\Item::withoutGlobalScope('plant')
+                ->with(['plant', 'category', 'requester'])
+                ->where('approval_status', 'pending');
+
+            $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
+            $isCrossPlantApprover = in_array($role, ['admin', 'asst_manager', 'asst_manager_qc']);
+
+            if (!$isCrossPlantApprover && !empty($user->plant_id) && $user->plant_id !== $totalPlantId) {
+                $pendingQuery->where('plant_id', $user->plant_id);
+            }
+
+            if (in_array($role, ['supervisor', 'supervisor_qc'])) {
+                $pendingQuery->whereNull('spv_approved_at');
+            } elseif (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+                // Wajib SPV approve dulu baru muncul di notifikasi antrean Asst Manager
+                $pendingQuery->whereNotNull('spv_approved_at')
+                    ->whereNull('asst_mgr_approved_at');
+            }
+
+            $unreadCount = (clone $pendingQuery)->count();
+            $pendingItems = $pendingQuery->latest('updated_at')->limit(20)->get();
+
+            $notifications = $pendingItems->map(function ($item) {
+                $plantName = optional($item->plant)->name ?? 'Plant';
+                $plantCode = optional($item->plant)->code ?: 'total';
+                $isNew = empty($item->pending_changes);
+                $title = ($isNew ? 'Master Item Baru: ' : 'Pembaruan Item: ') . $item->name;
+                $message = "Menunggu approval di Plant {$plantName} (Diajukan oleh: " . (optional($item->requester)->name ?? 'Staff') . ")";
+
+                return (object)[
+                    'id' => $item->id,
+                    'type' => 'master_item_approval',
+                    'title' => $title,
+                    'message' => $message,
+                    'is_read' => false,
+                    'created_at' => $item->updated_at ?? $item->created_at,
+                    'data' => [
+                        'url' => route('admin.items.index', [
+                            'plant' => $plantCode,
+                            'approval_status' => 'pending',
+                            'f_item_id' => $item->id,
+                            'item_id' => $item->id
+                        ]),
+                        'item_id' => $item->id,
+                        'is_pending_approval' => true
+                    ]
+                ];
+            });
+        }
+
+        // 2. Notifikasi Transaksional / Temuan NG / Reminder Kalibrasi dari tabel notifications
+        $sevenDaysAgo = now()->subDays(7);
+        $notifQuery = Notification::where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                     ->orWhereNull('user_id');
             })
+            ->where('type', '!=', 'master_item_approval')
             ->unread()
             ->where('created_at', '>=', $sevenDaysAgo);
 
-        // Filter by plant for non-admin users
         $hasNotifPlantCol = \Illuminate\Support\Facades\Schema::hasColumn('notifications', 'notif_plant_id');
         if ($user->role !== 'admin') {
-            $query->where(function ($q) use ($user, $hasNotifPlantCol) {
+            $notifQuery->where(function ($q) use ($user, $hasNotifPlantCol) {
                 if ($hasNotifPlantCol) {
                     $q->where('notif_plant_id', $user->plant_id)
                         ->orWhereNull('notif_plant_id');
@@ -42,12 +98,10 @@ class NotificationController extends Controller
             });
         }
 
-        $notifications = $query->orderBy('created_at', 'desc')
-            ->limit(20)
-            ->get();
+        $regularNotifications = $notifQuery->orderBy('created_at', 'desc')->limit(20)->get();
 
-        // Dynamically correct and absolute-ize URLs relative to the current request host & subdirectory
-        $notifications->transform(function ($notification) {
+        // Format link URL untuk notifikasi checksheet
+        $regularNotifications->transform(function ($notification) {
             $data = $notification->data;
             if (isset($data['checksheet_id']) && isset($data['checksheet_type'])) {
                 $params = ['id' => $data['checksheet_id']];
@@ -109,7 +163,7 @@ class NotificationController extends Controller
                     $data['url'] = url($matches[1]);
                     $notification->data = $data;
                 } else {
-                    $basePath = request()->getBaseUrl(); // e.g. "/qc" or "/qc-project/public"
+                    $basePath = request()->getBaseUrl();
                     $cleanPath = $pathAndQuery;
                     if (!empty($basePath)) {
                         if (strpos($cleanPath, $basePath . '/') === 0) {
@@ -125,32 +179,19 @@ class NotificationController extends Controller
             return $notification;
         });
 
-        $unreadCountQuery = Notification::where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereNull('user_id');
+        $regularUnreadCount = (clone $notifQuery)->select('id')->limit(10)->get()->count();
+
+        // Gabungkan dan urutkan notifikasi terbaru
+        $mergedNotifications = $notifications->concat($regularNotifications)
+            ->sortByDesc(function ($item) {
+                return $item->created_at ?? now();
             })
-            ->unread()
-            ->where('created_at', '>=', $sevenDaysAgo);
-
-        // Apply same plant filter for unread count
-        if ($user->role !== 'admin') {
-            $unreadCountQuery->where(function ($q) use ($user, $hasNotifPlantCol) {
-                if ($hasNotifPlantCol) {
-                    $q->where('notif_plant_id', $user->plant_id)
-                        ->orWhereNull('notif_plant_id');
-                } else {
-                    $q->whereRaw("JSON_EXTRACT(data, '$.plant_id') = ?", [$user->plant_id])
-                        ->orWhereRaw("JSON_EXTRACT(data, '$.plant_id') IS NULL");
-                }
-            });
-        }
-
-        // Capped at 10 to prevent scanning thousands of unread notifications; topbar badge displays '9+' for any count > 9.
-        $unreadCount = $unreadCountQuery->select('id')->limit(10)->get()->count();
+            ->values()
+            ->take(20);
 
         return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount
+            'notifications' => $mergedNotifications,
+            'unread_count' => $unreadCount + $regularUnreadCount
         ]);
     }
 
@@ -161,12 +202,22 @@ class NotificationController extends Controller
      */
     public function markAsRead($id)
     {
+        $user = auth()->user();
+
+        // 1. Cek apakah ini ID dari Master Data Item (Approval Pending)
+        $item = \App\Models\Item::withoutGlobalScope('plant')->find($id);
+        if ($item) {
+            // Notifikasi master item approval tidak dimark-as-read lewat klik;
+            // Notifikasi ini hanya akan hilang jika item sudah resmi disetujui (approved) atau ditolak (rejected)
+            return response()->json(['success' => true]);
+        }
+
+        // 2. Notifikasi reguler dari tabel notifications
         $notification = Notification::find($id);
         if (!$notification) {
             return response()->json(['success' => false], 404);
         }
 
-        $user = auth()->user();
         $data = $notification->data ?? [];
 
         // Delete all notifications for THIS user related to the same checksheet
@@ -198,6 +249,9 @@ class NotificationController extends Controller
             ->unread()
             ->update(['is_read' => true]);
 
+        // Catatan: Item master data yang statusnya pending approval tidak dimark-read
+        // Notifikasi approval bersifat persisten dan hanya hilang jika item telah di-approve/reject.
+
         return response()->json(['success' => true]);
     }
 
@@ -213,6 +267,9 @@ class NotificationController extends Controller
             $query->where('user_id', $user->id)
                 ->orWhereNull('user_id');
         })->delete();
+
+        // Catatan: Notifikasi master data pending approval tidak terhapus oleh clearAll,
+        // karena item fisik di tabel items masih berstatus pending dan membutuhkan approval nyata.
 
         return response()->json(['success' => true, 'message' => 'Semua notifikasi berhasil dihapus']);
     }

@@ -5,29 +5,26 @@
 @section('content')
 <style>
     .table-responsive {
-        max-height: calc(100vh - 220px) !important;
-        overflow: auto !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        overflow-x: auto !important;
         border: none !important;
-        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
+        box-shadow: none !important;
     }
 
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
-    }
-    #checksheetTable {
+    #checksheetTable, #itemHistoryTable {
         border-collapse: separate !important;
         border-spacing: 0 !important;
         border: none !important;
         width: 100% !important;
         table-layout: auto !important;
     }
-    #checksheetTable td, #checksheetTable th {
+    #checksheetTable td, #checksheetTable th,
+    #itemHistoryTable td, #itemHistoryTable th {
         border-left: none !important;
         border-right: 1px solid #f1f5f9 !important;
     }
-    #checksheetTable tbody td {
+    #checksheetTable tbody td, #itemHistoryTable tbody td {
         border-bottom: 1px solid #f1f5f9 !important;
         border-top: none !important;
         vertical-align: middle !important;
@@ -37,7 +34,8 @@
     }
 
     /* Global TH sticky setup */
-    #checksheetTable > thead > tr > th {
+    #checksheetTable > thead > tr > th,
+    #itemHistoryTable > thead > tr > th {
         position: -webkit-sticky !important;
         position: sticky !important;
         background-color: #f8fafc !important;
@@ -63,21 +61,20 @@
         min-width: 0 !important;
         white-space: nowrap !important; 
     }
-    }
-    #checksheetTable .btn {
-        min-width: 0 !important; /* Overrides inline style */
+    #checksheetTable .btn, #itemHistoryTable .btn {
+        min-width: 0 !important;
         padding: 0.2rem 0.4rem !important;
         font-size: 0.6rem !important;
         margin: 1px !important;
     }
-    }
-    #checksheetTable .badge {
+    #checksheetTable .badge, #itemHistoryTable .badge {
         font-size: 0.6rem !important;
         padding: 0.2rem 0.4rem !important;
     }
 
     /* Sticky Header */
-    #checksheetTable > thead > tr:nth-child(1) > th {
+    #checksheetTable > thead > tr:nth-child(1) > th,
+    #itemHistoryTable > thead > tr:nth-child(1) > th {
         top: 0 !important;
         z-index: 105 !important;
         height: 35px !important; 
@@ -93,172 +90,142 @@
         ]);
     @endphp
 
-    <div class="card shadow mb-2">
-        <div class="card-body p-0">
-            <table style="width:100%; border-collapse:collapse; border:1px solid #dee2e6;">
-                <tr>
-                    {{-- ===== [1] KOLOM LOGO ===== --}}
-                    <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
-                        <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
-                    </td>
-
-                    {{-- ===== [2] KOLOM JUDUL ===== --}}
-                    <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
-                        <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
-                            MASTER DATA ITEM - PLANT {{ strtoupper($plantCodeStr) }}
-                        </h1>
-                    </td>
-
-                    {{-- ===== [3] KOLOM KANAN: No. Dokumen + Signatures ===== --}}
-                    <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
-                        <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
-                            <tr style="height:100%;">
-                                {{-- ===== [3A] Tabel No. Dokumen ===== --}}
-                                <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
-                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
-                                        <tr>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                            <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
-                                        </tr>
-                                    </table>
-                                </td>
-
-                                {{-- ===== [3B] Tabel Signatures ===== --}}
-                                <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
-                                    <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:450px;">
-                                        <thead>
-                                            <tr>
-                                                <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
-                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:105px;">Dibuat</th>
-                                                <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:105px;">Diperiksa</th>
-                                                <th colspan="2" style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:212px;">Disetujui</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
-                                                    <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
-                                                        {{ date('d-M-y') }}
-                                                    </div>
-                                                </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                    <img src="{{ asset('signatures/irfan.png') }}" alt="Irfan A" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                                </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                    <img src="{{ asset('signatures/' . ($plantCodeStr === 'jakarta' ? 'suli.png' : 'arif.png')) }}" alt="{{ $plantCodeStr === 'jakarta' ? 'Masuli' : 'Arief H' }}" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                                </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                    <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                                </td>
-                                                <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
-                                                    <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Irfan A</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">{{ $plantCodeStr === 'jakarta' ? 'Masuli' : 'Arief H' }}</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
-                                            </tr>
-                                            <tr>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Service Quality</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QC</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
-                                                <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-
-
-
-    @if(session('import_warnings'))
-        <div class="alert alert-warning alert-dismissible fade show mx-3" role="alert" style="max-height: 250px; overflow-y: auto;">
-            <strong>Peringatan Import:</strong>
-            <ul class="mb-0 pl-3 small">
-                @foreach(session('import_warnings') as $warning)
-                    <li>{{ $warning }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show mx-3" role="alert">
-            {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif
-
-    @php
-    @endphp
-
-
-
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Item</h6>
-            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                <div class="d-flex" style="gap: 10px;">
-                    <button type="button" class="btn btn-sm btn-success shadow-sm" data-toggle="modal"
-                        data-target="#modalImportItem">
-                        <i class="fas fa-file-excel fa-sm text-white-50"></i> Import Excel
-                    </button>
-                    @if(auth()->user()->role === 'admin')
-                        <button type="button" class="btn btn-sm btn-warning shadow-sm" data-toggle="modal"
-                            data-target="#modalBulkUploadPdf" title="Ganti PDF semua item di satu kategori sekaligus">
-                            <i class="fas fa-layer-group fa-sm text-white-50"></i> Upload PDF Sekaligus
-                        </button>
-                    @endif
-                    <button type="button" class="btn btn-sm btn-primary shadow-sm" data-toggle="modal"
-                        data-target="#modalTambahItem">
-                        <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Item
+        <div class="card-body p-2">
+            <div class="mb-2">
+                <table style="width:100%; border-collapse:collapse; border:1px solid #dee2e6;">
+                    <tr>
+                        {{-- ===== [1] KOLOM LOGO ===== --}}
+                        <td style="width:75px; border:1px solid #dee2e6; padding:5px; text-align:center; vertical-align:middle;">
+                            <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                        </td>
+
+                        {{-- ===== [2] KOLOM JUDUL ===== --}}
+                        <td style="border:1px solid #dee2e6; padding:5px 8px; text-align:center; vertical-align:middle;">
+                            <h1 class="mb-0 font-weight-bold text-uppercase text-gray-800" style="font-size:0.85rem; letter-spacing:0.3px;">
+                                MASTER DATA ITEM - PLANT {{ strtoupper($plantCodeStr) }}
+                            </h1>
+                        </td>
+
+                        {{-- ===== [3] KOLOM KANAN: No. Dokumen + Signatures ===== --}}
+                        <td style="width:1px; border:1px solid #dee2e6; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                            <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                                <tr style="height:100%;">
+                                    {{-- ===== [3A] Tabel No. Dokumen ===== --}}
+                                    <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                        <table style="border-collapse:collapse; border:1px solid #dee2e6; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">No. Dokumen</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:700; color:#212529; white-space:nowrap;">{{ $docHeader['no_dokumen'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Tgl. Terbit</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Revisi / Tgl</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
+                                                <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+
+                                    {{-- ===== [3B] Tabel Signatures ===== --}}
+                                    <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                        <table style="border-collapse:collapse; border:1px solid #dee2e6; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:450px;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:105px;">Dibuat</th>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:105px;">Diperiksa</th>
+                                                    <th colspan="2" style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:212px;">Disetujui</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td rowspan="3" style="border:1px solid #dee2e6; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                        <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#6c757d;">
+                                                            {{ date('d-M-y') }}
+                                                        </div>
+                                                    </td>
+                                                    <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                        <img src="{{ asset('signatures/irfan.png') }}" alt="Irfan A" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    </td>
+                                                    <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                        <img src="{{ asset('signatures/' . ($plantCodeStr === 'jakarta' ? 'suli.png' : 'arif.png')) }}" alt="{{ $plantCodeStr === 'jakarta' ? 'Masuli' : 'Arief H' }}" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    </td>
+                                                    <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                        <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    </td>
+                                                    <td style="border:1px solid #dee2e6; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                        <img src="{{ asset('signatures/desti.png') }}" alt="Desti K" style="max-height:68px; max-width:115px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Irfan A</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">{{ $plantCodeStr === 'jakarta' ? 'Masuli' : 'Arief H' }}</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Iwan S</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-weight:600; font-size:0.63rem; color:#212529; white-space:nowrap;">Desti K</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Service Quality</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Spv. QC</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 4px; font-size:0.63rem; color:#495057; white-space:nowrap;">Mgr. Quality</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            @if(session('import_warnings'))
+                <div class="alert alert-warning alert-dismissible fade show mb-2" role="alert" style="max-height: 250px; overflow-y: auto;">
+                    <strong>Peringatan Import:</strong>
+                    <ul class="mb-0 pl-3 small">
+                        @foreach(session('import_warnings') as $warning)
+                            <li>{{ $warning }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             @endif
-        </div>
-        <div class="card-body">
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show mb-2" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+
             <form action="{{ route('admin.items.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 10px;" id="filterFormItems">
+                class="d-flex flex-nowrap align-items-center bg-white p-2 rounded mb-3 border"
+                style="gap: 8px; overflow-x: auto; white-space: nowrap; border-color: #e2e8f0 !important;" id="filterFormItems">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                 <input type="hidden" name="f_search" id="hiddenSearchInput" value="{{ request('f_search', request('search')) }}">
 
-                <!-- Field: Part (Dropdown Item Search) -->
-                <div class="d-flex align-items-center" style="min-width: 280px; max-width: 400px;">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Part:</label>
-                    <div class="custom-filter-wrapper flex-grow-1">
+                <!-- 1. Field: Part Name (Dropdown Item Search Autocomplete) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700">Part</label>
+                    <div style="width: 220px;" class="custom-filter-wrapper">
                         <select name="f_item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
-                            <option value="">Semua Item / Part No.</option>
+                            <option value="">Semua Part</option>
                             @foreach($allItemsList as $itm)
                                 <option value="{{ $itm->id }}" 
                                     data-name="{{ $itm->name }}" 
@@ -267,7 +234,7 @@
                                     data-sap-code="{{ $itm->sap_code }}"
                                     data-detail="{{ optional($itm->category)->name }}"
                                     data-category-id="{{ $itm->category_id }}"
-                                    {{ request('f_item_id') == $itm->id ? 'selected' : '' }}>
+                                    {{ (request('f_item_id') == $itm->id || request('item_id') == $itm->id) ? 'selected' : '' }}>
                                     {{ $itm->name }} {{ $itm->part_number ? '- '.$itm->part_number : '' }}
                                 </option>
                             @endforeach
@@ -275,104 +242,127 @@
                     </div>
                 </div>
 
-                <!-- Field: Category -->
-                <div class="d-flex align-items-center" style="min-width: 180px;">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Kategori:</label>
-                    <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm select2-standard" style="width: 150px;">
-                        <option value="">Semua Kategori</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- 2. Field: Category -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700">Kategori</label>
+                    <div style="width: 150px;" class="custom-filter-wrapper">
+                        <select name="category" id="filterCategory" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua Kategori</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}" {{ request('category') == $cat->id ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Field: Customer -->
-                <div class="d-flex align-items-center" style="min-width: 200px;">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700">Customer:</label>
-                    <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm select2-standard" style="width: 180px;">
-                        <option value="">Semua Customer</option>
-                        @foreach($customers as $cust)
-                            <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>
-                                {{ $cust }}
-                            </option>
-                        @endforeach
-                    </select>
+                <!-- 3. Field: Customer (Autocomplete Search) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700">Customer</label>
+                    <div style="width: 180px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $cust)
+                                <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>
+                                    {{ $cust }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
-                    <style>
-                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
-                    </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm"></i>
-                    </button>
-                    <a href="{{ route('admin.items.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
-                    </a>
+                <!-- 4. Field: Approval Status -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700">Status</label>
+                    <div style="width: 130px;" class="custom-filter-wrapper">
+                        <select name="approval_status" id="filterApprovalStatus" class="form-control form-control-sm border-0 shadow-sm">
+                            <option value="">Semua Status</option>
+                            <option value="pending" {{ request('approval_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ request('approval_status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                    </div>
                 </div>
+
+                <!-- Tombol Aksi Kanan (Import, Upload PDF, Tambah Item) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 5px; align-self: flex-end; margin-bottom: 2px !important;">
+                    @if(auth()->user()->role === 'admin')
+                        <button type="button" class="btn btn-success btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center no-loader"
+                            style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalImportItem" title="Import Master Item dari Excel">
+                            <i class="fas fa-file-excel fa-sm mr-1"></i> Import
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center no-loader"
+                            style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalBulkUploadPdf" title="Ganti PDF semua item di satu kategori sekaligus">
+                            <i class="fas fa-layer-group fa-sm mr-1"></i> Upload PDF
+                        </button>
+                    @endif
+
+                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center"
+                            style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalTambahItem">
+                            <i class="fas fa-plus fa-sm mr-1"></i> Tambah Item
+                        </button>
+                    @endif
+                </div>
+
+                <style>
+                    .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                    .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
+                    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                    .custom-filter-wrapper { position: relative; top: 0px; }
+                    #filterFormItems label { white-space: nowrap; }
+                    #filterFormItems select.form-control-sm { height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
+                </style>
             </form>
 
-            @push('scripts')
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Sync the proxy input text for broad search capability
-                    setTimeout(function() {
-                        const proxyInput = document.querySelector('.custom-filter-wrapper .ips-input');
-                        const hiddenSearch = document.getElementById('hiddenSearchInput');
-                        const itemSelect = document.getElementById('filterItem');
+            <!-- Loading Spinner Animasi (Kakotora & In-Process Standard) -->
+            <div id="tableLoader" class="text-center py-5">
+                <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <h6 class="text-muted font-weight-bold" style="font-size: 0.85rem; letter-spacing: 0.3px;">Memuat Data Master Item...</h6>
+            </div>
 
-                        if (proxyInput && hiddenSearch) {
-                            // If we have a search value but no item_id, populate the proxy input for visual consistency
-                            if (hiddenSearch.value && !itemSelect.value) {
-                                proxyInput.value = hiddenSearch.value;
-                            }
-
-                            proxyInput.addEventListener('input', function() {
-                                hiddenSearch.value = this.value;
-                            });
-
-                            // Handle clear button click
-                            document.addEventListener('mousedown', function(e) {
-                                if (e.target.classList.contains('ips-clear') && e.target.closest('.custom-filter-wrapper')) {
-                                    hiddenSearch.value = '';
-                                }
-                            });
-                        }
-                    }, 500); 
-                });
-            </script>
-            @endpush
-
-            <div class="table-responsive">
-                <table id="checksheetTable" class="table" width="100%" cellspacing="0">
+            <div class="table-responsive" id="tableContainer" style="display: none;">
+                <table id="checksheetTable" class="table table-hover text-center" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th style="width:1%; white-space:nowrap;">Standard</th>
-                            <th>Nama Item</th>
-                            <th>Kategori</th>
-                            <th>Customer</th>
-                            <th>No Part</th>
-                            <th>Cavity</th>
-                            <th class="text-primary"><i class="fas fa-stopwatch mr-1"></i> SCT (Plating)</th>
-                            <th>Kode SAP</th>
+                            <th rowspan="2" class="align-middle" style="width: 40px;">No</th>
+                            <th rowspan="2" class="align-middle" style="width:1%; white-space:nowrap;">Standard</th>
+                            <th rowspan="2" class="align-middle text-left">Nama Item</th>
+                            <th rowspan="2" class="align-middle">Kategori</th>
+                            <th rowspan="2" class="align-middle">Customer</th>
+                            <th rowspan="2" class="align-middle">No Part</th>
+                            <th rowspan="2" class="align-middle">Cavity</th>
+                            <th rowspan="2" class="align-middle text-primary"><i class="fas fa-stopwatch mr-1"></i> SCT (Plating)</th>
+                            <th rowspan="2" class="align-middle">Kode SAP</th>
+                            <th colspan="2" class="align-middle bg-light">Approval Status</th>
                             @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                <th>Action</th>
+                                <th rowspan="2" class="align-middle no-export">Action</th>
                             @endif
+                        </tr>
+                        <tr class="text-center">
+                            <th style="font-size: 10px; min-width: 110px;">Supervisor QC</th>
+                            <th style="font-size: 10px; min-width: 110px;">Asst Manager QC</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $userRole = auth()->user()->role ?? '';
+                            $isSpv = in_array($userRole, ['supervisor', 'supervisor_qc']);
+                            $isAsstMgr = in_array($userRole, ['asst_manager', 'asst_manager_qc']);
+                            $isAdmin = ($userRole === 'admin');
+                        @endphp
                         @foreach($items as $index => $item)
+                            @php
+                                $spvDone = !empty($item->spv_approved_at);
+                                $asstMgrDone = !empty($item->asst_mgr_approved_at);
+                                $isRejected = ($item->approval_status === 'rejected');
+                            @endphp
                             <tr>
-                                <td>{{ $items->firstItem() + $index }}</td>
-                                <td class="text-nowrap">
+                                <td class="align-middle">{{ $items->firstItem() + $index }}</td>
+                                <td class="align-middle text-nowrap">
                                     @php
                                         $filePaths = $item->file_paths ?? [];
                                         if (empty($filePaths) && $item->file_path) {
@@ -400,7 +390,6 @@
                                     @if($item->similar_part_file_path)
                                         @php
                                             $catName = strtoupper($item->category->name ?? '');
-                                            $isProcess = (str_contains($catName, 'INPROSES') || str_contains($catName, 'IN-PROCESS') || str_contains($catName, 'INPROCESS'));
                                             $standardLabel = 'Dokumen 2';
                                         @endphp
                                         <button type="button" class="btn btn-info btn-xs view-pdf-btn mb-1" data-toggle="modal"
@@ -416,27 +405,96 @@
                                         <span class="text-muted">No File</span>
                                     @endif
                                 </td>
-                                <td class="text-nowrap">{{ $item->name }}</td>
-                                <td class="text-nowrap">
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $item->name }}</span>
+                                </td>
+                                <td class="align-middle text-nowrap">
                                     @if($item->category)
                                         {{ $item->category->name }}
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="text-nowrap">{{ $item->customer }}</td>
-                                <td class="text-nowrap">{{ $item->part_number }}</td>
-                                <td class="text-nowrap">{{ $item->cavity ?? 1 }}</td>
-                                <td class="text-nowrap font-weight-bold text-primary">
+                                <td class="align-middle text-nowrap">{{ $item->customer }}</td>
+                                <td class="align-middle text-nowrap">{{ $item->part_number }}</td>
+                                <td class="align-middle text-nowrap">{{ $item->cavity ?? 1 }}</td>
+                                <td class="align-middle text-nowrap font-weight-bold text-primary">
                                     @if($item->standard_cycle_time > 0)
                                         {{ number_format($item->standard_cycle_time, 2) }}m
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="text-nowrap">{{ $item->sap_code ?? '-' }}</td>
+                                <td class="align-middle text-nowrap">{{ $item->sap_code ?? '-' }}</td>
+
+                                {{-- 1. Supervisor QC --}}
+                                <td class="align-middle text-center text-nowrap" style="min-width: 120px;">
+                                    @if($isRejected)
+                                        <span class="badge badge-danger px-2 py-1 shadow-sm"><i class="fas fa-times-circle mr-1"></i> REJECTED</span>
+                                        <br><small class="text-danger font-weight-bold" style="font-size: 0.65rem;">Ditolak: {{ optional($item->approver)->name ?? 'Atasan' }}</small>
+                                        <br><small class="text-muted text-truncate d-inline-block" style="max-width: 120px; font-size: 0.60rem;" title="{{ $item->rejection_reason }}">{{ $item->rejection_reason }}</small>
+                                    @elseif($spvDone)
+                                        <span class="badge badge-success px-2 py-1 shadow-sm"><i class="fas fa-check-double mr-1"></i> APPROVED</span>
+                                        <br><small class="text-dark font-weight-bold" style="font-size: 0.65rem;">{{ optional($item->spvApprover)->name ?? '-' }}</small>
+                                        <br><small class="text-muted" style="font-size: 0.60rem;">{{ $item->spv_approved_at->format('d/m/Y H:i') }}</small>
+                                    @else
+                                        <div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">
+                                            <span class="badge badge-warning text-dark px-2 py-1"><i class="fas fa-clock mr-1"></i> PENDING</span>
+                                            @if($isSpv || $isAdmin)
+                                                <button type="button" class="btn btn-success btn-xs btn-approve-tier shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                                                    style="width: 20px; height: 20px; font-size: 0.65rem;"
+                                                    data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-tier="spv" data-tier-label="Supervisor QC"
+                                                    title="Setujui (Approve)">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-xs btn-reject-item shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                                                    style="width: 20px; height: 20px; font-size: 0.65rem;"
+                                                    data-id="{{ $item->id }}" data-name="{{ $item->name }}" title="Tolak (Reject)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </td>
+
+                                {{-- 2. Asst Manager QC --}}
+                                <td class="align-middle text-center text-nowrap" style="min-width: 120px;">
+                                    @if($isRejected)
+                                        <span class="badge badge-danger px-2 py-1 shadow-sm"><i class="fas fa-times-circle mr-1"></i> REJECTED</span>
+                                        <br><small class="text-danger font-weight-bold" style="font-size: 0.65rem;">Ditolak: {{ optional($item->approver)->name ?? 'Atasan' }}</small>
+                                        <br><small class="text-muted text-truncate d-inline-block" style="max-width: 120px; font-size: 0.60rem;" title="{{ $item->rejection_reason }}">{{ $item->rejection_reason }}</small>
+                                    @elseif($asstMgrDone)
+                                        <span class="badge badge-success px-2 py-1 shadow-sm"><i class="fas fa-check-double mr-1"></i> APPROVED</span>
+                                        <br><small class="text-dark font-weight-bold" style="font-size: 0.65rem;">{{ optional($item->asstMgrApprover)->name ?? '-' }}</small>
+                                        <br><small class="text-muted" style="font-size: 0.60rem;">{{ $item->asst_mgr_approved_at->format('d/m/Y H:i') }}</small>
+                                    @else
+                                        <div class="d-inline-flex align-items-center justify-content-center" style="gap: 4px;">
+                                            <span class="badge badge-warning text-dark px-2 py-1"><i class="fas fa-clock mr-1"></i> PENDING</span>
+                                            @if($isAsstMgr || $isAdmin)
+                                                @if($spvDone || $isAdmin)
+                                                    <button type="button" class="btn btn-success btn-xs btn-approve-tier shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                                                        style="width: 20px; height: 20px; font-size: 0.65rem;"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-tier="asst_mgr" data-tier-label="Asst Manager QC"
+                                                        title="Setujui (Approve)">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger btn-xs btn-reject-item shadow-sm p-0 d-inline-flex align-items-center justify-content-center"
+                                                        style="width: 20px; height: 20px; font-size: 0.65rem;"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}" title="Tolak (Reject)">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                @else
+                                                    <span class="badge badge-light border text-muted px-1" style="font-size: 0.60rem;" title="Menunggu approval dari Supervisor QC terlebih dahulu">
+                                                        <i class="fas fa-lock mr-1"></i> Tunggu Spv
+                                                    </span>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    @endif
+                                </td>
+
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
-                                    <td class="no-export text-nowrap">
+                                    <td class="no-export align-middle text-nowrap">
                                         @if(auth()->user()->role === 'admin')
                                             <button type="button" class="btn btn-secondary btn-sm btn-copy-row-defects"
                                                 data-defects="{{ json_encode($item->defects ?? []) }}"
@@ -448,9 +506,11 @@
                                         <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
-                                        <button type="button" class="btn btn-info btn-sm btn-log-item" data-id="{{ $item->id }}">
-                                            <i class="fas fa-history"></i> Log
-                                        </button>
+                                        @if(auth()->user()->role === 'admin')
+                                            <button type="button" class="btn btn-info btn-sm btn-log-item" data-id="{{ $item->id }}">
+                                                <i class="fas fa-history"></i> Log
+                                            </button>
+                                        @endif
                                         <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
                                             class="d-inline delete-form">
                                             @csrf
@@ -480,6 +540,11 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
                                 @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
                                     <td>&nbsp;</td>
                                 @endif
@@ -491,6 +556,106 @@
             <div class="mt-4">
                 {{ $items->withQueryString()->links() }}
             </div>
+        </div>
+    </div>
+
+    {{-- Tabel Riwayat Perubahan Data Item (Khusus yang sudah diapprove per plant) --}}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Riwayat Perubahan Data Item</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="itemHistoryTable" class="table table-hover text-center" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="align-middle" style="width: 40px;">No</th>
+                            <th class="align-middle text-left" style="min-width: 160px;">Nama Item/No Part</th>
+                            <th class="align-middle">Kategori</th>
+                            <th class="align-middle">Customer</th>
+                            <th class="align-middle text-left">Item Yang Diubah</th>
+                            <th class="align-middle text-left" style="min-width: 140px;">Kondisi Semula (Before)</th>
+                            <th class="align-middle text-left" style="min-width: 140px;">Kondisi Perubahan (After)</th>
+                            <th class="align-middle">Diajukan</th>
+                            <th class="align-middle">Tanggal Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($changeHistories as $hIdx => $history)
+                            @php
+                                $histItem = $history->item;
+                                $changes = $history->changes ?? collect([$history]);
+                            @endphp
+                            <tr>
+                                <td class="align-middle">{{ $changeHistories->firstItem() + $hIdx }}</td>
+                                <td class="align-middle text-left text-nowrap">
+                                    <span class="font-weight-bold text-gray-800">{{ $histItem ? $histItem->name : '-' }}</span>
+                                    @if($histItem && $histItem->part_number)
+                                        <br><small class="text-muted">{{ $histItem->part_number }}</small>
+                                    @endif
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $histItem && $histItem->category ? $histItem->category->name : '-' }}
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ $histItem ? ($histItem->customer ?? '-') : '-' }}
+                                </td>
+                                <td class="align-middle text-left text-nowrap">
+                                    @foreach($changes as $cIdx => $change)
+                                        <div class="font-weight-bold text-gray-800 {{ $cIdx > 0 ? 'mt-1 pt-1 border-top' : '' }}">
+                                            {{ $change->field_label }}
+                                        </div>
+                                    @endforeach
+                                </td>
+                                <td class="align-middle text-left text-nowrap">
+                                    @foreach($changes as $cIdx => $change)
+                                        <div class="{{ $cIdx > 0 ? 'mt-1 pt-1 border-top' : '' }}">
+                                            {{ $change->before_value ?: 'Tidak Ada Data' }}
+                                        </div>
+                                    @endforeach
+                                </td>
+                                <td class="align-middle text-left text-nowrap">
+                                    @foreach($changes as $cIdx => $change)
+                                        <div class="{{ $cIdx > 0 ? 'mt-1 pt-1 border-top' : '' }}">
+                                            {{ $change->after_value ?: 'Tidak Ada Data' }}
+                                        </div>
+                                    @endforeach
+                                </td>
+                                <td class="align-middle text-nowrap">
+                                    {{ optional($history->user)->name ?? '-' }}
+                                </td>
+                                <td class="align-middle text-nowrap text-muted">
+                                    {{ $history->created_at ? $history->created_at->format('d/m/Y H:i') : '-' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">
+                                    Belum ada riwayat perubahan data item yang disetujui untuk plant ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                        @for($i = count($changeHistories); $i < 5; $i++)
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
+            </div>
+            @if($changeHistories->hasPages())
+                <div class="mt-4">
+                    {{ $changeHistories->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
@@ -1123,6 +1288,8 @@
                     viewPdf: "{{ route('items.pdf', ['id' => '__ID__']) }}",
                     addCustomer: "{{ route('admin.items.add-customer') }}",
                     deleteCustomer: "{{ route('admin.items.delete-customer') }}",
+                    approve: "{{ route('admin.items.approve', ':id') }}",
+                    reject: "{{ route('admin.items.reject', ':id') }}",
                     pdfWorker: "{{ asset('js/vendor/pdf.worker.min.js') }}"
                 },
                 csrfToken: "{{ csrf_token() }}",
@@ -1160,6 +1327,7 @@
 
                 if (typeof initItemSearch === 'function') {
                     initItemSearch('filterItem', { placeholder: 'Ketik Nama / Part No / SAP...', maxResults: 50 });
+                    initItemSearch('filterCustomer', { placeholder: 'Ketik Nama Customer...', maxResults: 40 });
                 }
 
                 function updateItemDropdownFilters() {
@@ -1218,7 +1386,7 @@
                 updateItemDropdownFilters();
 
                 // Auto-submit filter on dropdown change
-                const filters = ['filterItem', 'filterCategory', 'filterCustomer'];
+                const filters = ['filterItem', 'filterCategory', 'filterCustomer', 'filterApprovalStatus'];
                 filters.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {

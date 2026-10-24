@@ -200,7 +200,7 @@ class PaintingChecksheetController extends Controller
     {
         $plantCode = $this->getPlantCode($request);
         $user = auth()->user();
-        $items = Item::whereHas('category', function ($q) {
+        $items = Item::approved()->whereHas('category', function ($q) {
             $q->where('name', 'Painting');
         })->whereHas('plant', function ($q) use ($plantCode) {
             $q->where('code', $plantCode);

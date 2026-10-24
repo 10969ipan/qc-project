@@ -354,7 +354,7 @@
             });
         })();
     </script>
-    <script src="{{ asset('js/layouts/layouts-topbar.js') }}?v=1.5"></script>
+    <script src="{{ asset('js/layouts/layouts-topbar.js') }}?v=1.6"></script>
     <style>
         #notification-list {
             max-height: 340px;
