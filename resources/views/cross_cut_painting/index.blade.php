@@ -497,8 +497,8 @@
                                                 'kashift_plating' => 'Kashift P',
                                                 'supervisor' => 'SPV Q',
                                                 'supervisor_plating' => 'SPV P',
-                                                'asst_manager' => 'Asst Mgr Q',
                                                 'asst_manager_plating' => 'Asst Mgr P',
+                                                'asst_manager' => 'Asst Mgr Q',
                                             ];
                                             $approvalKeys = array_keys($rolesToApprove);
 

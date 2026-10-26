@@ -500,6 +500,8 @@
                                                 'kashift_plating'      => ['field' => 'kashift_plating',      'label' => 'Kashift P'],
                                                 'supervisor'           => ['field' => 'supervisor_qc',         'label' => 'SPV Q'],
                                                 'supervisor_plating'   => ['field' => 'supervisor_plating',    'label' => 'SPV P'],
+                                                'asst_manager_plating' => ['field' => 'asst_manager_plating', 'label' => 'Asst Mgr P'],
+                                                'asst_manager'         => ['field' => 'asst_manager_qc',       'label' => 'Asst Mgr Q'],
                                             ];
                                             $approvalKeys = array_keys($approvalLevels);
                                         @endphp
