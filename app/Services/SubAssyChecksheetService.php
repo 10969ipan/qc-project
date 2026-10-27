@@ -120,25 +120,13 @@ class SubAssyChecksheetService extends BaseService
         $entryMethod = $filters['entry_method'] ?? null;
 
         if ($viewMode === 'verifikasi' || $entryMethod === 'verification' || $entryMethod === 'qr') {
-            $query->where(function ($q) {
-                $q->where(function ($sub) {
-                    $sub->whereNotNull('sub_assy_checksheets.qrcode')
-                        ->where('sub_assy_checksheets.qrcode', '!=', '');
-                })->orWhere(function ($sub) {
-                    $sub->whereNotNull('sub_assy_checksheets.unique_code_id')
-                        ->where('sub_assy_checksheets.unique_code_id', '!=', '');
-                });
-            });
+            $query->whereNotNull('sub_assy_checksheets.unique_code_id')
+                  ->where('sub_assy_checksheets.unique_code_id', '!=', '');
         } else {
             // Default: strict regular manual input entries only (excludes verification scan data)
-            $query->where(function ($q) {
-                $q->where(function ($sub) {
-                    $sub->whereNull('sub_assy_checksheets.qrcode')
-                        ->orWhere('sub_assy_checksheets.qrcode', '');
-                })->where(function ($sub) {
-                    $sub->whereNull('sub_assy_checksheets.unique_code_id')
-                        ->orWhere('sub_assy_checksheets.unique_code_id', '');
-                });
+            $query->where(function ($sub) {
+                $sub->whereNull('sub_assy_checksheets.unique_code_id')
+                    ->orWhere('sub_assy_checksheets.unique_code_id', '');
             });
         }
 

@@ -115,10 +115,14 @@ class SubAssyChecksheetController extends Controller
             'shift' => $request->shift,
             'line' => $request->line,
             'approval_method' => $request->approval_method,
+            'view_mode' => $request->get('view_mode'),
         ];
 
         // Default: hanya tampilkan data regular, kecuali mode verifikasi aktif
-        if ($request->get('view_mode') !== 'verifikasi') {
+        if ($request->get('view_mode') === 'verifikasi' || in_array($request->get('entry_method'), ['verification', 'qr'])) {
+            $filters['view_mode'] = 'verifikasi';
+            $filters['entry_method'] = 'verification';
+        } else {
             $filters['entry_method'] = 'regular';
         }
 
