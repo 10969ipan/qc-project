@@ -125,7 +125,7 @@ trait HasChecksheetApproval
                 // 2. Special case: Jakarta 'karu_qc' or 'supervisor' can approve 'kashift' level
                 // acting as 'Kepala Regu' for Sub Assy and In Process
                 if (strtolower(optional($user->plant)->code) === 'jakarta' && $type === 'kashift') {
-                    if ($user->role === 'karu_qc' || $user->role === 'supervisor') {
+                    if ($user->role === 'karu_qc') {
                         $isAllowed = true;
                     }
                 }
@@ -155,6 +155,12 @@ trait HasChecksheetApproval
 
             // Check if already approved
             if ($checksheet->$field && $checksheet->$field !== 'REJECTED') {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Checksheet sudah disetujui oleh {$map['label']}."
+                    ], 422);
+                }
                 return redirect()->back()->with('error', "Checksheet sudah disetujui oleh {$map['label']}.");
             }
 
