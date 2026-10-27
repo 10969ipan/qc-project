@@ -62,19 +62,6 @@
                                 </div>
                             @endif
 
-                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['analysis.monthly_ng', 'analysis.monthly_ng_in_process']))
-                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                                    data-target="#qcReportJKT">Report</a>
-                                <div id="qcReportJKT" class="collapse pl-2">
-                                    <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'jakarta']) }}">Sub
-                                        Assy
-                                        Anls</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'jakarta']) }}">Inprocess
-                                        Anls</a>
-                                </div>
-                            @endif
-
                             @if(in_array($userRole, ['admin', 'inspector', 'supervisor', 'kashift', 'karu_qc', 'asst_manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['incoming.parts.create', 'checksheet.sub_assy', 'in_process.create', 'first_piece_approval.create', 'cross_cut_painting.create', 'painting.create', 'sortir.create', 'checksheet.operator_compliance.index']))
                                 <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
                                     data-target="#qcCheckJKT">Checksheet</a>
@@ -122,22 +109,6 @@
                                         href="{{ route('admin.categories.index', ['plant' => 'karawang']) }}">Kategori</a>
                                     <a class="collapse-item"
                                         href="{{ route('admin.monthly-reports.index', ['plant' => 'karawang']) }}">Lap Bulanan</a>
-                                </div>
-                            @endif
-
-                            @if(in_array($userRole, ['admin', 'supervisor', 'kashift', 'karu_qc', 'asst_manager', 'manager']) || \App\Helpers\AppMenu::hasAnyRoutePermission(['analysis.monthly_ng', 'analysis.monthly_ng_in_process', 'analysis.monthly_ng_cross_cut']))
-                                <a class="collapse-item font-weight-bold py-1" href="#" data-toggle="collapse"
-                                    data-target="#qcReportKRW">Report</a>
-                                <div id="qcReportKRW" class="collapse pl-2">
-                                    <a class="collapse-item" href="{{ route('analysis.monthly_ng', ['plant' => 'karawang']) }}">Sub
-                                        Assy
-                                        Anls</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('analysis.monthly_ng_in_process', ['plant' => 'karawang']) }}">Inprocess
-                                        Anls</a>
-                                    <a class="collapse-item"
-                                        href="{{ route('analysis.monthly_ng_cross_cut', ['plant' => 'karawang']) }}">Cross Cut
-                                        Anls</a>
                                 </div>
                             @endif
 

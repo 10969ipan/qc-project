@@ -30,7 +30,6 @@ Route::middleware(['auth'])->group(function () {
 
     require __DIR__ . '/checksheets.php';
     require __DIR__ . '/management.php';
-    require __DIR__ . '/analysis.php';
     require __DIR__ . '/calibration.php';
     require __DIR__ . '/verification.php';
 

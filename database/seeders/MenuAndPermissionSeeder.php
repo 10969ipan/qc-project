@@ -43,14 +43,6 @@ class MenuAndPermissionSeeder extends Seeder
                                 ]
                             ],
                             [
-                                'name' => 'ANALYSIS',
-                                'order' => 2,
-                                'children' => [
-                                    ['name' => 'Sub Assy Anls', 'route' => 'analysis.monthly_ng', 'order' => 1],
-                                    ['name' => 'Inprocess Anls', 'route' => 'analysis.monthly_ng_in_process', 'order' => 2],
-                                ]
-                            ],
-                            [
                                 'name' => 'CHECKSHEET',
                                 'order' => 3,
                                 'children' => [
@@ -95,15 +87,6 @@ class MenuAndPermissionSeeder extends Seeder
                                 'children' => [
                                     ['name' => 'Data Item', 'route' => 'admin.items.index', 'order' => 1],
                                     ['name' => 'Kategori', 'route' => 'admin.categories.index', 'order' => 2],
-                                ]
-                            ],
-                            [
-                                'name' => 'ANALYSIS',
-                                'order' => 2,
-                                'children' => [
-                                    ['name' => 'Sub Assy Anls', 'route' => 'analysis.monthly_ng', 'order' => 1],
-                                    ['name' => 'Inprocess Anls', 'route' => 'analysis.monthly_ng_in_process', 'order' => 2],
-                                    ['name' => 'Cross Cut Anls', 'route' => 'analysis.monthly_ng_cross_cut', 'order' => 3],
                                 ]
                             ],
                             [
