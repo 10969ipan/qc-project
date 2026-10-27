@@ -105,30 +105,7 @@
         transform: scale(1.05);
     }
 </style>
-    @php
-        $plant = request('plant') ?? auth()->user()->plant_id;
-        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-        $plantCode = strtolower($plantCode ?: 'karawang');
-        
-        // Resolve menu IDs for permission checks (support for duplicate plant routes)
-        $menuIds = \App\Models\AppMenu::where('route', 'admin.checksheets.index')->pluck('id');
-        $canExport = true; $canEdit = true; $canDelete = true;
-        if ($menuIds->isNotEmpty()) {
-            $canExport = false; $canEdit = false; $canDelete = false;
-            foreach ($menuIds as $mId) {
-                if (auth()->user()->hasPermission($mId, 'export')) $canExport = true;
-                if (auth()->user()->hasPermission($mId, 'edit')) $canEdit = true;
-                if (auth()->user()->hasPermission($mId, 'delete')) $canDelete = true;
-            }
-        }
 
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('sub_assy', $plantCode, [
-            'no_dokumen' => 'QC-KRW-F-0205',
-            'tgl_terbit' => '01/01/2026',
-            'revisi' => '0',
-            'halaman' => '- / -'
-        ]);
-    @endphp
 
     <!-- Logo Tersembunyi untuk Ekspor PDF -->
     <img src="{{ asset('master item/ipp.jpg') }}" id="pdf-logo" style="display: none;" alt="Company Logo">
@@ -414,16 +391,7 @@
             <div class="table-responsive">
                 <table class="table table-hover" width="100%" cellspacing="0" id="checksheetTable">
                     <thead>
-                        @php
-                            $requestPlant = request('plant');
-                            $userPlantCode = optional(auth()->user()->plant)->code;
-                            if (!empty($requestPlant)) {
-                                $plant = \App\Models\Plant::where('code', $requestPlant)->orWhere('id', $requestPlant)->first();
-                                $plantContext = strtolower($plant?->code ?? $requestPlant);
-                            } else {
-                                $plantContext = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
-                            }
-                        @endphp
+
                         <tr class="text-center">
                             @if(auth()->user()->role === 'admin')
                                 <th rowspan="2" class="align-middle" style="width: 50px;">
@@ -532,7 +500,7 @@
                                 <td class="align-middle text-danger font-weight-bold">{{ $checksheet->total_ng }}</td>
 
                                 @php
-                                    $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects, true);
+                                    $defectsData = is_array($checksheet->defects) ? $checksheet->defects : json_decode($checksheet->defects ?? '[]', true);
                                     $pcsLines = [];
                                     $nameLines = [];
 
@@ -671,7 +639,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Kashift)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Kashift)" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'kashift', 'plant' => request('plant')]) }}" data-role-label="{{ $kashiftLabel }}">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'supervisor' && $canApproveSupervisor)
@@ -689,11 +657,11 @@
                                                         <input type="hidden" name="shift" value="{{ request('shift') }}">
                                                         <input type="hidden" name="approval_method" value="{{ request('approval_method') }}">
                                                         <button type="submit" class="btn btn-success btn-sm m-1" title="Approve (SPV)">
-                                                            <i class="fas fa-check"></i> Approve SPV
+                                                             <i class="fas fa-check"></i> Approve SPV
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (SPV)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (SPV)" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}" data-role-label="Supervisor">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'asst_manager' && $canApproveAsst)
@@ -715,7 +683,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Asst Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}asst_manager">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Asst Manager)" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'asst_manager', 'plant' => request('plant')]) }}" data-role-label="Asst Manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @elseif($user->role === 'manager' && $canApproveManager)
@@ -737,7 +705,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                <button type="button" class="btn btn-danger btn-sm m-1" title="Reject (Manager)" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}manager">
+                                                <button type="button" class="btn btn-danger btn-sm m-1 btn-open-reject" title="Reject (Manager)" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'manager', 'plant' => request('plant')]) }}" data-role-label="Manager">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             @endif
@@ -773,7 +741,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'kashift', 'plant' => request('plant')]) }}" data-role-label="{{ $kashiftLabel }}">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject {{ $kashiftLabel }}
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -799,7 +767,7 @@
                                                                 </button>
                                                             </form>
                                                         @endif
-                                                        <button type="button" class="dropdown-item text-danger font-weight-bold" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}supervisor">
+                                                        <button type="button" class="dropdown-item text-danger font-weight-bold btn-open-reject" data-route="{{ route('admin.checksheets.reject', ['id' => $checksheet->id, 'type' => 'supervisor', 'plant' => request('plant')]) }}" data-role-label="Supervisor">
                                                             <i class="fas fa-times-circle text-danger fa-fw mr-2"></i> Reject SPV
                                                         </button>
                                                         <div class="dropdown-divider"></div>
@@ -888,81 +856,50 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Modal Rejection untuk setiap checksheet dan tipe -->
-    @foreach($checksheets as $cs)
-        @foreach(['kashift', 'supervisor', 'asst_manager', 'manager'] as $rejectType)
-            @php
-                $user = auth()->user();
-                $isAdmin = $user->role === 'admin';
-                $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
-                $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
-                $canReject = false;
-                if ($rejectType == 'kashift' && (($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$cs->kashift_qc || $cs->kashift_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'supervisor' && (($user->role === 'supervisor' || $isAdmin) && (!$cs->supervisor_qc || $cs->supervisor_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'asst_manager' && (($user->role === 'asst_manager' || $isAdmin) && (!$cs->asst_manager_qc || $cs->asst_manager_qc === 'REJECTED'))) {
-                    $canReject = true;
-                } elseif ($rejectType == 'manager' && ((auth()->user()->role === 'manager' || $isAdmin) && (!$cs->manager_qc || $cs->manager_qc === 'REJECTED'))) {
-                    $canReject = true;
-                }
-            @endphp
-            @if($canReject)
-                <div class="modal fade" id="rejectModal{{ $cs->id }}{{ $rejectType }}" tabindex="-1" role="dialog"
-                    aria-labelledby="rejectModalLabel{{ $cs->id }}{{ $rejectType }}" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content border-0 shadow-lg">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title" id="rejectModalLabel{{ $cs->id }}{{ $rejectType }}">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
-                                </h5>
-                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <form
-                                action="{{ route('admin.checksheets.reject', ['id' => $cs->id, 'type' => $rejectType, 'plant' => request('plant')]) }}"
-                                method="POST">
-                                @csrf
-                                <div class="modal-body">
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-info-circle"></i> Anda akan menolak checksheet ini sebagai
-                                        <strong>{{ ($isJakarta && $rejectType === 'kashift') ? 'Kepala Regu (KR)' : ucfirst(str_replace('_', ' ', $rejectType)) }}</strong>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="rejection_remarks{{ $cs->id }}{{ $rejectType }}" class="font-weight-bold">
-                                            Alasan Rejection <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control @error('rejection_remarks') is-invalid @enderror"
-                                            id="rejection_remarks{{ $cs->id }}{{ $rejectType }}" name="rejection_remarks" rows="4"
-                                            placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
-                                            maxlength="500">{{ old('rejection_remarks') }}</textarea>
-                                        <small class="form-text text-muted">
-                                            <span id="charCount{{ $cs->id }}{{ $rejectType }}">0</span>/500 karakter
-                                        </small>
-                                        @error('rejection_remarks')
-                                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                        <i class="fas fa-times"></i> Batal
-                                    </button>
-                                    <button type="submit" class="btn btn-danger btn-confirm-reject">
-                                        <i class="fas fa-ban"></i> Tolak Checksheet
-                                    </button>
-                                </div>
-                            </form>
+    </div>    <!-- Single Reusable Rejection Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-danger text-white py-3 px-4">
+                    <h5 class="modal-title font-weight-bold" id="rejectModalLabel" style="font-size: 0.95rem;">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Konfirmasi Rejection
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="rejectForm" method="POST" action="">
+                    @csrf
+                    <div id="modal-errors" class="mx-3 mt-3" style="display: none;"></div>
+                    <div class="modal-body p-4" style="background-color: #f8fafc;">
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-info-circle mr-1"></i> Anda akan menolak checksheet ini sebagai <strong id="rejectRoleLabel">-</strong>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="reject_remarks" class="small font-weight-bold text-gray-700">
+                                Alasan Rejection <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control form-control-sm border-0 shadow-sm"
+                                id="reject_remarks" name="rejection_remarks" rows="4"
+                                placeholder="Masukkan alasan rejection (minimal 10 karakter)" required minlength="10"
+                                maxlength="500"></textarea>
+                            <small class="form-text text-muted text-right">
+                                <span id="rejectCharCount">0</span>/500 karakter
+                            </small>
                         </div>
                     </div>
-                </div>
-            @endif
-        @endforeach
-    @endforeach
+                    <div class="modal-footer bg-white py-2 px-4" style="border-top: 1px solid #e2e8f0;">
+                        <button type="button" class="btn btn-light btn-sm border px-3" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-danger btn-sm px-3 shadow-sm btn-confirm-reject">
+                            <i class="fas fa-ban mr-1"></i> Tolak Checksheet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- Modal Traceability QR Code --}}
     <div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">

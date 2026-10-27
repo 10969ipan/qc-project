@@ -40,7 +40,10 @@ class SubAssyChecksheetService extends BaseService
     public function buildFilteredQuery(array $filters)
     {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = SubAssyChecksheet::with('item')->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = SubAssyChecksheet::with([
+            'item:id,name,part_number,customer,sap_code',
+            'user:id,name,initials'
+        ])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present (Global scope handles restrictions for non-exempt roles)
         if (isset($filters['plant'])) {

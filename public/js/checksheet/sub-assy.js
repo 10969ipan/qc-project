@@ -18,12 +18,32 @@ class SubAssyIndex {
     initCharacterCounter() {
         $(document).on(
             "input",
-            'textarea[name="rejection_remarks"]',
+            '#reject_remarks, textarea[name="rejection_remarks"]',
             function () {
-                const id = $(this).attr("id").replace("rejection_remarks", "");
-                $("#charCount" + id).text(this.value.length);
+                const id = $(this).attr("id") ? $(this).attr("id").replace("rejection_remarks", "") : "";
+                if (id) {
+                    $("#charCount" + id).text(this.value.length);
+                }
+                $("#rejectCharCount").text(this.value.length);
             },
         );
+
+        // Unified Rejection Modal trigger
+        $(document).on('click', '.btn-open-reject', function (e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const route = $btn.data('route') || $btn.attr('data-route');
+            const roleLabel = $btn.data('role-label') || $btn.attr('data-role-label') || 'Pimpinan';
+            const $modal = $('#rejectModal');
+            if ($modal.length) {
+                $('#rejectForm').attr('action', route);
+                $('#rejectRoleLabel').text(roleLabel);
+                $('#reject_remarks').val('');
+                $('#rejectCharCount').text('0');
+                $('#modal-errors, #reject-modal-errors').hide().empty();
+                $modal.modal('show');
+            }
+        });
     }
 
     initLiveSearch() {

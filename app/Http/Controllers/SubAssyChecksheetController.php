@@ -127,13 +127,14 @@ class SubAssyChecksheetController extends Controller
         // Data for filters (Cached per plant to avoid 4x subquery scans over 44,000+ rows on every page load)
         $plantId = \App\Models\Plant::resolveId($filters['plant']);
         
-        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v4_{$plantId}", 43200, function () use ($plantId) {
-            return Item::whereExists(function ($sub) use ($plantId) {
-                $sub->select(\DB::raw(1))
-                    ->from('sub_assy_checksheets')
-                    ->whereColumn('sub_assy_checksheets.item_id', 'items.id')
-                    ->when($plantId, fn($q) => $q->where('sub_assy_checksheets.plant_id', $plantId));
-            })->orderBy('name')->get();
+        $items = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_items_v5_{$plantId}", 43200, function () use ($plantId) {
+            return Item::select('id', 'name', 'part_number', 'customer')
+                ->whereExists(function ($sub) use ($plantId) {
+                    $sub->select(\DB::raw(1))
+                        ->from('sub_assy_checksheets')
+                        ->whereColumn('sub_assy_checksheets.item_id', 'items.id')
+                        ->when($plantId, fn($q) => $q->where('sub_assy_checksheets.plant_id', $plantId));
+                })->orderBy('name')->get();
         });
 
         $customers = \Illuminate\Support\Facades\Cache::remember("sub_assy_filter_cust_v3_{$plantId}", 43200, function () use ($items) {
@@ -162,7 +163,33 @@ class SubAssyChecksheetController extends Controller
                 ->values();
         });
 
-        return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials', 'lines'));
+        // Resolve plant context and codes
+        $userPlantCode = optional(auth()->user()->plant)->code;
+        if (!empty($filters['plant'])) {
+            $plantModel = \App\Models\Plant::where('code', $filters['plant'])->orWhere('id', $filters['plant'])->first();
+            $plantCode = strtolower($plantModel?->code ?? $filters['plant']);
+            $plantContext = $plantCode;
+        } else {
+            $plantCode = strtolower(!empty($userPlantCode) ? $userPlantCode : 'karawang');
+            $plantContext = $plantCode;
+        }
+
+        // Precompute permissions to eliminate Blade-level queries and loops
+        $canExport = \App\Helpers\AppMenu::checkPermission('admin.checksheets.index', 'export');
+        $canEdit = \App\Helpers\AppMenu::checkPermission('admin.checksheets.index', 'edit');
+        $canDelete = \App\Helpers\AppMenu::checkPermission('admin.checksheets.index', 'delete');
+
+        // Cache document header to avoid queries in Blade
+        $docHeader = \Illuminate\Support\Facades\Cache::remember("sub_assy_doc_header_{$plantCode}", 86400, function () use ($plantCode) {
+            return \App\Models\GeneralSetting::getDocHeader('sub_assy', $plantCode, [
+                'no_dokumen' => 'QC-KRW-F-0205',
+                'tgl_terbit' => '01/01/2026',
+                'revisi' => '0',
+                'halaman' => '- / -'
+            ]);
+        });
+
+        return view('sub_assy.index', compact('checksheets', 'items', 'customers', 'initials', 'lines', 'canExport', 'canEdit', 'canDelete', 'plantCode', 'plantContext', 'docHeader'));
     }
 
     // Tampilkan form (diupdate untuk mengirim data items)
