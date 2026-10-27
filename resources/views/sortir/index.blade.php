@@ -466,10 +466,9 @@
                                             $user = auth()->user();
                                             $isAdmin = $user->role === 'admin';
                                             $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                                            $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                             $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
-                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isSpvJakarta || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
+                                            $canApproveKashift = ($user->role === 'kashift' || $isAdmin || $isKaruJakarta) && (!$checksheet->kashift_qc || $checksheet->kashift_qc === 'REJECTED');
                                             $canApproveSupervisor = ($user->role === 'supervisor' || $isAdmin) && (!$checksheet->supervisor_qc || $checksheet->supervisor_qc === 'REJECTED') && ($checksheet->kashift_qc && $checksheet->kashift_qc !== 'REJECTED');
 
                                             $plantContext = strtolower(request('plant') ?? optional($user->plant)->code ?? 'karawang');
@@ -487,7 +486,7 @@
 
                                         {{-- Non-Admin Roles: Show Inline Approve/Reject Button for User's Own Role --}}
                                         @if(!$isAdmin)
-                                            @if(($user->role === 'kashift' || $isSpvJakarta || $isKaruJakarta) && $canApproveKashift)
+                                            @if(($user->role === 'kashift' || $isKaruJakarta) && $canApproveKashift)
                                                 <form action="{{ route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'kashift'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
@@ -501,7 +500,7 @@
                                                 <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#rejectModal{{ $checksheet->id }}kashift" title="Reject ({{ $kashiftLabel }})">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
-                                            @elseif(($user->role === 'supervisor' && !$isJakarta) && $canApproveSupervisor)
+                                            @elseif($user->role === 'supervisor' && $canApproveSupervisor)
                                                 <form action="{{ route('sortir.approve', array_merge(['id' => $checksheet->id, 'type' => 'supervisor'], request()->all())) }}" method="POST" class="d-inline ajax-form">
                                                     @csrf
                                                     <input type="hidden" name="page" value="{{ request('page') }}">
@@ -545,11 +544,10 @@
                                     $isAdmin = auth()->user()->role === 'admin';
                                     $user = auth()->user();
                                     $isJakarta = strtolower(optional($user->plant)->code) === 'jakarta';
-                                    $isSpvJakarta = $user->role === 'supervisor' && $isJakarta;
                                     $isKaruJakarta = $user->role === 'karu_qc' && $isJakarta;
 
                                     $canReject = false;
-                                    if ($rejectType == 'kashift' && ($isAdmin || $user->role == 'kashift' || $isSpvJakarta || $isKaruJakarta))
+                                    if ($rejectType == 'kashift' && ($isAdmin || $user->role == 'kashift' || $isKaruJakarta))
                                         $canReject = true;
                                     elseif ($rejectType == 'supervisor' && ($isAdmin || auth()->user()->role == 'supervisor'))
                                         $canReject = true;
