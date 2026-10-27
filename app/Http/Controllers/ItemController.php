@@ -224,7 +224,11 @@ class ItemController extends Controller
             ]
         );
 
-        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers', 'measuringTools', 'changeHistories'));
+        $canInput = \App\Helpers\AppMenu::checkPermission('admin.items.index', 'input') || (auth()->check() && auth()->user()->role === 'admin');
+        $canEdit = \App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit') || (auth()->check() && auth()->user()->role === 'admin');
+        $canDelete = \App\Helpers\AppMenu::checkPermission('admin.items.index', 'delete') || (auth()->check() && auth()->user()->role === 'admin');
+
+        return view('items.index', compact('items', 'categories', 'plantCode', 'allPlants', 'allItemsList', 'customers', 'measuringTools', 'changeHistories', 'canInput', 'canEdit', 'canDelete'));
     }
 
 
@@ -255,13 +259,10 @@ class ItemController extends Controller
     // Menampilkan form edit item
     public function edit(Request $request, Item $item)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        if (!\App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit') && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
         }
-        // For admin to edit items from any plant
-        if (auth()->user()->role === 'admin') {
-            $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
-        }
+        $item = Item::withoutGlobalScope('plant')->findOrFail($item->id);
 
         // Filter categories by the item's plant (or user's plant if new/fallback)
         $plantId = $item->plant ?? auth()->user()->plant_id; // Using relationship for Item plant ID retrieval if possible, or assume explicit check needed
@@ -320,8 +321,8 @@ class ItemController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
-            abort(403, 'Unauthorized action. Managers can only perform approvals.');
+        if (!\App\Helpers\AppMenu::checkPermission('admin.items.index', 'delete') && auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
         }
         try {
             $item = Item::withoutGlobalScope('plant')->find($id);
@@ -505,7 +506,7 @@ class ItemController extends Controller
      */
     public function deletePdf(Request $request, $id, $index)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+        if (!\App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit') && auth()->user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
         }
         try {
@@ -526,7 +527,7 @@ class ItemController extends Controller
      */
     public function deleteSimilarPdf(Request $request, $id)
     {
-        if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
+        if (!\App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit') && auth()->user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Unauthorized action.'], 403);
         }
         try {

@@ -174,9 +174,6 @@ class PlatingChecksheetService extends BaseService
                 'checksheet_id' => $checksheet->id
             ]);
 
-            if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding($checksheet, 'Plating');
-            }
 
             return [
                 'checksheet' => $checksheet,

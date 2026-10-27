@@ -61,9 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (notif.type === 'master_item_rejected') {
                 iconClass = 'bg-danger';
                 icon = 'fas fa-times-circle';
-            } else if (notif.type === 'ng_finding') {
-                iconClass = 'bg-danger';
-                icon = 'fas fa-exclamation-triangle';
             } else if (notif.type === 'approval') {
                 iconClass = 'bg-success';
                 icon = 'fas fa-check-double';

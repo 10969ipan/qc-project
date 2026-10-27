@@ -88,6 +88,10 @@
             'revisi' => '-',
             'halaman' => '- / -'
         ]);
+        $canInput = $canInput ?? (\App\Helpers\AppMenu::checkPermission('admin.items.index', 'input') || (auth()->check() && auth()->user()->role === 'admin'));
+        $canEdit = $canEdit ?? (\App\Helpers\AppMenu::checkPermission('admin.items.index', 'edit') || (auth()->check() && auth()->user()->role === 'admin'));
+        $canDelete = $canDelete ?? (\App\Helpers\AppMenu::checkPermission('admin.items.index', 'delete') || (auth()->check() && auth()->user()->role === 'admin'));
+        $hasAction = $canEdit || $canDelete || (auth()->check() && auth()->user()->role === 'admin');
     @endphp
 
     <div class="card shadow mb-4">
@@ -298,7 +302,7 @@
                         </button>
                     @endif
 
-                    @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
+                    @if($canInput)
                         <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center"
                             style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalTambahItem">
                             <i class="fas fa-plus fa-sm mr-1"></i> Tambah Item
@@ -338,7 +342,7 @@
                             <th rowspan="2" class="align-middle text-primary"><i class="fas fa-stopwatch mr-1"></i> SCT (Plating)</th>
                             <th rowspan="2" class="align-middle">Kode SAP</th>
                             <th colspan="2" class="align-middle bg-light">Approval Status</th>
-                            @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
+                            @if($hasAction)
                                 <th rowspan="2" class="align-middle no-export">Action</th>
                             @endif
                         </tr>
@@ -493,7 +497,7 @@
                                     @endif
                                 </td>
 
-                                @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
+                                @if($hasAction)
                                     <td class="no-export align-middle text-nowrap">
                                         @if(auth()->user()->role === 'admin')
                                             <button type="button" class="btn btn-secondary btn-sm btn-copy-row-defects"
@@ -503,30 +507,34 @@
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         @endif
-                                        <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
+                                        @if($canEdit)
+                                            <button type="button" class="btn btn-warning btn-sm btn-edit-item" data-id="{{ $item->id }}">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        @endif
                                         @if(auth()->user()->role === 'admin')
                                             <button type="button" class="btn btn-info btn-sm btn-log-item" data-id="{{ $item->id }}">
                                                 <i class="fas fa-history"></i> Log
                                             </button>
                                         @endif
-                                        <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
-                                            class="d-inline delete-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input type="hidden" name="page" value="{{ request('page', 1) }}">
-                                            <input type="hidden" name="search" value="{{ request('search') }}">
-                                            <input type="hidden" name="name" value="{{ request('name') }}">
-                                            <input type="hidden" name="category" value="{{ request('category') }}">
-                                            <input type="hidden" name="customer" value="{{ request('customer') }}">
-                                            <input type="hidden" name="part_number" value="{{ request('part_number') }}">
-                                            <input type="hidden" name="sap_code" value="{{ request('sap_code') }}">
-                                            <input type="hidden" name="plant" value="{{ request('plant') }}">
-                                            <button type="button" class="btn btn-danger btn-sm delete-btn">
-                                                <i class="fas fa-trash"></i> Hapus
-                                            </button>
-                                        </form>
+                                        @if($canDelete)
+                                            <form action="{{ route('admin.items.destroy', $item->id) }}" method="POST"
+                                                class="d-inline delete-form">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="page" value="{{ request('page', 1) }}">
+                                                <input type="hidden" name="search" value="{{ request('search') }}">
+                                                <input type="hidden" name="name" value="{{ request('name') }}">
+                                                <input type="hidden" name="category" value="{{ request('category') }}">
+                                                <input type="hidden" name="customer" value="{{ request('customer') }}">
+                                                <input type="hidden" name="part_number" value="{{ request('part_number') }}">
+                                                <input type="hidden" name="sap_code" value="{{ request('sap_code') }}">
+                                                <input type="hidden" name="plant" value="{{ request('plant') }}">
+                                                <button type="button" class="btn btn-danger btn-sm delete-btn">
+                                                    <i class="fas fa-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 @endif
                             </tr>
@@ -545,7 +553,7 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
-                                @if(!in_array(auth()->user()->role, ['manager', 'asst_manager', 'inspector']))
+                                @if($hasAction)
                                     <td>&nbsp;</td>
                                 @endif
                             </tr>

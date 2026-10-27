@@ -750,10 +750,6 @@ class InProcessChecksheetService extends BaseService
                 'plant_id' => $checksheet->plant_id
             ]);
 
-            // Notifications
-            if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding($checksheet, 'In Process');
-            }
 
             // Try to send to Google Sheets
             $googleSheetsSuccess = false;

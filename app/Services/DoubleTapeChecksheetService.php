@@ -186,9 +186,6 @@ class DoubleTapeChecksheetService extends BaseService
                 'checksheet_id' => $checksheet->id
             ]);
 
-            if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding($checksheet, 'Double Tape');
-            }
 
             $this->clearFilterCache($checksheet->plant_id);
 

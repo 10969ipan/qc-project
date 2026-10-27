@@ -682,13 +682,6 @@ class FirstPieceApprovalService extends BaseService
                 "plant_id" => $checksheet->plant_id,
             ]);
 
-            // Notifications
-            if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding(
-                    $checksheet,
-                    "First Piece Approval",
-                );
-            }
 
             return [
                 "checksheet" => $checksheet,

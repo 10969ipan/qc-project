@@ -224,10 +224,6 @@ class SubAssyChecksheetService extends BaseService
             \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_init_{$checksheet->plant_id}");
             \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_lines_{$checksheet->plant_id}");
 
-            // Notifications
-            if ($checksheet->total_ng > 0) {
-                $this->notificationService->notifyNGFinding($checksheet, 'Sub Assy');
-            }
 
             // Try to send to Google Sheets
             $googleSheetsSuccess = false;
