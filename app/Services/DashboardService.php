@@ -40,6 +40,21 @@ class DashboardService extends BaseService
     }
 
     /**
+     * Ambil kolom tanda tangan verifikasi & validasi operasional yang AKTUAL sesuai halaman index checksheet masing-masing.
+     * Level Verifikasi: Kashift/Karu QC, Level Validasi: Supervisor QC.
+     */
+    private function getOperationalApprovalColumns(string $modelClass, array $tableCols): array
+    {
+        $cols = match ($modelClass) {
+            CrossCutChecksheet::class,
+            CrossCutPaintingChecksheet::class => ['karu_qc', 'supervisor_qc'],
+            default => ['kashift_qc', 'supervisor_qc'],
+        };
+
+        return array_values(array_intersect($cols, $tableCols));
+    }
+
+    /**
      * Get lightweight live data for TV real-time polling.
      * Only returns production monitoring data (station cards) — no heavy stats.
      */
@@ -273,9 +288,7 @@ class DashboardService extends BaseService
         foreach ($models as [$modelClass, $category, $sourceTypeFilter]) {
             $table = (new $modelClass)->getTable();
             $tableCols = $this->getTableColumns($table);
-
-            $potentialColumns = ['kashift_qc', 'karu_qc', 'supervisor_qc'];
-            $sigCols = array_values(array_intersect($potentialColumns, $tableCols));
+            $sigCols = $this->getOperationalApprovalColumns($modelClass, $tableCols);
             if (empty($sigCols)) continue;
 
             $dateColumn = 'date';
@@ -476,16 +489,9 @@ class DashboardService extends BaseService
     private function processModelStats(string $modelClass, array &$stats, ?string $plantId = null, bool $dailyOnly = false, $month = null, $year = null, ?string $sourceType = null): void
     {
         $table = (new $modelClass)->getTable();
-        
-        // Define possible signature columns based on user request
-        $potentialColumns = ['kashift_qc', 'karu_qc', 'supervisor_qc'];
-        $columns = [];
-        foreach ($potentialColumns as $col) {
-            if ($this->hasColumnCached($table, $col)) {
-                $columns[] = $col;
-            }
-        }
-        
+        $tableCols = $this->getTableColumns($table);
+
+        $columns = $this->getOperationalApprovalColumns($modelClass, $tableCols);
         if (empty($columns)) return;
 
         // Default column names are 'date' or 'check_date' depending on model implementation
