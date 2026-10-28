@@ -307,6 +307,8 @@ class FirstPieceApprovalController extends Controller
             ->orderBy('order')
             ->get();
 
+        $fpaCategories = \App\Models\GeneralSetting::getFpaCategories();
+
         if (request()->ajax()) {
             return view('first_piece_approval.partials.edit_form', [
                 'checksheet' => $checksheet,
