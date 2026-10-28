@@ -18,6 +18,7 @@ class Plant extends Model
 
     protected static array $resolvedIds = [];
     protected static array $resolvedNames = [];
+    protected static array $resolvedCodes = [];
 
     /**
      * Resolve a plant identifier to a UUID.
@@ -80,6 +81,39 @@ class Plant extends Model
             ->first();
             
         return self::$resolvedNames[$key] = ($plant ? $plant->name : (is_string($identifier) ? $identifier : null));
+    }
+
+    /**
+     * Resolve a plant identifier to a code (lowercase).
+     * 
+     * @param mixed $identifier
+     * @return string|null
+     */
+    public static function resolveCode($identifier)
+    {
+        if (empty($identifier)) {
+            return null;
+        }
+
+        if ($identifier instanceof self) {
+            return strtolower($identifier->code);
+        }
+
+        $key = strtolower(trim((string) $identifier));
+        if (isset(self::$resolvedCodes[$key])) {
+            return self::$resolvedCodes[$key];
+        }
+
+        if (is_string($identifier) && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $identifier)) {
+            $code = self::where('id', $identifier)->value('code');
+            return self::$resolvedCodes[$key] = ($code ? strtolower($code) : null);
+        }
+
+        $code = self::where('code', 'like', $identifier)
+            ->orWhere('name', 'like', $identifier)
+            ->value('code');
+
+        return self::$resolvedCodes[$key] = strtolower($code ?: (string)$identifier);
     }
 
     protected $casts = [

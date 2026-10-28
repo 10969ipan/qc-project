@@ -456,10 +456,11 @@
                                         </div>
                                         <div>
                                             @php
-                                                $currentPlantName = Auth::user()->plant->name ?? 'Total';
+                                                $targetPlantCode = request('plant') ? \App\Models\Plant::resolveCode(request('plant')) : (Auth::user()->plant->code ?? 'combined');
+                                                $currentPlantName = request('plant') ? \App\Models\Plant::resolveName(request('plant')) : (Auth::user()->plant->name ?? 'Total');
                                             @endphp
                                             <h6 class="modern-card-title">{{ strtoupper($currentPlantName) }} APPROVAL - {{ strtoupper($months[$selectedMonth]) }} {{ $selectedYear }}</h6>
-                                            <div class="small text-muted">Statistik {{ $currentPlantName }}</div>
+                                            <div class="text-xs font-weight-bold text-slate-400 mt-1">Status Verifikasi & Validasi</div>
                                         </div>
                                     </div>
                                 </div>
@@ -479,7 +480,7 @@
                                             style="width: 32px; height: 32px; font-size: 0.85rem;">
                                             <i class="fas fa-chart-line"></i>
                                         </div>
-                                        <h6 class="modern-card-title">{{ strtoupper(Auth::user()->plant->code ?? 'COMBINED') }} -
+                                        <h6 class="modern-card-title">{{ strtoupper($targetPlantCode ?? 'COMBINED') }} -
                                             DAILY APPROVAL</h6>
                                     </div>
                                 </div>
@@ -534,7 +535,7 @@
                 $dashboardStats = [
                     'isDualView'         => (bool)($isDualView ?? false),
                     'currentPlant'       => strtolower($currentPlant ?? ''),
-                    'plantName'          => Auth::user()->plant?->name ?? 'Combined',
+                    'plantName'          => request('plant') ? \App\Models\Plant::resolveName(request('plant')) : (Auth::user()->plant?->name ?? 'Combined'),
                     'statsJakarta'       => $statsJakarta ?? null,
                     'statsKarawang'      => $statsKarawang ?? null,
                     'combinedStats'      => $combinedStats ?? null,

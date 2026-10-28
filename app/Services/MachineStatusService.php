@@ -12,11 +12,10 @@ class MachineStatusService extends BaseService
     public function updateStatus(array $data): MachineStatus
     {
         // Use plant from request data if provided, otherwise use auth user's plant
-        $plantId = isset($data['plant'])
-            ? $this->resolvePlantId($data['plant'])
-            : auth()->user()->plant_id;
+        $plantIdentifier = !empty($data['plant']) ? $data['plant'] : auth()->user()->plant_id;
+        $plantId = $this->resolvePlantId($plantIdentifier);
 
-        return MachineStatus::updateOrCreate(
+        $machineStatus = MachineStatus::withoutGlobalScope('plant')->updateOrCreate(
             [
                 'plant_id' => $plantId,
                 'type' => $data['type'],
@@ -25,8 +24,13 @@ class MachineStatusService extends BaseService
             [
                 'status' => $data['status'],
                 'description' => $data['description'] ?? null,
-                'created_by' => auth()->user()->name
+                'created_by' => auth()->user()?->name ?? 'System'
             ]
         );
+
+        // Langsung bersihkan cache monitoring dashboard agar perubahan status langsung tampil real-time
+        DashboardService::clearDashboardCache();
+
+        return $machineStatus;
     }
 }

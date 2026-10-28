@@ -742,6 +742,7 @@ class InProcessChecksheetService extends BaseService
 
             // Clear filter cache for initials & machine so new operators show up
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_init_{$checksheet->plant_id}");
+            \App\Services\DashboardService::clearDashboardCache();
             \Illuminate\Support\Facades\Cache::forget("in_proc_filter_mach_{$checksheet->plant_id}");
 
             Log::info('Checksheet In Process berhasil dibuat', [
@@ -884,6 +885,8 @@ class InProcessChecksheetService extends BaseService
             );
 
             DB::commit();
+
+            \App\Services\DashboardService::clearDashboardCache();
 
             Log::info('Checksheet In Process berhasil diperbarui', [
                 'user_id' => auth()->id(),

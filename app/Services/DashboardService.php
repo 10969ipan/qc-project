@@ -117,21 +117,21 @@ class DashboardService extends BaseService
         $authRole = auth()->user()->role;
         $plantId = auth()->user()->plant_id;
         $plantReq = request('plant');
-        $plantCode = $plantReq ?: ($plantId ? Plant::where('id', $plantId)->value('code') : 'karawang');
-        $plantCode = strtolower($plantCode ?: 'karawang');
+        $plantCode = Plant::resolveCode($plantReq ?: $plantId) ?: 'karawang';
 
         $dualViewRoles = ['admin', 'manager', 'asst_manager', 'manager_qc', 'asst_manager_qc'];
         $isDualView = in_array($authRole, $dualViewRoles);
 
         $cacheKey = $isDualView 
             ? "dashboard_stats_dual_{$plantCode}_{$year}_{$month}"
-            : "dashboard_stats_single_{$authRole}_{$plantId}_{$year}_{$month}";
+            : "dashboard_stats_single_{$authRole}_{$plantCode}_{$year}_{$month}";
 
         self::trackDashboardCacheKey($cacheKey);
         // 1. Ringkasan Statistik Approval (Ter-cache 1 jam)
         $cachedStats = Cache::remember($cacheKey, now()->addHours(1), function () use ($authRole, $month, $year, $dashboardLayout, $plantCode, $isDualView) {
+            $allStats = $this->calculateAllApprovalStatsConsolidated($month, $year, $plantCode, $authRole);
+
             if ($isDualView) {
-                $allStats = $this->calculateAllApprovalStatsConsolidated($month, $year, $plantCode, $authRole);
                 $combinedStats      = $allStats['combinedStats'];
                 $dailyCombinedStats = $allStats['dailyCombinedStats'];
                 $statsJakarta       = $allStats['statsJakarta'];
@@ -141,14 +141,24 @@ class DashboardService extends BaseService
                 $dailyStatsSubAssy  = $allStats['dailyStatsSubAssy'];
                 $dailyStatsInProcess= $allStats['dailyStatsInProcess'];
             } else {
-                $combinedStats      = $this->calculateApprovalStats('all', false, null, $month, $year);
-                $dailyCombinedStats = $this->calculateApprovalStats('all', true);
+                // Di Single View, tampilkan data yang spesifik untuk plant user/filter tersebut
+                // Aturan: Jakarta hanya mencakup sub_assy, in_process, dan painting (sudah diisolasi di calculateAllApprovalStatsConsolidated)
+                if ($plantCode === 'jakarta') {
+                    $combinedStats      = $allStats['statsJakarta'];
+                    $dailyCombinedStats = $allStats['dailyStatsJakarta'];
+                } elseif ($plantCode === 'karawang') {
+                    $combinedStats      = $allStats['statsKarawang'];
+                    $dailyCombinedStats = $allStats['dailyStatsKarawang'];
+                } else {
+                    $combinedStats      = $allStats['combinedStats'];
+                    $dailyCombinedStats = $allStats['dailyCombinedStats'];
+                }
                 $statsJakarta       = null;
                 $statsKarawang      = null;
                 $dailyStatsJakarta  = null;
                 $dailyStatsKarawang = null;
-                $dailyStatsSubAssy  = $this->calculateApprovalStats(null, true, 'sub_assy');
-                $dailyStatsInProcess= $this->calculateApprovalStats(null, true, 'in_process');
+                $dailyStatsSubAssy  = $allStats['dailyStatsSubAssy'];
+                $dailyStatsInProcess= $allStats['dailyStatsInProcess'];
             }
 
             $activeReport = MonthlyReport::where('is_active', true)->first();
@@ -168,10 +178,11 @@ class DashboardService extends BaseService
         if (!$targetPlantForMonitoring || $targetPlantForMonitoring == 'total' || $targetPlantForMonitoring == \App\Models\Plant::resolveId('total')) {
             $targetPlantForMonitoring = 'karawang';
         }
+        $resolvedMonitoringPlantId = $this->resolvePlantId($targetPlantForMonitoring);
 
         $monitoringKey = $isDualView
             ? "dashboard_monitoring_dual_{$targetPlantForMonitoring}"
-            : "dashboard_monitoring_single_{$plantId}_{$targetPlantForMonitoring}";
+            : "dashboard_monitoring_single_{$resolvedMonitoringPlantId}_{$targetPlantForMonitoring}";
 
         self::trackDashboardCacheKey($monitoringKey);
         $monitoringData = Cache::remember($monitoringKey, now()->addMinutes(10), function () use ($isDualView, $targetPlantForMonitoring) {
@@ -183,7 +194,7 @@ class DashboardService extends BaseService
                 $productionKarawang = $this->getProductionMonitoring('karawang');
             }
 
-            $productionMonitoring = $this->getProductionMonitoring();
+            $productionMonitoring = $this->getProductionMonitoring($targetPlantForMonitoring);
             $activeMonitoringOther = $this->getOtherProductionMonitoring($targetPlantForMonitoring);
 
             return array_merge(
@@ -834,9 +845,9 @@ class DashboardService extends BaseService
         $query = MachineStatus::withoutGlobalScope('plant')
             ->whereIn('status', ['maintenance', 'stopped', 'trouble', 'standby']);
 
-        if ($shiftStartTime) {
-            $query->where('updated_at', '>=', $shiftStartTime);
-        }
+        // Pertahankan status manual aktif dalam 24 jam terakhir agar status (trouble, maintenance, dll)
+        // tidak hilang otomatis saat pergantian shift, sampai direset ke normal atau ada checksheet baru
+        $query->where('updated_at', '>=', now()->subHours(24));
 
         if ($plantId) {
             $query->where('plant_id', $plantId);

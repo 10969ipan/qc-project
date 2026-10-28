@@ -213,6 +213,7 @@ class SubAssyChecksheetService extends BaseService
 
             // Clear filter cache for this plant so dropdowns refresh immediately
             \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_init_{$checksheet->plant_id}");
+            \App\Services\DashboardService::clearDashboardCache();
             \Illuminate\Support\Facades\Cache::forget("sub_assy_filter_lines_{$checksheet->plant_id}");
 
 
@@ -342,6 +343,7 @@ class SubAssyChecksheetService extends BaseService
             DB::commit();
 
             $this->clearFilterCache($checksheet->plant_id);
+            \App\Services\DashboardService::clearDashboardCache();
 
             Log::info('Checksheet Sub Assy berhasil diperbarui', [
                 'user_id' => auth()->id(),

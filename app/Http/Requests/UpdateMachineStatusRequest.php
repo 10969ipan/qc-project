@@ -14,6 +14,7 @@ class UpdateMachineStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'plant' => 'nullable|string',
             'type' => 'required|in:line,machine',
             'number' => 'required|integer',
             'status' => 'required|in:normal,maintenance,stopped,trouble',
