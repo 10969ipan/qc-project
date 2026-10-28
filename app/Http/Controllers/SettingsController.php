@@ -46,9 +46,9 @@ class SettingsController extends Controller
         // Fetch general settings - use resilient query in case migration hasn't been run
         $query = \App\Models\GeneralSetting::query();
         if (\Illuminate\Support\Facades\Schema::hasColumn('general_settings', 'category')) {
-            $query->where('category', 'security')->orWhereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools']);
+            $query->where('category', 'security')->orWhereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools', 'master_item_spv_approvers']);
         } else {
-            $query->whereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools']);
+            $query->whereIn('key', ['daily_approval_gate_enabled', 'fpa_categories', 'measuring_tools', 'master_item_spv_approvers']);
         }
         $generalSettings = $query->get()->keyBy('key');
 
@@ -560,6 +560,15 @@ class SettingsController extends Controller
                     $lines = preg_split('/\r\n|\r|\n|,/', $value);
                     $cleanLines = array_values(array_unique(array_filter(array_map('strtoupper', array_map('trim', $lines)))));
                     $value = implode("\n", $cleanLines);
+                }
+
+                if ($key === 'master_item_spv_approvers') {
+                    if (is_array($value)) {
+                        $value = json_encode(array_values(array_unique(array_map('intval', array_filter($value, 'is_numeric')))));
+                    } elseif (is_string($value)) {
+                        $parts = preg_split('/[,\r\n\s]+/', trim($value));
+                        $value = json_encode(array_values(array_unique(array_map('intval', array_filter($parts, 'is_numeric')))));
+                    }
                 }
 
                 $updated = GeneralSetting::where('key', $key)->update(['value' => $value]);

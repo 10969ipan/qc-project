@@ -1,13 +1,9 @@
 {{-- Modal Notifikasi Pending Approval Master Item Saat Baru Login --}}
 @php
-    $currentUserRole = auth()->user()->role ?? '';
-    $isLeadershipRole = in_array($currentUserRole, [
-        'supervisor', 'supervisor_qc',
-        'asst_manager', 'asst_manager_qc'
-    ]);
+    $canSeePendingModal = auth()->check() && auth()->user()->canApproveMasterItem();
 @endphp
 
-@if($isLeadershipRole)
+@if($canSeePendingModal)
 <div class="modal fade" id="modalPendingApprovalLogin" tabindex="-1" role="dialog" aria-labelledby="modalPendingApprovalLoginTitle" aria-hidden="true" data-backdrop="static" data-auto-show="{{ session('show_pending_items_modal') ? '1' : '0' }}">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content shadow-lg border-0" style="border-radius: 12px; overflow: hidden;">

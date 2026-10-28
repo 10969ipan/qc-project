@@ -83,11 +83,7 @@ class AuthController extends Controller
             // Set flag agar modal pending item muncul saat baru login untuk level SPV QC & Asst Mgr QC (khusus jika ada item pending di plant user)
             $user = Auth::user();
             $role = $user->role ?? '';
-            $approverRoles = [
-                'supervisor', 'supervisor_qc',
-                'asst_manager', 'asst_manager_qc'
-            ];
-            if (in_array($role, $approverRoles)) {
+            if ($user && $user->canApproveMasterItem()) {
                 $pendingQuery = \App\Models\Item::withoutGlobalScope('plant')->where('approval_status', 'pending');
                 $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
                 $isCrossPlantApprover = in_array($role, ['asst_manager', 'asst_manager_qc']);

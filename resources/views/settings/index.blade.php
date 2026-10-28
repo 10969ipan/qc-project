@@ -116,6 +116,60 @@
                                     <textarea id="fpaCategoriesInput" class="form-control mt-2" rows="6" style="font-size: 0.85rem; background: #fff;" placeholder="awal produksi&#10;operator istirahat&#10;...">{!! e($categoriesText) !!}</textarea>
                                 </div>
 
+                                <div class="premium-setting-item p-3 rounded-xl mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-user-check mr-2 text-primary"></i>Supervisor PIC Approval Master Item</h6>
+                                            <small class="text-muted">Tentukan Supervisor (SPV) spesifik yang berwenang menyetujui Master Data Item. SPV yang tidak dicentang tidak akan menerima notifikasi atau pop-up saat baru login.</small>
+                                        </div>
+                                    </div>
+
+                                    @php
+                                        $selectedSpvIds = \App\Models\GeneralSetting::getItemApproverSpvIds();
+                                        $spvUsers = $users->filter(function($u) {
+                                            return in_array($u->role, ['supervisor', 'supervisor_qc']) && $u->is_active;
+                                        })->sortBy(function($u) {
+                                            $plantOrder = (strtolower($u->plant->code ?? '') === 'jakarta') ? 1 : 2;
+                                            return $plantOrder . '_' . $u->name;
+                                        });
+                                    @endphp
+
+                                    <div class="row mt-2">
+                                        @forelse($spvUsers as $spvUser)
+                                            @php
+                                                $plantName = $spvUser->plant ? $spvUser->plant->name : 'Semua Plant';
+                                                $isChecked = in_array((int)$spvUser->id, $selectedSpvIds, true);
+                                            @endphp
+                                            <div class="col-md-6 mb-2">
+                                                <div class="spv-approver-box d-flex align-items-center justify-content-between px-3 py-2 bg-white border rounded mb-0 w-100" 
+                                                     style="border-color: #cbd5e1 !important; transition: all 0.15s ease;">
+                                                    <div class="d-flex align-items-center pr-2" style="min-width: 0;">
+                                                        <label class="small font-weight-bold text-dark mb-0 cursor-pointer text-truncate" for="spvAppr_{{ $spvUser->id }}" style="cursor: pointer;">
+                                                            {{ $spvUser->name }}
+                                                        </label>
+                                                        <span class="badge badge-light border text-muted px-2 py-0.5 ml-2" style="font-size: 0.7rem;">{{ $plantName }}</span>
+                                                    </div>
+                                                    <div class="custom-control custom-switch custom-switch-success custom-switch-md">
+                                                        <input type="checkbox" class="custom-control-input spv-approver-cb" 
+                                                               id="spvAppr_{{ $spvUser->id }}" 
+                                                               value="{{ $spvUser->id }}"
+                                                               {{ $isChecked ? 'checked' : '' }}>
+                                                        <label class="custom-control-label cursor-pointer" for="spvAppr_{{ $spvUser->id }}" style="cursor: pointer;"></label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="col-12">
+                                                <span class="text-muted small font-italic">Tidak ada user dengan role Supervisor aktif.</span>
+                                            </div>
+                                        @endforelse
+                                    </div>
+
+                                    <small class="text-muted font-italic mt-1 d-block" style="font-size: 0.75rem;">
+                                        <i class="fas fa-info-circle mr-1"></i>Jika tidak ada yang diaktifkan sama sekali, sistem akan menerapkan aturan default (semua Supervisor berhak melakukan approval).
+                                    </small>
+                                </div>
+
                                 @php
                                     $toolsSetting = isset($generalSettings['measuring_tools']) ? $generalSettings['measuring_tools']->value : null;
                                     if ($toolsSetting !== null && $toolsSetting !== '') {
@@ -141,26 +195,25 @@
                                         $activePlants = $plants->filter(fn($p) => strtoupper($p->name) !== 'TOTAL');
                                     @endphp
 
-                                    <!-- Action Bar (Gaya Index Checksheet) -->
+                                    <!-- Action Bar (Gaya Index Checksheet In-Process) -->
                                     <div class="d-flex flex-wrap justify-content-between align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px;">
-                                        <ul class="nav nav-pills" id="pillsPlantMeasuringTools" role="tablist" style="gap: 6px;">
+                                        <ul class="nav nav-pills measuring-tools-pills" id="pillsPlantMeasuringTools" role="tablist" style="gap: 6px;">
                                             @foreach($activePlants as $index => $plant)
                                                 <li class="nav-item">
-                                                    <a class="nav-link rounded-pill py-1 px-3 small font-weight-bold {{ $index === 0 ? 'active' : '' }}" 
+                                                    <a class="nav-link rounded-pill {{ $index === 0 ? 'active' : '' }}" 
                                                        id="tab-mtool-{{ $plant->id }}" 
                                                        data-toggle="pill" 
                                                        href="#content-mtool-{{ $plant->id }}" 
-                                                       role="tab"
-                                                       style="font-size: 0.75rem;">
-                                                        Plant {{ $plant->name }}
-                                                        <span class="badge badge-light ml-1 text-dark">{{ count($measuringToolsByPlant[$plant->id] ?? []) }}</span>
+                                                       role="tab">
+                                                        <i class="fas fa-industry mr-1 fa-xs opacity-75"></i> Plant {{ $plant->name }}
+                                                        <span class="badge ml-1 count-badge">{{ count($measuringToolsByPlant[$plant->id] ?? []) }}</span>
                                                     </a>
                                                 </li>
                                             @endforeach
                                         </ul>
                                         <div>
-                                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalAddMeasuringTool" style="font-size: 0.72rem;">
-                                                <i class="fas fa-plus mr-1"></i> Tambah Alat Ukur
+                                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-sm font-weight-bold d-flex align-items-center" data-toggle="modal" data-target="#modalAddMeasuringTool" style="font-size: 0.72rem; height: 30px;">
+                                                <i class="fas fa-plus mr-1 fa-xs"></i> Tambah Alat Ukur
                                             </button>
                                         </div>
                                     </div>
@@ -168,58 +221,62 @@
                                     <div class="tab-content" id="pillsPlantMeasuringToolsContent">
                                         @foreach($activePlants as $index => $plant)
                                             <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="content-mtool-{{ $plant->id }}" role="tabpanel">
-                                                <div class="table-responsive rounded border" style="max-height: 420px; overflow: auto;">
-                                                    <table class="table table-hover table-sm mb-0 text-nowrap">
-                                                        <thead class="text-uppercase" style="position: sticky; top: 0; z-index: 10; background: #f8fafc; color: #475569; font-size: 0.62rem; letter-spacing: 0.5px;">
+                                                <div class="table-responsive measuring-tools-wrapper">
+                                                    <table class="table table-hover table-sm text-nowrap table-inprocess-tools mb-0" id="tableMeasuringTools_{{ $plant->id }}">
+                                                        <thead>
                                                             <tr>
-                                                                <th style="width: 45px; padding: 6px 8px;" class="text-center">#</th>
-                                                                <th style="padding: 6px 8px;">Nama Alat Ukur</th>
-                                                                <th style="padding: 6px 8px;">No. Seri (Serial Number)</th>
-                                                                <th style="padding: 6px 8px;" class="text-center">Kategori Input</th>
-                                                                <th style="width: 80px; padding: 6px 8px;" class="text-center">Status</th>
-                                                                <th style="width: 100px; padding: 6px 8px;" class="text-center">Aksi</th>
+                                                                <th style="width: 45px;" class="text-center">#</th>
+                                                                <th class="text-left" style="min-width: 180px;">Nama Alat Ukur</th>
+                                                                <th class="text-left" style="min-width: 170px;">No. Seri (Serial Number)</th>
+                                                                <th class="text-center" style="width: 160px;">Kategori Input</th>
+                                                                <th style="width: 85px;" class="text-center">Status</th>
+                                                                <th style="width: 95px;" class="text-center">Aksi</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody style="color: #334155; font-size: 0.68rem;">
+                                                        <tbody>
                                                             @forelse($measuringToolsByPlant[$plant->id] ?? [] as $toolIdx => $tool)
                                                                 <tr>
-                                                                    <td class="text-center align-middle font-weight-bold text-muted" style="padding: 4px 6px;">
+                                                                    <td class="text-center font-weight-bold text-muted">
                                                                         {{ $tool->order_no ?? ($toolIdx + 1) }}
                                                                     </td>
-                                                                    <td class="align-middle" style="padding: 4px 6px;">
+                                                                    <td class="text-left">
                                                                         <span class="font-weight-bold text-dark" style="font-size: 0.72rem;">{{ $tool->name }}</span>
                                                                     </td>
-                                                                    <td class="align-middle" style="padding: 4px 6px;">
+                                                                    <td class="text-left">
                                                                         @if(!empty($tool->serial_number))
-                                                                            <span class="badge badge-light border text-dark font-weight-bold px-2 py-1 shadow-sm" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                                                                            <span class="badge border text-dark font-weight-bold px-2 py-0.5 rounded shadow-none" style="font-size: 0.65rem; background: #f8fafc; border-color: #cbd5e1 !important; letter-spacing: 0.4px;">
                                                                                 {{ $tool->serial_number }}
                                                                             </span>
                                                                         @else
-                                                                            <span class="text-muted font-italic" style="font-size: 0.65rem;">- belum diisi -</span>
+                                                                            <span class="text-muted font-italic" style="font-size: 0.62rem;">- belum diisi -</span>
                                                                         @endif
                                                                     </td>
-                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                    <td class="text-center">
                                                                         @if($tool->isOkNg())
-                                                                            <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.62rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
-                                                                                OK / NG (JUDGMENT)
+                                                                            <span class="badge font-weight-bold px-2 py-0.5 rounded-pill" style="font-size: 0.60rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+                                                                                <i class="fas fa-check-circle mr-1"></i>OK / NG (JUDGMENT)
                                                                             </span>
                                                                         @else
-                                                                            <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.62rem; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
-                                                                                ANGKA (NUMERIC)
+                                                                            <span class="badge font-weight-bold px-2 py-0.5 rounded-pill" style="font-size: 0.60rem; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                                                                <i class="fas fa-hashtag mr-1"></i>ANGKA (NUMERIC)
                                                                             </span>
                                                                         @endif
                                                                     </td>
-                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                    <td class="text-center">
                                                                         @if($tool->is_active)
-                                                                            <span class="badge badge-success px-2 py-1" style="font-size: 0.62rem;">Aktif</span>
+                                                                            <span class="badge badge-success px-2 py-0.5 rounded-pill font-weight-bold" style="font-size: 0.60rem; background-color: #10b981;">
+                                                                                <i class="fas fa-circle mr-1" style="font-size: 0.45rem;"></i>Aktif
+                                                                            </span>
                                                                         @else
-                                                                            <span class="badge badge-secondary px-2 py-1" style="font-size: 0.62rem;">Non-aktif</span>
+                                                                            <span class="badge badge-secondary px-2 py-0.5 rounded-pill font-weight-bold" style="font-size: 0.60rem; background-color: #94a3b8;">
+                                                                                <i class="fas fa-circle mr-1" style="font-size: 0.45rem;"></i>Non-aktif
+                                                                            </span>
                                                                         @endif
                                                                     </td>
-                                                                    <td class="align-middle text-center" style="padding: 4px 6px;">
+                                                                    <td class="text-center">
                                                                         <button type="button" 
-                                                                                class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-measuring-tool mr-1"
-                                                                                style="padding: 0.2rem 0.4rem; font-size: 0.6rem;"
+                                                                                class="btn btn-sm btn-outline-primary py-0 px-2 rounded btn-edit-measuring-tool mr-1"
+                                                                                style="padding: 0.18rem 0.45rem; font-size: 0.60rem;"
                                                                                 data-id="{{ $tool->id }}"
                                                                                 data-plant-id="{{ $tool->plant_id }}"
                                                                                 data-name="{{ $tool->name }}"
@@ -228,22 +285,25 @@
                                                                                 data-order="{{ $tool->order_no }}"
                                                                                 data-active="{{ $tool->is_active ? 1 : 0 }}"
                                                                                 title="Edit Alat Ukur">
-                                                                            <i class="fas fa-edit"></i>
+                                                                            <i class="fas fa-pen fa-xs"></i>
                                                                         </button>
                                                                         <button type="button" 
-                                                                                class="btn btn-sm btn-outline-danger py-0 px-2 btn-delete-measuring-tool"
-                                                                                style="padding: 0.2rem 0.4rem; font-size: 0.6rem;"
+                                                                                class="btn btn-sm btn-outline-danger py-0 px-2 rounded btn-delete-measuring-tool"
+                                                                                style="padding: 0.18rem 0.45rem; font-size: 0.60rem;"
                                                                                 data-id="{{ $tool->id }}"
                                                                                 data-name="{{ $tool->display_name }}"
                                                                                 title="Hapus Alat Ukur">
-                                                                            <i class="fas fa-trash"></i>
+                                                                            <i class="fas fa-trash fa-xs"></i>
                                                                         </button>
                                                                     </td>
                                                                 </tr>
                                                             @empty
                                                                 <tr>
-                                                                    <td colspan="6" class="text-center py-4 text-muted" style="font-size: 0.75rem;">
-                                                                        Belum ada alat ukur terdaftar untuk Plant {{ $plant->name }}. Klik <strong>Tambah Alat Ukur</strong> untuk menambahkan.
+                                                                    <td colspan="6" class="text-center py-4 text-muted" style="font-size: 0.72rem;">
+                                                                        <div class="py-2">
+                                                                            <i class="fas fa-ruler-combined text-gray-300 fa-2x mb-2 d-block"></i>
+                                                                            Belum ada alat ukur terdaftar untuk Plant {{ $plant->name }}. Klik <strong>Tambah Alat Ukur</strong> untuk menambahkan.
+                                                                        </div>
                                                                     </td>
                                                                 </tr>
                                                             @endforelse
@@ -257,107 +317,147 @@
 
                                 <hr class="my-4" style="border-top: 1px dashed #e2e8f0;">
 
-                                <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <div>
-                                        <h6 class="font-weight-bold text-dark mb-1">Manajemen Next Process</h6>
-                                        <p class="text-muted small mb-0">Kelola opsi proses selanjutnya berdasarkan plant</p>
+                                <div class="premium-setting-item p-3 rounded-xl mb-4" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                                    <div class="mb-3">
+                                        <h6 class="mb-1 font-weight-bold text-dark" style="font-size: 0.95rem;">
+                                            Manajemen Next Process
+                                        </h6>
+                                        <p class="text-muted small mb-0">
+                                            Kelola opsi proses selanjutnya per modul QC dan per plant secara ringkas.
+                                        </p>
                                     </div>
-                                    <button type="button" class="btn btn-dark rounded-pill px-4 shadow-sm btn-sm-modern py-2" data-toggle="modal" data-target="#modalAddNextProcess">
-                                        <i class="fas fa-plus mr-2"></i> Tambah Opsi
-                                    </button>
-                                </div>
 
-                                <div class="next-process-accordion" id="nextProcessAccordion">
-                                    @foreach($qcModules as $moduleKey => $moduleLabel)
-                                    <div class="card border-0 mb-3 shadow-sm rounded-lg overflow-hidden slide-in">
-                                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center" 
-                                             id="heading{{ $moduleKey }}" 
-                                             data-toggle="collapse" 
-                                             data-target="#collapse{{ $moduleKey }}" 
-                                             aria-expanded="false"
-                                             style="cursor: pointer;">
+                                    <!-- Action Bar Ringkas (Gaya In-Process) -->
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px;">
+                                        <div class="d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                            <!-- Filter Modul QC -->
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar avatar-sm bg-light text-dark mr-3" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
-                                                    <i class="fas fa-layer-group" style="font-size: 0.8rem;"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.9rem;">{{ $moduleLabel }}</h6>
-                                                    <p class="text-muted small mb-0">{{ $nextProcesses->where('module', $moduleKey)->count() }} Opsi Proses</p>
-                                                </div>
+                                                <span class="small font-weight-bold text-gray-700 mr-2" style="font-size: 0.72rem; white-space: nowrap;">
+                                                    <i class="fas fa-layer-group mr-1 text-primary"></i> Modul:
+                                                </span>
+                                                <select id="filterNextProcessModule" class="form-control form-control-sm border-0 shadow-sm font-weight-bold" style="min-width: 220px; font-size: 0.72rem; height: 30px;">
+                                                    <option value="">Semua Modul QC ({{ $nextProcesses->count() }} Opsi)</option>
+                                                    @foreach($qcModules as $moduleKey => $moduleLabel)
+                                                        @php $mCount = $nextProcesses->where('module', $moduleKey)->count(); @endphp
+                                                        <option value="{{ $moduleKey }}">
+                                                            {{ $moduleLabel }} ({{ $mCount }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
-                                            <i class="fas fa-chevron-down text-muted transition-arrow"></i>
+
+                                            <!-- Filter Plant -->
+                                            <div class="d-flex align-items-center">
+                                                <span class="small font-weight-bold text-gray-700 mr-2" style="font-size: 0.72rem; white-space: nowrap;">
+                                                    <i class="fas fa-industry mr-1 text-secondary"></i> Plant:
+                                                </span>
+                                                <select id="filterNextProcessPlant" class="form-control form-control-sm border-0 shadow-sm font-weight-bold" style="min-width: 140px; font-size: 0.72rem; height: 30px;">
+                                                    <option value="">Semua Plant</option>
+                                                    @foreach($plants as $plant)
+                                                        @if(strtoupper($plant->name) !== 'TOTAL')
+                                                            <option value="{{ $plant->id }}">{{ $plant->name }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div id="collapse{{ $moduleKey }}" class="collapse" aria-labelledby="heading{{ $moduleKey }}" data-parent="#nextProcessAccordion">
-                                            <div class="card-body p-0 border-top">
-                                                <div class="table-responsive">
-                                                    <table class="table table-borderless align-middle custom-table table-minimalist mb-0 w-100">
-                                                        <thead class="bg-light text-muted">
-                                                            <tr>
-                                                                <th width="10%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Order</th>
-                                                                <th width="35%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Nama Proses</th>
-                                                                <th width="20%" class="font-weight-bold py-2 text-left small" style="text-transform: uppercase;">Plant</th>
-                                                                <th width="15%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Status</th>
-                                                                <th width="20%" class="font-weight-bold py-2 text-center small" style="text-transform: uppercase;">Actions</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @forelse($nextProcesses->where('module', $moduleKey) as $process)
-                                                            <tr class="table-row-hover" style="border-bottom: 1px solid #f8f9fa;">
-                                                                <td class="text-center">
-                                                                    <span class="badge badge-light rounded-pill px-2">{{ $process->order }}</span>
-                                                                </td>
-                                                                <td>
-                                                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.85rem;">{{ $process->name }}</h6>
-                                                                </td>
-                                                                <td>
-                                                                    @if($process->plant && strtoupper($process->plant->name) !== 'TOTAL')
-                                                                        <span class="badge badge-pill px-2 py-1 {{ strtolower($process->plant->code ?? '') === 'jakarta' ? 'badge-info' : 'badge-primary' }}" style="font-size: 0.65rem;">
-                                                                            {{ $process->plant->name }}
-                                                                        </span>
-                                                                    @else
-                                                                        <span class="badge badge-pill px-2 py-1 badge-secondary" style="font-size: 0.65rem;">
-                                                                            Global
-                                                                        </span>
-                                                                    @endif
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
-                                                                        <input type="checkbox" class="custom-control-input toggle-process-status" id="processStatus{{ $process->id }}" data-id="{{ $process->id }}" data-plant="{{ $process->plant_id }}" data-module="{{ $process->module }}" {{ $process->is_active ? 'checked' : '' }}>
-                                                                        <label class="custom-control-label" for="processStatus{{ $process->id }}"></label>
-                                                                    </div>
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <div class="d-flex justify-content-center align-items-center gap-2">
-                                                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm edit-process" 
-                                                                            data-id="{{ $process->id }}" 
-                                                                            data-name="{{ $process->name }}" 
-                                                                            data-order="{{ $process->order }}"
-                                                                            data-plant="{{ $process->plant_id }}"
-                                                                            data-module="{{ $process->module }}"
-                                                                            data-toggle="tooltip" title="Edit Opsi">
-                                                                            <i class="fas fa-pen text-primary" style="font-size: 0.7rem;"></i>
-                                                                        </button>
-                                                                        <button class="btn btn-sm btn-light rounded-circle shadow-sm delete-process ml-1" 
-                                                                            data-id="{{ $process->id }}" 
-                                                                            data-name="{{ $process->name }}" 
-                                                                            data-toggle="tooltip" title="Hapus Opsi">
-                                                                            <i class="fas fa-trash text-danger" style="font-size: 0.7rem;"></i>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                            @empty
-                                                            <tr>
-                                                                <td colspan="5" class="text-center py-4 text-muted small">Belum ada opsi proses untuk modul ini.</td>
-                                                            </tr>
-                                                            @endforelse
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-sm font-weight-bold d-flex align-items-center" data-toggle="modal" data-target="#modalAddNextProcess" style="font-size: 0.72rem; height: 30px;">
+                                                <i class="fas fa-plus mr-1 fa-xs"></i> Tambah Opsi
+                                            </button>
                                         </div>
                                     </div>
-                                    @endforeach
+
+                                    <!-- Tabel Tunggal Ramping (Gaya In-Process) -->
+                                    <div class="table-responsive measuring-tools-wrapper">
+                                        <table class="table table-hover table-sm text-nowrap table-inprocess-tools mb-0" id="tableNextProcess">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 50px;" class="text-center">#</th>
+                                                    <th style="min-width: 160px;" class="text-left">Modul QC</th>
+                                                    <th style="min-width: 200px;" class="text-left">Nama Proses</th>
+                                                    <th style="width: 110px;" class="text-center">Plant</th>
+                                                    <th style="width: 90px;" class="text-center">Status</th>
+                                                    <th style="width: 95px;" class="text-center">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse($nextProcesses as $idx => $process)
+                                                    <tr class="process-row" data-module="{{ $process->module }}" data-plant="{{ $process->plant_id }}">
+                                                        <td class="text-center font-weight-bold text-muted">
+                                                            <span class="badge border text-dark font-weight-bold px-2 py-0.5 rounded shadow-none" style="font-size: 0.65rem; background: #f8fafc; border-color: #cbd5e1 !important;">
+                                                                {{ $process->order ?? ($idx + 1) }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <span class="badge font-weight-bold px-2 py-0.5 rounded-pill" style="font-size: 0.60rem; background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">
+                                                                <i class="fas fa-layer-group mr-1 text-primary"></i>{{ $qcModules[$process->module] ?? ucwords(str_replace('_', ' ', $process->module)) }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <h6 class="mb-0 font-weight-bold text-dark process-name-text" style="font-size: 0.72rem;">{{ $process->name }}</h6>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            @if($process->plant && strtoupper($process->plant->name) !== 'TOTAL')
+                                                                <span class="badge badge-pill px-2 py-0.5 font-weight-bold {{ strtolower($process->plant->code ?? $process->plant->name) === 'jakarta' ? 'badge-info' : 'badge-primary' }}" style="font-size: 0.62rem;">
+                                                                    {{ $process->plant->name }}
+                                                                </span>
+                                                            @else
+                                                                <span class="badge badge-pill px-2 py-0.5 badge-secondary font-weight-bold" style="font-size: 0.62rem;">
+                                                                    Global
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <div class="custom-control custom-switch custom-switch-success custom-switch-md d-inline-block">
+                                                                <input type="checkbox" class="custom-control-input toggle-process-status" id="processStatus{{ $process->id }}" data-id="{{ $process->id }}" data-plant="{{ $process->plant_id }}" data-module="{{ $process->module }}" {{ $process->is_active ? 'checked' : '' }}>
+                                                                <label class="custom-control-label" for="processStatus{{ $process->id }}"></label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-outline-primary py-0 px-2 rounded edit-process mr-1"
+                                                                    style="padding: 0.18rem 0.45rem; font-size: 0.60rem;"
+                                                                    data-id="{{ $process->id }}" 
+                                                                    data-name="{{ $process->name }}" 
+                                                                    data-order="{{ $process->order }}"
+                                                                    data-plant="{{ $process->plant_id }}"
+                                                                    data-module="{{ $process->module }}"
+                                                                    title="Edit Opsi">
+                                                                <i class="fas fa-pen fa-xs"></i>
+                                                            </button>
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-outline-danger py-0 px-2 rounded delete-process"
+                                                                    style="padding: 0.18rem 0.45rem; font-size: 0.60rem;"
+                                                                    data-id="{{ $process->id }}" 
+                                                                    data-name="{{ $process->name }}" 
+                                                                    title="Hapus Opsi">
+                                                                <i class="fas fa-trash fa-xs"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr id="nextProcessInitialEmpty">
+                                                        <td colspan="6" class="text-center py-4 text-muted" style="font-size: 0.72rem;">
+                                                            <div class="py-2">
+                                                                <i class="fas fa-sitemap text-gray-300 fa-2x mb-2 d-block"></i>
+                                                                Belum ada opsi proses yang terdaftar. Klik <strong>Tambah Opsi</strong> untuk menambahkan.
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
+                                                <tr id="nextProcessEmptyRow" style="display: none;">
+                                                    <td colspan="6" class="text-center py-4 text-muted" style="font-size: 0.72rem;">
+                                                        <div class="py-2">
+                                                            <i class="fas fa-filter text-gray-300 fa-2x mb-2 d-block"></i>
+                                                            Tidak ada opsi proses untuk filter modul / plant yang dipilih.
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -24,7 +24,7 @@ class NotificationController extends Controller
         $unreadCount = 0;
 
         // 1. Approval Master Data Item untuk Approver
-        if (in_array($role, $approverRoles)) {
+        if ($user && $user->canApproveMasterItem()) {
             $pendingQuery = \App\Models\Item::withoutGlobalScope('plant')
                 ->with(['plant', 'category', 'requester'])
                 ->where('approval_status', 'pending');

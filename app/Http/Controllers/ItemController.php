@@ -1235,6 +1235,9 @@ class ItemController extends Controller
         }
 
         if (in_array($role, ['supervisor', 'supervisor_qc'])) {
+            if (!\App\Models\GeneralSetting::isUserItemSpvApprover(auth()->id())) {
+                abort(403, 'Akses ditolak: Anda tidak ditugaskan sebagai Supervisor Approver untuk Master Data Item.');
+            }
             return 'spv';
         }
 
@@ -1328,17 +1331,12 @@ class ItemController extends Controller
      */
     public function getPendingApprovalItems(Request $request)
     {
-        $role = auth()->user()->role ?? '';
-        $approverRoles = [
-            'supervisor', 'supervisor_qc',
-            'asst_manager', 'asst_manager_qc', 'admin'
-        ];
-
-        if (!in_array($role, $approverRoles)) {
+        $user = auth()->user();
+        if (!$user || !$user->canApproveMasterItem()) {
             return response()->json(['success' => false, 'data' => []]);
         }
 
-        $user = auth()->user();
+        $role = $user->role ?? '';
         $userPlantId = $user ? $user->plant_id : null;
         $totalPlantId = \App\Models\Plant::where('code', 'total')->value('id');
 

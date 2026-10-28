@@ -1082,15 +1082,40 @@ document.addEventListener('DOMContentLoaded', function() {
             if (page) fetchActivityLogs(page);
         });
 
+        // Dynamic border color change for SPV approver switches
+        $(document).on('change', '.spv-approver-cb', function() {
+            var isChecked = $(this).is(':checked');
+            var box = $(this).closest('.spv-approver-box');
+            if (isChecked) {
+                box.css('border-color', '#2ec4b6').css('background', '#fafffd');
+            } else {
+                box.css('border-color', '#cbd5e1').css('background', '#ffffff');
+            }
+        });
+
+        // Click anywhere on box to toggle switch
+        $(document).on('click', '.spv-approver-box', function(e) {
+            if (!$(e.target).closest('.custom-control, label').length) {
+                var cb = $(this).find('.spv-approver-cb');
+                cb.prop('checked', !cb.is(':checked')).trigger('change');
+            }
+        });
+
         // Handle General Settings Save
         $('#saveGeneralSettings').on('click', function() {
             var btn = $(this);
             var originalHtml = btn.html();
             
+            var spvApproverIds = [];
+            $('.spv-approver-cb:checked').each(function() {
+                spvApproverIds.push($(this).val());
+            });
+
             var settings = {
                 'daily_approval_gate_enabled': $('#dailyApprovalGate').is(':checked') ? '1' : '0',
                 'fpa_categories': $('#fpaCategoriesInput').val(),
-                'measuring_tools': $('#measuringToolsInput').val()
+                'measuring_tools': $('#measuringToolsInput').val(),
+                'master_item_spv_approvers': spvApproverIds
             };
 
             btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...').prop('disabled', true);
@@ -1123,6 +1148,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     btn.html(originalHtml).prop('disabled', false);
                 }
             });
+        });
+
+        // Filter Next Process Table (Module & Plant)
+        function filterNextProcessRows() {
+            var selectedModule = $('#filterNextProcessModule').val();
+            var selectedPlant = $('#filterNextProcessPlant').val();
+            var visibleRows = 0;
+
+            $('#tableNextProcess tbody tr.process-row').each(function() {
+                var rowModule = $(this).data('module');
+                var rowPlant = String($(this).data('plant') || '');
+
+                var matchModule = !selectedModule || rowModule === selectedModule;
+                var matchPlant = !selectedPlant || rowPlant === String(selectedPlant);
+
+                if (matchModule && matchPlant) {
+                    $(this).show();
+                    visibleRows++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            if (visibleRows === 0) {
+                $('#nextProcessEmptyRow').show();
+            } else {
+                $('#nextProcessEmptyRow').hide();
+            }
+        }
+
+        $('#filterNextProcessModule, #filterNextProcessPlant').on('change', function() {
+            filterNextProcessRows();
         });
 
         // Handle Add Next Process

@@ -118,4 +118,24 @@ class User extends Authenticatable
         static::$permissionsMemoryCache[$cacheKey] = false;
         return false;
     }
+
+    /**
+     * Check if user is eligible to approve Master Data Item
+     */
+    public function canApproveMasterItem(): bool
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        if (in_array($this->role, ['asst_manager', 'asst_manager_qc'])) {
+            return true;
+        }
+
+        if (in_array($this->role, ['supervisor', 'supervisor_qc'])) {
+            return \App\Models\GeneralSetting::isUserItemSpvApprover($this->id);
+        }
+
+        return false;
+    }
 }

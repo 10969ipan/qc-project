@@ -897,5 +897,112 @@
         font-weight: 600 !important;
         color: #1e293b !important;
     }
+
+    /* ==============================================================
+       MANAJEMEN ALAT UKUR (IN-PROCESS & FPA) - GAYA IN-PROCESS TABLE
+       ============================================================== */
+    .measuring-tools-wrapper {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        background: #ffffff;
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    .table-inprocess-tools {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        table-layout: auto !important;
+        margin-bottom: 0 !important;
+    }
+
+    .table-inprocess-tools th,
+    .table-inprocess-tools td {
+        border-left: none !important;
+        border-right: 1px solid #f1f5f9 !important;
+    }
+
+    .table-inprocess-tools > thead > tr > th,
+    .table-inprocess-tools tr:first-child th {
+        position: -webkit-sticky !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+        background-color: #f8fafc !important;
+        background-clip: padding-box !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.62rem !important;
+        letter-spacing: 0.3px;
+        padding: 5px 8px !important;
+        border-left: none !important;
+        border-right: 1px solid #e2e8f0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        box-shadow: inset 0 -1px 0 #cbd5e1 !important;
+    }
+
+    .table-inprocess-tools tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-top: none !important;
+        vertical-align: middle !important;
+        color: #334155 !important;
+        font-size: 0.68rem !important;
+        padding: 5px 8px !important;
+        line-height: 1.2 !important;
+    }
+
+    .table-inprocess-tools tbody tr:hover td {
+        background-color: #f1f5f9 !important;
+        transition: background-color 0.2s ease;
+    }
+
+    .table-inprocess-tools th:last-child,
+    .table-inprocess-tools td:last-child {
+        border-right: none !important;
+    }
+
+    /* Nav Pills Action Bar Styling for Measuring Tools */
+    .measuring-tools-pills .nav-link {
+        background-color: #ffffff;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        padding: 0.35rem 0.9rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .measuring-tools-pills .nav-link .count-badge {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.15rem 0.4rem;
+        border-radius: 50rem;
+    }
+    .measuring-tools-pills .nav-link:hover {
+        background-color: #f8fafc;
+        color: #1e293b;
+        border-color: #cbd5e1;
+    }
+    .measuring-tools-pills .nav-link.active {
+        background-color: #4e73df !important;
+        color: #ffffff !important;
+        border-color: #4e73df !important;
+        box-shadow: 0 2px 4px rgba(78, 115, 223, 0.25);
+    }
+    .measuring-tools-pills .nav-link.active .count-badge {
+        background-color: rgba(255, 255, 255, 0.25) !important;
+        color: #ffffff !important;
+    }
 </style>
 

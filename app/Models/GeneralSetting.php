@@ -185,4 +185,43 @@ class GeneralSetting extends Model
 
         return $defaults;
     }
+
+    /**
+     * Get list of SPV User IDs authorized to approve Master Data Items
+     * Returns empty array if not configured (allowing all SPVs as default fallback)
+     */
+    public static function getItemApproverSpvIds(): array
+    {
+        $val = self::getValue('master_item_spv_approvers');
+        if (empty($val)) {
+            return [];
+        }
+
+        if (is_array($val)) {
+            return array_values(array_unique(array_map('intval', array_filter($val, 'is_numeric'))));
+        }
+
+        if (is_string($val)) {
+            $decoded = json_decode($val, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return array_values(array_unique(array_map('intval', array_filter($decoded, 'is_numeric'))));
+            }
+            $parts = preg_split('/[,\r\n\s]+/', trim($val));
+            return array_values(array_unique(array_map('intval', array_filter($parts, 'is_numeric'))));
+        }
+
+        return [];
+    }
+
+    /**
+     * Check if a specific user is authorized as SPV Approver for Master Data Item
+     */
+    public static function isUserItemSpvApprover($userId): bool
+    {
+        $assignedIds = self::getItemApproverSpvIds();
+        if (empty($assignedIds)) {
+            return true; // Fallback jika setting belum dikonfigurasi
+        }
+        return in_array((int) $userId, $assignedIds, true);
+    }
 }
