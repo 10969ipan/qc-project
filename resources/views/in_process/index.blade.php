@@ -320,8 +320,8 @@
                 </table>
             </div>
             <form action="{{ route('in_process.index') }}" method="GET"
-                class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormInProcess">
+                class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-2 border"
+                style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormInProcess">
 
                 {{-- Preserve Context Parameters --}}
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
@@ -334,7 +334,7 @@
 
                 <!-- 1. Field: Part Name -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Part Name</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Part Name</label>
                     <div style="width: 200px;" class="custom-filter-wrapper">
                         <select name="item_id" id="filterItem" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Part Name</option>
@@ -349,7 +349,7 @@
 
                 <!-- 2. Field: Customer -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Customer</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
                     <div style="width: 140px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
@@ -362,21 +362,21 @@
 
                 <!-- 3. Field: Tanggal (dari - sampai) -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Tanggal</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_date') }}" title="Dari Tanggal">
                         <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                     </div>
                 </div>
 
                 <!-- 4. Field: Shift -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Shift</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Shift</label>
                     <div style="width: 95px;" class="custom-filter-wrapper">
-                        <select name="shift" id="filterShift" class="form-control form-control-sm border-0 shadow-sm">
+                        <select name="shift" id="filterShift" class="form-control form-control-sm" style="font-size: 0.68rem; height: 26px;">
                             <option value="">Semua</option>
                             <option value="1" {{ request('shift') == '1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="2" {{ request('shift') == '2' ? 'selected' : '' }}>Shift 2</option>
@@ -387,7 +387,7 @@
 
                 <!-- 5. Field: Inisial -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Inisial</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Inisial</label>
                     <div style="width: 120px;" class="custom-filter-wrapper">
                         <select name="operator_initials" id="filterInisial" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Inisial</option>
@@ -400,9 +400,9 @@
 
                 <!-- 6. Field: WIP / FG -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">WIP / FG</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">WIP / FG</label>
                     <div style="width: 100px;" class="custom-filter-wrapper">
-                        <select name="tujuan" id="filterTujuan" class="form-control form-control-sm border-0 shadow-sm">
+                        <select name="tujuan" id="filterTujuan" class="form-control form-control-sm" style="font-size: 0.68rem; height: 26px;">
                             <option value="">Semua</option>
                             <option value="WIP" {{ request('tujuan') == 'WIP' ? 'selected' : '' }}>WIP</option>
                             <option value="FG" {{ request('tujuan') == 'FG' ? 'selected' : '' }}>FG</option>
@@ -413,9 +413,9 @@
                 @if(auth()->check() && auth()->user()->role === 'admin')
                 <!-- 7. Field: Mesin -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Mesin</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Mesin</label>
                     <div style="width: 115px;" class="custom-filter-wrapper">
-                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm border-0 shadow-sm font-weight-bold">
+                        <select name="code_machine" id="filterMachine" class="form-control form-control-sm" style="font-size: 0.68rem; height: 26px;">
                             <option value="">Semua Mesin</option>
                             @foreach($machines as $m)
                                 <option value="{{ $m }}" {{ request('code_machine') == $m ? 'selected' : '' }}>
@@ -429,9 +429,9 @@
 
                 <!-- Field: Tipe Approval -->
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">Tipe Approval</label>
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tipe Approval</label>
                     <div style="width: 125px;" class="custom-filter-wrapper">
-                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm border-0 shadow-sm font-weight-bold" style="font-size: 0.68rem; height: 26px;">
+                        <select name="approval_method" id="filterApprovalMethod" class="form-control form-control-sm" style="font-size: 0.68rem; height: 26px;">
                             <option value="">Semua Tipe</option>
                             <option value="sampling" {{ request('approval_method') === 'sampling' ? 'selected' : '' }}>Sampling (Biru)</option>
                             <option value="bulk" {{ request('approval_method') === 'bulk' ? 'selected' : '' }}>Bulk (Hijau)</option>
@@ -440,13 +440,14 @@
                 </div>
 
                 <!-- Tombol Filter & Reset -->
-                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 10px;">
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
                         .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
                         .custom-filter-wrapper { position: relative; top: 0px; }
                         #filterFormInProcess label { white-space: nowrap; }
+                        #filterFormInProcess select.form-control-sm { height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
                     </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
                         <i class="fas fa-search fa-sm mr-1"></i> Filter
@@ -460,13 +461,13 @@
                 <!-- Field: QR Code (Khusus Mode Verifikasi) -->
                 @if(request('view_mode') === 'verifikasi')
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold text-gray-700">QR Code</label>
-                    <div class="input-group input-group-sm shadow-sm rounded" style="width: 190px;">
-                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control border-0"
-                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.75rem;">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">QR Code</label>
+                    <div class="input-group input-group-sm rounded overflow-hidden" style="width: 190px; border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="text" name="qr_raw" id="filterQrRaw" class="form-control form-control-sm border-0 shadow-none"
+                            placeholder="Scan/Ketik QR..." value="{{ request('qr_raw') }}" style="font-size: 0.68rem; height: 24px;">
                         <div class="input-group-append">
-                            <button type="button" class="btn btn-primary border-0" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 40px; touch-action: manipulation;">
-                                <i class="fas fa-qrcode" style="pointer-events: none;"></i>
+                            <button type="button" class="btn btn-primary border-0 d-flex align-items-center justify-content-center" id="btnScanQRIndex" title="Scan QR Code" style="min-width: 32px; height: 24px; padding: 0;">
+                                <i class="fas fa-qrcode" style="pointer-events: none; font-size: 0.75rem;"></i>
                             </button>
                         </div>
                     </div>
