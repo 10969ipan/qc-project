@@ -728,6 +728,10 @@ $(document).ready(function () {
     // Tombol Cetak Schedule (Print View Langsung di Halaman Itu)
     $(document).on('click', '#btnCetakSchedule', function (e) {
         e.preventDefault();
+        var printTitle = $(this).data('print-title');
+        if (printTitle) {
+            document.title = printTitle;
+        }
         window.print();
     });
 

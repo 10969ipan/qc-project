@@ -738,10 +738,42 @@ class OperatorComplianceController extends Controller
 
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
+        $weekRanges = [
+            1 => ['start' => 1,  'end' => 7],
+            2 => ['start' => 8,  'end' => 14],
+            3 => ['start' => 15, 'end' => 21],
+            4 => ['start' => 22, 'end' => 28],
+            5 => ['start' => 29, 'end' => $daysInMonth],
+        ];
+
+        $weekFilter = $request->get('week', '1');
+        if ($weekFilter === null || $weekFilter === '') {
+            $weekFilter = '1';
+        }
+        if ($weekFilter !== 'all') {
+            $wNum = (int) $weekFilter;
+            if ($wNum < 1 || $wNum > 5) {
+                $wNum = 1;
+            }
+            if ($wNum === 5 && $daysInMonth < 29) {
+                $wNum = 4;
+            }
+            $weekFilter = (string) $wNum;
+        }
+
         $schedulesQuery = OperatorComplianceSchedule::where('plant', $plantCode)
             ->whereYear('schedule_date', $year)
             ->whereMonth('schedule_date', $month)
             ->with('operator');
+
+        if ($weekFilter !== 'all') {
+            $wNum = (int) $weekFilter;
+            $wStart = $weekRanges[$wNum]['start'];
+            $wEnd   = min($weekRanges[$wNum]['end'], $daysInMonth);
+            $weekStartDate = sprintf('%04d-%02d-%02d', $year, $month, $wStart);
+            $weekEndDate   = sprintf('%04d-%02d-%02d', $year, $month, $wEnd);
+            $schedulesQuery->whereBetween('schedule_date', [$weekStartDate, $weekEndDate]);
+        }
 
         if ($selectedOperatorId) {
             $schedulesQuery->where('operator_id', $selectedOperatorId);
@@ -792,6 +824,7 @@ class OperatorComplianceController extends Controller
         }
 
         $checksheets = $checksheetsQuery->get();
+        $isFilteredBySchedule = !empty($shiftFilter) || $weekFilter !== 'all';
             
         foreach ($checksheets as $cs) {
             $opId = $cs->user_id;
@@ -800,7 +833,7 @@ class OperatorComplianceController extends Controller
 
             if (!empty($entriesDays)) {
                 if (!isset($operatorRows[$opId])) {
-                    if ($shiftFilter) {
+                    if ($isFilteredBySchedule) {
                         continue;
                     }
                     $operatorRows[$opId] = [
@@ -811,7 +844,11 @@ class OperatorComplianceController extends Controller
                     ];
                 }
                 foreach ($entriesDays as $d) {
-                    $operatorRows[$opId]['actuals'][(int)$d] = true;
+                    $dayInt = (int) $d;
+                    if ($isFilteredBySchedule && empty($operatorRows[$opId]['plans'][$dayInt])) {
+                        continue;
+                    }
+                    $operatorRows[$opId]['actuals'][$dayInt] = true;
                 }
             }
         }
@@ -837,7 +874,7 @@ class OperatorComplianceController extends Controller
         ];
 
         return view('operator_compliance.schedule', compact(
-            'plantCode', 'month', 'year', 'daysInMonth', 'operatorRows', 'monthNames', 'shiftFilter', 'search', 'inspectors', 'selectedOperatorId'
+            'plantCode', 'month', 'year', 'daysInMonth', 'operatorRows', 'monthNames', 'shiftFilter', 'weekFilter', 'search', 'inspectors', 'selectedOperatorId'
         ));
     }
 

@@ -1,35 +1,64 @@
 @extends('layouts.admin')
 
-@section('title', 'Schedule Kepatuhan Operator')
+@php
+    $plantCode = strtolower($plantCode ?: 'karawang');
+    $isJkt = in_array($plantCode, ['jakarta', 'jkt']);
+    $baseHeader = \App\Models\GeneralSetting::getDocHeader('kepatuhan_operator', $plantCode, [
+        'no_dokumen' => $isJkt ? 'QC-JKT-F-051' : 'PI-KRW-F-051',
+        'tgl_terbit' => '31/03/2022',
+        'revisi'     => '08/09/2023',
+        'halaman'    => '1 / 1'
+    ]);
+    $docHeader = \App\Models\GeneralSetting::getDocHeader('schedule_kepatuhan_operator', $plantCode, $baseHeader);
+
+    $monthNames = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+
+    $weeks = [
+        1 => ['start' => 1, 'end' => 7],
+        2 => ['start' => 8, 'end' => 14],
+        3 => ['start' => 15, 'end' => 21],
+        4 => ['start' => 22, 'end' => 28],
+        5 => ['start' => 29, 'end' => 31],
+    ];
+
+    $weekFilter = $weekFilter ?? '1';
+    $weekLabel = $weekFilter === 'all' ? 'Semua Minggu' : ('Minggu ' . $weekFilter);
+
+    if ($weekFilter !== 'all' && isset($weeks[(int) $weekFilter])) {
+        $wNum = (int) $weekFilter;
+        $wStart = $weeks[$wNum]['start'];
+        $wEnd = min($weeks[$wNum]['end'], $daysInMonth);
+        $activePeriodLabel = "Minggu {$wNum} (Tgl {$wStart}-{$wEnd} {$monthNames[$month]} {$year})";
+    } else {
+        $activePeriodLabel = "Tgl 1-{$daysInMonth} {$monthNames[$month]} {$year}";
+    }
+
+    $pdfFileTitle = 'Schedule Kepatuhan Operator - ' . $activePeriodLabel;
+    if (!empty($shiftFilter)) {
+        $pdfFileTitle .= ' - ' . $shiftFilter;
+    }
+
+    $sundayFlags = [];
+    for ($d = 1; $d <= $daysInMonth; $d++) {
+        $sundayFlags[$d] = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday();
+    }
+
+    $operatorChunks = !empty($operatorRows) ? array_chunk($operatorRows, 15, true) : [[]];
+    $totalPages = count($operatorChunks);
+@endphp
+
+@section('title', $pdfFileTitle)
 
 @section('content')
-    @php
-        $plantCode = strtolower($plantCode ?: 'karawang');
-        $isJkt = in_array($plantCode, ['jakarta', 'jkt']);
-        $baseHeader = \App\Models\GeneralSetting::getDocHeader('kepatuhan_operator', $plantCode, [
-            'no_dokumen' => $isJkt ? 'QC-JKT-F-051' : 'PI-KRW-F-051',
-            'tgl_terbit' => '31/03/2022',
-            'revisi'     => '08/09/2023',
-            'halaman'    => '1 / 1'
-        ]);
-        $docHeader = \App\Models\GeneralSetting::getDocHeader('schedule_kepatuhan_operator', $plantCode, $baseHeader);
-
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
-
-        $weeks = [
-            1 => ['start' => 1, 'end' => 7],
-            2 => ['start' => 8, 'end' => 14],
-            3 => ['start' => 15, 'end' => 21],
-            4 => ['start' => 22, 'end' => 28],
-            5 => ['start' => 29, 'end' => 31],
-        ];
-    @endphp
 
     <style>
+        .schedule-print-container {
+            display: none;
+        }
         /* ===== UI STYLES (TANPA STICKY BAR) ===== */
         #content-wrapper .op-schedule-grid-wrapper {
             overflow-x: auto;
@@ -179,6 +208,16 @@
 
             * {
                 box-sizing: border-box;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+            }
+
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar,
+            *::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
             }
 
             html, body {
@@ -189,17 +228,19 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
-            /* Sembunyikan navigasi, filter, scroll-top, dan tombol */
-            .navbar, .sidebar, #accordionSidebar, .topbar, footer, .no-print, 
-            #scheduleFilterForm, .btn, .alert, .scroll-to-top {
-                display: none !important;
-            }
-
-            #wrapper, #content-wrapper, #content, .container-fluid, .main-content-container, .card, .card-body {
+            /* Sembunyikan navigasi, filter, scroll-top, tombol, dan tampilan layar */
+            #wrapper, #content-wrapper, #content, .container-fluid, .main-content-container {
+                display: block !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 padding-top: 0 !important;
@@ -208,6 +249,16 @@
                 background: #fff !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .navbar, .sidebar, #accordionSidebar, .topbar, footer, .no-print, 
+            #scheduleFilterForm, .btn, .alert, .scroll-to-top,
+            .screen-schedule-card, .card.screen-schedule-card {
+                display: none !important;
             }
 
             #content > .container-fluid {
@@ -215,9 +266,28 @@
                 padding-top: 0 !important;
             }
 
-            .card-body {
-                padding: 0 !important;
-                zoom: 82%; /* Skala proporsional agar 31 hari muat presisi di 1 lembar A4 landscape */
+            .schedule-print-container {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .schedule-print-page {
+                width: 100% !important;
+                zoom: 82%; /* Skala proporsional agar 31 hari & 15 data operator muat presisi di 1 lembar A4 landscape */
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .schedule-print-page.page-break {
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .header-iso-table h1 {
+                font-size: 9pt !important;
+                font-weight: 700 !important;
+                color: #000000 !important;
+                letter-spacing: 0.3px !important;
             }
 
             .header-iso-table {
@@ -251,7 +321,7 @@
                 background: #f1f5f9 !important;
                 font-weight: 700 !important;
                 color: #000 !important;
-                width: 70px !important;
+                width: 65px !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -344,7 +414,7 @@
             body #content-wrapper .op-schedule-grid tbody td {
                 border: 1px solid #000 !important;
                 color: #000 !important;
-                height: 18px !important;
+                height: 17px !important;
                 padding: 1px 0 !important;
                 font-size: 5.8pt !important;
                 vertical-align: middle !important;
@@ -389,8 +459,8 @@
         }
     </style>
 
-        <!-- Unified Single Card Container (Satu Card Utuh persis Checksheet Kepatuhan Operator) -->
-        <div class="card shadow mb-2">
+        <!-- Unified Single Card Container (Tampilan Layar) -->
+        <div class="card shadow mb-2 screen-schedule-card no-print">
             <div class="card-body p-2">
 
                 <!-- 1. Header Dokumen ISO persis Checksheet Kepatuhan Operator -->
@@ -434,7 +504,7 @@
                                                 <tr>
                                                     <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#495057; white-space:nowrap;">Halaman</td>
                                                     <td style="border:1px solid #dee2e6; padding:2px 4px; text-align:center; color:#495057;">:</td>
-                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">{{ $docHeader['halaman'] }}</td>
+                                                    <td style="border:1px solid #dee2e6; padding:2px 6px; font-weight:600; color:#212529; white-space:nowrap;">1 / {{ $totalPages }}</td>
                                                 </tr>
                                             </table>
                                         </td>
@@ -508,26 +578,6 @@
                     </table>
                 </div>
 
-                <!-- 2. Metadata Info Schedule (Standar Dokumen Checksheet - Hanya Tampil Saat Cetak) -->
-                <div class="mb-2 d-none d-print-block">
-                    <table class="schedule-meta-table">
-                        <tr>
-                            <td class="lbl">Plant</td>
-                            <td class="val">: <strong>{{ strtoupper($plantCode) }}</strong></td>
-                            <td class="lbl">Periode</td>
-                            <td class="val">: <strong>{{ $monthNames[$month] }} {{ $year }}</strong></td>
-                            <td class="lbl">Shift</td>
-                            <td class="val">: <strong>{{ $shiftFilter ?: 'Semua Shift' }}</strong></td>
-                            <td class="lbl">Keterangan</td>
-                            <td class="val">
-                                : <span class="badge-legend marker-p">P</span> <strong>Plan</strong> (Jadwal)
-                                &nbsp;&nbsp;|&nbsp;&nbsp;
-                                <span class="badge-legend marker-a">A</span> <strong>Actual</strong> (Realisasi Checksheet)
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show no-print" role="alert">
                         {{ session('success') }}
@@ -537,7 +587,7 @@
                     </div>
                 @endif
 
-                <!-- 3. Bar Filter Data Schedule (Dropdown Operator, Bulan, & Tahun persis Checksheet) -->
+                <!-- 3. Bar Filter Data Schedule (Dropdown Operator, Minggu, Shift, Bulan, & Tahun) -->
                 <form id="scheduleFilterForm" action="{{ route('checksheet.operator_compliance.schedule') }}" method="GET" 
                     class="d-flex flex-wrap align-items-end bg-white p-0 rounded mb-3 no-print" 
                     style="gap: 14px;">
@@ -547,7 +597,7 @@
                     <!-- Dropdown Pilihan Operator / Inspector -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Operator / Inspector</label>
-                        <div style="width: 230px;" class="custom-filter-wrapper">
+                        <div style="width: 220px;" class="custom-filter-wrapper">
                             <select name="operator_id" id="scheduleFilterOperator" class="form-control form-control-sm filter-select-custom" onchange="this.form.submit()">
                                 <option value="">Semua Operator / Inspector</option>
                                 @foreach(($inspectors ?? []) as $insp)
@@ -555,6 +605,23 @@
                                         {{ $insp->name }}
                                     </option>
                                 @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Minggu (Aktif Per Minggu) -->
+                    <div class="d-flex flex-column align-items-start">
+                        <label class="mb-1 small font-weight-bold text-gray-700">Minggu</label>
+                        <div style="width: 155px;">
+                            <select name="week" class="form-control form-control-sm filter-select-custom" onchange="this.form.submit()">
+                                <option value="1" {{ $weekFilter === '1' ? 'selected' : '' }}>Minggu 1 (Tgl 1-7)</option>
+                                <option value="2" {{ $weekFilter === '2' ? 'selected' : '' }}>Minggu 2 (Tgl 8-14)</option>
+                                <option value="3" {{ $weekFilter === '3' ? 'selected' : '' }}>Minggu 3 (Tgl 15-21)</option>
+                                <option value="4" {{ $weekFilter === '4' ? 'selected' : '' }}>Minggu 4 (Tgl 22-28)</option>
+                                @if($daysInMonth >= 29)
+                                    <option value="5" {{ $weekFilter === '5' ? 'selected' : '' }}>Minggu 5 (Tgl 29-{{ $daysInMonth }})</option>
+                                @endif
+                                <option value="all" {{ $weekFilter === 'all' ? 'selected' : '' }}>Semua Minggu</option>
                             </select>
                         </div>
                     </div>
@@ -576,7 +643,7 @@
                     <!-- Pilihan Bulan -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Bulan</label>
-                        <div style="width: 130px;">
+                        <div style="width: 120px;">
                             <select name="month" class="form-control form-control-sm filter-select-custom" onchange="this.form.submit()">
                                 @foreach($monthNames as $mNum => $mName)
                                     <option value="{{ $mNum }}" {{ $month == $mNum ? 'selected' : '' }}>{{ $mName }}</option>
@@ -588,7 +655,7 @@
                     <!-- Pilihan Tahun -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
-                        <div style="width: 95px;">
+                        <div style="width: 90px;">
                             <select name="year" class="form-control form-control-sm filter-select-custom" onchange="this.form.submit()">
                                 @php $cy = date('Y'); @endphp
                                 @for($y = $cy - 2; $y <= $cy + 2; $y++)
@@ -600,7 +667,7 @@
 
                     <!-- Tombol Aksi di sebelah kanan (Cetak, Kembali ke Form Checksheet, & Legenda) -->
                     <div class="ml-auto d-flex align-items-center flex-wrap mt-auto" style="gap: 8px;">
-                        <button type="button" id="btnCetakSchedule" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;" title="Cetak Schedule Kepatuhan">
+                        <button type="button" id="btnCetakSchedule" data-print-title="{{ $pdfFileTitle }}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;" title="Cetak Schedule Kepatuhan">
                             <i class="fas fa-print fa-sm mr-1"></i> Cetak
                         </button>
 
@@ -651,8 +718,7 @@
                             </tr>
                             <tr>
                                 @for($d = 1; $d <= $daysInMonth; $d++)
-                                    @php $isSunday = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday(); @endphp
-                                    <th class="day-header text-center {{ $isSunday ? 'day-sunday' : '' }}" style="width: {{ number_format($dayColPct, 4, '.', '') }}%;">
+                                    <th class="day-header text-center {{ $sundayFlags[$d] ? 'day-sunday' : '' }}" style="width: {{ number_format($dayColPct, 4, '.', '') }}%;">
                                         {{ $d }}
                                     </th>
                                 @endfor
@@ -672,8 +738,7 @@
                                         <span class="badge-legend marker-p">P</span>
                                     </td>
                                     @for($d = 1; $d <= $daysInMonth; $d++)
-                                        @php $isSunday = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday(); @endphp
-                                        <td class="text-center align-middle {{ $isSunday ? 'day-sunday' : '' }}">
+                                        <td class="text-center align-middle {{ $sundayFlags[$d] ? 'day-sunday' : '' }}">
                                             @if(!empty($data['plans'][$d]))
                                                 <span class="badge-legend marker-p" title="Plan: {{ $d }} {{ $monthNames[$month] }}">P</span>
                                             @endif
@@ -686,8 +751,7 @@
                                         <span class="badge-legend marker-a">A</span>
                                     </td>
                                     @for($d = 1; $d <= $daysInMonth; $d++)
-                                        @php $isSunday = \Carbon\Carbon::createFromDate($year, $month, $d)->isSunday(); @endphp
-                                        <td class="text-center align-middle {{ $isSunday ? 'day-sunday' : '' }}">
+                                        <td class="text-center align-middle {{ $sundayFlags[$d] ? 'day-sunday' : '' }}">
                                             @if(!empty($data['actuals'][$d]))
                                                 <span class="badge-legend marker-a" title="Actual: {{ $d }} {{ $monthNames[$month] }}">A</span>
                                             @endif
@@ -697,7 +761,7 @@
                             @empty
                                 <tr>
                                     <td colspan="{{ 3 + $daysInMonth }}" class="text-center py-4 text-muted font-italic">
-                                        Belum ada jadwal Kepatuhan Operator yang diatur untuk periode {{ $monthNames[$month] }} {{ $year }}.
+                                        Belum ada jadwal Kepatuhan Operator yang diatur untuk filter ini pada periode {{ $monthNames[$month] }} {{ $year }}.
                                     </td>
                                 </tr>
                             @endforelse
@@ -706,6 +770,205 @@
                 </div>
 
             </div>
+        </div>
+
+        <!-- Dedicated Multi-Page Print Container (Maksimal 15 Data Operator per Halaman dengan Header Lengkap di Setiap Halaman) -->
+        <div class="schedule-print-container">
+            @foreach($operatorChunks as $pageIndex => $chunkRows)
+                <div class="schedule-print-page {{ $pageIndex < ($totalPages - 1) ? 'page-break' : '' }}">
+                    <!-- 1. Header Dokumen ISO (Diulang di Setiap Halaman Cetak) -->
+                    <div class="mb-1">
+                        <table style="width:100%; border-collapse:collapse; border: 1px solid #000;" class="header-iso-table">
+                            <tr>
+                                <td style="width:75px; border:1px solid #000; padding:5px; text-align:center; vertical-align:middle;">
+                                    <img src="{{ asset('master item/ipp.jpg') }}" alt="IPP Logo" style="max-width:58px; max-height:44px; object-fit:contain;">
+                                </td>
+                                <td style="border:1px solid #000; border-left:none; padding:5px 8px; text-align:center; vertical-align:middle;">
+                                    <h1 class="mb-0 font-weight-bold text-uppercase" style="font-size:0.85rem; letter-spacing:0.3px; color:#000;">
+                                        SCHEDULE KEPATUHAN OPERATOR
+                                    </h1>
+                                </td>
+                                <td style="width:1px; border:1px solid #000; padding:0 !important; vertical-align:top; white-space:nowrap;">
+                                    <table style="border-collapse:collapse; width:100%; height:100%; border:none; margin:0;">
+                                        <tr style="height:100%;">
+                                            {{-- [3A] Tabel No. Dokumen --}}
+                                            <td style="border:none; padding:4px 6px 4px 4px; vertical-align:top; height:100%; white-space:nowrap;">
+                                                <table style="border-collapse:collapse; border:1px solid #000; font-size:0.65rem; background:#fff; height:100%; width:100%;">
+                                                    <tr>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">No. Dokumen</td>
+                                                        <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#000;">:</td>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:700; color:#000; white-space:nowrap;">
+                                                            {{ $docHeader['no_dokumen'] }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">Tgl. Terbit</td>
+                                                        <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#000;">:</td>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">{{ $docHeader['tgl_terbit'] }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">Revisi / Tgl</td>
+                                                        <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#000;">:</td>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">{{ $docHeader['revisi'] }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:600; color:#000; white-space:nowrap;">Halaman</td>
+                                                        <td style="border:1px solid #000; padding:2px 4px; text-align:center; color:#000;">:</td>
+                                                        <td style="border:1px solid #000; padding:2px 6px; font-weight:700; color:#000; white-space:nowrap;">{{ ($pageIndex + 1) . ' / ' . $totalPages }}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+
+                                            {{-- [3B] Tabel Signatures --}}
+                                            <td style="border:none; padding:4px 4px 4px 0; vertical-align:top; height:100%;">
+                                                <table style="border-collapse:collapse; border:1px solid #000; text-align:center; font-size:0.65rem; line-height:1.1; background:#fff; height:100%; table-layout:fixed; width:388px;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="border:1px solid #000; padding:3px 2px; font-weight:600; color:#000; background:#fff; width:28px;">Tgl.</th>
+                                                            <th style="border:1px solid #000; padding:3px 6px; font-weight:600; color:#000; background:#fff; width:120px;">Dibuat</th>
+                                                            <th style="border:1px solid #000; padding:3px 6px; font-weight:600; color:#000; background:#fff; width:120px;">Diperiksa</th>
+                                                            <th style="border:1px solid #000; padding:3px 6px; font-weight:600; color:#000; background:#fff; width:120px;">Diketahui</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td rowspan="3" style="border:1px solid #000; padding:2px; vertical-align:middle; text-align:center; width:28px;">
+                                                                <div style="writing-mode:vertical-rl; transform:rotate(180deg); -webkit-transform:rotate(180deg); white-space:nowrap; font-size:0.58rem; font-weight:400; margin:0 auto; color:#000;">
+                                                                    {{ date('d-M-y') }}
+                                                                </div>
+                                                            </td>
+                                                            <td style="border:1px solid #000; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                                @if(in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']))
+                                                                    <img src="{{ asset('signatures/suli.png') }}" alt="Masuli"
+                                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                                @else
+                                                                    <img src="{{ asset('signatures/arif.png') }}" alt="Arief H"
+                                                                         style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                                @endif
+                                                            </td>
+                                                            <td style="border:1px solid #000; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                                <img src="{{ asset('signatures/iwan.png') }}" alt="Iwan S"
+                                                                     style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                            </td>
+                                                            <td style="border:1px solid #000; padding:4px; vertical-align:middle; height:58px; background:#fff; text-align:center;">
+                                                                <img src="{{ asset('signatures/desti.png') }}" alt="Desti K"
+                                                                     style="max-height:68px; max-width:130px; object-fit:contain; mix-blend-mode:multiply; transform:scale(1.35); transform-origin:center;">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#000; white-space:nowrap;">{{ in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt']) ? 'Masuli' : 'Arief H' }}</td>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#000; white-space:nowrap;">Iwan S</td>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-weight:600; font-size:0.63rem; color:#000; white-space:nowrap;">Desti K</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-size:0.63rem; color:#000; white-space:nowrap;">Spv. QC</td>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-size:0.63rem; color:#000; white-space:nowrap;">Asst. Mgr Quality</td>
+                                                            <td style="border:1px solid #000; padding:2px 6px; font-size:0.63rem; color:#000; white-space:nowrap;">Mgr. Quality</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 2. Metadata Info Schedule (Diulang di Setiap Halaman Cetak) -->
+                    <div class="mb-1">
+                        <table class="schedule-meta-table">
+                            <tr>
+                                <td class="lbl">Plant</td>
+                                <td class="val">: <strong>{{ strtoupper($plantCode) }}</strong></td>
+                                <td class="lbl">Periode</td>
+                                <td class="val">: <strong>{{ $monthNames[$month] }} {{ $year }}</strong></td>
+                                <td class="lbl">Minggu</td>
+                                <td class="val">: <strong>{{ $weekLabel }}</strong></td>
+                                <td class="lbl">Shift</td>
+                                <td class="val">: <strong>{{ $shiftFilter ?: 'Semua Shift' }}</strong></td>
+                                <td class="lbl">Keterangan</td>
+                                <td class="val">
+                                    : <span class="badge-legend marker-p">P</span> <strong>Plan</strong> (Jadwal)
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                                    <span class="badge-legend marker-a">A</span> <strong>Actual</strong> (Realisasi Checksheet)
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- 3. Tabel Matriks Schedule (Maksimal 15 Operator per Halaman) -->
+                    <div class="op-schedule-grid-wrapper">
+                        <table class="table table-bordered op-schedule-grid mb-0">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="align-middle op-col text-center" style="width: 17%;">NAMA OPERATOR</th>
+                                    <th rowspan="2" class="align-middle bag-col text-center" style="width: 10.5%;">BAGIAN</th>
+                                    <th rowspan="2" class="align-middle status-col text-center" style="width: 4.5%;">PLAN /<br>ACTUAL</th>
+                                    @foreach($weeks as $wNum => $wRange)
+                                        @if($wRange['start'] <= $daysInMonth)
+                                            @php
+                                                $wEnd = min($wRange['end'], $daysInMonth);
+                                                $wSpan = ($wEnd - $wRange['start']) + 1;
+                                            @endphp
+                                            <th colspan="{{ $wSpan }}" class="week-header text-center">Minggu-{{ $wNum }}</th>
+                                        @endif
+                                    @endforeach
+                                </tr>
+                                <tr>
+                                    @for($d = 1; $d <= $daysInMonth; $d++)
+                                        <th class="day-header text-center {{ $sundayFlags[$d] ? 'day-sunday' : '' }}" style="width: {{ number_format($dayColPct, 4, '.', '') }}%;">
+                                            {{ $d }}
+                                        </th>
+                                    @endfor
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($chunkRows as $opId => $data)
+                                    <!-- Baris Plan (P) -->
+                                    <tr class="sch-op-row">
+                                        <td rowspan="2" class="op-col align-middle text-left font-weight-bold text-dark">
+                                            {{ $data['operator']->name ?? 'Unknown' }}
+                                        </td>
+                                        <td rowspan="2" class="bag-col align-middle text-center text-muted">
+                                            {{ $data['bagian'] }}
+                                        </td>
+                                        <td class="status-col text-center align-middle">
+                                            <span class="badge-legend marker-p">P</span>
+                                        </td>
+                                        @for($d = 1; $d <= $daysInMonth; $d++)
+                                            <td class="text-center align-middle {{ $sundayFlags[$d] ? 'day-sunday' : '' }}">
+                                                @if(!empty($data['plans'][$d]))
+                                                    <span class="badge-legend marker-p">P</span>
+                                                @endif
+                                            </td>
+                                        @endfor
+                                    </tr>
+                                    <!-- Baris Actual (A) -->
+                                    <tr class="sch-op-row-sub">
+                                        <td class="status-col text-center align-middle">
+                                            <span class="badge-legend marker-a">A</span>
+                                        </td>
+                                        @for($d = 1; $d <= $daysInMonth; $d++)
+                                            <td class="text-center align-middle {{ $sundayFlags[$d] ? 'day-sunday' : '' }}">
+                                                @if(!empty($data['actuals'][$d]))
+                                                    <span class="badge-legend marker-a">A</span>
+                                                @endif
+                                            </td>
+                                        @endfor
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ 3 + $daysInMonth }}" class="text-center py-4 text-muted font-italic">
+                                            Belum ada jadwal Kepatuhan Operator yang diatur untuk filter ini pada periode {{ $monthNames[$month] }} {{ $year }}.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endforeach
         </div>
 @endsection
 
