@@ -147,7 +147,7 @@ class FirstPieceApprovalController extends Controller
         });
 
         // Data for filters (Cached per plant to avoid 4x subquery scans on every page load)
-        $plantId = \App\Models\Plant::resolveId($filters['plant']);
+        $plantId = \App\Models\Plant::resolveId($filters['plant']) ?? optional(auth()->user()->plant)->id;
         
         $items = \Illuminate\Support\Facades\Cache::remember("fpa_filter_items_v2_{$plantId}", 1800, function () use ($plantId) {
             $usedItemIds = \App\Models\FirstPieceApproval::where('plant_id', $plantId)
@@ -947,5 +947,133 @@ class FirstPieceApprovalController extends Controller
 
         $checksheet->defects = $defects; // Cast handled by model
         return $checksheet;
+    }
+
+    /**
+     * Get data for leader sampling dimension check modal
+     */
+    public function getLeaderSamplingData($id)
+    {
+        $checksheet = FirstPieceApproval::with(['item', 'user'])->findOrFail($id);
+
+        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
+        $dimensions = $dimensions ?: [];
+
+        $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
+        $standards = [];
+        if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+            foreach ($itemStandardsRaw as $idx => $std) {
+                if (is_array($std)) {
+                    $pKey = (string)($std['point'] ?? ($idx + 1));
+                    $standards[$pKey] = [
+                        'size' => $std['size'] ?? null,
+                        'tolerance' => $std['tolerance'] ?? null,
+                        'min' => $std['min'] ?? null,
+                        'max' => $std['max'] ?? null,
+                    ];
+                }
+            }
+        }
+        if (empty($standards)) {
+            $normalizedPn = strtoupper(str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $checksheet->item->part_number ?? '')));
+            $standards = $this->firstPieceService->getConsolidatedStandards()[$normalizedPn] ?? [];
+        }
+
+        $activeCavities = [];
+        $activePoints = [];
+
+        foreach ($dimensions as $cavKey => $points) {
+            if (!is_array($points)) {
+                continue;
+            }
+
+            $cavityHasData = false;
+            foreach ($points as $pKey => $pVal) {
+                $isFilled = false;
+                if (is_array($pVal)) {
+                    foreach ($pVal as $subV) {
+                        $s = trim((string)$subV);
+                        if ($s !== '' && $s !== '-') {
+                            $isFilled = true;
+                            break;
+                        }
+                    }
+                } else {
+                    $s = trim((string)$pVal);
+                    if ($s !== '' && $s !== '-') {
+                        $isFilled = true;
+                    }
+                }
+
+                if ($isFilled) {
+                    $cavityHasData = true;
+                    $activePoints[(string)$pKey] = true;
+                }
+            }
+
+            if ($cavityHasData) {
+                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                $cavId = $cavNum > 0 ? $cavNum : $cavKey;
+                $activeCavities[(string)$cavId] = $cavId;
+            }
+        }
+
+        $activeCavities = array_values($activeCavities);
+        usort($activeCavities, function ($a, $b) {
+            return (int)$a <=> (int)$b;
+        });
+
+        $activePoints = array_keys($activePoints);
+        usort($activePoints, function ($a, $b) {
+            return (int)$a <=> (int)$b;
+        });
+
+        // Fallback jika checksheet belum memiliki input data dimensi oleh inspector
+        if (empty($activePoints)) {
+            if (!empty($standards)) {
+                $activePoints = array_keys($standards);
+                usort($activePoints, function ($a, $b) {
+                    return (int)$a <=> (int)$b;
+                });
+            } else {
+                $activePoints = range(1, 5);
+            }
+        }
+
+        if (empty($activeCavities)) {
+            $actualMaxCavity = 0;
+            foreach ($dimensions as $cavKey => $pointsData) {
+                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                $actualMaxCavity = max($actualMaxCavity, $cavNum);
+            }
+            $activeCavities = $actualMaxCavity > 0 ? range(1, $actualMaxCavity) : [1];
+        }
+
+        $tools = \App\Models\MeasuringTool::where('plant_id', $checksheet->plant_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name')
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'checksheet' => [
+                'id' => $checksheet->id,
+                'part_name' => $checksheet->item->name ?? '-',
+                'part_number' => $checksheet->item->part_number ?? '-',
+                'code_machine' => $checksheet->code_machine ?? '-',
+                'date' => \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y'),
+                'shift' => $checksheet->shift ?? '-',
+                'inspector' => $checksheet->user->name ?? $checksheet->operator_initials ?? '-',
+                'inspector_tools' => $checksheet->alat_ukur_formatted ?? $checksheet->alat_ukur ?? '-',
+            ],
+            'standards' => $standards,
+            'active_points' => $activePoints,
+            'active_cavities' => $activeCavities,
+            'max_cavity' => count($activeCavities),
+            'existing_leader_check' => $checksheet->leader_dimension_check,
+            'existing_leader_tool' => $checksheet->leader_alat_ukur,
+            'tools_list' => $tools,
+        ]);
     }
 }

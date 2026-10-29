@@ -52,16 +52,29 @@ class InProcessChecksheet extends Model
         'rejection_remarks',
         'has_dimension',
         'is_dimension_ng',
+        'leader_dimension_check',
+        'leader_dimension_user_id',
+        'leader_dimension_at',
+        'leader_alat_ukur',
+        'approval_methods',
     ];
 
     protected $casts = [
         'defects' => 'array',
         'dimension_check' => 'array',
+        'leader_dimension_check' => 'array',
+        'leader_dimension_at' => 'datetime',
+        'approval_methods' => 'array',
         'part_weight' => 'array',
         'date' => 'date',
         'has_dimension' => 'boolean',
         'is_dimension_ng' => 'boolean',
     ];
+
+    public function leaderUser()
+    {
+        return $this->belongsTo(User::class, 'leader_dimension_user_id');
+    }
 
     public function item()
     {

@@ -902,6 +902,11 @@
                                          $uniqueTools = array_unique(array_values($filteredTools));
                                          $totalTools = count($filteredTools);
                                      @endphp
+                                     <div class="px-2 pt-1 pb-0 text-left">
+                                         <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                             Inspector: {{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}
+                                         </span>
+                                     </div>
                                      @if($totalTools > 0)
                                          @if(count($uniqueTools) === 1)
                                              <div class="px-2 pt-1 pb-1 text-left">
@@ -1078,6 +1083,56 @@
                                                      </tbody>
                                                  </table>
                                              </div>
+                                             @endif
+                                             @php
+                                                 $leaderDim = is_array($checksheet->leader_dimension_check) ? $checksheet->leader_dimension_check : json_decode($checksheet->leader_dimension_check, true);
+                                             @endphp
+                                             @if(!empty($leaderDim))
+                                                 <div style="border-top: 1px dashed #cbd5e1; margin: 6px 0 4px 0;"></div>
+                                                 <div class="px-2 pt-1 pb-0 text-left">
+                                                     <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                         {{ ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC' }}: {{ $checksheet->leaderUser->name ?? $checksheet->kashift_qc ?? '-' }}
+                                                     </span>
+                                                 </div>
+                                                 @if(!empty($checksheet->leader_alat_ukur))
+                                                     <div class="px-2 pb-1 text-left">
+                                                         <span class="text-dark font-weight-bold" style="font-size: 0.63rem;">
+                                                             Alat Ukur: {{ $checksheet->leader_alat_ukur }}
+                                                         </span>
+                                                     </div>
+                                                 @endif
+                                                 <div class="mt-1">
+                                                     <table class="table-dimension-minimalist">
+                                                         <thead class="text-center">
+                                                             <tr>
+                                                                 <td class="dim-header">Cav</td>
+                                                                 @foreach ($activePoints as $j)
+                                                                     <td class="dim-header">Ø{{ $j }}</td>
+                                                                 @endforeach
+                                                             </tr>
+                                                         </thead>
+                                                         <tbody>
+                                                             @foreach($leaderDim as $cKey => $cPoints)
+                                                                 @php
+                                                                     $cNum = is_numeric($cKey) ? $cKey : (int) filter_var($cKey, FILTER_SANITIZE_NUMBER_INT);
+                                                                 @endphp
+                                                                 <tr>
+                                                                     <td class="dim-data font-weight-bold">{{ $cNum ?: $cKey }}</td>
+                                                                     @foreach ($activePoints as $j)
+                                                                         @php
+                                                                             $valL = is_array($cPoints) ? ($cPoints[$j] ?? ($cPoints["$j"] ?? '-')) : '-';
+                                                                             $std = $standards[$j] ?? ($standards["$j"] ?? null);
+                                                                             $isNGL = $checkValueNG($valL, $std);
+                                                                         @endphp
+                                                                         <td class="dim-data {{ $isNGL ? 'text-danger font-weight-bold' : '' }}" @if($isNGL) style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
+                                                                             {{ ($valL !== '' && $valL !== null) ? $valL : '-' }}
+                                                                         </td>
+                                                                     @endforeach
+                                                                 </tr>
+                                                             @endforeach
+                                                         </tbody>
+                                                     </table>
+                                                 </div>
                                              @endif
                                         </div>           </div>
                                     @else
@@ -1989,6 +2044,15 @@
             routeBulkDestroy: "{{ route('in_process.bulk_destroy') }}",
             csrfToken: "{{ csrf_token() }}"
         };
+        window.leaderSamplingConfig = {
+            samplingDataUrl: "{{ route('in_process.leader_sampling_data', ['id' => ':id']) }}",
+            approveUrl: "{{ route('in_process.approve', ['id' => ':id', 'type' => 'kashift']) }}",
+            csrfToken: "{{ csrf_token() }}",
+            plant: "{{ $plantContext ?? 'karawang' }}",
+            roleLabel: "{{ ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC' }}"
+        };
     </script>
     <script src="{{ asset('js/checksheet/in-process-index.js') }}?v={{ file_exists(public_path('js/checksheet/in-process-index.js')) ? filemtime(public_path('js/checksheet/in-process-index.js')) : '1.0' }}"></script>
+    @include('partials.modal_leader_dimension_sampling')
+    <script src="{{ asset('js/checksheet/leader-sampling.js') }}?v={{ file_exists(public_path('js/checksheet/leader-sampling.js')) ? filemtime(public_path('js/checksheet/leader-sampling.js')) : '1.0' }}"></script>
 @endpush

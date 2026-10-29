@@ -89,43 +89,41 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
     
-    /* Minimalist Dimension Table Styles (matched to In-Process) */
+    /* Minimalist Dimension Table Styles (matched to In-Process/FPA) */
     #checksheetTable .table-dimension-minimalist,
     #checksheetTable td .table-dimension-minimalist,
     #checksheetTable table.table-dimension-minimalist {
-        border-collapse: collapse !important;
-        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        min-width: 100% !important;
+        width: max-content !important;
         margin: 0 !important;
         background: #ffffff !important;
-        border: none !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        table-layout: fixed !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
 
     #checksheetTable .table-dimension-minimalist td,
     #checksheetTable .table-dimension-minimalist th {
         background-color: transparent !important;
-        border: none !important;
-        padding: 2px !important;
-        text-align: center !important;
-    }
-
-    #checksheetTable .table-dimension-minimalist .dim-header {
-        background-color: #f8fafc !important;
-        color: #475569 !important;
-        font-weight: 700 !important;
-        text-transform: uppercase !important;
-        font-size: 0.55rem !important;
-        border-bottom: 1px solid #e2e8f0 !important;
-        line-height: 1 !important;
-    }
-
-    #checksheetTable .table-dimension-minimalist .dim-data {
-        font-size: 0.60rem !important;
+        border-right: 1px solid #f1f5f9 !important;
         border-bottom: 1px solid #f1f5f9 !important;
-        color: #1e293b !important;
-        line-height: 1.1 !important;
+        border-top: none !important;
+        border-left: none !important;
+        padding: 3px 6px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
     }
 
-    #checksheetTable .table-dimension-minimalist tr:last-child .dim-data {
+    #checksheetTable .table-dimension-minimalist th:last-child,
+    #checksheetTable .table-dimension-minimalist td:last-child {
+        border-right: none !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist tr:last-child td {
         border-bottom: none !important;
     }
 
@@ -143,16 +141,52 @@
         max-width: 36px !important;
     }
 
-    #checksheetTable .table-dimension-minimalist .text-std-header { 
-        color: #64748b !important; 
-        font-weight: 600 !important; 
-        background-color: #f1f5f9 !important; 
+    #checksheetTable .table-dimension-minimalist .dim-header {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        font-size: 0.55rem !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        line-height: 1 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .text-std-header {
         font-size: 0.52rem !important;
         white-space: normal !important;
         word-break: break-word !important;
         line-height: 1.0 !important;
         letter-spacing: -0.2px !important;
         padding: 2px 1px !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data {
+        font-size: 0.60rem !important;
+        color: #1e293b !important;
+        line-height: 1.1 !important;
+    }
+
+    #checksheetTable .text-danger,
+    #checksheetTable td.text-danger,
+    #checksheetTable small.text-danger,
+    #checksheetTable span.text-danger,
+    #checksheetTable div.text-danger {
+        color: #dc3545 !important;
+    }
+
+    #checksheetTable .text-success,
+    #checksheetTable td.text-success,
+    #checksheetTable small.text-success,
+    #checksheetTable span.text-success,
+    #checksheetTable div.text-success {
+        color: #198754 !important;
+    }
+
+    #checksheetTable .table-dimension-minimalist .dim-data.text-danger,
+    #checksheetTable .table-dimension-minimalist td.text-danger {
+        color: #dc3545 !important;
+        font-weight: bold !important;
+        background-color: #fef2f2 !important;
     }
 </style>
     @php
@@ -300,8 +334,8 @@
                 </table>
             </div>
             <form action="{{ route('incoming.sub_parts.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
-                style="gap: 8px; overflow-x: auto;" id="filterFormIncoming">
+                class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-2 border"
+                style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormIncoming">
                 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @if(request()->has('view_mode'))
@@ -329,24 +363,24 @@
                 <!-- Field: Tanggal Check -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal Check</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_date') }}" title="Dari Tanggal">
                         <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                     </div>
                 </div>
 
                 <!-- Field: Tanggal Datang -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal Datang</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                        <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_tgl_datang') }}" title="Dari Tanggal Datang">
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_tgl_datang" id="start_tgl_datang" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_tgl_datang') }}" title="Dari Tanggal Datang">
                         <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                        <input type="date" name="end_tgl_datang" id="end_tgl_datang" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_tgl_datang') }}" title="Sampai Tanggal Datang">
+                        <input type="date" name="end_tgl_datang" id="end_tgl_datang" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_tgl_datang') }}" title="Sampai Tanggal Datang">
                     </div>
                 </div>
 
@@ -366,9 +400,11 @@
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
                         .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
                         .custom-filter-wrapper { position: relative; top: 0px; }
+                        #filterFormIncoming label { white-space: nowrap; }
+                        #filterFormIncoming select.form-control-sm { height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
                     </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
                         <i class="fas fa-search fa-sm mr-1"></i> Filter
@@ -427,7 +463,7 @@
                             @if(request('view_mode') === 'verifikasi')
                                 <th rowspan="{{ $rs }}" class="align-middle">QR-Code</th>
                             @endif
-                            <th rowspan="{{ $rs }}" class="align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
+                            <th rowspan="{{ $rs }}" class="align-middle">Checked<br>(Tgl / Inisial)</th>
                             <th rowspan="{{ $rs }}" class="align-middle text-nowrap">Waktu Check<br>(Start - Finish / CT)</th>
                             <th rowspan="{{ $rs }}" class="align-middle">Sub-Part Name / Part No</th>
                             <th rowspan="{{ $rs }}" class="align-middle">Supplier</th>
@@ -504,7 +540,7 @@
                                     </td>
                                 @endif
                                 <td class="align-middle text-nowrap font-weight-bold" style="font-size: 0.70rem;">
-                                    {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift ?? '1' }} / {{ $cs->operator_initials ?? '-' }}
+                                    {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->operator_initials ?? '-' }}
                                 </td>
                                 @php
                                     $sec = (int) ($cs->cycle_time ?? 0);
@@ -523,7 +559,7 @@
                                 <td class="align-middle font-weight-bold">{{ (float) $cs->quantity }}</td>
                                 <td class="align-middle">{{ (float) $cs->sampling_size_pcs }}</td>
                                 {{-- Detail Cek Dimensi (Point Only) --}}
-                                <td class="align-middle p-0 text-nowrap" style="min-width: 170px; white-space: nowrap;">
+                                <td class="align-middle p-0 text-nowrap" style="text-align: center; vertical-align: middle; min-width: 200px;">
                                     @php
                                         $dimData = is_array($cs->check_dimensi) ? $cs->check_dimensi : json_decode($cs->check_dimensi, true);
                                         $dimData = $dimData ?: [];
@@ -560,6 +596,7 @@
                                                         'tolerance' => $std['tolerance'] ?? null,
                                                         'min' => $std['min'] ?? null,
                                                         'max' => $std['max'] ?? null,
+                                                        'alat_ukur' => $std['alat_ukur'] ?? null,
                                                     ];
                                                 }
                                             }
@@ -569,7 +606,6 @@
                                             $itemPartNumber = strtoupper($itemPartNumber);
                                             $standards = ($partDimensionStandards ?? [])[$itemPartNumber] ?? [];
                                         }
-
 
                                         // Active point indexes
                                         $activePoints = [];
@@ -585,11 +621,71 @@
                                         if (empty($activePoints) && $hasUserInputs) {
                                             $activePoints = range(1, count($flatPoints));
                                         }
+
+                                        $toolsArray = $cs->alat_ukur_array;
+                                        if (empty($toolsArray) && !empty($standards)) {
+                                            foreach ($standards as $ptKey => $stdVal) {
+                                                if (is_array($stdVal) && !empty($stdVal['alat_ukur'])) {
+                                                    $toolsArray[(string)$ptKey] = \App\Models\MeasuringTool::resolveDisplayName(trim((string)$stdVal['alat_ukur']), $cs->plant_id ?? ($cs->item->plant_id ?? null));
+                                                }
+                                            }
+                                        }
+                                        $filteredTools = [];
+                                        if (!empty($toolsArray)) {
+                                            foreach ($toolsArray as $ptKey => $toolVal) {
+                                                if ($toolVal !== null && trim((string)$toolVal) !== '') {
+                                                    $filteredTools[(int)$ptKey] = trim((string)$toolVal);
+                                                }
+                                            }
+                                            ksort($filteredTools);
+                                        }
+                                        $uniqueTools = array_unique(array_values($filteredTools));
+                                        $totalTools = count($filteredTools);
                                     @endphp
+                                    <div class="px-2 pt-1 pb-0 text-left">
+                                        <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                            Inspector: {{ $cs->operator_initials ?? '-' }}
+                                        </span>
+                                    </div>
+                                    @if($totalTools > 0)
+                                        @if(count($uniqueTools) === 1)
+                                            <div class="px-2 pt-1 pb-1 text-left">
+                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                    Alat Ukur: {{ reset($uniqueTools) }}
+                                                </span>
+                                            </div>
+                                        @else
+                                            @php
+                                                $previewParts = [];
+                                                $prevCount = 0;
+                                                foreach ($filteredTools as $pt => $tool) {
+                                                    $previewParts[] = "P{$pt}: {$tool}";
+                                                    if (++$prevCount >= 2) break;
+                                                }
+                                                $previewText = implode(', ', $previewParts);
+                                            @endphp
+                                            <div class="px-2 pt-1 pb-1 text-left d-flex align-items-center flex-wrap" style="gap: 4px;">
+                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                    Alat Ukur: {{ $previewText }}{{ $totalTools > 2 ? '...' : '' }}
+                                                </span>
+                                                @if($totalTools > 2)
+                                                    <a href="#" 
+                                                        class="btn-detail-alat-ukur font-weight-bold text-dark ml-1" 
+                                                        data-tools='@json($filteredTools)'
+                                                        data-item="{{ $cs->item->name ?? '-' }}"
+                                                        data-part-number="{{ $cs->item->part_number ?? '-' }}"
+                                                        title="Lihat seluruh alat ukur per point"
+                                                        style="font-size: 0.65rem; color: #1e293b !important; text-decoration: underline; cursor: pointer;">
+                                                        (Lihat Selengkapnya)
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endif
                                     @if($hasUserInputs && !empty($activePoints))
-                                        <div style="max-height: 200px; overflow-y: auto;">
+                                        <div class="p-1" style="max-height: 200px; overflow-x: auto; overflow-y: auto;">
                                             <table class="table-dimension-minimalist">
-                                                <thead class="text-center">
+                                                <thead class="text-center" style="font-size: 0.6rem;">
                                                     {{-- Baris Standar --}}
                                                     @php
                                                         $hasStdData = false;
@@ -602,9 +698,10 @@
                                                     @endphp
                                                     @if($hasStdData)
                                                         <tr>
+                                                            <td class="dim-header text-std-header">Std</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    {{ isset($standards[$j]) ? $standards[$j]['size'] : '-' }}
+                                                                    {{ isset($standards[$j]) ? ($standards[$j]['size'] ?? '-') : '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -622,9 +719,10 @@
                                                     @endphp
                                                     @if($hasMinData)
                                                         <tr>
+                                                            <td class="dim-header text-std-header">Min</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    Min: {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
+                                                                    {{ (isset($standards[$j]) && ($standards[$j]['min'] ?? null) !== null) ? $standards[$j]['min'] : '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -642,9 +740,10 @@
                                                     @endphp
                                                     @if($hasMaxData)
                                                         <tr>
+                                                            <td class="dim-header text-std-header">Max</td>
                                                             @foreach ($activePoints as $j)
                                                                 <td class="dim-header text-std-header">
-                                                                    Max: {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
+                                                                    {{ (isset($standards[$j]) && ($standards[$j]['max'] ?? null) !== null) ? $standards[$j]['max'] : '-' }}
                                                                 </td>
                                                             @endforeach
                                                         </tr>
@@ -662,6 +761,7 @@
                                                     @endphp
                                                     @if($hasTolData)
                                                          <tr>
+                                                             <td class="dim-header text-std-header">Tol</td>
                                                              @foreach ($activePoints as $j)
                                                                  @php
                                                                      $tolVal = isset($standards[$j]['tolerance']) ? trim((string)$standards[$j]['tolerance']) : '';
@@ -681,6 +781,7 @@
 
                                                     {{-- Baris Header Utama Point --}}
                                                     <tr>
+                                                        <td class="dim-header">Cav</td>
                                                         @foreach ($activePoints as $j)
                                                             <td class="dim-header">Ø{{ $j }}</td>
                                                         @endforeach
@@ -689,6 +790,7 @@
                                                 <tbody>
                                                     {{-- Pengukuran Aktual (Satu Baris per Sub-Part) --}}
                                                     <tr>
+                                                        <td class="dim-data font-weight-bold">1</td>
                                                         @foreach ($activePoints as $j)
                                                             @php
                                                                 $val = $flatPoints[$j] ?? '-';
@@ -713,8 +815,13 @@
                                                                 }
 
                                                                 $cleanValStr = trim((string)$val);
+                                                                $upperValStr = strtoupper($cleanValStr);
                                                                 $numStr = str_replace(',', '.', $cleanValStr);
-                                                                if ($std && $cleanValStr !== '-' && $cleanValStr !== '' && is_numeric($numStr)) {
+                                                                if ($upperValStr === 'NG') {
+                                                                    $isNG = true;
+                                                                } elseif ($upperValStr === 'OK') {
+                                                                    $isNG = false;
+                                                                } elseif ($std && $cleanValStr !== '-' && $cleanValStr !== '' && is_numeric($numStr)) {
                                                                     $fVal = (float)$numStr;
                                                                     $epsilon = 0.00001;
 
@@ -770,16 +877,119 @@
                                                                     }
                                                                 }
                                                             @endphp
-                                                            <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG) style="color: #dc3545 !important; font-weight: bold !important;" @endif>
-                                                                {{ $val }}
+                                                            <td class="dim-data {{ $isNG ? 'text-danger font-weight-bold' : '' }}" @if($isNG) style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
+                                                                {{ ($val !== '' && $val !== null) ? $val : '-' }}
                                                             </td>
                                                         @endforeach
                                                     </tr>
                                                 </tbody>
                                             </table>
                                         </div>
+                                        @php
+                                            $leaderDim = is_array($cs->leader_dimension_check ?? null) ? $cs->leader_dimension_check : json_decode($cs->leader_dimension_check ?? '', true);
+                                        @endphp
+                                        @if(!empty($leaderDim))
+                                            <div style="border-top: 1px dashed #cbd5e1; margin: 6px 0 4px 0;"></div>
+                                            <div class="px-2 pt-1 pb-0 text-left">
+                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                    {{ (in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt'])) ? 'Kepala Regu' : 'Kashift QC' }}: {{ $cs->leaderUser->name ?? $cs->kashift_qc ?? '-' }}
+                                                </span>
+                                            </div>
+                                            @if(!empty($cs->leader_alat_ukur))
+                                                <div class="px-2 pb-1 text-left">
+                                                    <span class="text-dark font-weight-bold" style="font-size: 0.63rem;">
+                                                        Alat Ukur: {{ $cs->leader_alat_ukur }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            <div class="p-1 mt-1" style="max-height: 200px; overflow-x: auto; overflow-y: auto;">
+                                                <table class="table-dimension-minimalist">
+                                                    <thead class="text-center">
+                                                        <tr>
+                                                            <td class="dim-header">Cav</td>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header">Ø{{ $j }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($leaderDim as $cKey => $cPoints)
+                                                            <tr>
+                                                                <td class="dim-data font-weight-bold">{{ is_numeric($cKey) ? $cKey : (str_replace('cav', '', strtolower($cKey)) ?: 1) }}</td>
+                                                                @foreach ($activePoints as $j)
+                                                                    @php
+                                                                        $valL = is_array($cPoints) ? ($cPoints[$j] ?? ($cPoints["$j"] ?? ($cPoints['p'.$j] ?? '-'))) : $cPoints;
+                                                                        $stdL = $standards[$j] ?? ($standards[(string)$j] ?? ($standards[$j - 1] ?? null));
+                                                                        $isNGL = false;
+                                                                        $cleanValLStr = trim((string)$valL);
+                                                                        $upperValLStr = strtoupper($cleanValLStr);
+                                                                        $numStrL = str_replace(',', '.', $cleanValLStr);
+                                                                        if ($upperValLStr === 'NG') {
+                                                                            $isNGL = true;
+                                                                        } elseif ($upperValLStr === 'OK') {
+                                                                            $isNGL = false;
+                                                                        } elseif ($cleanValLStr !== '-' && $cleanValLStr !== '' && is_numeric($numStrL) && $stdL) {
+                                                                            $fValL = (float)$numStrL;
+                                                                            $epsL = 0.00001;
+                                                                            if (($stdL['min'] ?? null) !== null && $stdL['min'] !== '' && $stdL['min'] !== '-') {
+                                                                                if ($fValL < ((float)str_replace(',', '.', (string)$stdL['min']) - $epsL)) {
+                                                                                    $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                            if (!$isNGL && ($stdL['max'] ?? null) !== null && $stdL['max'] !== '' && $stdL['max'] !== '-') {
+                                                                                if ($fValL > ((float)str_replace(',', '.', (string)$stdL['max']) + $epsL)) {
+                                                                                    $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                            if (!$isNGL && ($stdL['size'] ?? null) !== null && ($stdL['tolerance'] ?? null) !== null && $stdL['size'] !== '' && $stdL['tolerance'] !== '' && $stdL['size'] !== '-' && $stdL['tolerance'] !== '-') {
+                                                                                $szStrL = trim((string)$stdL['size']);
+                                                                                if (!str_starts_with($szStrL, '+') && !str_starts_with($szStrL, '-')) {
+                                                                                    $baseL = (float)str_replace(',', '.', $szStrL);
+                                                                                    $tolL = str_replace(['±', ' '], '', trim((string)$stdL['tolerance']));
+                                                                                    $lbL = $baseL; $ubL = $baseL;
+                                                                                    if (str_contains($tolL, '/')) {
+                                                                                        foreach (explode('/', $tolL) as $pL) {
+                                                                                            $pL = trim(str_replace(',', '.', $pL));
+                                                                                            $fvL = (float)$pL;
+                                                                                            if (str_starts_with($pL, '+') || $fvL > 0) $ubL = $baseL + abs($fvL);
+                                                                                            elseif (str_starts_with($pL, '-') || $fvL < 0) $lbL = $baseL - abs($fvL);
+                                                                                        }
+                                                                                    } elseif (str_starts_with($tolL, '+')) {
+                                                                                        $ubL = $baseL + (float)substr($tolL, 1);
+                                                                                    } elseif (str_starts_with($tolL, '-')) {
+                                                                                        $lbL = $baseL + (float)$tolL;
+                                                                                    } else {
+                                                                                        $tvL = (float)str_replace(',', '.', $tolL);
+                                                                                        $lbL = $baseL - $tvL; $ubL = $baseL + $tvL;
+                                                                                    }
+                                                                                    if ($fValL < ($lbL - $epsL) || $fValL > ($ubL + $epsL)) $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                            if (!$isNGL && ($stdL['size'] ?? null) !== null && $stdL['size'] !== '' && $stdL['size'] !== '-') {
+                                                                                $szStrL = trim((string)$stdL['size']);
+                                                                                if (str_starts_with($szStrL, '+') || str_starts_with($szStrL, '-')) {
+                                                                                    $opL = $szStrL[0];
+                                                                                    $boundL = (float)substr($szStrL, 1);
+                                                                                    if ($opL === '+' && $fValL < ($boundL - $epsL)) $isNGL = true;
+                                                                                    elseif ($opL === '-' && $fValL > ($boundL + $epsL)) $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    <td class="dim-data {{ $isNGL ? 'text-danger font-weight-bold' : '' }}" @if($isNGL) style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
+                                                                        {{ ($valL !== '' && $valL !== null) ? $valL : '-' }}
+                                                                    </td>
+                                                                @endforeach
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @endif
                                     @else
-                                        <span class="text-muted small">{{ is_string($cs->check_dimensi) && $cs->check_dimensi ? $cs->check_dimensi : '-' }}</span>
+                                        <div class="py-1 text-center">
+                                            <span class="text-dark font-weight-bold" style="font-size: 0.68rem;">{{ is_string($cs->check_dimensi) && $cs->check_dimensi && $cs->check_dimensi !== '[]' && $cs->check_dimensi !== '{}' ? $cs->check_dimensi : 'TIDAK ADA PENGUKURAN DIMENSI' }}</span>
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="align-middle">
@@ -1068,6 +1278,45 @@
         @endforeach
     @endforeach
 
+    <!-- Modal Detail Alat Ukur Per Point (Single Reusable Modal) -->
+    <div class="modal fade" id="modalDetailAlatUkur" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-sm" style="max-width: 440px;" role="document">
+            <div class="modal-content" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 0;">
+                <div class="modal-header bg-white py-3 px-4" style="border-radius: 12px 12px 0 0; border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0" style="font-size: 0.85rem;">
+                            <i class="fas fa-tools mr-2 text-dark"></i>Daftar Alat Ukur Per Point
+                        </h6>
+                        <small class="text-muted font-weight-bold" id="alatUkurModalSubtitle" style="font-size: 0.68rem;">-</small>
+                    </div>
+                    <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-3" style="background-color: #f8fafc; max-height: 60vh; overflow-y: auto;">
+                    <div class="table-responsive bg-white rounded shadow-sm" style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+                        <table class="table-sm mb-0 text-center" style="width: 100%; border-collapse: separate; border-spacing: 0; background: #ffffff;">
+                            <thead style="position: sticky; top: 0; z-index: 5;">
+                                <tr>
+                                    <th style="width: 35%; background-color: #f8fafc !important; color: #475569 !important; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; padding: 6px 8px; text-align: center; border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">Point</th>
+                                    <th style="width: 65%; background-color: #f8fafc !important; color: #475569 !important; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; padding: 6px 8px; text-align: left; border-bottom: 1px solid #cbd5e1;">Alat Ukur</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alatUkurModalTableBody">
+                                <!-- Populated dynamically via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white py-2 px-4" style="border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-light btn-sm border px-3" data-dismiss="modal" style="font-size: 0.72rem;">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
@@ -1261,7 +1510,19 @@
 @push('scripts')
     @php $bulkApproveRoute = route('incoming.sub_parts.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+    <script>
+        window.leaderSamplingConfig = {
+            samplingDataUrl: "{{ route('incoming.sub_parts.leader_sampling_data', ['id' => ':id']) }}",
+            approveUrl: "{{ route('incoming.sub_parts.approve', ['id' => ':id', 'type' => 'kashift']) }}",
+            csrfToken: "{{ csrf_token() }}",
+            plant: "{{ $plantCode ?? 'karawang' }}",
+            roleLabel: "{{ (in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt'])) ? 'Kepala Regu' : 'Kashift QC' }}"
+        };
+    </script>
+    @include('partials.modal_leader_dimension_sampling')
+    <script src="{{ asset('js/checksheet/leader-sampling.js') }}?v={{ file_exists(public_path('js/checksheet/leader-sampling.js')) ? filemtime(public_path('js/checksheet/leader-sampling.js')) : '1.0' }}"></script>
     <script src="{{ asset('js/vendor/item-search.js') }}"></script>
+    <script src="{{ asset('js/checksheet/incoming-sub-parts.js') }}?v={{ file_exists(public_path('js/checksheet/incoming-sub-parts.js')) ? filemtime(public_path('js/checksheet/incoming-sub-parts.js')) : '1.0' }}"></script>
     <script>
         $(document).ready(function() {
             if (typeof initItemSearch === 'function') {

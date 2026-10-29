@@ -209,7 +209,7 @@
                 @if($isVerification)
                     <th rowspan="2">QR-Code</th>
                 @endif
-                <th rowspan="2">Checked<br>(Tgl / Shift / Inisial)</th>
+                <th rowspan="2">Checked<br>(Tgl / Inisial)</th>
                 <th rowspan="2">Waktu Check<br>(Start - Finish / CT)</th>
                 <th rowspan="2">SUB-PART NAME / PART NO / SUPPLIER</th>
                 <th rowspan="2">Tanggal Datang</th>
@@ -265,7 +265,7 @@
                         <td style="font-size: 6.5px;">{{ $cs->qrcode ?? '-' }}</td>
                     @endif
                     <td class="text-nowrap">
-                        {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->shift ?? '1' }} / {{ $cs->operator_initials ?? '-' }}
+                        {{ date('d-m-Y', strtotime($cs->date)) }} / {{ $cs->operator_initials ?? '-' }}
                     </td>
                     <td class="text-nowrap">
                         {{ $cs->created_at ? $cs->created_at->copy()->subSeconds($sec)->format('H:i') : '-' }} - {{ $cs->created_at ? $cs->created_at->format('H:i') : '-' }} ({{ $ctStr }})

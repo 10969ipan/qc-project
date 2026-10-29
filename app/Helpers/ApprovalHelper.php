@@ -250,6 +250,11 @@ class ApprovalHelper
     {
         if (!$checksheet) return 'sampling';
 
+        // Checksheet with leader dimension check is always 'sampling'
+        if (!empty($checksheet->leader_dimension_check) && $checksheet->leader_dimension_check !== '[]' && $checksheet->leader_dimension_check !== '{}') {
+            return 'sampling';
+        }
+
         $roleNorm = strtolower(trim($role));
         $config = self::getSamplingQuotaRequirement($roleNorm);
         $quota = (int) ($config['quota'] ?? 1);
@@ -320,6 +325,31 @@ class ApprovalHelper
             $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
         } elseif (in_array($roleNorm, ['manager', 'manager_qc', 'manager_plating'])) {
             $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
+        }
+
+        $approverCol = null;
+        if (in_array($roleNorm, ['kashift', 'karu_qc', 'kashift_qc'])) {
+            $approverCol = 'kashift_qc';
+        } elseif ($roleNorm === 'kashift_plating') {
+            $approverCol = 'kashift_plating';
+        } elseif (in_array($roleNorm, ['supervisor', 'supervisor_qc'])) {
+            $approverCol = 'supervisor_qc';
+        } elseif ($roleNorm === 'supervisor_plating') {
+            $approverCol = 'supervisor_plating';
+        } elseif (in_array($roleNorm, ['asst_manager', 'asst_manager_qc'])) {
+            $approverCol = 'asst_manager_qc';
+        } elseif ($roleNorm === 'asst_manager_plating') {
+            $approverCol = 'asst_manager_plating';
+        } elseif (in_array($roleNorm, ['manager', 'manager_qc'])) {
+            $approverCol = 'manager_qc';
+        } elseif ($roleNorm === 'manager_plating') {
+            $approverCol = 'manager_plating';
+        }
+
+        if ($approverCol && static::tableHasColumn($table, $approverCol)) {
+            $query->whereNotNull($table . '.' . $approverCol)
+                  ->where($table . '.' . $approverCol, '!=', '')
+                  ->where($table . '.' . $approverCol, '!=', 'REJECTED');
         }
 
         if (static::tableHasColumn($table, 'approval_methods')) {

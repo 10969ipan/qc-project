@@ -92,9 +92,10 @@
     }
 
     .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
+    .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: calc(1.5em + 0.5rem + 2px); }
     .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
     .custom-filter-wrapper { position: relative; top: -1px; }
+    #filterForm input.form-control-sm, #filterForm select.form-control-sm { border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
 
     /* Force hide DataTables default elements (failsafe for caching) */
     .dataTables_length, 
@@ -240,8 +241,8 @@
     <div class="card-body">
         <!-- Filter Bar Minimalis (Style In-Process) -->
         <form action="{{ route('calibration.tools.index') }}" method="GET"
-            class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm"
-            style="gap: 8px; overflow-x: auto;" id="filterForm">
+            class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-3 border"
+            style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterForm">
 
             <input type="hidden" name="plant" value="{{ $plantCode }}">
 

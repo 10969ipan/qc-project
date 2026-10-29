@@ -167,6 +167,11 @@ class FpaIndex {
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", (e) => {
             const $form = $(e.currentTarget);
+            if ($form.data('submitting')) {
+                e.preventDefault();
+                return false;
+            }
+            $form.data('submitting', true);
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');
             const $modalErrors = $form.find("#modal-errors");
@@ -187,7 +192,18 @@ class FpaIndex {
                 method: $form.attr("method"),
                 data: $form.serialize(),
                 dataType: "json",
+                complete: () => {
+                    $form.removeData('submitting');
+                },
                 success: (response) => {
+                    if (response.requires_leader_sampling && response.checksheet_id) {
+                        $submitBtn.prop("disabled", false).html(originalBtnHtml);
+                        if (typeof window.openLeaderSamplingModal === 'function') {
+                            window.openLeaderSamplingModal(response.checksheet_id);
+                        }
+                        return;
+                    }
+
                     if (response.success) {
                         Swal.fire({
                             icon: "success",
@@ -200,20 +216,40 @@ class FpaIndex {
                                 response.redirect || window.location.href;
                         });
                     } else {
-                        this.showModalError(
-                            $modalErrors,
-                            response.message ||
-                            "Terjadi kesalahan saat menyimpan data.",
-                        );
                         $submitBtn
                             .prop("disabled", false)
                             .html(originalBtnHtml);
+                        const msg = response.message || "Terjadi kesalahan saat menyimpan data.";
+                        if ($modalErrors.length) {
+                            this.showModalError($modalErrors, msg);
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'Perhatian', text: msg });
+                        }
                     }
                 },
                 error: (xhr) => {
                     $submitBtn.prop("disabled", false).html(originalBtnHtml);
+                    if (xhr.status === 419) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sesi Kedaluwarsa',
+                            text: 'Sesi Anda telah berakhir atau token CSRF kedaluwarsa. Halaman akan dimuat ulang...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                        return;
+                    }
+                    if (xhr.responseJSON && xhr.responseJSON.requires_leader_sampling && xhr.responseJSON.checksheet_id) {
+                        if (typeof window.openLeaderSamplingModal === 'function') {
+                            window.openLeaderSamplingModal(xhr.responseJSON.checksheet_id);
+                        }
+                        return;
+                    }
+                    const errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.statusText ? ("Terjadi kesalahan sistem (" + xhr.status + ": " + xhr.statusText + ")") : "Terjadi kesalahan sistem.");
                     if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
+                        const errors = xhr.responseJSON ? xhr.responseJSON.errors : null;
                         let errorHtml =
                             '<div class="alert alert-danger"><ul class="mb-0">';
                         if (errors) {
@@ -232,18 +268,23 @@ class FpaIndex {
                                 }
                             });
                         } else {
-                            errorHtml += `<li>${xhr.responseJSON.message || "Validasi gagal."}</li>`;
+                            errorHtml += `<li>${errorMsg}</li>`;
                         }
                         errorHtml += "</ul></div>";
-                        this.showModalError($modalErrors, errorHtml);
+                        if ($modalErrors.length) {
+                            this.showModalError($modalErrors, errorHtml);
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: errorMsg });
+                        }
                     } else {
-                        const message = xhr.responseJSON
-                            ? xhr.responseJSON.message
-                            : "Terjadi kesalahan sistem.";
-                        this.showModalError(
-                            $modalErrors,
-                            `<div class="alert alert-danger">${message}</div>`,
-                        );
+                        if ($modalErrors.length) {
+                            this.showModalError(
+                                $modalErrors,
+                                `<div class="alert alert-danger">${errorMsg}</div>`,
+                            );
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: errorMsg });
+                        }
                     }
 
                     const $modalBody = $form.closest(".modal-body");

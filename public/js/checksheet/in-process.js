@@ -114,6 +114,11 @@ class InProcessIndex {
     initAjaxForms() {
         $(document).on("submit", ".ajax-form", function (e) {
             const $form = $(this);
+            if ($form.data('submitting')) {
+                e.preventDefault();
+                return false;
+            }
+            $form.data('submitting', true);
             e.preventDefault();
             const $submitBtn = $form.find('button[type="submit"]');
             const $modalErrors = $form.find("#modal-errors");
@@ -133,7 +138,18 @@ class InProcessIndex {
                 method: $form.attr("method"),
                 data: $form.serialize(),
                 dataType: "json",
+                complete: function () {
+                    $form.removeData('submitting');
+                },
                 success: function (response) {
+                    if (response.requires_leader_sampling && response.checksheet_id) {
+                        $submitBtn.prop("disabled", false).html($originalBtnHtml);
+                        if (typeof window.openLeaderSamplingModal === 'function') {
+                            window.openLeaderSamplingModal(response.checksheet_id);
+                        }
+                        return;
+                    }
+
                     if (response.success) {
                         Swal.fire({
                             icon: 'success',
@@ -145,62 +161,75 @@ class InProcessIndex {
                             window.location.href = response.redirect || window.location.href;
                         });
                     } else {
-                        $modalErrors
-                            .html(
-                                response.message ||
-                                "Terjadi kesalahan saat menyimpan data.",
-                            )
-                            .fadeIn();
                         $submitBtn
                             .prop("disabled", false)
                             .html($originalBtnHtml);
+                        const msg = response.message || "Terjadi kesalahan saat memproses data.";
+                        if ($modalErrors.length) {
+                            $modalErrors.html(msg).fadeIn();
+                        } else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Perhatian',
+                                text: msg
+                            });
+                        }
                     }
                 },
                 error: function (xhr) {
                     $submitBtn.prop("disabled", false).html($originalBtnHtml);
+                    if (xhr.status === 419) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sesi Kedaluwarsa',
+                            text: 'Sesi Anda telah berakhir atau token CSRF kedaluwarsa. Halaman akan dimuat ulang...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                        return;
+                    }
+                    if (xhr.responseJSON && xhr.responseJSON.requires_leader_sampling && xhr.responseJSON.checksheet_id) {
+                        if (typeof window.openLeaderSamplingModal === 'function') {
+                            window.openLeaderSamplingModal(xhr.responseJSON.checksheet_id);
+                        }
+                        return;
+                    }
+                    const errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.statusText ? ("Terjadi kesalahan sistem (" + xhr.status + ": " + xhr.statusText + ")") : "Terjadi kesalahan sistem.");
                     if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
-                        let errorHtml =
-                            '<div class="alert alert-danger"><ul class="mb-0">';
+                        const errors = xhr.responseJSON ? xhr.responseJSON.errors : null;
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
                         if (errors) {
                             $.each(errors, function (field, messages) {
                                 errorHtml += "<li>" + messages[0] + "</li>";
-                                const $input = $form.find(
-                                    '[name="' + field + '"]',
-                                );
+                                const $input = $form.find('[name="' + field + '"]');
                                 if ($input.length) {
                                     $input.addClass("is-invalid");
-                                    if (
-                                        !$input.next(".invalid-feedback").length
-                                    ) {
-                                        $input.after(
-                                            '<div class="invalid-feedback">' +
-                                            messages[0] +
-                                            "</div>",
-                                        );
+                                    if (!$input.next(".invalid-feedback").length) {
+                                        $input.after('<div class="invalid-feedback">' + messages[0] + "</div>");
                                     }
                                 }
                             });
                         } else {
-                            errorHtml +=
-                                "<li>" +
-                                (xhr.responseJSON.message ||
-                                    "Validasi gagal.") +
-                                "</li>";
+                            errorHtml += "<li>" + errorMsg + "</li>";
                         }
                         errorHtml += "</ul></div>";
-                        $modalErrors.html(errorHtml).fadeIn();
+                        if ($modalErrors.length) {
+                            $modalErrors.html(errorHtml).fadeIn();
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'Validasi Gagal', text: errorMsg });
+                        }
                     } else {
-                        const message = xhr.responseJSON
-                            ? xhr.responseJSON.message
-                            : "Terjadi kesalahan sistem.";
-                        $modalErrors
-                            .html(
-                                '<div class="alert alert-danger">' +
-                                message +
-                                "</div>",
-                            )
-                            .fadeIn();
+                        if ($modalErrors.length) {
+                            $modalErrors.html('<div class="alert alert-danger">' + errorMsg + "</div>").fadeIn();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: errorMsg
+                            });
+                        }
                     }
                     const $modalBody = $form.closest(".modal-body");
                     if ($modalBody.length)

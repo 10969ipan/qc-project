@@ -122,8 +122,8 @@ trait HasChecksheetApproval
                     $isAllowed = true;
                 }
 
-                // 2. Special case: Jakarta 'karu_qc' or 'supervisor' can approve 'kashift' level
-                // acting as 'Kepala Regu' for Sub Assy and In Process
+                // 2. Special case: Jakarta 'karu_qc' can approve 'kashift' level
+                // acting as 'Kepala Regu'
                 if (strtolower(optional($user->plant)->code) === 'jakarta' && $type === 'kashift') {
                     if ($user->role === 'karu_qc') {
                         $isAllowed = true;
@@ -212,6 +212,98 @@ trait HasChecksheetApproval
                 return redirect()->back()->with('error', 'Menunggu approval dari level sebelumnya.');
             }
 
+            // Check for Leader (Kashift Karawang / Karu Jakarta) mandatory daily sampling measurement
+            $isLeaderLevel = ($this->normalizeApprovalType($type) === 'kashift' || in_array($user->role, ['kashift', 'karu_qc']));
+            $isTargetModel = (
+                $checksheet instanceof \App\Models\InProcessChecksheet ||
+                $checksheet instanceof \App\Models\FirstPieceApproval ||
+                $checksheet instanceof \App\Models\IncomingSubPart ||
+                str_contains($modelClass, 'InProcessChecksheet') ||
+                str_contains($modelClass, 'FirstPieceApproval') ||
+                str_contains($modelClass, 'IncomingSubPart')
+            );
+
+            if ($isLeaderLevel && $isTargetModel) {
+                // Determine if this item has dimension parameters
+                $hasDimension = false;
+                if (isset($checksheet->has_dimension) && $checksheet->has_dimension) {
+                    $hasDimension = true;
+                } else {
+                    $rawDims = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
+                    if (is_array($rawDims) && !empty($rawDims)) {
+                        foreach ($rawDims as $cv) {
+                            if (is_array($cv)) {
+                                foreach ($cv as $p) {
+                                    if ($p !== null && $p !== '' && $p !== '-') {
+                                        $hasDimension = true;
+                                        break 2;
+                                    }
+                                }
+                            } elseif ($cv !== null && $cv !== '' && $cv !== '-') {
+                                $hasDimension = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$hasDimension) {
+                        $item = $checksheet->item ?? null;
+                        if ($item && !empty($item->dimension_standards)) {
+                            $stds = is_array($item->dimension_standards) ? $item->dimension_standards : json_decode($item->dimension_standards, true);
+                            if (is_array($stds) && !empty($stds)) {
+                                $hasDimension = true;
+                            }
+                        }
+                    }
+                }
+
+                // If the part has dimensions:
+                if ($hasDimension) {
+                    if ($request->filled('leader_dimension_check')) {
+                        $leaderDimData = $request->input('leader_dimension_check');
+                        if (is_string($leaderDimData)) {
+                            $leaderDimData = json_decode($leaderDimData, true) ?: [];
+                        }
+                        $checksheet->leader_dimension_check = $leaderDimData;
+                        $checksheet->leader_dimension_user_id = $user->id;
+                        $checksheet->leader_dimension_at = now();
+                        if ($request->filled('leader_alat_ukur')) {
+                            $checksheet->leader_alat_ukur = $request->input('leader_alat_ukur');
+                        }
+                    } else {
+                        // Check if this leader already performed a dimension check on this date & plant
+                        $dateCol = $this->getApprovalDateColumn();
+                        $rawDate = $checksheet->{$dateCol};
+                        $dateVal = $rawDate ? \Carbon\Carbon::parse($rawDate)->toDateString() : now()->toDateString();
+
+                        $alreadySampled = $modelClass::withoutGlobalScope('plant')
+                            ->where('plant_id', $checksheet->plant_id)
+                            ->whereDate($dateCol, $dateVal)
+                            ->whereNotNull('leader_dimension_check')
+                            ->where('leader_dimension_check', '!=', '[]')
+                            ->where('leader_dimension_check', '!=', '{}')
+                            ->where('leader_dimension_check', '!=', '')
+                            ->where('leader_dimension_user_id', $user->id)
+                            ->exists();
+
+                        if (!$alreadySampled) {
+                            $plantCode = strtolower(optional($checksheet->plant)->code ?? optional($user->plant)->code ?? 'karawang');
+                            $roleLabel = ($plantCode === 'jakarta') ? 'Kepala Regu' : 'Kashift QC';
+                            $samplingMsg = "Sebagai {$roleLabel}, Anda wajib melakukan minimal 1x sampling pengukuran dimensi pada approval pertama di hari ini.";
+
+                            if ($request->ajax() || $request->wantsJson()) {
+                                return response()->json([
+                                    'success' => false,
+                                    'requires_leader_sampling' => true,
+                                    'checksheet_id' => $checksheet->id,
+                                    'message' => $samplingMsg,
+                                ], 200);
+                            }
+                            return redirect()->back()->with('error', $samplingMsg);
+                        }
+                    }
+                }
+            }
+
             // Execute Approval (Mark as Sampling)
             $checksheet->$field = $user->name;
             $checksheet->$timeField = now();
@@ -245,6 +337,9 @@ trait HasChecksheetApproval
 
 
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Checksheet Approval Failed (ID: {$id}, Type: {$type}): " . $e->getMessage(), [
+                'exception' => $e
+            ]);
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,

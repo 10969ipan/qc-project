@@ -133,8 +133,9 @@ class InProcessChecksheetService extends BaseService
     {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = InProcessChecksheet::with([
-            'item:id,name,part_number,customer,standard_cycle_time,sap_code,dimension_standards',
+            'item:id,plant_id,name,part_number,customer,standard_cycle_time,sap_code,dimension_standards',
             'user:id,name,initials',
+            'leaderUser:id,name,initials',
         ])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         // Apply plant filter if present

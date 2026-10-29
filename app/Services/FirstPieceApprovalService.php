@@ -142,7 +142,11 @@ class FirstPieceApprovalService extends BaseService
         array $filters,
     ): \Illuminate\Database\Eloquent\Builder {
         /** @var \Illuminate\Database\Eloquent\Builder $query */
-        $query = FirstPieceApproval::with("item")
+        $query = FirstPieceApproval::with([
+            'item',
+            'user:id,name,initials',
+            'leaderUser:id,name,initials',
+        ])
             ->orderBy("date", "desc")
             ->orderBy("created_at", "desc");
 

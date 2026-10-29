@@ -161,12 +161,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/report/in-process-checksheets/import-measurements', [InProcessChecksheetController::class, 'importMeasureData'])->name('in_process.import_measurements');
         Route::post('/report/in-process-checksheets/hidden-items', [InProcessChecksheetController::class, 'updateHiddenItems'])->name('in_process.hidden_items');
         Route::get('/report/in-process-checksheets/hidden-items-data', [InProcessChecksheetController::class, 'getHiddenItemsModalData'])->name('in_process.hidden_items_data');
+        Route::get('/report/in-process-checksheets/{id}/leader-sampling-data', [InProcessChecksheetController::class, 'getLeaderSamplingData'])->name('in_process.leader_sampling_data');
 
         Route::get('/report/first-piece-approvals/export-pdf', [FirstPieceApprovalController::class, 'exportPdf'])->name('first_piece_approval.export_pdf');
         Route::get('/report/first-piece-approvals/daily-recap', [FirstPieceApprovalController::class, 'dailyRecap'])->name('first_piece_approval.daily_recap');
         Route::get('/report/first-piece-approvals/print', [FirstPieceApprovalController::class, 'printView'])->name('first_piece_approval.print');
         Route::get('/report/first-piece-approvals/export-measurements', [FirstPieceApprovalController::class, 'exportMeasureData'])->name('first_piece_approval.export_measurements');
         Route::post('/report/first-piece-approvals/import-measurements', [FirstPieceApprovalController::class, 'importMeasureData'])->name('first_piece_approval.import_measurements');
+        Route::get('/report/first-piece-approvals/{id}/leader-sampling-data', [FirstPieceApprovalController::class, 'getLeaderSamplingData'])->name('first_piece_approval.leader_sampling_data');
         Route::get('/report/checksheets/export', [SubAssyChecksheetController::class, 'export'])->name('admin.checksheets.export');
         Route::get('/report/checksheets/export-pdf', [SubAssyChecksheetController::class, 'exportPdf'])->name('admin.checksheets.export_pdf');
         Route::get('/report/checksheets/print', [SubAssyChecksheetController::class, 'printView'])->name('admin.checksheets.print');
@@ -207,6 +209,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/report/incoming-material/print', [IncomingMaterialController::class, 'printView'])->name('incoming.materials.print');
         Route::get('/report/incoming-sub-part/export-pdf', [IncomingSubPartController::class, 'exportPdf'])->name('incoming.sub_parts.export_pdf');
         Route::get('/report/incoming-sub-part/print', [IncomingSubPartController::class, 'printView'])->name('incoming.sub_parts.print');
+        Route::get('/report/incoming-sub-part/{id}/leader-sampling-data', [IncomingSubPartController::class, 'getLeaderSamplingData'])->name('incoming.sub_parts.leader_sampling_data');
         Route::get('/report/incoming-export/export-pdf', [IncomingExportController::class, 'exportPdf'])->name('incoming.exports.export_pdf');
         Route::get('/report/incoming-export/print', [IncomingExportController::class, 'printView'])->name('incoming.exports.print');
         Route::get('/report/incoming-chemical/export-pdf', [IncomingChemicalController::class, 'exportPdf'])->name('incoming.chemicals.export_pdf');

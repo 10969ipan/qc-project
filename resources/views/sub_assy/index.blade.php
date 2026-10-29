@@ -226,8 +226,8 @@
                 </table>
             </div>
             <form action="{{ route('admin.checksheets.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
-                style="gap: 8px; overflow-x: auto;" id="filterFormSubAssy">
+                class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-2 border"
+                style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormSubAssy">
 
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @if(request('view_mode'))
@@ -265,12 +265,12 @@
                 <!-- 3. Field: Tanggal (dari - sampai) -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700">Tanggal</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_date') }}" title="Dari Tanggal">
                         <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                     </div>
                 </div>
 
@@ -349,9 +349,11 @@
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
                         .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
                         .custom-filter-wrapper { position: relative; top: 0px; }
+                        #filterFormSubAssy label { white-space: nowrap; }
+                        #filterFormSubAssy select.form-control-sm { height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
                     </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
                         <i class="fas fa-search fa-sm mr-1"></i> Filter

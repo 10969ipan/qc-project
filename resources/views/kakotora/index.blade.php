@@ -192,20 +192,22 @@
 <div class="card shadow mb-4">
     <div class="card-body">
         <!-- Action Bar Sleek with Filters -->
-        <form action="{{ route('kakotora.index') }}" method="GET" class="d-flex flex-nowrap align-items-center bg-light p-2 rounded mb-3 shadow-sm" style="gap: 8px; overflow-x: auto; white-space: nowrap;" id="filterFormKakotora">
+        <form action="{{ route('kakotora.index') }}" method="GET"
+            class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-3 border"
+            style="gap: 8px; overflow-x: auto; white-space: nowrap; border-color: #e2e8f0 !important;" id="filterFormKakotora">
             <input type="hidden" name="plant" value="{{ $plant }}">
             
-            <!-- Unified Search: Part Name, Part No, Model -->
-            <div class="d-flex align-items-center mr-2">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
-                    placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 200px; font-size: 0.75rem;">
+            <!-- 1. Field: Cari (Part Name, Part No, Model) -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Cari</label>
+                <input type="text" name="search" class="form-control form-control-sm no-autoupper" 
+                    placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 220px;">
             </div>
 
-            <!-- Filter Claim -->
-            <div class="d-flex align-items-center mr-2">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Claim:</label>
-                <select name="category_claim" class="form-control form-control-sm shadow-sm border-0" style="width: 130px; font-size: 0.75rem;">
+            <!-- 2. Field: Claim -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Claim</label>
+                <select name="category_claim" class="form-control form-control-sm" style="width: 140px;">
                     <option value="">Semua Claim</option>
                     @foreach($claims as $c)
                         <option value="{{ $c }}" {{ request('category_claim') == $c ? 'selected' : '' }}>{{ $c }}</option>
@@ -213,10 +215,10 @@
                 </select>
             </div>
 
-            <!-- Filter Status -->
-            <div class="d-flex align-items-center mr-2">
-                <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Status:</label>
-                <select name="status" class="form-control form-control-sm shadow-sm border-0" style="width: 120px; font-size: 0.75rem;">
+            <!-- 3. Field: Status -->
+            <div class="d-flex flex-column align-items-start">
+                <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Status</label>
+                <select name="status" class="form-control form-control-sm" style="width: 130px;">
                     <option value="">Semua Status</option>
                     @foreach($statuses as $s)
                         <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>{{ $s }}</option>
@@ -224,20 +226,28 @@
                 </select>
             </div>
 
-            <div class="ml-auto d-flex flex-nowrap" style="gap: 5px;">
-                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" id="btnFilterSearch" title="Filter Data">
-                    <i class="fas fa-search fa-sm"></i>
+            <!-- Tombol Aksi Kanan (Cetak & Tambah Data) -->
+            <div class="ml-auto d-flex align-items-center" style="gap: 5px; align-self: flex-end;">
+                <button type="submit" formaction="{{ route('kakotora.print') }}" formtarget="_blank" class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Print Preview" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                    <i class="fas fa-print fa-sm mr-1"></i> Cetak
                 </button>
-                <button type="button" class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" id="btnResetFilter" title="Reset Filter">
-                    <i class="fas fa-undo fa-sm"></i>
-                </button>
-                <button type="submit" formaction="{{ route('kakotora.print') }}" formtarget="_blank" class="btn btn-sm shadow-sm rounded-pill px-3 no-loader" title="Print Preview" style="background-color: #17a589; color: white;">
-                    <i class="fas fa-print fa-sm"></i>
-                </button>
-                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal" data-target="#modalTambahKakotora">
-                    <i class="fas fa-plus fa-sm mr-1"></i> <span class="font-weight-bold small">Tambah Data</span>
+                <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalTambahKakotora">
+                    <i class="fas fa-plus fa-sm mr-1"></i> Tambah Data
                 </button>
             </div>
+
+            <style>
+                #filterFormKakotora label { white-space: nowrap; }
+                #filterFormKakotora input.form-control-sm,
+                #filterFormKakotora select.form-control-sm {
+                    height: 26px !important;
+                    font-size: 0.68rem !important;
+                    padding: 2px 8px !important;
+                    border: 1px solid #cbd5e1 !important;
+                    border-radius: 4px !important;
+                    box-shadow: none !important;
+                }
+            </style>
         </form>
 
         <!-- Loading Spinner -->
@@ -1517,7 +1527,7 @@
             });
 
             // Prevent form submit on Enter key press on search input
-            $('input[name="search"]').on('keypress', function (e) {
+            $('#filterFormKakotora input[name="search"]').on('keypress', function (e) {
                 if (e.which == 13) {
                     e.preventDefault();
                 }
@@ -1533,7 +1543,7 @@
 
             // Instant smart search with Debounce (300ms delay to prevent lag on fast typing)
             let searchDebounceTimer;
-            $('input[name="search"]').on('keyup input', function () {
+            $('#filterFormKakotora input[name="search"]').on('keyup input', function () {
                 let $inputEl = $(this);
                 clearTimeout(searchDebounceTimer);
                 searchDebounceTimer = setTimeout(function () {
@@ -1547,37 +1557,27 @@
             });
 
             // Instant claim filter (Column index 8)
-            $('select[name="category_claim"]').on('change', function () {
+            $('#filterFormKakotora select[name="category_claim"]').on('change', function () {
                 var val = $(this).val();
                 table.column(8 + colOffset).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
             });
 
             // Instant status filter (Column index 23)
-            $('select[name="status"]').on('change', function () {
+            $('#filterFormKakotora select[name="status"]').on('change', function () {
                 var val = $(this).val();
                 table.column(23 + colOffset).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
             });
 
-            // Reset filters client-side
-            $('#btnResetFilter').on('click', function () {
-                clearTimeout(searchDebounceTimer);
-                $('input[name="search"]').val('');
-                $('select[name="category_claim"]').val('');
-                $('select[name="status"]').val('');
-                
-                table.search('').columns().search('').draw();
-            });
-
             // Run initial filters if preset
-            var initialSearch = $('input[name="search"]').val();
+            var initialSearch = $('#filterFormKakotora input[name="search"]').val();
             if (initialSearch) {
                 table.search(initialSearch);
             }
-            var initialClaim = $('select[name="category_claim"]').val();
+            var initialClaim = $('#filterFormKakotora select[name="category_claim"]').val();
             if (initialClaim) {
                 table.column(8 + colOffset).search('^' + $.fn.dataTable.util.escapeRegex(initialClaim) + '$', true, false);
             }
-            var initialStatus = $('select[name="status"]').val();
+            var initialStatus = $('#filterFormKakotora select[name="status"]').val();
             if (initialStatus) {
                 table.column(23 + colOffset).search('^' + $.fn.dataTable.util.escapeRegex(initialStatus) + '$', true, false);
             }

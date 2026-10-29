@@ -89,6 +89,8 @@ class IncomingSubPartController extends Controller
 
         $partDimensionStandards = $this->getSubPartDimensionStandards($items);
 
+        $plantCode = Plant::resolveCode($plantFilter) ?? (optional(auth()->user()->plant)->code ?? 'karawang');
+
         $approvalOrder = ['kashift', 'supervisor', 'asst_manager', 'manager'];
         $docHeader = \App\Models\GeneralSetting::getDocHeader('incoming_sub_parts', $plantFilter, [
             'no_dokumen' => 'QC-KRW-F-0212',
@@ -97,7 +99,7 @@ class IncomingSubPartController extends Controller
             'halaman'    => '- / -'
         ]);
 
-        return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards', 'approvalOrder', 'docHeader'));
+        return view('incoming.sub_parts.index', compact('checksheets', 'items', 'partDimensionStandards', 'approvalOrder', 'docHeader', 'plantCode'));
     }
 
     public function create(Request $request)
@@ -323,5 +325,137 @@ class IncomingSubPartController extends Controller
         }
 
         return view('incoming.sub_parts.print', compact('checksheets', 'plantName', 'startDate', 'endDate', 'plantCode', 'approvalOrder', 'docHeader', 'selectedItem'));
+    }
+
+    /**
+     * Get data for leader sampling dimension check modal
+     */
+    public function getLeaderSamplingData($id)
+    {
+        $checksheet = IncomingSubPart::with(['item', 'leaderUser'])->findOrFail($id);
+
+        $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
+        if (!is_array($dimensions)) {
+            $dimensions = is_array($checksheet->check_dimensi) ? $checksheet->check_dimensi : json_decode($checksheet->check_dimensi, true);
+        }
+        $dimensions = $dimensions ?: [];
+
+        // Normalisasi format: jika array 1D (key berupa point atau numeric, value adalah nilai pengukuran),
+        // bungkus menjadi sample baris 1 (cavity 1)
+        $isNested = false;
+        foreach ($dimensions as $item) {
+            if (is_array($item)) {
+                $isNested = true;
+                break;
+            }
+        }
+        if (!$isNested && !empty($dimensions)) {
+            $dimensions = [1 => $dimensions];
+        }
+
+        $itemStandardsRaw = $checksheet->item->dimension_standards ?? null;
+        $standards = [];
+        if (!empty($itemStandardsRaw) && is_array($itemStandardsRaw)) {
+            foreach ($itemStandardsRaw as $idx => $std) {
+                if (is_array($std)) {
+                    $pKey = (string)($std['point'] ?? ($idx + 1));
+                    $standards[$pKey] = [
+                        'size' => $std['size'] ?? null,
+                        'tolerance' => $std['tolerance'] ?? null,
+                        'min' => $std['min'] ?? null,
+                        'max' => $std['max'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        $activeCavities = [];
+        $activePoints = [];
+
+        foreach ($dimensions as $cavKey => $points) {
+            if (!is_array($points)) {
+                continue;
+            }
+
+            $cavityHasData = false;
+            foreach ($points as $pKey => $pVal) {
+                $isFilled = false;
+                if (is_array($pVal)) {
+                    foreach ($pVal as $subV) {
+                        $s = trim((string)$subV);
+                        if ($s !== '' && $s !== '-') {
+                            $isFilled = true;
+                            break;
+                        }
+                    }
+                } else {
+                    $s = trim((string)$pVal);
+                    if ($s !== '' && $s !== '-') {
+                        $isFilled = true;
+                    }
+                }
+
+                if ($isFilled) {
+                    $cavityHasData = true;
+                    $cleanPointKey = is_numeric($pKey) ? (string)$pKey : (str_replace('p', '', strtolower($pKey)) ?: (string)$pKey);
+                    $activePoints[$cleanPointKey] = true;
+                }
+            }
+
+            if ($cavityHasData) {
+                $cavNum = (int) filter_var($cavKey, FILTER_SANITIZE_NUMBER_INT);
+                $cavId = $cavNum > 0 ? $cavNum : 1;
+                $activeCavities[(string)$cavId] = $cavId;
+            }
+        }
+
+        $activeCavities = array_values($activeCavities);
+        if (empty($activeCavities)) {
+            $activeCavities = [1];
+        }
+
+        $activePoints = array_keys($activePoints);
+        usort($activePoints, function ($a, $b) {
+            return (int)$a <=> (int)$b;
+        });
+
+        // Fallback jika checksheet belum memiliki input data dimensi oleh inspector
+        if (empty($activePoints)) {
+            if (!empty($standards)) {
+                $activePoints = array_keys($standards);
+                usort($activePoints, function ($a, $b) {
+                    return (int)$a <=> (int)$b;
+                });
+            } else {
+                $activePoints = range(1, 5);
+            }
+        }
+
+        $tools = \App\Models\MeasuringTool::where('plant_id', $checksheet->plant_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name')
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'checksheet' => [
+                'id' => $checksheet->id,
+                'part_name' => $checksheet->item->name ?? '-',
+                'part_number' => $checksheet->item->part_number ?? '-',
+                'code_machine' => $checksheet->lot_batch_number ?? '-',
+                'date' => \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y'),
+                'shift' => '-',
+                'inspector' => $checksheet->operator_initials ?? '-',
+                'inspector_tools' => $checksheet->alat_ukur_formatted ?? $checksheet->alat_ukur ?? '-',
+            ],
+            'standards' => $standards,
+            'active_points' => $activePoints,
+            'active_cavities' => $activeCavities,
+            'max_cavity' => count($activeCavities),
+            'existing_leader_check' => $checksheet->leader_dimension_check,
+            'existing_leader_tool' => $checksheet->leader_alat_ukur,
+            'tools_list' => $tools,
+        ]);
     }
 }

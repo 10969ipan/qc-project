@@ -44,14 +44,32 @@ class FirstPieceApproval extends Model
         'manager_approved_at',
         'cycle_time',
         'rejection_remarks',
+        'leader_dimension_check',
+        'leader_dimension_user_id',
+        'leader_dimension_at',
+        'leader_alat_ukur',
+        'approval_methods',
     ];
 
     protected $casts = [
         'defects' => 'array',
         'dimension_check' => 'array',
+        'leader_dimension_check' => 'array',
+        'leader_dimension_at' => 'datetime',
+        'approval_methods' => 'array',
         'part_weight' => 'array',
         'date' => 'date',
     ];
+
+    public function leaderUser()
+    {
+        return $this->belongsTo(User::class, 'leader_dimension_user_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function setCategoryAttribute($value)
     {

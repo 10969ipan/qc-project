@@ -284,11 +284,6 @@ class ItemService extends BaseService
                     'old' => is_array($item->defects) ? implode(', ', $item->defects) : '',
                     'new' => is_array($defects) ? implode(', ', $defects) : '',
                 ],
-                'dimension_standards' => [
-                    'label' => 'Standar Dimensi In-Process',
-                    'old' => !empty($item->dimension_standards) ? count($item->dimension_standards) . ' point dimensi' : 'Tidak Ada Data',
-                    'new' => !empty($dimensionStandards) ? count($dimensionStandards) . ' point dimensi' : 'Tidak Ada Data',
-                ],
             ];
 
             // Category change
@@ -318,6 +313,41 @@ class ItemService extends BaseService
                         'after' => $afterText,
                     ];
                 }
+            }
+
+            // Track dimension standards changes (cek isi detail nilai & toleransi, bukan hanya jumlah point)
+            $oldDimJson = !empty($item->dimension_standards) ? json_encode($item->dimension_standards) : '';
+            $newDimJson = !empty($dimensionStandards) ? json_encode($dimensionStandards) : '';
+            if ($oldDimJson !== $newDimJson) {
+                $oldCount = !empty($item->dimension_standards) ? count($item->dimension_standards) : 0;
+                $newCount = !empty($dimensionStandards) ? count($dimensionStandards) : 0;
+                $beforeDimText = $oldCount > 0 ? "{$oldCount} point dimensi" : 'Tidak Ada Data';
+                $afterDimText = $newCount > 0 ? ($oldCount === $newCount ? "{$newCount} point dimensi (nilai diubah)" : "{$newCount} point dimensi") : 'Tidak Ada Data';
+                $diffChanges['dimension_standards'] = [
+                    'label' => 'Standar Dimensi In-Process',
+                    'before' => $beforeDimText,
+                    'after' => $afterDimText,
+                ];
+            }
+
+            // Track standard file changes
+            $oldFilesCount = count($item->file_paths ?? ($item->file_path ? [$item->file_path] : []));
+            $newFilesCount = count($filePaths);
+            if ($oldFilesCount !== $newFilesCount || (isset($data['files']) && !empty($data['files']))) {
+                $diffChanges['files'] = [
+                    'label' => 'Dokumen Standar',
+                    'before' => $oldFilesCount > 0 ? "{$oldFilesCount} file terlampir" : 'Tidak Ada File',
+                    'after' => $newFilesCount > 0 ? "{$newFilesCount} file terlampir" : 'Tidak Ada File',
+                ];
+            }
+
+            // Track similar part file change
+            if ($item->similar_part_file_path !== $data['similar_part_file_path']) {
+                $diffChanges['similar_part_file'] = [
+                    'label' => 'Dokumen Standar 2',
+                    'before' => $item->similar_part_file_path ? basename($item->similar_part_file_path) : 'Tidak Ada File',
+                    'after' => $data['similar_part_file_path'] ? basename($data['similar_part_file_path']) : 'Tidak Ada File',
+                ];
             }
 
             $updaterRole = auth()->user()->role ?? '';

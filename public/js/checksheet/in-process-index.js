@@ -214,7 +214,8 @@ $(document).ready(function () {
                             }
                         },
                         error: function(xhr) {
-                            Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+                            var errMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.statusText ? ('Terjadi kesalahan sistem (' + xhr.status + ': ' + xhr.statusText + ')') : 'Terjadi kesalahan sistem.');
+                            Swal.fire('Error!', errMsg, 'error');
                         }
                     });
                 }

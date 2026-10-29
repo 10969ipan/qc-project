@@ -339,8 +339,8 @@
                 </table>
             </div>
             <form action="{{ route('first_piece_approval.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-2 shadow-sm"
-                style="gap: 8px; overflow-x: auto;" id="filterFormFpa">
+                class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-2 border"
+                style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormFpa">
 
                 {{-- Preserve Context Parameters --}}
                 <input type="hidden" name="plant" value="{{ request('plant') }}">
@@ -376,12 +376,12 @@
                 <!-- 3. Field: Tanggal (dari - sampai) -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_date') }}" title="Dari Tanggal">
                         <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 125px; font-size: 0.70rem; height: 26px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                     </div>
                 </div>
 
@@ -442,9 +442,11 @@
                 <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: 26px !important; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
                         .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
                         .custom-filter-wrapper { position: relative; top: 0px; }
+                        #filterFormFpa label { white-space: nowrap; }
+                        #filterFormFpa select.form-control-sm { height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
                     </style>
                     <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
                         <i class="fas fa-search fa-sm mr-1"></i> Filter
@@ -639,6 +641,11 @@
                                         $uniqueTools = array_unique(array_values($filteredTools));
                                         $totalTools = count($filteredTools);
                                     @endphp
+                                    <div class="px-2 pt-1 pb-0 text-left">
+                                        <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                            Inspector: {{ $checksheet->user->name ?? $checksheet->operator_initials ?? '-' }}
+                                        </span>
+                                    </div>
                                     @if($totalTools > 0)
                                         @if(count($uniqueTools) === 1)
                                             <div class="px-2 pt-1 pb-1 text-left">
@@ -897,6 +904,112 @@
                                                 </tbody>
                                             </table>
                                         </div>
+                                        @php
+                                            $leaderDim = is_array($checksheet->leader_dimension_check) ? $checksheet->leader_dimension_check : json_decode($checksheet->leader_dimension_check, true);
+                                        @endphp
+                                        @if(!empty($leaderDim))
+                                            <div style="border-top: 1px dashed #cbd5e1; margin: 6px 0 4px 0;"></div>
+                                            <div class="px-2 pt-1 pb-0 text-left">
+                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                    {{ ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC' }}: {{ $checksheet->leaderUser->name ?? $checksheet->kashift_qc ?? '-' }}
+                                                </span>
+                                            </div>
+                                            @if(!empty($checksheet->leader_alat_ukur))
+                                                <div class="px-2 pb-1 text-left">
+                                                    <span class="text-dark font-weight-bold" style="font-size: 0.63rem;">
+                                                        Alat Ukur: {{ $checksheet->leader_alat_ukur }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            <div class="mt-1">
+                                                <table class="table-dimension-minimalist">
+                                                    <thead class="text-center">
+                                                        <tr>
+                                                            <td class="dim-header">Cav</td>
+                                                            @foreach ($activePoints as $j)
+                                                                <td class="dim-header">Ø{{ $j }}</td>
+                                                            @endforeach
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($leaderDim as $cKey => $cPoints)
+                                                            @php
+                                                                $cNum = is_numeric($cKey) ? $cKey : (int) filter_var($cKey, FILTER_SANITIZE_NUMBER_INT);
+                                                            @endphp
+                                                            <tr>
+                                                                <td class="dim-data font-weight-bold">{{ $cNum ?: $cKey }}</td>
+                                                                @foreach ($activePoints as $j)
+                                                                    @php
+                                                                        $valL = is_array($cPoints) ? ($cPoints[$j] ?? ($cPoints["$j"] ?? '-')) : '-';
+                                                                        $std = $standards[$j] ?? ($standards["$j"] ?? null);
+                                                                        $isNGL = false;
+                                                                        $cleanValLStr = trim((string)$valL);
+                                                                        $upperValL = strtoupper($cleanValLStr);
+                                                                        if ($upperValL === 'NG') {
+                                                                            $isNGL = true;
+                                                                        } elseif ($upperValL === 'OK') {
+                                                                            $isNGL = false;
+                                                                        } elseif ($valL !== '-' && $cleanValLStr !== '' && is_numeric($cleanValLStr) && $std) {
+                                                                            $fV = (float)$cleanValLStr;
+                                                                            $epsL = 0.00001;
+                                                                            $normStdL = function($v) {
+                                                                                if ($v === null || $v === '') return '';
+                                                                                $s = str_replace(',', '.', (string)$v);
+                                                                                $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
+                                                                                $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
+                                                                                return trim($s);
+                                                                            };
+                                                                            if (($std['min'] ?? null) !== null && $std['min'] !== '') {
+                                                                                if ($fV < ((float)$normStdL($std['min']) - $epsL)) $isNGL = true;
+                                                                            }
+                                                                            if (!$isNGL && ($std['max'] ?? null) !== null && $std['max'] !== '') {
+                                                                                if ($fV > ((float)$normStdL($std['max']) + $epsL)) $isNGL = true;
+                                                                            }
+                                                                            if (!$isNGL && ($std['size'] ?? null) !== null && ($std['tolerance'] ?? null) !== null && $std['size'] !== '' && $std['tolerance'] !== '') {
+                                                                                $szStrL = $normStdL($std['size']);
+                                                                                if (!str_starts_with($szStrL, '+') && !str_starts_with($szStrL, '-')) {
+                                                                                    $baseL = (float)$szStrL;
+                                                                                    $tolL = $normStdL($std['tolerance']);
+                                                                                    $lbL = $baseL; $ubL = $baseL;
+                                                                                    if (str_contains($tolL, '/')) {
+                                                                                        foreach (explode('/', $tolL) as $pL) {
+                                                                                            $pL = $normStdL($pL);
+                                                                                            $fvL = (float)$pL;
+                                                                                            if (str_starts_with($pL, '+') || $fvL > 0) $ubL = $baseL + abs($fvL);
+                                                                                            elseif (str_starts_with($pL, '-') || $fvL < 0) $lbL = $baseL - abs($fvL);
+                                                                                        }
+                                                                                    } elseif (str_starts_with($tolL, '+')) {
+                                                                                        $ubL = $baseL + (float)substr($tolL, 1);
+                                                                                    } elseif (str_starts_with($tolL, '-')) {
+                                                                                        $lbL = $baseL + (float)$tolL;
+                                                                                    } else {
+                                                                                        $tvL = (float)$tolL;
+                                                                                        $lbL = $baseL - $tvL; $ubL = $baseL + $tvL;
+                                                                                    }
+                                                                                    if ($fV < ($lbL - $epsL) || $fV > ($ubL + $epsL)) $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                            if (!$isNGL && ($std['size'] ?? null) !== null && $std['size'] !== '') {
+                                                                                $szStrL = $normStdL($std['size']);
+                                                                                if (str_starts_with($szStrL, '+') || str_starts_with($szStrL, '-')) {
+                                                                                    $opL = $szStrL[0];
+                                                                                    $boundL = (float)substr($szStrL, 1);
+                                                                                    if ($opL === '+' && $fV < ($boundL - $epsL)) $isNGL = true;
+                                                                                    elseif ($opL === '-' && $fV > ($boundL + $epsL)) $isNGL = true;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    <td class="dim-data {{ $isNGL ? 'text-danger font-weight-bold' : '' }}" @if($isNGL) style="color: #dc3545 !important; font-weight: bold !important; background-color: #fef2f2 !important;" @endif>
+                                                                        {{ ($valL !== '' && $valL !== null) ? $valL : '-' }}
+                                                                    </td>
+                                                                @endforeach
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @endif
                                     @else
                                         <span class="text-dark font-weight-bold" style="font-size: 0.8rem;">TIDAK ADA PENGUKURAN DIMENSI</span>
                                     @endif
@@ -1773,6 +1886,17 @@
 
     @php $bulkApproveRoute = route('first_piece_approval.bulk_approve'); @endphp
     @include('partials.bulk_approve_script')
+    <script>
+        window.leaderSamplingConfig = {
+            samplingDataUrl: "{{ route('first_piece_approval.leader_sampling_data', ['id' => ':id']) }}",
+            approveUrl: "{{ route('first_piece_approval.approve', ['id' => ':id', 'type' => 'kashift']) }}",
+            csrfToken: "{{ csrf_token() }}",
+            plant: "{{ $plantContext ?? 'karawang' }}",
+            roleLabel: "{{ ($plantContext === 'jakarta') ? 'Kepala Regu' : 'Kashift QC' }}"
+        };
+    </script>
+    @include('partials.modal_leader_dimension_sampling')
+    <script src="{{ asset('js/checksheet/leader-sampling.js') }}?v={{ file_exists(public_path('js/checksheet/leader-sampling.js')) ? filemtime(public_path('js/checksheet/leader-sampling.js')) : '1.0' }}"></script>
 @endpush
 
 

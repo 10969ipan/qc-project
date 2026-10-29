@@ -24,7 +24,7 @@ class IncomingSubPartService extends BaseService
 
     public function buildFilteredQuery(array $filters)
     {
-        $query = IncomingSubPart::with(['item', 'plant'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
+        $query = IncomingSubPart::with(['item', 'plant', 'leaderUser:id,name,initials'])->orderBy('date', 'desc')->orderBy('created_at', 'desc');
 
         if (isset($filters['plant'])) {
             $query->where($query->getModel()->getTable() . '.plant_id', $this->resolvePlantId($filters['plant']));
@@ -54,7 +54,7 @@ class IncomingSubPartService extends BaseService
         }
 
         $table = $query->getModel()->getTable();
-        if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'qrcode')) {
+        if (\App\Helpers\ApprovalHelper::tableHasColumn($table, 'qrcode')) {
             if (!empty($filters['view_mode']) && $filters['view_mode'] === 'verifikasi') {
                 $query->where(function ($q) {
                     $q->whereNotNull('qrcode')

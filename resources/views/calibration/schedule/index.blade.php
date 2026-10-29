@@ -241,16 +241,16 @@
             <div class="card-body">
                 <!-- Filter Bar Minimalis -->
                 <form action="{{ route('calibration.schedule.index') }}" method="GET" 
-                    class="d-flex flex-wrap align-items-end bg-light p-2 rounded mb-3 shadow-sm" 
-                    style="gap: 8px; overflow-x: auto;">
+                    class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-3 border" 
+                    style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormSchedule">
                     
                     <input type="hidden" name="plant" value="{{ $plantCode }}">
                     
                     <!-- Cari (Paling Kiri) -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Cari</label>
-                        <input type="text" name="search" class="form-control form-control-sm border-0 shadow-sm" 
-                            style="width: 180px; font-size: 0.75rem;" 
+                        <input type="text" name="search" class="form-control form-control-sm shadow-none" 
+                            style="width: 180px; font-size: 0.75rem; border: 1px solid #cbd5e1;" 
                             placeholder="Nama / No. Seri..." value="{{ request('search') }}">
                     </div>
 
@@ -258,7 +258,7 @@
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Tahun</label>
                         <div style="width: 85px;">
-                            <select name="year" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
+                            <select name="year" class="form-control form-control-sm shadow-none" style="border: 1px solid #cbd5e1;" onchange="this.form.submit()">
                                 @php
                                     $currentYear = date('Y');
                                     $selectedYear = $year ?? $currentYear;
@@ -274,7 +274,7 @@
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Jenis</label>
                         <div style="width: 100px;">
-                            <select name="jenis_kalibrasi" class="form-control form-control-sm border-0 shadow-sm" onchange="this.form.submit()">
+                            <select name="jenis_kalibrasi" class="form-control form-control-sm shadow-none" style="border: 1px solid #cbd5e1;" onchange="this.form.submit()">
                                 <option value="">Semua</option>
                                 <option value="Internal" {{ request('jenis_kalibrasi') === 'Internal' ? 'selected' : '' }}>Internal</option>
                                 <option value="Eksternal" {{ request('jenis_kalibrasi') === 'Eksternal' ? 'selected' : '' }}>Eksternal</option>
@@ -285,10 +285,10 @@
                     <!-- Plan -->
                     <div class="d-flex flex-column align-items-start">
                         <label class="mb-1 small font-weight-bold text-gray-700">Plan</label>
-                        <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden" style="border: 1px solid #e2e8f0;">
-                            <input type="date" name="start_date" class="form-control form-control-sm border-0" style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1;">
+                            <input type="date" name="start_date" class="form-control form-control-sm border-0 shadow-none" style="width: 125px; font-size: 0.75rem;" value="{{ request('start_date') }}" title="Dari Tanggal">
                             <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
-                            <input type="date" name="end_date" class="form-control form-control-sm border-0" style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                            <input type="date" name="end_date" class="form-control form-control-sm border-0 shadow-none" style="width: 125px; font-size: 0.75rem;" value="{{ request('end_date') }}" title="Sampai Tanggal">
                         </div>
                     </div>
 
