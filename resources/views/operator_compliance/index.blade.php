@@ -1,6 +1,15 @@
 @extends('layouts.admin')
 
-@section('title', 'Checksheet Kepatuhan Operator')
+@php
+    $monthNames = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    $pdfFileTitle = 'Checksheet Kepatuhan Operator - ' . ($selectedOperator->name ?? '-') . ' - ' . ($monthNames[$month] ?? '') . ' ' . $year;
+@endphp
+
+@section('title', $pdfFileTitle)
 
 @section('content')
     @php
@@ -12,12 +21,6 @@
             'revisi'     => '08/09/2023',
             'halaman'    => '1 / 1'
         ]);
-
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
     @endphp
 
     <div class="container-fluid">
@@ -554,6 +557,7 @@
 
                         <button type="button" id="btnCetakCompliance"
                                 data-print-url="{{ route('checksheet.operator_compliance.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'month' => $month, 'year' => $year]) }}"
+                                data-print-title="{{ $pdfFileTitle }}"
                                 class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;">
                             <i class="fas fa-print fa-sm mr-1"></i> Cetak
                         </button>

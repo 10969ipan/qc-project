@@ -703,7 +703,12 @@ $(document).ready(function () {
     $(document).on('click', '#btnCetakCompliance', function (e) {
         e.preventDefault();
         var printUrl = $(this).data('print-url');
+        var printTitle = $(this).data('print-title');
         if (!printUrl) return;
+
+        if (printTitle) {
+            document.title = printTitle;
+        }
 
         // Hapus iframe cetak yang lama kalau ada
         $('#compliancePrintIframe').remove();
@@ -719,6 +724,12 @@ $(document).ready(function () {
         $iframe.on('load', function () {
             var frameWin = this.contentWindow;
             if (frameWin) {
+                if (printTitle) {
+                    document.title = printTitle;
+                    try {
+                        frameWin.document.title = printTitle;
+                    } catch (err) {}
+                }
                 frameWin.focus();
                 frameWin.print();
             }
