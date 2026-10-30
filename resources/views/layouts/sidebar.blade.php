@@ -74,6 +74,7 @@
                                     <a class="collapse-item" href="{{ route('painting.create', ['plant' => 'jakarta']) }}">Painting</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'jakarta']) }}">Sortir</a>
                                     <a class="collapse-item" href="{{ route('checksheet.operator_compliance.index', ['plant' => 'jakarta']) }}">Kepatuhan Operator</a>
+                                    <a class="collapse-item" href="{{ route('checksheet.dandory.index', ['plant' => 'jakarta']) }}">Dandory Quality</a>
                                 </div>
                             @endif
 
@@ -133,6 +134,7 @@
                                     <a class="collapse-item" href="{{ route('double_tape.create') }}">Double Tape</a>
                                     <a class="collapse-item" href="{{ route('sortir.create', ['plant' => 'karawang']) }}">Sortir</a>
                                     <a class="collapse-item" href="{{ route('checksheet.operator_compliance.index', ['plant' => 'karawang']) }}">Kepatuhan Operator</a>
+                                    <a class="collapse-item" href="{{ route('checksheet.dandory.index', ['plant' => 'karawang']) }}">Dandory Quality</a>
                                 </div>
                             @endif
 

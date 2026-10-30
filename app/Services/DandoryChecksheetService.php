@@ -1,0 +1,366 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\DandoryChecksheet;
+use App\Models\DandoryItem;
+use App\Models\DandoryOperatorConfig;
+use App\Models\GeneralSetting;
+use App\Models\Item;
+use App\Models\User;
+use App\Models\Plant;
+use App\Models\Category;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Carbon;
+
+class DandoryChecksheetService
+{
+    /**
+     * Ambil data transaksi Dandory terfilter dengan eager loading
+     * ponytail: lean eloquent query without N+1
+     */
+    public function getFilteredChecksheets(array $filters)
+    {
+        $query = DandoryChecksheet::with(['operator:id,name,initials', 'item:id,name,part_number'])
+            ->where('plant_code', $filters['plant_code'] ?? 'karawang');
+
+        if (!empty($filters['operator_id'])) {
+            $query->where('operator_id', $filters['operator_id']);
+        }
+
+        if (!empty($filters['table_no'])) {
+            $query->where('table_no', $filters['table_no']);
+        }
+
+        if (!empty($filters['shift'])) {
+            $query->where('shift', $filters['shift']);
+        }
+
+        if (!empty($filters['date'])) {
+            $query->whereDate('check_date', $filters['date']);
+        } elseif (!empty($filters['month']) && !empty($filters['year'])) {
+            $query->whereYear('check_date', $filters['year'])
+                  ->whereMonth('check_date', $filters['month']);
+        }
+
+        return $query->orderBy('check_date', 'desc')
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+    }
+
+    /**
+     * Ambil master parameter standar Dandory (9 Awal & 10 Akhir)
+     */
+    public function getMasterItems()
+    {
+        return Cache::remember('dandory_master_items_active', 3600, function () {
+            return DandoryItem::active()->orderBy('order_no')->get();
+        });
+    }
+
+    /**
+     * Ambil daftar operator/inspector aktif per plant
+     */
+    public function getPlantOperators(string $plantCode)
+    {
+        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
+
+        $query = User::whereIn('role', ['operator', 'inspector'])->where('is_active', true);
+        if ($plant) {
+            $query->where('plant_id', $plant->id);
+        }
+
+        return $query->orderBy('name')->get();
+    }
+
+    /**
+     * Ambil daftar meja per plant dari GeneralSetting
+     * ponytail: fallback arrays avoid empty state
+     */
+    public function getPlantTables(string $plantCode): array
+    {
+        $key = 'dandory_tables_' . strtolower($plantCode);
+        $defaults = strtolower($plantCode) === 'jakarta'
+            ? ['Meja 1', 'Meja 2', 'Meja 3', 'Meja 4', 'Meja 5', 'Meja 6', 'Meja 7', 'Meja 8']
+            : ['Meja 1', 'Meja 2', 'Meja 3', 'Meja 4', 'Meja 5', 'Meja 6', 'Meja 7', 'Meja 8', 'Meja 9', 'Meja 10'];
+
+        $setting = GeneralSetting::getValue($key, $defaults);
+        return is_array($setting) ? $setting : $defaults;
+    }
+
+    /**
+     * Simpan daftar meja per plant ke GeneralSetting
+     */
+    public function savePlantTables(string $plantCode, array $tables): void
+    {
+        $key = 'dandory_tables_' . strtolower($plantCode);
+        GeneralSetting::updateOrCreate(
+            ['key' => $key],
+            [
+                'plant_code'  => strtolower($plantCode),
+                'category'    => 'dandory',
+                'value'       => json_encode(array_values(array_filter(array_map('trim', $tables)))),
+                'description' => 'Daftar nama meja inspeksi untuk Dandory Quality Plant ' . ucfirst($plantCode),
+            ]
+        );
+        Cache::forget('general_settings_' . $key);
+    }
+
+    /**
+     * Ambil posisi/bagian operator langsung dari modul Kepatuhan Operator
+     * (Mengutamakan data jadwal/checksheet kepatuhan operator)
+     */
+    public function getOperatorBagianFromCompliance(int $operatorId): string
+    {
+        // 1. Ambil dari jadwal kepatuhan operator terbaru yang terdaftar
+        $schedule = \App\Models\OperatorComplianceSchedule::where('operator_id', $operatorId)
+            ->whereNotNull('bagian')
+            ->where('bagian', '!=', '')
+            ->latest('schedule_date')
+            ->first();
+
+        if ($schedule && !empty($schedule->bagian)) {
+            return $schedule->bagian;
+        }
+
+        // 2. Ambil dari checksheet kepatuhan operator terbaru
+        $checksheet = \App\Models\OperatorComplianceChecksheet::where('user_id', $operatorId)
+            ->whereNotNull('bagian')
+            ->where('bagian', '!=', '')
+            ->latest('id')
+            ->first();
+
+        if ($checksheet && !empty($checksheet->bagian)) {
+            return $checksheet->bagian;
+        }
+
+        return 'Quality Control';
+    }
+
+    /**
+     * Ambil atau buat konfigurasi posisi/bagian operator & kategori part
+     */
+    public function getOperatorConfig(string $plantCode, int $operatorId)
+    {
+        $config = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
+            ->where('operator_id', $operatorId)
+            ->first();
+
+        $complianceBagian = $this->getOperatorBagianFromCompliance($operatorId);
+
+        if (!$config) {
+            $config = new DandoryOperatorConfig([
+                'plant_code'         => strtolower($plantCode),
+                'operator_id'        => $operatorId,
+                'bagian'             => $complianceBagian,
+                'default_table'      => 'Meja 1',
+                'allowed_categories' => [],
+            ]);
+        } else {
+            // Selalu sinkronkan bagian dari kepatuhan operator
+            $config->bagian = $complianceBagian;
+        }
+
+        return $config;
+    }
+
+    /**
+     * Simpan konfigurasi posisi/bagian operator & kategori part yang diizinkan
+     */
+    public function saveOperatorConfig(string $plantCode, int $operatorId, array $data, int $updatedBy): DandoryOperatorConfig
+    {
+        return DandoryOperatorConfig::updateOrCreate(
+            [
+                'plant_code'  => strtolower($plantCode),
+                'operator_id' => $operatorId,
+            ],
+            [
+                'bagian'             => $data['bagian'] ?? 'Quality Control',
+                'default_table'      => $data['default_table'] ?? null,
+                'allowed_categories' => $data['allowed_categories'] ?? [],
+                'updated_by'         => $updatedBy,
+            ]
+        );
+    }
+
+    /**
+     * Ambil master items (Part) yang sesuai dengan posisi/kategori operator di plant ini
+     * ponytail: fast direct query filtered by category ids if configured
+     */
+    public function getItemsForOperator(string $plantCode, int $operatorId)
+    {
+        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
+        $plantId = $plant ? $plant->id : null;
+
+        $opConfig = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
+            ->where('operator_id', $operatorId)
+            ->first();
+
+        $allowedCats = $opConfig && is_array($opConfig->allowed_categories)
+            ? array_filter($opConfig->allowed_categories)
+            : [];
+
+        $query = Item::select(['id', 'name', 'part_number', 'category_id', 'plant_id'])
+            ->when($plantId, function ($q) use ($plantId) {
+                $q->where(function ($sq) use ($plantId) {
+                    $sq->where('plant_id', $plantId)->orWhereNull('plant_id');
+                });
+            });
+
+        if (!empty($allowedCats)) {
+            $query->whereIn('category_id', $allowedCats);
+        }
+
+        return $query->orderBy('name')->get();
+    }
+
+    /**
+     * Ambil smart preset (histori item '-' / NA pada part yang sama sebelumnya)
+     * ponytail: 1-line history lookup
+     */
+    public function getLastSessionPartPreset(int $operatorId, ?string $itemId): array
+    {
+        if (!$itemId) return [];
+
+        $lastRow = DandoryChecksheet::where('operator_id', $operatorId)
+            ->where('item_id', $itemId)
+            ->whereNotNull('awal_checks')
+            ->latest('id')
+            ->first();
+
+        if (!$lastRow) return [];
+
+        return [
+            'awal_checks'  => $lastRow->awal_checks ?? [],
+            'akhir_checks' => $lastRow->akhir_checks ?? [],
+        ];
+    }
+
+    /**
+     * Buat sesi transaksi baru (Awal Dandory)
+     */
+    public function storeAwal(array $data, int $userId): DandoryChecksheet
+    {
+        $item = !empty($data['item_id']) ? Item::find($data['item_id']) : null;
+        $partName = $item ? $item->name : ($data['part_name'] ?? '-');
+        $bagian = $data['jabatan'] ?? $this->getOperatorBagianFromCompliance((int)$data['operator_id']);
+
+        return DandoryChecksheet::create([
+            'plant_code'        => strtolower($data['plant_code'] ?? 'karawang'),
+            'check_date'        => $data['check_date'] ?? date('Y-m-d'),
+            'shift'             => $data['shift'] ?? 'Shift 1',
+            'table_no'          => $data['table_no'] ?? 'Meja 1',
+            'operator_id'       => $data['operator_id'],
+            'jabatan'           => $bagian,
+            'item_id'           => $item?->id,
+            'part_name'         => $partName,
+            'awal_checks'       => $data['awal_checks'] ?? [],
+            'akhir_checks'      => null,
+            'awal_completed_at' => now(),
+            'notes'             => $data['notes'] ?? null,
+            'created_by'        => $userId,
+        ]);
+    }
+
+    /**
+     * Selesaikan sesi transaksi (Akhir Dandory)
+     */
+    public function storeAkhir(DandoryChecksheet $checksheet, array $akhirChecks, ?string $notes = null): DandoryChecksheet
+    {
+        $checksheet->update([
+            'akhir_checks'       => $akhirChecks,
+            'akhir_completed_at' => now(),
+            'notes'              => $notes ?: $checksheet->notes,
+        ]);
+
+        return $checksheet;
+    }
+
+    /**
+     * Toggle nilai sel matriks langsung via AJAX (✓ / ✕ / - / null)
+     */
+    public function toggleCell(DandoryChecksheet $checksheet, string $phase, int $orderNo, ?string $status): DandoryChecksheet
+    {
+        $field = $phase === 'akhir' ? 'akhir_checks' : 'awal_checks';
+        $checks = (array) ($checksheet->$field ?? []);
+
+        if ($status === null || $status === '') {
+            unset($checks[(string) $orderNo]);
+        } else {
+            $checks[(string) $orderNo] = $status;
+        }
+
+        $updateData = [$field => $checks];
+        if ($phase === 'awal' && empty($checksheet->awal_completed_at)) {
+            $updateData['awal_completed_at'] = now();
+        }
+        if ($phase === 'akhir' && empty($checksheet->akhir_completed_at)) {
+            $updateData['akhir_completed_at'] = now();
+        }
+
+        $checksheet->update($updateData);
+        return $checksheet;
+    }
+
+    /**
+     * Toggle verifikasi Diperiksa Leader
+     */
+    public function toggleLeaderVerification(DandoryChecksheet $checksheet, int $leaderUserId, string $leaderName): DandoryChecksheet
+    {
+        $newChecked = !$checksheet->leader_checked;
+        $checksheet->update([
+            'leader_checked'    => $newChecked,
+            'leader_user_id'    => $newChecked ? $leaderUserId : null,
+            'leader_name'       => $newChecked ? $leaderName : null,
+            'leader_checked_at' => $newChecked ? now() : null,
+            'is_rejected'       => false,
+            'rejection_remarks' => null,
+            'rejected_by'       => null,
+            'rejector_name'     => null,
+            'rejected_at'       => null,
+        ]);
+
+        return $checksheet;
+    }
+
+    /**
+     * Reject checksheet oleh Leader
+     */
+    public function rejectChecksheet(DandoryChecksheet $checksheet, int $userId, string $userName, string $remarks): DandoryChecksheet
+    {
+        $checksheet->update([
+            'leader_checked'    => false,
+            'leader_user_id'    => null,
+            'leader_name'       => null,
+            'leader_checked_at' => null,
+            'is_rejected'       => true,
+            'rejection_remarks' => $remarks,
+            'rejected_by'       => $userId,
+            'rejector_name'     => $userName,
+            'rejected_at'       => now(),
+        ]);
+
+        return $checksheet;
+    }
+
+    /**
+     * Verifikasi massal (Bulk verify) per hari/shift oleh Leader
+     */
+    public function bulkVerify(array $ids, int $leaderUserId, string $leaderName): int
+    {
+        return DandoryChecksheet::whereIn('id', $ids)
+            ->where('leader_checked', false)
+            ->update([
+                'leader_checked'    => true,
+                'leader_user_id'    => $leaderUserId,
+                'leader_name'       => $leaderName,
+                'leader_checked_at' => now(),
+                'is_rejected'       => false,
+                'rejection_remarks' => null,
+                'rejected_by'       => null,
+                'rejector_name'     => null,
+                'rejected_at'       => null,
+            ]);
+    }
+}
+

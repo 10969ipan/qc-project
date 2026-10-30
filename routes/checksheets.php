@@ -17,6 +17,7 @@ use App\Http\Controllers\PaintingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
 use App\Http\Controllers\PlatingScanController;
 use App\Http\Controllers\OperatorComplianceController;
+use App\Http\Controllers\DandoryChecksheetController;
 
 Route::middleware(['auth'])->group(function () {
     // Plating Scan Routes
@@ -108,6 +109,24 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/checksheet/kepatuhan-operator/schedule/{id}', [OperatorComplianceController::class, 'scheduleUpdate'])->name('checksheet.operator_compliance.schedule.update');
         Route::delete('/checksheet/kepatuhan-operator/schedule/{id}', [OperatorComplianceController::class, 'scheduleDestroy'])->name('checksheet.operator_compliance.schedule.destroy');
         Route::post('/checksheet/kepatuhan-operator/schedule/sync-historical', [OperatorComplianceController::class, 'syncHistoricalSchedules'])->name('checksheet.operator_compliance.schedule.sync_historical');
+
+        // Dandory Quality Checksheet
+        Route::get('/checksheet/dandory', [DandoryChecksheetController::class, 'index'])->name('checksheet.dandory.index');
+        Route::get('/checksheet/dandory/print', [DandoryChecksheetController::class, 'print'])->name('checksheet.dandory.print');
+        Route::post('/checksheet/dandory/awal', [DandoryChecksheetController::class, 'storeAwal'])->name('checksheet.dandory.awal.store');
+        Route::post('/checksheet/dandory/{id}/akhir', [DandoryChecksheetController::class, 'storeAkhir'])->name('checksheet.dandory.akhir.store');
+        Route::post('/checksheet/dandory/{id}/toggle-cell', [DandoryChecksheetController::class, 'toggleCell'])->name('checksheet.dandory.toggle_cell');
+        Route::post('/checksheet/dandory/{id}/verify', [DandoryChecksheetController::class, 'toggleVerify'])->name('checksheet.dandory.verify');
+        Route::post('/checksheet/dandory/{id}/reject', [DandoryChecksheetController::class, 'reject'])->name('checksheet.dandory.reject');
+        Route::post('/checksheet/dandory/bulk-verify', [DandoryChecksheetController::class, 'bulkVerify'])->name('checksheet.dandory.bulk_verify');
+        Route::post('/checksheet/dandory/bulk-destroy', [DandoryChecksheetController::class, 'bulkDestroy'])->name('checksheet.dandory.bulk_destroy');
+        Route::delete('/checksheet/dandory/{id}', [DandoryChecksheetController::class, 'destroy'])->name('checksheet.dandory.destroy');
+        Route::get('/checksheet/dandory/part-preset', [DandoryChecksheetController::class, 'getPartPreset'])->name('checksheet.dandory.part_preset');
+        Route::post('/checksheet/dandory/operator-config', [DandoryChecksheetController::class, 'saveOperatorConfig'])->name('checksheet.dandory.operator_config.save');
+        Route::post('/checksheet/dandory/tables', [DandoryChecksheetController::class, 'saveTables'])->name('checksheet.dandory.tables.save');
+        Route::post('/checksheet/dandory/master-item', [DandoryChecksheetController::class, 'storeMasterItem'])->name('checksheet.dandory.master_item.store');
+        Route::put('/checksheet/dandory/master-item/{id}', [DandoryChecksheetController::class, 'updateMasterItem'])->name('checksheet.dandory.master_item.update');
+        Route::delete('/checksheet/dandory/master-item/{id}', [DandoryChecksheetController::class, 'destroyMasterItem'])->name('checksheet.dandory.master_item.destroy');
     });
 
     // Special routes for FPA that are not direct input
