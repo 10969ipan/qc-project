@@ -450,7 +450,7 @@ $(document).ready(function () {
                         var cellJamAkhir = $('#jamAkhir_' + id);
                         if (cellJamAkhir.length) {
                             if (res.jam_akhir && res.jam_akhir !== '-') {
-                                cellJamAkhir.html('<span class="text-success font-weight-bold">' + res.jam_akhir + '</span>');
+                                cellJamAkhir.html('<span>' + res.jam_akhir + '</span>');
                                 if (res.akhir_completed_at) {
                                     cellJamAkhir.attr('title', 'Waktu Akhir: ' + res.akhir_completed_at);
                                 }

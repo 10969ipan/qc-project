@@ -704,9 +704,9 @@
                                         @endforeach
 
                                         {{-- Jam Akhir Dandory --}}
-                                        <td class="align-middle text-center font-weight-bold px-1" id="jamAkhir_{{ $cs->id }}" style="font-size: 0.65rem; background-color: rgba(248, 250, 252, 0.85);">
+                                        <td class="align-middle text-center font-weight-bold px-1" id="jamAkhir_{{ $cs->id }}" style="font-size: 0.65rem; color: #1e293b; background-color: rgba(248, 250, 252, 0.85);">
                                             @if($cs->is_akhir_done && $cs->akhir_completed_at)
-                                                <span class="text-success font-weight-bold" title="Waktu Akhir: {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('d/m/Y H:i') }}">
+                                                <span title="Waktu Akhir: {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('d/m/Y H:i') }}">
                                                     {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('H:i') }}
                                                 </span>
                                             @else
