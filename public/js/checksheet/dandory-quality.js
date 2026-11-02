@@ -912,14 +912,14 @@ $(document).ready(function () {
         }
     });
 
-    // Helper centang checkbox kategori
+    // Helper centang checkbox kategori (UUID string support)
     function setOperatorCategoryCheckboxes(categoryIds) {
         var catSet = {};
         (categoryIds || []).forEach(function (id) {
-            catSet[parseInt(id, 10)] = true;
+            if (id) catSet[String(id).trim()] = true;
         });
         $('.cfg-cat-checkbox').each(function () {
-            var val = parseInt($(this).val(), 10);
+            var val = String($(this).val()).trim();
             $(this).prop('checked', !!catSet[val]);
         });
     }
@@ -938,6 +938,8 @@ $(document).ready(function () {
                 cats = config.bagianCategories[opData.bagian];
             }
             setOperatorCategoryCheckboxes(cats);
+        } else {
+            setOperatorCategoryCheckboxes([]);
         }
     });
 
@@ -962,12 +964,19 @@ $(document).ready(function () {
         }
     });
 
-    // C. Saat modal dibuka: jika belum ada kategori yang dicentang, cek apakah bagian saat ini punya riwayat kategori
+    // C. Saat modal dibuka: sinkronkan dengan operator yang sedang terpilih di dropdown
     $('#modalOperatorMeja').on('shown.bs.modal', function () {
-        var currentBagian = $('#cfgBagian').val();
-        var anyChecked = $('.cfg-cat-checkbox:checked').length > 0;
-        if (!anyChecked && currentBagian && config.bagianCategories && config.bagianCategories[currentBagian]) {
-            setOperatorCategoryCheckboxes(config.bagianCategories[currentBagian]);
+        var opId = $('#cfgOperatorId').val();
+        var opData = config.opConfigs ? config.opConfigs[opId] : null;
+        if (opData) {
+            if (opData.bagian) {
+                $('#cfgBagian').val(opData.bagian);
+            }
+            var cats = opData.allowed_categories || [];
+            if (cats.length === 0 && opData.bagian && config.bagianCategories && config.bagianCategories[opData.bagian]) {
+                cats = config.bagianCategories[opData.bagian];
+            }
+            setOperatorCategoryCheckboxes(cats);
         }
     });
 
@@ -990,7 +999,7 @@ $(document).ready(function () {
                     var savedOpId = $('#cfgOperatorId').val();
                     var savedBagian = $('#cfgBagian').val();
                     var savedCats = $('.cfg-cat-checkbox:checked').map(function () {
-                        return parseInt($(this).val(), 10);
+                        return String($(this).val()).trim();
                     }).get();
 
                     if (config.opConfigs) {
@@ -1003,6 +1012,17 @@ $(document).ready(function () {
                     }
 
                     $('#modalOperatorMeja').modal('hide');
+
+                    var redirectWithOp = function () {
+                        try {
+                            var currentUrl = new URL(window.location.href);
+                            currentUrl.searchParams.set('operator_id', savedOpId);
+                            window.location.href = currentUrl.toString();
+                        } catch (e) {
+                            window.location.reload();
+                        }
+                    };
+
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
                             icon: 'success',
@@ -1011,10 +1031,10 @@ $(document).ready(function () {
                             timer: 1400,
                             showConfirmButton: false
                         }).then(function () {
-                            location.reload();
+                            redirectWithOp();
                         });
                     } else {
-                        location.reload();
+                        redirectWithOp();
                     }
                 } else {
                     if (typeof Swal !== 'undefined') {
@@ -1034,10 +1054,22 @@ $(document).ready(function () {
 
     // 14. Kelola Daftar Meja Plant (Tambah & Hapus Meja)
     $('#btnAddTableItem').on('click', function () {
-        var count = $('#tableListContainer .table-item-row').length + 1;
+        // Cari angka tertinggi dari meja yang sudah ada agar nomor berikutnya otomatis terisi tanpa perlu diketik
+        var maxNum = 0;
+        $('#tableListContainer input[name="tables[]"]').each(function () {
+            var val = $(this).val() || '';
+            var match = val.match(/\d+/);
+            if (match) {
+                var num = parseInt(match[0], 10);
+                if (num > maxNum) maxNum = num;
+            }
+        });
+        var nextNum = maxNum > 0 ? (maxNum + 1) : ($('#tableListContainer .table-item-row').length + 1);
+        var autoValue = 'Meja ' + nextNum;
+
         var newRow = $(
             '<div class="input-group input-group-sm mb-1 table-item-row">' +
-            '    <input type="text" name="tables[]" class="form-control form-control-sm border" placeholder="Contoh: Meja ' + count + '" required>' +
+            '    <input type="text" name="tables[]" class="form-control form-control-sm border" value="' + autoValue + '" required>' +
             '    <div class="input-group-append">' +
             '        <button type="button" class="btn btn-outline-danger btn-remove-table" title="Hapus Meja">' +
             '            <i class="fas fa-times"></i>' +
@@ -1046,7 +1078,6 @@ $(document).ready(function () {
             '</div>'
         );
         $('#tableListContainer').append(newRow);
-        newRow.find('input').focus();
     });
 
     $(document).on('click', '.btn-remove-table', function () {

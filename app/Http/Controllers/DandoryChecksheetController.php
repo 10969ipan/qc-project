@@ -158,7 +158,7 @@ class DandoryChecksheetController extends Controller
         $latestBagianCategories = [];
 
         foreach ($opConfigsRaw as $cfg) {
-            $cats = is_array($cfg->allowed_categories) ? array_values(array_map('intval', $cfg->allowed_categories)) : [];
+            $cats = is_array($cfg->allowed_categories) ? array_values(array_map('strval', $cfg->allowed_categories)) : [];
             $allOpConfigs[$cfg->operator_id] = [
                 'bagian'             => $cfg->bagian,
                 'allowed_categories' => $cats,
