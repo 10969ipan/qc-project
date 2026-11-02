@@ -154,16 +154,38 @@ class DandoryChecksheetService
         $complianceBagian = $this->getOperatorBagianFromCompliance($operatorId);
 
         if (!$config) {
+            // Cek apakah ada operator lain di plant ini dengan bagian sama yang sudah menyimpan kategori
+            $existingSameBagian = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
+                ->where('bagian', $complianceBagian)
+                ->whereNotNull('allowed_categories')
+                ->latest('updated_at')
+                ->first();
+
             $config = new DandoryOperatorConfig([
                 'plant_code'         => strtolower($plantCode),
                 'operator_id'        => $operatorId,
                 'bagian'             => $complianceBagian,
                 'default_table'      => 'Meja 1',
-                'allowed_categories' => [],
+                'allowed_categories' => ($existingSameBagian && is_array($existingSameBagian->allowed_categories))
+                    ? $existingSameBagian->allowed_categories
+                    : [],
             ]);
         } else {
-            // Selalu sinkronkan bagian dari kepatuhan operator
-            $config->bagian = $complianceBagian;
+            // Jika bagian di config masih kosong, isi dengan bagian kepatuhan operator
+            if (empty($config->bagian)) {
+                $config->bagian = $complianceBagian;
+            }
+            // Jika kategori masih kosong, warisi dari operator lain dengan bagian yang sama
+            if (empty($config->allowed_categories) || count((array) $config->allowed_categories) === 0) {
+                $existingSameBagian = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
+                    ->where('bagian', $config->bagian)
+                    ->whereNotNull('allowed_categories')
+                    ->latest('updated_at')
+                    ->first();
+                if ($existingSameBagian && is_array($existingSameBagian->allowed_categories) && count($existingSameBagian->allowed_categories) > 0) {
+                    $config->allowed_categories = $existingSameBagian->allowed_categories;
+                }
+            }
         }
 
         return $config;

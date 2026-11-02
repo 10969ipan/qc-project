@@ -149,6 +149,37 @@ class DandoryChecksheetController extends Controller
         // Ambil kategori master (untuk modal kelola operator)
         $categories = Category::orderBy('name')->get(['id', 'name']);
 
+        // Ambil mapping konfigurasi semua operator di plant ini & kategori terbaru per bagian untuk auto-inheritance
+        $opConfigsRaw = \App\Models\DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        $allOpConfigs = [];
+        $latestBagianCategories = [];
+
+        foreach ($opConfigsRaw as $cfg) {
+            $cats = is_array($cfg->allowed_categories) ? array_values(array_map('intval', $cfg->allowed_categories)) : [];
+            $allOpConfigs[$cfg->operator_id] = [
+                'bagian'             => $cfg->bagian,
+                'allowed_categories' => $cats,
+            ];
+
+            if (!empty($cfg->bagian) && !empty($cats) && !isset($latestBagianCategories[$cfg->bagian])) {
+                $latestBagianCategories[$cfg->bagian] = $cats;
+            }
+        }
+
+        foreach ($inspectors as $insp) {
+            if (!isset($allOpConfigs[$insp->id])) {
+                $compBagian = $this->service->getOperatorBagianFromCompliance($insp->id);
+                $inheritedCats = $latestBagianCategories[$compBagian] ?? [];
+                $allOpConfigs[$insp->id] = [
+                    'bagian'             => $compBagian,
+                    'allowed_categories' => $inheritedCats,
+                ];
+            }
+        }
+
         $monthNames = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
             5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
@@ -158,7 +189,8 @@ class DandoryChecksheetController extends Controller
         return view('dandory.index', compact(
             'plantCode', 'date', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
-            'plantTables', 'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories'
+            'plantTables', 'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
+            'allOpConfigs', 'latestBagianCategories'
         ));
     }
 

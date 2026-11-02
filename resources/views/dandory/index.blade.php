@@ -1063,12 +1063,31 @@
                             <div class="form-group mb-2">
                                 <label class="small font-weight-bold text-gray-700">Posisi / Bagian</label>
                                 <select name="bagian" id="cfgBagian" class="form-control form-control-sm border">
-                                    <option value="Inspector Outgoing Plating" {{ ($opConfig->bagian ?? '') === 'Inspector Outgoing Plating' ? 'selected' : '' }}>Inspector Outgoing Plating</option>
-                                    <option value="Inspector Outgoing Painting" {{ ($opConfig->bagian ?? '') === 'Inspector Outgoing Painting' ? 'selected' : '' }}>Inspector Outgoing Painting</option>
-                                    <option value="Inspector Outgoing Sub Assy" {{ ($opConfig->bagian ?? '') === 'Inspector Outgoing Sub Assy' ? 'selected' : '' }}>Inspector Outgoing Sub Assy</option>
-                                    <option value="Inspector Incoming Plating" {{ ($opConfig->bagian ?? '') === 'Inspector Incoming Plating' ? 'selected' : '' }}>Inspector Incoming Plating</option>
-                                    <option value="Inspector Incoming Painting" {{ ($opConfig->bagian ?? '') === 'Inspector Incoming Painting' ? 'selected' : '' }}>Inspector Incoming Painting</option>
-                                    <option value="Quality Control" {{ ($opConfig->bagian ?? '') === 'Quality Control' ? 'selected' : '' }}>Quality Control</option>
+                                    @php
+                                        $bagianOptions = [
+                                            'Inspector Outgoing Plating',
+                                            'Inspector Outgoing Painting',
+                                            'Inspector Outgoing Export',
+                                            'Inspector Outgoing Sub Assy',
+                                            'Inspector Inproses',
+                                            'Inspector Incoming Sub-Part/Material/Chemical',
+                                            'Inspector Incoming Plating',
+                                            'Inspector Outgoing Double Tape',
+                                            'Performance Test',
+                                            'Claim Customer',
+                                            'Final ISD',
+                                            'Digitalisasi Support',
+                                        ];
+                                    @endphp
+                                    <option value="">-- Pilih Bagian --</option>
+                                    @foreach($bagianOptions as $bOpt)
+                                        <option value="{{ $bOpt }}" {{ ($opConfig->bagian ?? '') === $bOpt ? 'selected' : '' }}>
+                                            {{ $bOpt }}
+                                        </option>
+                                    @endforeach
+                                    @if(!empty($opConfig->bagian) && !in_array($opConfig->bagian, $bagianOptions))
+                                        <option value="{{ $opConfig->bagian }}" selected>{{ $opConfig->bagian }}</option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="form-group mb-3">
@@ -1265,6 +1284,8 @@
      data-tables-save-url="{{ route('checksheet.dandory.tables.save') }}"
      data-master-item-url="{{ route('checksheet.dandory.master_item.store') }}"
      data-csrf-token="{{ csrf_token() }}"
+     data-op-configs='@json($allOpConfigs ?? [])'
+     data-bagian-categories='@json($latestBagianCategories ?? [])'
 ></div>
 
 @endsection

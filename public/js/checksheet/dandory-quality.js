@@ -33,7 +33,13 @@ $(document).ready(function () {
         opCfgSaveUrl: cfgEl.dataset.opCfgSaveUrl || '/checksheet/dandory/operator-config',
         tablesSaveUrl: cfgEl.dataset.tablesSaveUrl || '/checksheet/dandory/tables',
         masterItemUrl: cfgEl.dataset.masterItemUrl || '/checksheet/dandory/master-item',
-        csrfToken: cfgEl.dataset.csrfToken || ''
+        csrfToken: cfgEl.dataset.csrfToken || '',
+        opConfigs: (function() {
+            try { return JSON.parse(cfgEl.dataset.opConfigs || '{}'); } catch(e) { return {}; }
+        })(),
+        bagianCategories: (function() {
+            try { return JSON.parse(cfgEl.dataset.bagianCategories || '{}'); } catch(e) { return {}; }
+        })()
     } : {};
 
     // 3. Inisialisasi Searchable Dropdown untuk Pemilihan Part
@@ -906,6 +912,65 @@ $(document).ready(function () {
         }
     });
 
+    // Helper centang checkbox kategori
+    function setOperatorCategoryCheckboxes(categoryIds) {
+        var catSet = {};
+        (categoryIds || []).forEach(function (id) {
+            catSet[parseInt(id, 10)] = true;
+        });
+        $('.cfg-cat-checkbox').each(function () {
+            var val = parseInt($(this).val(), 10);
+            $(this).prop('checked', !!catSet[val]);
+        });
+    }
+
+    // A. Ketika ganti Operator di modal: sinkronkan bagian & kategori miliknya / riwayat bagian
+    $('#cfgOperatorId').on('change', function () {
+        var opId = $(this).val();
+        var opData = config.opConfigs ? config.opConfigs[opId] : null;
+        if (opData) {
+            if (opData.bagian) {
+                $('#cfgBagian').val(opData.bagian);
+            }
+            var cats = opData.allowed_categories || [];
+            // Jika belum ada kategori tapi posisi/bagiannya sudah ada riwayat kategori, ikuti riwayat posisi
+            if (cats.length === 0 && opData.bagian && config.bagianCategories && config.bagianCategories[opData.bagian]) {
+                cats = config.bagianCategories[opData.bagian];
+            }
+            setOperatorCategoryCheckboxes(cats);
+        }
+    });
+
+    // B. Ketika ganti Bagian di modal: otomatis ikuti kategori yang pernah dipilih pada bagian tersebut
+    $('#cfgBagian').on('change', function () {
+        var selectedBagian = $(this).val();
+        if (selectedBagian && config.bagianCategories && config.bagianCategories[selectedBagian]) {
+            var cats = config.bagianCategories[selectedBagian];
+            setOperatorCategoryCheckboxes(cats);
+
+            // Tampilkan notifikasi halus di bawah dropdown
+            $('#cfgInheritedFeedback').remove();
+            var feedback = $(
+                '<div id="cfgInheritedFeedback" class="text-primary font-weight-bold mt-1" style="font-size: 0.65rem;">' +
+                '   <i class="fas fa-magic mr-1"></i> Kategori otomatis mengikuti riwayat posisi ' + selectedBagian +
+                '</div>'
+            );
+            $('#cfgBagian').after(feedback);
+            setTimeout(function () {
+                feedback.fadeOut(400, function () { $(this).remove(); });
+            }, 3000);
+        }
+    });
+
+    // C. Saat modal dibuka: jika belum ada kategori yang dicentang, cek apakah bagian saat ini punya riwayat kategori
+    $('#modalOperatorMeja').on('shown.bs.modal', function () {
+        var currentBagian = $('#cfgBagian').val();
+        var anyChecked = $('.cfg-cat-checkbox:checked').length > 0;
+        if (!anyChecked && currentBagian && config.bagianCategories && config.bagianCategories[currentBagian]) {
+            setOperatorCategoryCheckboxes(config.bagianCategories[currentBagian]);
+        }
+    });
+
     // 13. Kelola Operator Config (Posisi & Kategori Part)
     $('#formOperatorConfig').on('submit', function (e) {
         e.preventDefault();
@@ -922,6 +987,21 @@ $(document).ready(function () {
             success: function (res) {
                 btnSubmit.prop('disabled', false).html(originalBtnHtml);
                 if (res.success) {
+                    var savedOpId = $('#cfgOperatorId').val();
+                    var savedBagian = $('#cfgBagian').val();
+                    var savedCats = $('.cfg-cat-checkbox:checked').map(function () {
+                        return parseInt($(this).val(), 10);
+                    }).get();
+
+                    if (config.opConfigs) {
+                        if (!config.opConfigs[savedOpId]) config.opConfigs[savedOpId] = {};
+                        config.opConfigs[savedOpId].bagian = savedBagian;
+                        config.opConfigs[savedOpId].allowed_categories = savedCats;
+                    }
+                    if (config.bagianCategories && savedBagian && savedCats.length > 0) {
+                        config.bagianCategories[savedBagian] = savedCats;
+                    }
+
                     $('#modalOperatorMeja').modal('hide');
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
