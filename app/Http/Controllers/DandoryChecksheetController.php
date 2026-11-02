@@ -114,7 +114,7 @@ class DandoryChecksheetController extends Controller
             'date'        => $date,
             'shift'       => $shiftFilter,
         ];
-        $checksheets = $this->service->getFilteredChecksheets($filters);
+        $checksheets = $this->service->getFilteredChecksheets($filters, 15);
 
         // Pre-compute row metrics (O(N) in controller, no N+1 in blade)
         $awalTotal = count($awalItems) ?: 9;

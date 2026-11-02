@@ -292,6 +292,31 @@
     .modal-dandory form.modal-form-flex .modal-footer {
         flex-shrink: 0;
     }
+
+    /* Checkbox Sederhana (Native) */
+    .cat-checkbox-item {
+        margin-bottom: 5px;
+        padding-left: 1.35rem;
+    }
+    .cat-checkbox-item .form-check-input {
+        cursor: pointer;
+        margin-top: 2px;
+        width: 14px;
+        height: 14px;
+    }
+    .cat-checkbox-item .form-check-label {
+        cursor: pointer;
+        font-size: 0.72rem;
+        color: #334155;
+        user-select: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .cat-checkbox-item:hover .form-check-label {
+        color: #0f172a;
+    }
 </style>
 
 <div class="container-fluid">
@@ -615,7 +640,7 @@
                                                 </div>
                                             </td>
                                         @endif
-                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $checksheets->firstItem() ? ($checksheets->firstItem() + $index) : ($index + 1) }}</td>
                                         <td class="font-weight-bold text-dark">
                                             <div>{{ \Carbon\Carbon::parse($cs->check_date)->format('d/m/y') }}</div>
                                             <div class="text-muted font-weight-normal" style="font-size: 0.62rem; line-height: 1.1; margin-top: 1px;">
@@ -758,6 +783,13 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Paginasi Dandory (15 data per halaman) --}}
+            @if(method_exists($checksheets, 'links'))
+                <div class="mt-3 px-1">
+                    {{ $checksheets->withQueryString()->links() }}
+                </div>
+            @endif
 
             @if($canVerify)
                 <!-- Floating Bar Bulk Action (Standar Checksheet In-Process) -->
@@ -1040,19 +1072,19 @@
                                 </select>
                             </div>
                             <div class="form-group mb-3">
-                                <label class="small font-weight-bold text-gray-700 d-block mb-1">
+                                <label class="small font-weight-bold text-gray-700 d-block mb-2">
                                     Kategori Part yang Diizinkan untuk Posisi Ini
-                                    <small class="text-muted">(Pilih kategori agar dropdown part terfilter rapi)</small>
+                                    <small class="text-muted font-weight-normal">(Pilih kategori agar dropdown part terfilter rapi)</small>
                                 </label>
-                                <div class="row px-2">
+                                <div class="row px-1">
                                     @php $allowed = (array) ($opConfig->allowed_categories ?? []); @endphp
                                     @foreach($categories as $cat)
-                                        <div class="col-md-4 mb-1">
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input cfg-cat-checkbox"
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="form-check cat-checkbox-item">
+                                                <input type="checkbox" class="form-check-input cfg-cat-checkbox"
                                                        id="cat_{{ $cat->id }}" name="allowed_categories[]" value="{{ $cat->id }}"
                                                        {{ in_array($cat->id, $allowed) ? 'checked' : '' }}>
-                                                <label class="custom-control-label small cursor-pointer" for="cat_{{ $cat->id }}">
+                                                <label class="form-check-label" for="cat_{{ $cat->id }}" title="{{ $cat->name }}">
                                                     {{ $cat->name }}
                                                 </label>
                                             </div>

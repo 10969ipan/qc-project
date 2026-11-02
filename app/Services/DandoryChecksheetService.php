@@ -19,7 +19,7 @@ class DandoryChecksheetService
      * Ambil data transaksi Dandory terfilter dengan eager loading
      * ponytail: lean eloquent query without N+1
      */
-    public function getFilteredChecksheets(array $filters)
+    public function getFilteredChecksheets(array $filters, ?int $perPage = null)
     {
         $query = DandoryChecksheet::with(['operator:id,name,initials', 'item:id,name,part_number'])
             ->where('plant_code', $filters['plant_code'] ?? 'karawang');
@@ -43,9 +43,14 @@ class DandoryChecksheetService
                   ->whereMonth('check_date', $filters['month']);
         }
 
-        return $query->orderBy('check_date', 'desc')
-                     ->orderBy('created_at', 'desc')
-                     ->get();
+        $query->orderBy('check_date', 'desc')
+              ->orderBy('created_at', 'desc');
+
+        if ($perPage) {
+            return $query->paginate($perPage)->withQueryString();
+        }
+
+        return $query->get();
     }
 
     /**
