@@ -433,6 +433,46 @@ $(document).ready(function () {
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
                     }
+                } else {
+                    // Update Jam Awal seketika tanpa refresh
+                    if (res.jam_awal !== undefined) {
+                        var cellJamAwal = $('#jamAwal_' + id);
+                        if (cellJamAwal.length) {
+                            cellJamAwal.html('<span>' + res.jam_awal + '</span>');
+                            if (res.awal_completed_at) {
+                                cellJamAwal.attr('title', 'Waktu Awal: ' + res.awal_completed_at);
+                            }
+                        }
+                    }
+
+                    // Update Jam Akhir seketika saat sudah terisi lengkap tanpa refresh
+                    if (res.jam_akhir !== undefined) {
+                        var cellJamAkhir = $('#jamAkhir_' + id);
+                        if (cellJamAkhir.length) {
+                            if (res.jam_akhir && res.jam_akhir !== '-') {
+                                cellJamAkhir.html('<span class="text-success font-weight-bold">' + res.jam_akhir + '</span>');
+                                if (res.akhir_completed_at) {
+                                    cellJamAkhir.attr('title', 'Waktu Akhir: ' + res.akhir_completed_at);
+                                }
+                            } else {
+                                cellJamAkhir.html('<span class="text-muted font-weight-normal">-</span>');
+                                cellJamAkhir.attr('title', 'Akhir Dandory belum diselesaikan');
+                            }
+                        }
+                    }
+
+                    // Jika sesi akhir sudah selesai, sembunyikan tombol modal Akhir pada baris ini
+                    if (res.is_akhir_done) {
+                        $('#actionCell_' + id + ' .btn-open-akhir').fadeOut(150);
+                    } else {
+                        $('#actionCell_' + id + ' .btn-open-akhir').fadeIn(150);
+                    }
+
+                    // Update data-complete pada baris checkbox untuk verifikasi Leader
+                    var chkRow = $('#checkRow' + id);
+                    if (chkRow.length && res.is_complete !== undefined) {
+                        chkRow.attr('data-complete', res.is_complete ? '1' : '0');
+                    }
                 }
             },
             error: function (xhr) {

@@ -679,8 +679,8 @@
                                         </td>
 
                                         {{-- Jam Awal Dandory --}}
-                                        <td class="align-middle text-center font-weight-bold px-1" style="font-size: 0.65rem; color: #1e293b; background-color: rgba(248, 250, 252, 0.85);" title="Waktu Awal: {{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('d/m/Y H:i') : '-' }}">
-                                            {{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('H:i') : ($cs->created_at ? \Carbon\Carbon::parse($cs->created_at)->format('H:i') : '-') }}
+                                        <td class="align-middle text-center font-weight-bold px-1" id="jamAwal_{{ $cs->id }}" style="font-size: 0.65rem; color: #1e293b; background-color: rgba(248, 250, 252, 0.85);" title="Waktu Awal: {{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('d/m/Y H:i') : '-' }}">
+                                            <span>{{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('H:i') : ($cs->created_at ? \Carbon\Carbon::parse($cs->created_at)->format('H:i') : '-') }}</span>
                                         </td>
 
                                         {{-- Sel Awal Dandory --}}
@@ -704,8 +704,8 @@
                                         @endforeach
 
                                         {{-- Jam Akhir Dandory --}}
-                                        <td class="align-middle text-center font-weight-bold px-1" style="font-size: 0.65rem; background-color: rgba(248, 250, 252, 0.85);">
-                                            @if($cs->akhir_completed_at)
+                                        <td class="align-middle text-center font-weight-bold px-1" id="jamAkhir_{{ $cs->id }}" style="font-size: 0.65rem; background-color: rgba(248, 250, 252, 0.85);">
+                                            @if($cs->is_akhir_done && $cs->akhir_completed_at)
                                                 <span class="text-success font-weight-bold" title="Waktu Akhir: {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('d/m/Y H:i') }}">
                                                     {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('H:i') }}
                                                 </span>

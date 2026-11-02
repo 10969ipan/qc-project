@@ -321,11 +321,29 @@ class DandoryChecksheetService
         }
 
         $updateData = [$field => $checks];
-        if ($phase === 'awal' && empty($checksheet->awal_completed_at)) {
-            $updateData['awal_completed_at'] = now();
+
+        $masterItems = $this->getMasterItems();
+        $awalTotal   = $masterItems->where('phase', 'awal')->count() ?: 9;
+        $akhirTotal  = $masterItems->where('phase', 'akhir')->count() ?: 10;
+
+        if ($phase === 'awal') {
+            if (count($checks) >= $awalTotal) {
+                if (empty($checksheet->awal_completed_at)) {
+                    $updateData['awal_completed_at'] = now();
+                }
+            } elseif (count($checks) === 0) {
+                $updateData['awal_completed_at'] = null;
+            }
         }
-        if ($phase === 'akhir' && empty($checksheet->akhir_completed_at)) {
-            $updateData['akhir_completed_at'] = now();
+
+        if ($phase === 'akhir') {
+            if (count($checks) >= $akhirTotal) {
+                if (empty($checksheet->akhir_completed_at)) {
+                    $updateData['akhir_completed_at'] = now();
+                }
+            } else {
+                $updateData['akhir_completed_at'] = null;
+            }
         }
 
         $checksheet->update($updateData);

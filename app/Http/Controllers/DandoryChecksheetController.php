@@ -347,11 +347,37 @@ class DandoryChecksheetController extends Controller
 
         $record = $this->service->toggleCell($checksheet, $request->phase, (int)$request->order_no, $request->status);
 
+        $masterItems = $this->service->getMasterItems();
+        $awalTotal   = $masterItems->where('phase', 'awal')->count() ?: 9;
+        $akhirTotal  = $masterItems->where('phase', 'akhir')->count() ?: 10;
+
+        $awalCount   = count((array) ($record->awal_checks ?? []));
+        $akhirCount  = count((array) ($record->akhir_checks ?? []));
+
+        $isAwalDone  = $awalTotal > 0 && $awalCount >= $awalTotal;
+        $isAkhirDone = $akhirTotal > 0 && $akhirCount >= $akhirTotal;
+        $isComplete  = $isAwalDone && $isAkhirDone;
+
+        $jamAwal = $record->awal_completed_at 
+            ? $record->awal_completed_at->format('H:i') 
+            : ($record->created_at ? $record->created_at->format('H:i') : '-');
+
+        $jamAkhir = ($isAkhirDone && $record->akhir_completed_at)
+            ? $record->akhir_completed_at->format('H:i') 
+            : '-';
+
         return response()->json([
-            'success'      => true,
-            'message'      => 'Nilai sel berhasil diperbarui.',
-            'awal_checks'  => $record->awal_checks,
-            'akhir_checks' => $record->akhir_checks,
+            'success'            => true,
+            'message'            => 'Nilai sel berhasil diperbarui.',
+            'awal_checks'        => $record->awal_checks,
+            'akhir_checks'       => $record->akhir_checks,
+            'jam_awal'           => $jamAwal,
+            'jam_akhir'          => $jamAkhir,
+            'awal_completed_at'  => $record->awal_completed_at?->format('d/m/Y H:i'),
+            'akhir_completed_at' => $record->akhir_completed_at?->format('d/m/Y H:i'),
+            'is_awal_done'       => $isAwalDone,
+            'is_akhir_done'      => $isAkhirDone,
+            'is_complete'        => $isComplete,
         ]);
     }
 
