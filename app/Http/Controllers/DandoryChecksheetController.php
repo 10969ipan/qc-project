@@ -146,8 +146,15 @@ class DandoryChecksheetController extends Controller
         // Ambil part yang diizinkan untuk operator ini
         $availableItems = $this->service->getItemsForOperator($plantCode, $selectedOperatorId);
 
-        // Ambil kategori master (untuk modal kelola operator)
-        $categories = Category::orderBy('name')->get(['id', 'name']);
+        // Ambil kategori master sesuai plant aktif (mencegah duplikasi kategori lintas plant Karawang & Jakarta)
+        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
+        $plantId = $plant ? $plant->id : null;
+
+        $categories = Category::when($plantId, function ($q) use ($plantId) {
+            $q->where(function ($sq) use ($plantId) {
+                $sq->where('plant_id', $plantId)->orWhereNull('plant_id');
+            });
+        })->orderBy('name')->get(['id', 'name']);
 
         // Ambil mapping konfigurasi semua operator di plant ini & kategori terbaru per bagian untuk auto-inheritance
         $opConfigsRaw = \App\Models\DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
