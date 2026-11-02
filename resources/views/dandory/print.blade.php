@@ -363,7 +363,7 @@
                         <div>{{ $cs->part_name }}</div>
                         @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))
                             <div style="font-size: 6.5px; font-weight: normal; color: #555; line-height: 1.1; margin-top: 1px;">
-                                @if($cs->item->part_number) PN: {{ $cs->item->part_number }} @endif
+                                @if($cs->item->part_number) Part Number: {{ $cs->item->part_number }} @endif
                                 @if($cs->item->part_number && $cs->item->sap_code) | @endif
                                 @if($cs->item->sap_code) SAP: {{ $cs->item->sap_code }} @endif
                             </div>

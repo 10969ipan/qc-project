@@ -649,12 +649,12 @@
                                         </td>
                                         <td>{{ $cs->shift }}</td>
                                         <td>{{ $cs->table_no }}</td>
-                                        <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | PN: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
+                                        <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | Part Number: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
                                             <div class="font-weight-bold text-dark text-truncate">{{ $cs->part_name }}</div>
                                             @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))
                                                 <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;">
                                                     @if($cs->item->part_number)
-                                                        <span>PN: <span class="text-secondary font-weight-bold">{{ $cs->item->part_number }}</span></span>
+                                                        <span>Part Number: <span class="text-secondary font-weight-bold">{{ $cs->item->part_number }}</span></span>
                                                     @endif
                                                     @if($cs->item->part_number && $cs->item->sap_code)
                                                         <span class="mx-1 text-black-50">|</span>
