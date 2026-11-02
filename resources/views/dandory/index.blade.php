@@ -863,7 +863,11 @@
                     <div class="form-group mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="small font-weight-bold text-gray-700 mb-0">Pilih Part <span class="text-danger">*</span></label>
-                            <small class="text-muted"><i class="fas fa-filter mr-1"></i> Disaring sesuai posisi: <strong>{{ $opConfig->bagian ?: 'Quality Control' }}</strong></small>
+                            @if(!empty($opConfig->bagian) && !empty($opConfig->allowed_categories) && count((array)$opConfig->allowed_categories) > 0)
+                                <small class="text-muted"><i class="fas fa-filter mr-1"></i> Disaring sesuai posisi: <strong>{{ $opConfig->bagian }}</strong></small>
+                            @else
+                                <small class="text-danger"><i class="fas fa-exclamation-circle mr-1"></i> Posisi / kategori belum diatur</small>
+                            @endif
                         </div>
                         <div class="custom-filter-wrapper">
                             <select name="item_id" id="awalItemId" class="form-control form-control-sm filter-select-custom">
@@ -875,6 +879,12 @@
                                 @endforeach
                             </select>
                         </div>
+                        @if($availableItems->isEmpty())
+                            <div class="alert alert-warning py-1 px-2 mt-2 mb-0 d-flex align-items-center" style="font-size: 0.7rem;">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <span>Daftar part kosong karena posisi/kategori belum dipilih. Silakan atur di menu <strong>Kelola Posisi Operator & Daftar Meja</strong>.</span>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Checklist 9 Parameter Awal Dandory -->

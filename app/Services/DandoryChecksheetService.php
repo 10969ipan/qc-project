@@ -216,29 +216,32 @@ class DandoryChecksheetService
      */
     public function getItemsForOperator(string $plantCode, int $operatorId)
     {
-        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
-        $plantId = $plant ? $plant->id : null;
-
         $opConfig = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
             ->where('operator_id', $operatorId)
             ->first();
 
-        $allowedCats = $opConfig && is_array($opConfig->allowed_categories)
-            ? array_filter($opConfig->allowed_categories)
-            : [];
+        // Jika user belum memilih bagian atau kategori, default part item = kosong (null/empty collection)
+        if (!$opConfig || empty($opConfig->bagian) || empty($opConfig->allowed_categories)) {
+            return collect([]);
+        }
 
-        $query = Item::select(['id', 'name', 'part_number', 'category_id', 'plant_id'])
+        $allowedCats = array_filter((array) $opConfig->allowed_categories);
+        if (empty($allowedCats)) {
+            return collect([]);
+        }
+
+        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
+        $plantId = $plant ? $plant->id : null;
+
+        return Item::select(['id', 'name', 'part_number', 'category_id', 'plant_id'])
             ->when($plantId, function ($q) use ($plantId) {
                 $q->where(function ($sq) use ($plantId) {
                     $sq->where('plant_id', $plantId)->orWhereNull('plant_id');
                 });
-            });
-
-        if (!empty($allowedCats)) {
-            $query->whereIn('category_id', $allowedCats);
-        }
-
-        return $query->orderBy('name')->get();
+            })
+            ->whereIn('category_id', $allowedCats)
+            ->orderBy('name')
+            ->get();
     }
 
     /**
