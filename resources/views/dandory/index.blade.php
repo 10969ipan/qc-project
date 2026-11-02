@@ -597,12 +597,17 @@
                                     <th rowspan="2" style="width: 58px;">SHIFT</th>
                                     <th rowspan="2" style="width: 65px;">MEJA</th>
                                     <th rowspan="2" style="min-width: 175px;">NAMA PART</th>
-                                    <th colspan="{{ count($awalItems) ?: 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AWAL DANDORY</th>
-                                    <th colspan="{{ count($akhirItems) ?: 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AKHIR DANDORY</th>
+                                    <th colspan="{{ (count($awalItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AWAL DANDORY</th>
+                                    <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AKHIR DANDORY</th>
                                     <th rowspan="2" style="width: 115px;">DIPERIKSA<br>(LEADER)</th>
                                     <th rowspan="2" style="width: 130px;">AKSI</th>
                                 </tr>
                                 <tr>
+                                    {{-- Kolom Jam Awal --}}
+                                    <th class="font-weight-bold text-center text-primary" style="width: 48px; min-width: 44px; font-size: 0.60rem; letter-spacing: 0.2px;" title="Waktu Pelaksanaan Awal Dandory">
+                                        JAM
+                                    </th>
+
                                     {{-- Kolom Angka Awal --}}
                                     @foreach($awalItems as $it)
                                         @php
@@ -612,6 +617,11 @@
                                             {{ $it->order_no }}
                                         </th>
                                     @endforeach
+
+                                    {{-- Kolom Jam Akhir --}}
+                                    <th class="font-weight-bold text-center text-success" style="width: 48px; min-width: 44px; font-size: 0.60rem; letter-spacing: 0.2px;" title="Waktu Pelaksanaan Akhir Dandory">
+                                        JAM
+                                    </th>
 
                                     {{-- Kolom Angka Akhir --}}
                                     @foreach($akhirItems as $it)
@@ -643,9 +653,6 @@
                                         <td>{{ $checksheets->firstItem() ? ($checksheets->firstItem() + $index) : ($index + 1) }}</td>
                                         <td class="font-weight-bold text-dark">
                                             <div>{{ \Carbon\Carbon::parse($cs->check_date)->format('d/m/y') }}</div>
-                                            <div class="text-muted font-weight-normal" style="font-size: 0.62rem; line-height: 1.1; margin-top: 1px;">
-                                                {{ $cs->created_at ? \Carbon\Carbon::parse($cs->created_at)->format('H:i') : '-' }}
-                                            </div>
                                         </td>
                                         <td>{{ $cs->shift }}</td>
                                         <td>{{ $cs->table_no }}</td>
@@ -671,6 +678,11 @@
                                             @endif
                                         </td>
 
+                                        {{-- Jam Awal Dandory --}}
+                                        <td class="align-middle text-center font-weight-bold px-1" style="font-size: 0.65rem; color: #1e293b; background-color: rgba(248, 250, 252, 0.85);" title="Waktu Awal: {{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('d/m/Y H:i') : '-' }}">
+                                            {{ $cs->awal_completed_at ? \Carbon\Carbon::parse($cs->awal_completed_at)->format('H:i') : ($cs->created_at ? \Carbon\Carbon::parse($cs->created_at)->format('H:i') : '-') }}
+                                        </td>
+
                                         {{-- Sel Awal Dandory --}}
                                         @foreach($awalItems as $it)
                                             @php
@@ -690,6 +702,17 @@
                                                 {{ $char }}
                                             </td>
                                         @endforeach
+
+                                        {{-- Jam Akhir Dandory --}}
+                                        <td class="align-middle text-center font-weight-bold px-1" style="font-size: 0.65rem; background-color: rgba(248, 250, 252, 0.85);">
+                                            @if($cs->akhir_completed_at)
+                                                <span class="text-success font-weight-bold" title="Waktu Akhir: {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('d/m/Y H:i') }}">
+                                                    {{ \Carbon\Carbon::parse($cs->akhir_completed_at)->format('H:i') }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted font-weight-normal" title="Akhir Dandory belum diselesaikan">-</span>
+                                            @endif
+                                        </td>
 
                                         {{-- Sel Akhir Dandory --}}
                                         @foreach($akhirItems as $it)
@@ -786,7 +809,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ count($awalItems) + count($akhirItems) + ($canVerify ? 8 : 7) }}" class="py-4 text-center text-muted font-italic">
+                                        <td colspan="{{ count($awalItems) + count($akhirItems) + ($canVerify ? 10 : 9) }}" class="py-4 text-center text-muted font-italic">
                                             <i class="fas fa-info-circle mr-1 text-primary"></i> Belum ada data checksheet Dandory Quality untuk Tanggal <strong>{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</strong>{{ $shiftFilter ? ' (' . $shiftFilter . ')' : '' }}. Data selalu baru/ter-reset setiap pergantian hari dan shift.
                                         </td>
                                     </tr>
