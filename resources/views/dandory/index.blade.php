@@ -649,10 +649,23 @@
                                         </td>
                                         <td>{{ $cs->shift }}</td>
                                         <td>{{ $cs->table_no }}</td>
-                                        <td class="text-left font-weight-bold text-dark px-2 text-truncate" style="max-width: 220px;" title="{{ $cs->part_name }}">
-                                            {{ $cs->part_name }}
+                                        <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | PN: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
+                                            <div class="font-weight-bold text-dark text-truncate">{{ $cs->part_name }}</div>
+                                            @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;">
+                                                    @if($cs->item->part_number)
+                                                        <span>PN: <span class="text-secondary font-weight-bold">{{ $cs->item->part_number }}</span></span>
+                                                    @endif
+                                                    @if($cs->item->part_number && $cs->item->sap_code)
+                                                        <span class="mx-1 text-black-50">|</span>
+                                                    @endif
+                                                    @if($cs->item->sap_code)
+                                                        <span>SAP: <span class="text-secondary font-weight-bold">{{ $cs->item->sap_code }}</span></span>
+                                                    @endif
+                                                </div>
+                                            @endif
                                             @if($cs->notes)
-                                                <div class="small text-danger font-italic text-truncate" title="Catatan: {{ $cs->notes }}">
+                                                <div class="small text-danger font-italic text-truncate" style="font-size: 0.60rem; line-height: 1.1; margin-top: 2px;" title="Catatan: {{ $cs->notes }}">
                                                     * {{ $cs->notes }}
                                                 </div>
                                             @endif
@@ -873,8 +886,8 @@
                             <select name="item_id" id="awalItemId" class="form-control form-control-sm filter-select-custom">
                                 <option value="">-- Ketik / Pilih Nama Part --</option>
                                 @foreach($availableItems as $item)
-                                    <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-no="{{ $item->part_number }}">
-                                        {{ $item->name }} {{ $item->part_number ? "({$item->part_number})" : '' }}
+                                    <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-no="{{ $item->part_number }}" data-sap-code="{{ $item->sap_code }}">
+                                        {{ $item->name }} {{ $item->part_number ? "({$item->part_number})" : '' }} {{ $item->sap_code ? "[SAP: {$item->sap_code}]" : '' }}
                                     </option>
                                 @endforeach
                             </select>

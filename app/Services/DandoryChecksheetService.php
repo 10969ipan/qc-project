@@ -21,7 +21,7 @@ class DandoryChecksheetService
      */
     public function getFilteredChecksheets(array $filters, ?int $perPage = null)
     {
-        $query = DandoryChecksheet::with(['operator:id,name,initials', 'item:id,name,part_number'])
+        $query = DandoryChecksheet::with(['operator:id,name,initials', 'item:id,name,part_number,sap_code'])
             ->where('plant_code', $filters['plant_code'] ?? 'karawang');
 
         if (!empty($filters['operator_id'])) {
@@ -233,7 +233,7 @@ class DandoryChecksheetService
         $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
         $plantId = $plant ? $plant->id : null;
 
-        return Item::select(['id', 'name', 'part_number', 'category_id', 'plant_id'])
+        return Item::select(['id', 'name', 'part_number', 'sap_code', 'category_id', 'plant_id'])
             ->when($plantId, function ($q) use ($plantId) {
                 $q->where(function ($sq) use ($plantId) {
                     $sq->where('plant_id', $plantId)->orWhereNull('plant_id');
