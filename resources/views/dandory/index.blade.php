@@ -525,9 +525,9 @@
                 <div class="col-md-6 text-md-right">
                     <span class="text-muted font-weight-bold mr-1">Keterangan:</span>
                     <span class="text-dark font-weight-bold">
+                        <span class="text-secondary">-</span> Item tidak ada &nbsp;&nbsp;|&nbsp;&nbsp;
                         <span class="text-success">✓</span> Dilakukan &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <span class="text-danger">✕</span> Tidak dilakukan &nbsp;&nbsp;|&nbsp;&nbsp;
-                        <span class="text-secondary">-</span> Item tidak ada
+                        <span class="text-danger">✕</span> Tidak dilakukan
                     </span>
                 </div>
             </div>
@@ -736,7 +736,7 @@
                                                 data-phase="awal"
                                                 data-order="{{ $it->order_no }}"
                                                 data-status="{{ $val }}"
-                                                title="Klik ubah: ✓ (OK) -> ✕ (NG) -> - (NA) -> Kosong">
+                                                title="Klik ubah: - (NA) -> ✓ (OK) -> ✕ (NG) -> Kosong">
                                                 {{ $char }}
                                             </td>
                                         @endforeach
@@ -767,7 +767,7 @@
                                                 data-phase="akhir"
                                                 data-order="{{ $it->order_no }}"
                                                 data-status="{{ $val }}"
-                                                title="Klik ubah: ✓ (OK) -> ✕ (NG) -> - (NA) -> Kosong">
+                                                title="Klik ubah: - (NA) -> ✓ (OK) -> ✕ (NG) -> Kosong">
                                                 {{ $char }}
                                             </td>
                                         @endforeach
@@ -998,14 +998,14 @@
                                         <td class="align-middle text-muted">{{ $it->standard }}</td>
                                         <td class="text-center align-middle py-1">
                                             <div class="btn-group btn-group-toggle btn-group-sm" data-toggle="buttons">
+                                                <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
+                                                    <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NA"> - NA
+                                                </label>
                                                 <label class="btn btn-outline-success btn-sm px-2 py-1 active" title="Dilakukan">
                                                     <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="OK" checked> ✓ Dilakukan
                                                 </label>
                                                 <label class="btn btn-outline-danger btn-sm px-2 py-1 btn-label-ng" title="Tidak dilakukan">
                                                     <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NG"> ✕ Tidak Dilakukan
-                                                </label>
-                                                <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
-                                                    <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NA"> - NA
                                                 </label>
                                             </div>
                                             <input type="hidden" name="item_ng_reasons[{{ $it->order_no }}]" class="item-ng-reason" value="">
@@ -1085,14 +1085,14 @@
                                         <td class="align-middle text-muted">{{ $it->standard }}</td>
                                         <td class="text-center align-middle py-1">
                                             <div class="btn-group btn-group-toggle btn-group-sm" data-toggle="buttons">
+                                                <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
+                                                    <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NA"> - NA
+                                                </label>
                                                 <label class="btn btn-outline-success btn-sm px-2 py-1 active" title="Dilakukan">
                                                     <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="OK" checked> ✓ Dilakukan
                                                 </label>
                                                 <label class="btn btn-outline-danger btn-sm px-2 py-1 btn-label-ng" title="Tidak dilakukan">
                                                     <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NG"> ✕ Tidak Dilakukan
-                                                </label>
-                                                <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
-                                                    <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NA"> - NA
                                                 </label>
                                             </div>
                                             <input type="hidden" name="item_ng_reasons[{{ $it->order_no }}]" class="item-ng-reason" value="">

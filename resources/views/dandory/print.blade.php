@@ -316,9 +316,9 @@
                         </div>
                         <div>
                             <strong>Keterangan:</strong>
+                            <span class="sym-na">-</span> Item tidak ada &nbsp;&nbsp;|&nbsp;&nbsp;
                             <span class="sym-ok">✓</span> Dilakukan &nbsp;&nbsp;|&nbsp;&nbsp;
-                            <span class="sym-ng">✕</span> Tidak dilakukan &nbsp;&nbsp;|&nbsp;&nbsp;
-                            <span class="sym-na">-</span> Item tidak ada
+                            <span class="sym-ng">✕</span> Tidak dilakukan
                         </div>
                     </div>
 

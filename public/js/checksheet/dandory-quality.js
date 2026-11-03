@@ -579,12 +579,17 @@ $(document).ready(function () {
         var order = cell.data('order');
         var currentStatus = cell.data('status') || '';
 
-        // Tentukan nilai berikutnya
+        // Putaran alur perubahan status (disamakan dengan modul kepatuhan operator):
+        // Kosong -> - (NA) -> ✓ (OK) -> ✕ (NG / Tidak Dilakukan) -> Kosong
         var nextStatus = null;
         var nextChar = '';
         var nextClass = '';
 
         if (!currentStatus || currentStatus === '') {
+            nextStatus = 'NA';
+            nextChar = '-';
+            nextClass = 'cell-na';
+        } else if (currentStatus === 'NA') {
             nextStatus = 'OK';
             nextChar = '✓';
             nextClass = 'cell-ok';
@@ -593,10 +598,6 @@ $(document).ready(function () {
             nextChar = '✕';
             nextClass = 'cell-ng';
         } else if (currentStatus === 'NG') {
-            nextStatus = 'NA';
-            nextChar = '-';
-            nextClass = 'cell-na';
-        } else if (currentStatus === 'NA') {
             nextStatus = null;
             nextChar = '';
             nextClass = '';
