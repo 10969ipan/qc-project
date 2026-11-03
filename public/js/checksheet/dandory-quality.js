@@ -238,9 +238,6 @@ $(document).ready(function () {
             focusConfirm: false,
             didOpen: function () {
                 $(document).off('focusin.bs.modal');
-                setTimeout(function () {
-                    $('#swalNgModalReason').focus();
-                }, 50);
             },
             preConfirm: function () {
                 var r = $('#swalNgModalReason').val().trim();
@@ -749,9 +746,6 @@ $(document).ready(function () {
                 focusConfirm: false,
                 didOpen: function () {
                     $(document).off('focusin.bs.modal');
-                    setTimeout(function () {
-                        $('#swalNgCellReason').focus();
-                    }, 50);
                 },
                 preConfirm: function () {
                     var r = $('#swalNgCellReason').val().trim();
