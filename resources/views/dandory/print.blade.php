@@ -425,14 +425,14 @@
                             $pAkhir = $cs->notes_akhir;
                         @endphp
                         @if($pAwal && $pAkhir)
-                            <div><strong>Awal:</strong> {{ $pAwal }}</div>
-                            <div><strong>Akhir:</strong> {{ $pAkhir }}</div>
+                            <div><strong>Awal Dandory:</strong> {{ $pAwal }}</div>
+                            <div><strong>Akhir Dandory:</strong> {{ $pAkhir }}</div>
                         @elseif($pAwal)
-                            <div>{{ $pAwal }}</div>
+                            <div><strong>Awal Dandory:</strong> {{ $pAwal }}</div>
                         @elseif($pAkhir)
-                            <div><strong>Akhir:</strong> {{ $pAkhir }}</div>
+                            <div><strong>Akhir Dandory:</strong> {{ $pAkhir }}</div>
                         @elseif($cs->notes)
-                            <div>{{ $cs->notes }}</div>
+                            <div><strong>Awal Dandory:</strong> {{ $cs->notes }}</div>
                         @else
                             -
                         @endif

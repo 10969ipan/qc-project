@@ -677,23 +677,23 @@
                                                 $ketAkhir = $cs->notes_akhir;
                                             @endphp
                                             @if($ketAwal && $ketAkhir)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal: {{ $ketAwal }}">
-                                                    <span>Ket. Awal: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
+                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
                                                 </div>
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir: {{ $ketAkhir }}">
-                                                    <span>Ket. Akhir: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
+                                                    <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
                                                 </div>
                                             @elseif($ketAwal)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan: {{ $ketAwal }}">
-                                                    <span>Keterangan: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
+                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
                                                 </div>
                                             @elseif($ketAkhir)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir: {{ $ketAkhir }}">
-                                                    <span>Ket. Akhir: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
+                                                    <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
                                                 </div>
                                             @elseif($cs->notes)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan: {{ $cs->notes }}">
-                                                    <span>Keterangan: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $cs->notes }}">
+                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
                                                 </div>
                                             @endif
                                         </td>
@@ -1072,7 +1072,7 @@
 
                     <div id="akhirNotesAwalInfo" class="alert alert-light border py-1 px-2 mb-2" style="display:none; font-size: 0.72rem;">
                         <i class="fas fa-info-circle text-primary mr-1"></i>
-                        <span class="text-muted">Keterangan Awal:</span>
+                        <span class="text-muted">Keterangan Awal Dandory:</span>
                         <strong class="text-dark ml-1" id="akhirNotesAwalText">-</strong>
                     </div>
 
