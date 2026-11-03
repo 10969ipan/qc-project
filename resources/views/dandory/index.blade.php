@@ -593,8 +593,7 @@
                                         </th>
                                     @endif
                                     <th rowspan="2" style="width: 32px;">NO</th>
-                                    <th rowspan="2" style="width: 75px;">TANGGAL</th>
-                                    <th rowspan="2" style="width: 58px;">SHIFT</th>
+                                    <th rowspan="2" style="width: 85px;">TANGGAL/SHIFT</th>
                                     <th rowspan="2" style="width: 65px;">MEJA</th>
                                     <th rowspan="2" style="min-width: 175px;">NAMA PART</th>
                                     <th colspan="{{ (count($awalItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AWAL DANDORY</th>
@@ -653,8 +652,10 @@
                                         <td>{{ $checksheets->firstItem() ? ($checksheets->firstItem() + $index) : ($index + 1) }}</td>
                                         <td class="font-weight-bold text-dark">
                                             <div>{{ \Carbon\Carbon::parse($cs->check_date)->format('d/m/y') }}</div>
+                                            <div class="text-muted font-weight-normal" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;">
+                                                {{ $cs->shift }}
+                                            </div>
                                         </td>
-                                        <td>{{ $cs->shift }}</td>
                                         <td>{{ $cs->table_no }}</td>
                                         <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | Part Number: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
                                             <div class="font-weight-bold text-dark text-truncate">{{ $cs->part_name }}</div>
@@ -672,8 +673,8 @@
                                                 </div>
                                             @endif
                                             @if($cs->notes)
-                                                <div class="small text-danger font-italic text-truncate" style="font-size: 0.60rem; line-height: 1.1; margin-top: 2px;" title="Catatan: {{ $cs->notes }}">
-                                                    * {{ $cs->notes }}
+                                                <div class="small text-danger font-italic text-truncate" style="font-size: 0.60rem; line-height: 1.1; margin-top: 2px;" title="Keterangan: {{ $cs->notes }}">
+                                                    Keterangan : {{ $cs->notes }}
                                                 </div>
                                             @endif
                                         </td>
@@ -769,7 +770,7 @@
                                                                 data-part="{{ $cs->part_name }}"
                                                                 data-item-id="{{ $cs->item_id }}"
                                                                 style="font-size:0.6rem; padding: 2px 6px;" title="Selesaikan Akhir Dandory">
-                                                            <i class="fas fa-check-circle mr-1"></i> Akhir
+                                                            <i class="fas fa-check-circle mr-1"></i> Akhir Dandory
                                                         </button>
                                                     @endif
                                                 @endif
@@ -809,7 +810,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ count($awalItems) + count($akhirItems) + ($canVerify ? 10 : 9) }}" class="py-4 text-center text-muted font-italic">
+                                        <td colspan="{{ count($awalItems) + count($akhirItems) + ($canVerify ? 9 : 8) }}" class="py-4 text-center text-muted font-italic">
                                             <i class="fas fa-info-circle mr-1 text-primary"></i> Belum ada data checksheet Dandory Quality untuk Tanggal <strong>{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</strong>{{ $shiftFilter ? ' (' . $shiftFilter . ')' : '' }}. Data selalu baru/ter-reset setiap pergantian hari dan shift.
                                         </td>
                                     </tr>

@@ -314,14 +314,13 @@
             {{-- Kolom Data Transaksi (Header Tingkat 1 & Tingkat 2) --}}
             <tr>
                 <th rowspan="2" style="width:25px;">NO</th>
-                <th rowspan="2" style="width:55px;">TANGGAL</th>
-                <th rowspan="2" style="width:45px;">SHIFT</th>
+                <th rowspan="2" style="width:65px;">TANGGAL/SHIFT</th>
                 <th rowspan="2" style="width:45px;">MEJA</th>
                 <th rowspan="2" style="min-width:160px; text-align:left; padding-left:5px;">NAMA PART</th>
                 <th colspan="{{ (count($awalItems) ?: 1) + 1 }}">AWAL DANDORY</th>
                 <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}">AKHIR DANDORY</th>
                 <th rowspan="2" style="width:80px;">DIPERIKSA<br>(LEADER)</th>
-                <th rowspan="2" style="min-width:90px; text-align:left; padding-left:5px;">CATATAN</th>
+                <th rowspan="2" style="min-width:90px; text-align:left; padding-left:5px;">KETERANGAN</th>
             </tr>
             <tr>
                 <th style="width:26px; font-size:6.5px;" title="Waktu Awal Dandory">JAM</th>
@@ -352,9 +351,11 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>
-                        {{ \Carbon\Carbon::parse($cs->check_date)->format('d/m/y') }}
+                        <div>{{ \Carbon\Carbon::parse($cs->check_date)->format('d/m/y') }}</div>
+                        <div style="font-size: 6.5px; color: #555; line-height: 1.1; margin-top: 1px;">
+                            {{ $cs->shift }}
+                        </div>
                     </td>
-                    <td>{{ $cs->shift }}</td>
                     <td>{{ $cs->table_no }}</td>
                     <td style="text-align:left; padding-left:5px; font-weight:600;">
                         <div>{{ $cs->part_name }}</div>
@@ -417,14 +418,14 @@
                         @endif
                     </td>
 
-                    {{-- Catatan --}}
+                    {{-- Keterangan --}}
                     <td style="text-align:left; padding-left:5px; font-size:6.5pt;">
-                        {{ $cs->notes ?: '-' }}
+                        {{ $cs->notes ? 'Keterangan : ' . $cs->notes : '-' }}
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($awalItems) + count($akhirItems) + 9 }}" style="padding:16px; color:#64748b; font-style:italic;">
+                    <td colspan="{{ count($awalItems) + count($akhirItems) + 8 }}" style="padding:16px; color:#64748b; font-style:italic;">
                         Belum ada data checksheet Dandory Quality untuk filter ini.
                     </td>
                 </tr>
