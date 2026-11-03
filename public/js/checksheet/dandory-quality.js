@@ -264,18 +264,12 @@ $(document).ready(function () {
 
                 syncModalNotes(modalEl, notesInput);
             } else {
-                // Jika batal dan belum ada reason sebelumnya, kembalikan ke OK
-                if (!currentReason) {
-                    var okRadio = tr.find('input[type="radio"][value="OK"]');
-                    okRadio.prop('checked', true);
-                    var group = okRadio.closest('.btn-group-toggle');
-                    group.find('label.btn').removeClass('active');
-                    okRadio.closest('label.btn').addClass('active');
-
-                    tr.find('.item-ng-reason').val('');
-                    tr.find('.ng-reason-container').empty().hide();
-                    syncModalNotes(modalEl, notesInput);
-                }
+                // Saat batal: jadikan pilihan baris ini null (kosong)
+                tr.find('input[type="radio"]').prop('checked', false);
+                tr.find('.btn-group-toggle label.btn').removeClass('active');
+                tr.find('.item-ng-reason').val('');
+                tr.find('.ng-reason-container').empty().hide();
+                syncModalNotes(modalEl, notesInput);
             }
         });
     }
@@ -608,12 +602,12 @@ $(document).ready(function () {
         var oldStatus = currentStatus;
         var oldClass = cell.attr('class');
 
-        function sendCellAjax(reasonText) {
+        function sendCellAjax(targetStatus, targetChar, targetClass, reasonText) {
             // Optimistic UI Update (Responsif tanpa delay)
             cell.removeClass('cell-ok cell-ng cell-na');
-            if (nextClass) cell.addClass(nextClass);
-            cell.text(nextChar);
-            cell.data('status', nextStatus || '');
+            if (targetClass) cell.addClass(targetClass);
+            cell.text(targetChar || '');
+            cell.data('status', targetStatus || '');
 
             var postUrl = config.akhirBaseUrl + '/' + id + '/toggle-cell';
 
@@ -623,7 +617,7 @@ $(document).ready(function () {
                 data: {
                     phase: phase,
                     order_no: order,
-                    status: nextStatus,
+                    status: targetStatus || null,
                     reason: reasonText || null
                 },
                 dataType: 'json',
@@ -758,12 +752,14 @@ $(document).ready(function () {
                 }
             }).then(function (result) {
                 if (result.isConfirmed) {
-                    sendCellAjax(result.value);
+                    sendCellAjax(nextStatus, nextChar, nextClass, result.value);
+                } else {
+                    // Saat klik Batal, jadikan kolom/sel NULL (kosong) baik di UI maupun database
+                    sendCellAjax(null, '', '', null);
                 }
-                // Jika batal, sel tetap pada status saat ini (OK)
             });
         } else {
-            sendCellAjax(null);
+            sendCellAjax(nextStatus, nextChar, nextClass, null);
         }
     });
 
