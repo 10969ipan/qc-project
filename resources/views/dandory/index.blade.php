@@ -673,8 +673,8 @@
                                                 </div>
                                             @endif
                                             @if($cs->notes)
-                                                <div class="small text-danger font-italic text-truncate" style="font-size: 0.60rem; line-height: 1.1; margin-top: 2px;" title="Keterangan: {{ $cs->notes }}">
-                                                    Keterangan : {{ $cs->notes }}
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan: {{ $cs->notes }}">
+                                                    <span>Keterangan: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
                                                 </div>
                                             @endif
                                         </td>
@@ -765,11 +765,11 @@
                                                 {{-- Tombol Input Akhir Dandory: Khusus Inspector/Operator saja --}}
                                                 @if(in_array(auth()->user()->role, ['inspector', 'operator']))
                                                     @if(!$cs->is_akhir_done)
-                                                        <button type="button" class="btn btn-warning btn-xs rounded-pill px-2 shadow-xs btn-open-akhir"
+                                                        <button type="button" class="btn btn-outline-success btn-xs rounded-pill px-2 shadow-xs btn-open-akhir"
                                                                 data-id="{{ $cs->id }}"
                                                                 data-part="{{ $cs->part_name }}"
                                                                 data-item-id="{{ $cs->item_id }}"
-                                                                style="font-size:0.6rem; padding: 2px 6px;" title="Selesaikan Akhir Dandory">
+                                                                style="font-size:0.6rem; padding: 2px 6px; font-weight: 700; color: #16a34a; border-color: #16a34a;" title="Selesaikan Akhir Dandory">
                                                             <i class="fas fa-check-circle mr-1"></i> Akhir Dandory
                                                         </button>
                                                     @endif
