@@ -656,7 +656,7 @@
                                         $akhirMap = (array) ($cs->akhir_checks ?? []);
                                         $isComplete = $cs->is_complete ?? false;
                                     @endphp
-                                    <tr id="row-dandory-{{ $cs->id }}" data-id="{{ $cs->id }}">
+                                    <tr id="row-dandory-{{ $cs->id }}" data-id="{{ $cs->id }}" data-part-name="{{ $cs->part_name }}" data-part-number="{{ $cs->item?->part_number ?? '' }}" data-sap-code="{{ $cs->item?->sap_code ?? '' }}">
                                         @if($canVerify)
                                             <td class="align-middle text-center">
                                                 <div class="custom-control custom-checkbox">

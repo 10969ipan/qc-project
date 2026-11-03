@@ -715,8 +715,19 @@ $(document).ready(function () {
         }
 
         if (nextStatus === 'NG') {
+            var tr = cell.closest('tr');
             var itemTitle = $('.th-num-hover[data-phase="' + phase + '"][data-order="' + order + '"]').attr('title') || ('Item #' + order);
-            var partTitle = $('#row_' + id + ' strong').first().text().trim() || 'Part ini';
+            var partName = tr.data('part-name') || tr.find('.font-weight-bold.text-dark').first().text().trim() || '-';
+            var partNumber = tr.data('part-number') || '';
+            var sapCode = tr.data('sap-code') || '';
+
+            var partDetailHtml = '<strong class="text-dark">' + escapeHtml(partName) + '</strong>';
+            if (partNumber) {
+                partDetailHtml += ' <span class="text-muted">(Part No: <strong class="text-secondary">' + escapeHtml(partNumber) + '</strong>)</span>';
+            }
+            if (sapCode) {
+                partDetailHtml += ' <span class="text-muted">| SAP: <strong class="text-secondary">' + escapeHtml(sapCode) + '</strong></span>';
+            }
 
             Swal.fire({
                 title: 'Keterangan Tidak Dilakukan',
@@ -724,10 +735,10 @@ $(document).ready(function () {
                       '<div class="alert alert-light border py-2 px-3 mb-2" style="background:#fef2f2; border-color:#fecaca !important;">' +
                       '<div class="font-weight-bold text-danger mb-1"><i class="fas fa-exclamation-triangle mr-1"></i> ' + (phase === 'awal' ? 'Awal Dandory' : 'Akhir Dandory') + ' - Item #' + order + '</div>' +
                       '<div class="text-muted small"><strong>Item:</strong> ' + escapeHtml(itemTitle) + '</div>' +
-                      '<div class="text-muted small"><strong>Part:</strong> ' + escapeHtml(partTitle) + '</div>' +
+                      '<div class="text-muted small"><strong>Part:</strong> ' + partDetailHtml + '</div>' +
                       '</div>' +
                       '<label class="small font-weight-bold text-gray-700 mb-1">Alasan / Keterangan Tidak Dilakukan: <span class="text-danger">*</span></label>' +
-                      '<textarea id="swalNgCellReason" class="form-control form-control-sm border" rows="3" placeholder="Tuliskan keterangan kenapa parameter ini Tidak Dilakukan..."></textarea>' +
+                      '<textarea id="swalNgCellReason" class="form-control form-control-sm border" rows="3" placeholder="Tuliskan keterangan kenapa parameter ini Tidak Dilakukan..." style="resize: vertical;"></textarea>' +
                       '</div>',
                 icon: 'warning',
                 showCancelButton: true,
