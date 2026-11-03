@@ -277,9 +277,19 @@ $(document).ready(function () {
         var partName = $(this).data('part');
         var itemId = $(this).data('item-id');
 
+        var notesAwal = $(this).data('notes-awal') || '';
+        var notesAkhir = $(this).data('notes-akhir') || '';
+
         $('#akhirDandoryId').val(id);
         $('#akhirPartName').text(partName);
-        $('#akhirNotes').val('');
+        $('#akhirNotes').val(notesAkhir);
+
+        if (notesAwal) {
+            $('#akhirNotesAwalText').text(notesAwal);
+            $('#akhirNotesAwalInfo').show();
+        } else {
+            $('#akhirNotesAwalInfo').hide();
+        }
 
         // Reset radio button modal akhir ke OK semua secara default
         $('#btnSetAllAkhirOk').trigger('click');

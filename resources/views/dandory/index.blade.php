@@ -672,7 +672,26 @@
                                                     @endif
                                                 </div>
                                             @endif
-                                            @if($cs->notes)
+                                            @php
+                                                $ketAwal = $cs->notes_awal ?: ($cs->notes_akhir ? null : $cs->notes);
+                                                $ketAkhir = $cs->notes_akhir;
+                                            @endphp
+                                            @if($ketAwal && $ketAkhir)
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal: {{ $ketAwal }}">
+                                                    <span>Ket. Awal: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                </div>
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir: {{ $ketAkhir }}">
+                                                    <span>Ket. Akhir: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                </div>
+                                            @elseif($ketAwal)
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan: {{ $ketAwal }}">
+                                                    <span>Keterangan: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                </div>
+                                            @elseif($ketAkhir)
+                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir: {{ $ketAkhir }}">
+                                                    <span>Ket. Akhir: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                </div>
+                                            @elseif($cs->notes)
                                                 <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan: {{ $cs->notes }}">
                                                     <span>Keterangan: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
                                                 </div>
@@ -769,6 +788,8 @@
                                                                 data-id="{{ $cs->id }}"
                                                                 data-part="{{ $cs->part_name }}"
                                                                 data-item-id="{{ $cs->item_id }}"
+                                                                data-notes-awal="{{ $cs->notes_awal ?: $cs->notes }}"
+                                                                data-notes-akhir="{{ $cs->notes_akhir }}"
                                                                 style="font-size:0.6rem; padding: 2px 6px; font-weight: 700; color: #16a34a; border-color: #16a34a;" title="Selesaikan Akhir Dandory">
                                                             <i class="fas fa-check-circle mr-1"></i> Akhir Dandory
                                                         </button>
@@ -1049,8 +1070,14 @@
                         </table>
                     </div>
 
+                    <div id="akhirNotesAwalInfo" class="alert alert-light border py-1 px-2 mb-2" style="display:none; font-size: 0.72rem;">
+                        <i class="fas fa-info-circle text-primary mr-1"></i>
+                        <span class="text-muted">Keterangan Awal:</span>
+                        <strong class="text-dark ml-1" id="akhirNotesAwalText">-</strong>
+                    </div>
+
                     <div class="form-group mb-0">
-                        <label class="small font-weight-bold text-gray-700 mb-1">Catatan / Keterangan Sisa Part (Opsional)</label>
+                        <label class="small font-weight-bold text-gray-700 mb-1">Catatan / Keterangan Akhir Dandory (Opsional)</label>
                         <input type="text" name="notes" id="akhirNotes" class="form-control form-control-sm border" placeholder="Contoh: Sisa 5 pcs ditaruh di balance">
                     </div>
                 </div>

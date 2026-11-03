@@ -275,6 +275,8 @@ class DandoryChecksheetService
         $partName = $item ? $item->name : ($data['part_name'] ?? '-');
         $bagian = $data['jabatan'] ?? $this->getOperatorBagianFromCompliance((int)$data['operator_id']);
 
+        $notesAwal = !empty($data['notes']) ? trim($data['notes']) : null;
+
         return DandoryChecksheet::create([
             'plant_code'        => strtolower($data['plant_code'] ?? 'karawang'),
             'check_date'        => $data['check_date'] ?? date('Y-m-d'),
@@ -287,7 +289,9 @@ class DandoryChecksheetService
             'awal_checks'       => $data['awal_checks'] ?? [],
             'akhir_checks'      => null,
             'awal_completed_at' => now(),
-            'notes'             => $data['notes'] ?? null,
+            'notes_awal'        => $notesAwal,
+            'notes_akhir'       => null,
+            'notes'             => $notesAwal,
             'created_by'        => $userId,
         ]);
     }
@@ -297,10 +301,25 @@ class DandoryChecksheetService
      */
     public function storeAkhir(DandoryChecksheet $checksheet, array $akhirChecks, ?string $notes = null): DandoryChecksheet
     {
+        $notesAkhir = !empty($notes) ? trim($notes) : null;
+        $notesAwal  = $checksheet->notes_awal ?: $checksheet->notes;
+
+        // Gabungkan kedua catatan tanpa menghilangkan catatan awal
+        $combinedNotes = null;
+        if ($notesAwal && $notesAkhir) {
+            $combinedNotes = "[Awal] " . $notesAwal . " | [Akhir] " . $notesAkhir;
+        } elseif ($notesAwal) {
+            $combinedNotes = $notesAwal;
+        } elseif ($notesAkhir) {
+            $combinedNotes = $notesAkhir;
+        }
+
         $checksheet->update([
             'akhir_checks'       => $akhirChecks,
             'akhir_completed_at' => now(),
-            'notes'              => $notes ?: $checksheet->notes,
+            'notes_awal'         => $notesAwal,
+            'notes_akhir'        => $notesAkhir ?: $checksheet->notes_akhir,
+            'notes'              => $combinedNotes,
         ]);
 
         return $checksheet;

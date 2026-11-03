@@ -420,7 +420,22 @@
 
                     {{-- Keterangan --}}
                     <td style="text-align:left; padding-left:5px; font-size:6.5pt;">
-                        {{ $cs->notes ? 'Keterangan : ' . $cs->notes : '-' }}
+                        @php
+                            $pAwal = $cs->notes_awal ?: ($cs->notes_akhir ? null : $cs->notes);
+                            $pAkhir = $cs->notes_akhir;
+                        @endphp
+                        @if($pAwal && $pAkhir)
+                            <div><strong>Awal:</strong> {{ $pAwal }}</div>
+                            <div><strong>Akhir:</strong> {{ $pAkhir }}</div>
+                        @elseif($pAwal)
+                            <div>{{ $pAwal }}</div>
+                        @elseif($pAkhir)
+                            <div><strong>Akhir:</strong> {{ $pAkhir }}</div>
+                        @elseif($cs->notes)
+                            <div>{{ $cs->notes }}</div>
+                        @else
+                            -
+                        @endif
                     </td>
                 </tr>
             @empty

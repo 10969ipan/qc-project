@@ -22,6 +22,8 @@ class DandoryChecksheet extends Model
         'akhir_checks',
         'awal_completed_at',
         'akhir_completed_at',
+        'notes_awal',
+        'notes_akhir',
         'notes',
         'leader_checked',
         'leader_user_id',
