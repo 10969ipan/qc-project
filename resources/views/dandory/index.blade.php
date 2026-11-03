@@ -803,6 +803,8 @@
                                                         <button type="button" class="btn btn-outline-success btn-xs rounded-pill px-2 shadow-xs btn-open-akhir"
                                                                 data-id="{{ $cs->id }}"
                                                                 data-part="{{ $cs->part_name }}"
+                                                                data-part-number="{{ $cs->item?->part_number ?? '' }}"
+                                                                data-sap-code="{{ $cs->item?->sap_code ?? '' }}"
                                                                 data-item-id="{{ $cs->item_id }}"
                                                                 data-notes-awal="{{ $cs->notes_awal ?: $cs->notes }}"
                                                                 data-notes-akhir="{{ $cs->notes_akhir }}"
@@ -1044,6 +1046,11 @@
                         <div>
                             <span class="text-muted small">Part yang sedang diperiksa:</span>
                             <strong class="d-block text-dark font-weight-bold" id="akhirPartName">-</strong>
+                            <div class="text-secondary font-weight-normal" id="akhirPartMeta" style="font-size: 0.75rem; line-height: 1.2; margin-top: 2px; display: none;">
+                                <span id="akhirPartNumberWrap">Part Number: <strong class="text-secondary" id="akhirPartNumber">-</strong></span>
+                                <span id="akhirPartSapDivider" class="mx-1 text-black-50">|</span>
+                                <span id="akhirPartSapWrap">SAP: <strong class="text-secondary" id="akhirPartSap">-</strong></span>
+                            </div>
                         </div>
                         <button type="button" class="btn btn-xs btn-success rounded-pill px-2" id="btnSetAllAkhirOk">
                             <i class="fas fa-check mr-1"></i> Set Semua ✓ (Dilakukan)

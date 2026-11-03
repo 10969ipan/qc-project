@@ -275,6 +275,8 @@ $(document).ready(function () {
     $(document).on('click', '.btn-open-akhir', function () {
         var id = $(this).data('id');
         var partName = $(this).data('part');
+        var partNumber = $(this).data('part-number') || '';
+        var sapCode = $(this).data('sap-code') || '';
         var itemId = $(this).data('item-id');
 
         var notesAwal = $(this).data('notes-awal') || '';
@@ -282,6 +284,32 @@ $(document).ready(function () {
 
         $('#akhirDandoryId').val(id);
         $('#akhirPartName').text(partName);
+
+        if (partNumber || sapCode) {
+            if (partNumber) {
+                $('#akhirPartNumber').text(partNumber);
+                $('#akhirPartNumberWrap').show();
+            } else {
+                $('#akhirPartNumberWrap').hide();
+            }
+
+            if (sapCode) {
+                $('#akhirPartSap').text(sapCode);
+                $('#akhirPartSapWrap').show();
+            } else {
+                $('#akhirPartSapWrap').hide();
+            }
+
+            if (partNumber && sapCode) {
+                $('#akhirPartSapDivider').show();
+            } else {
+                $('#akhirPartSapDivider').hide();
+            }
+            $('#akhirPartMeta').show();
+        } else {
+            $('#akhirPartMeta').hide();
+        }
+
         $('#akhirNotes').val(notesAkhir);
 
         if (notesAwal) {
