@@ -63,13 +63,23 @@
         min-width: 1100px;
         table-layout: auto !important;
         margin-bottom: 0;
+        background-color: #ffffff;
     }
     .table-dandory td, .table-dandory th {
-        border-left: none !important;
-        border-right: 1px solid #f1f5f9 !important;
+        border-left: none;
+        border-right: 1px solid #e2e8f0 !important;
+    }
+    .table-dandory > thead > tr > th:first-child,
+    .table-dandory > tbody > tr > td:first-child {
+        border-left: 1px solid #cbd5e1 !important;
+    }
+    .table-dandory > thead > tr:first-child > th:last-child,
+    .table-dandory > thead > tr:last-child > th:last-child,
+    .table-dandory > tbody > tr > td:last-child {
+        border-right: 1px solid #cbd5e1 !important;
     }
     .table-dandory tbody td {
-        border-bottom: 1px solid #f1f5f9 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
         border-top: none !important;
         vertical-align: middle !important;
         color: #334155 !important;
@@ -77,6 +87,12 @@
         padding: 2px 4px !important;
         line-height: 1.1 !important;
         text-align: center;
+    }
+    .table-dandory > thead > tr:first-child > th {
+        border-top: 1px solid #cbd5e1 !important;
+    }
+    .table-dandory > tbody > tr:last-child > td {
+        border-bottom: 1px solid #cbd5e1 !important;
     }
 
     /* Global TH sticky setup (persis in_process) */
@@ -91,7 +107,7 @@
         font-size: 0.58rem !important;
         letter-spacing: 0.1px;
         padding: 3px 5px !important;
-        border-left: none !important;
+        border-left: none;
         border-right: 1px solid #e2e8f0 !important;
         border-bottom: 1px solid #e2e8f0 !important;
         vertical-align: middle !important;
