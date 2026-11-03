@@ -179,7 +179,7 @@ $(document).ready(function () {
             var tr = $(this);
             var val = tr.find('input[type="radio"]:checked').val();
             if (val === 'NG') {
-                var itemCheck = tr.data('item-check');
+                var itemCheck = tr.attr('data-item-check') || tr.data('item-check');
                 var reason = tr.find('.item-ng-reason').val();
                 if (reason) {
                     reasons.push('[' + itemCheck + '] ' + reason);
@@ -188,16 +188,18 @@ $(document).ready(function () {
         });
 
         var currentNote = notesInput.val() || '';
-        // Pisahkan catatan manual yang diketik pengguna (yang tidak diawali bracket item check)
+        // Pisahkan catatan manual yang diketik pengguna (yang tidak diawali bracket item check master modal ini)
         var parts = currentNote.split(' | ');
         var manualParts = parts.filter(function (part) {
             part = part.trim();
             if (!part) return false;
             var match = part.match(/^\[(.*?)\]/);
             if (match) {
+                var bracketName = match[1].trim();
                 var found = false;
                 modalEl.find('tbody tr').each(function () {
-                    if ($(this).data('item-check') === match[1]) found = true;
+                    var ic = ($(this).attr('data-item-check') || $(this).data('item-check') || '').trim();
+                    if (ic === bracketName) found = true;
                 });
                 return !found;
             }
@@ -679,6 +681,12 @@ $(document).ready(function () {
                                                  '</div>';
                                 }
                                 container.html(notesHtml);
+
+                                var btnAkhir = $('#actionCell_' + id + ' .btn-open-akhir');
+                                if (btnAkhir.length) {
+                                    btnAkhir.data('notes-awal', ketAwal).attr('data-notes-awal', ketAwal);
+                                    btnAkhir.data('notes-akhir', ketAkhir).attr('data-notes-akhir', ketAkhir);
+                                }
                             }
                         }
 

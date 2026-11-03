@@ -318,7 +318,7 @@ class DandoryChecksheetService
             'akhir_checks'       => $akhirChecks,
             'akhir_completed_at' => now(),
             'notes_awal'         => $notesAwal,
-            'notes_akhir'        => $notesAkhir ?: $checksheet->notes_akhir,
+            'notes_akhir'        => $notesAkhir,
             'notes'              => $combinedNotes,
         ]);
 
@@ -341,27 +341,57 @@ class DandoryChecksheetService
 
         $updateData = [$field => $checks];
 
-        // Jika status NG dan ada keterangan alasan, tambahkan ke catatan
+        $masterItems = $this->getMasterItems();
+        $item = $masterItems->where('phase', $phase)->where('order_no', $orderNo)->first();
+        $itemName = $item ? $item->item_check : "Item $orderNo";
+
+        $noteField = $phase === 'akhir' ? 'notes_akhir' : 'notes_awal';
+        $currNote = $checksheet->$noteField;
+
+        // Jika status NG dan ada keterangan alasan, tambahkan / perbarui keterangan item ini
         if ($status === 'NG' && !empty(trim((string)$reason))) {
             $reasonTrimmed = trim((string)$reason);
-            $masterItems = $this->getMasterItems();
-            $item = $masterItems->where('phase', $phase)->where('order_no', $orderNo)->first();
-            $itemName = $item ? $item->item_check : "Item $orderNo";
             $entry = "[$itemName] $reasonTrimmed";
 
-            if ($phase === 'awal') {
-                $curr = $checksheet->notes_awal;
-                $newNote = $curr ? ($curr . ' | ' . $entry) : $entry;
-                $updateData['notes_awal'] = $newNote;
-                $notesAkhir = $checksheet->notes_akhir;
-                $updateData['notes'] = ($newNote && $notesAkhir) ? "[Awal] $newNote | [Akhir] $notesAkhir" : $newNote;
-            } else {
-                $curr = $checksheet->notes_akhir;
-                $newNote = $curr ? ($curr . ' | ' . $entry) : $entry;
-                $updateData['notes_akhir'] = $newNote;
-                $notesAwal = $checksheet->notes_awal;
-                $updateData['notes'] = ($notesAwal && $newNote) ? "[Awal] $notesAwal | [Akhir] $newNote" : $newNote;
+            $parts = !empty($currNote) ? explode(' | ', $currNote) : [];
+            $filtered = [];
+            foreach ($parts as $p) {
+                $p = trim($p);
+                if ($p !== '' && !str_starts_with($p, "[$itemName]")) {
+                    $filtered[] = $p;
+                }
             }
+            $filtered[] = $entry;
+            $newNote = !empty($filtered) ? implode(' | ', $filtered) : null;
+            $updateData[$noteField] = $newNote;
+        } else {
+            // Jika status berubah bukan NG (misal OK, NA, atau null), bersihkan catatan alasan untuk item ini
+            if (!empty($currNote)) {
+                $parts = explode(' | ', $currNote);
+                $filtered = [];
+                foreach ($parts as $p) {
+                    $p = trim($p);
+                    if ($p !== '' && !str_starts_with($p, "[$itemName]")) {
+                        $filtered[] = $p;
+                    }
+                }
+                $newNote = !empty($filtered) ? implode(' | ', $filtered) : null;
+                $updateData[$noteField] = $newNote;
+            }
+        }
+
+        // Sinkronkan catatan gabungan 'notes'
+        $notesAwal = array_key_exists('notes_awal', $updateData) ? $updateData['notes_awal'] : $checksheet->notes_awal;
+        $notesAkhir = array_key_exists('notes_akhir', $updateData) ? $updateData['notes_akhir'] : $checksheet->notes_akhir;
+
+        if ($notesAwal && $notesAkhir) {
+            $updateData['notes'] = "[Awal] $notesAwal | [Akhir] $notesAkhir";
+        } elseif ($notesAwal) {
+            $updateData['notes'] = $notesAwal;
+        } elseif ($notesAkhir) {
+            $updateData['notes'] = $notesAkhir;
+        } else {
+            $updateData['notes'] = null;
         }
 
         $masterItems = $this->getMasterItems();
