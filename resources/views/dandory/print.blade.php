@@ -150,7 +150,7 @@
         /* Tabel Referensi Parameter Standar ISO di Bawah */
         .std-ref-box {
             margin-top: 8px;
-            border: 1px solid #000;
+            border: 1px solid #cbd5e1;
             padding: 4px 6px;
             font-size: 6.8px;
             background-color: #fff;
@@ -158,26 +158,40 @@
             break-inside: avoid;
         }
 
-        .std-ref-box table {
+        .std-ref-layout {
+            width: 100%;
+            border-collapse: collapse;
+            border: none !important;
+        }
+
+        .std-ref-layout td {
+            border: none !important;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .table-param-std {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .std-ref-box th {
-            background-color: #f2f2f2 !important;
-            border: 1px solid #000 !important;
+        .table-param-std th {
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
             padding: 2px 4px;
             font-weight: bold;
             font-size: 6.8px;
             text-align: left;
             text-transform: uppercase;
+            color: #334155 !important;
         }
 
-        .std-ref-box td {
-            border: 1px solid #ccc !important;
+        .table-param-std td {
+            border: 1px solid #cbd5e1 !important;
             padding: 1.5px 4px;
             font-size: 6.5px;
             vertical-align: top;
+            color: #1e293b !important;
         }
 
         /* Footer Timestamp */
@@ -450,13 +464,13 @@
 
     {{-- Tabel Parameter Standar ISO di Bawah (Traceability Lengkap Dokumen ISO) --}}
     <div class="std-ref-box">
-        <table>
+        <table class="std-ref-layout">
             <tr>
                 <td style="width:48%; padding-right:6px; vertical-align:top;">
                     <strong style="display:block; margin-bottom:2px; font-size:7pt; color:#1e293b; text-transform:uppercase;">
                         Parameter Awal Dandory (1–{{ count($awalItems) }})
                     </strong>
-                    <table style="width:100%; border-collapse:collapse;">
+                    <table class="table-param-std">
                         <thead>
                             <tr>
                                 <th style="width:20px; text-align:center;">No</th>
@@ -479,7 +493,7 @@
                     <strong style="display:block; margin-bottom:2px; font-size:7pt; color:#1e293b; text-transform:uppercase;">
                         Parameter Akhir Dandory (1–{{ count($akhirItems) }})
                     </strong>
-                    <table style="width:100%; border-collapse:collapse;">
+                    <table class="table-param-std">
                         <thead>
                             <tr>
                                 <th style="width:20px; text-align:center;">No</th>
