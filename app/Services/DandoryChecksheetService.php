@@ -328,7 +328,7 @@ class DandoryChecksheetService
     /**
      * Toggle nilai sel matriks langsung via AJAX (✓ / ✕ / - / null)
      */
-    public function toggleCell(DandoryChecksheet $checksheet, string $phase, int $orderNo, ?string $status): DandoryChecksheet
+    public function toggleCell(DandoryChecksheet $checksheet, string $phase, int $orderNo, ?string $status, ?string $reason = null): DandoryChecksheet
     {
         $field = $phase === 'akhir' ? 'akhir_checks' : 'awal_checks';
         $checks = (array) ($checksheet->$field ?? []);
@@ -340,6 +340,29 @@ class DandoryChecksheetService
         }
 
         $updateData = [$field => $checks];
+
+        // Jika status NG dan ada keterangan alasan, tambahkan ke catatan
+        if ($status === 'NG' && !empty(trim((string)$reason))) {
+            $reasonTrimmed = trim((string)$reason);
+            $masterItems = $this->getMasterItems();
+            $item = $masterItems->where('phase', $phase)->where('order_no', $orderNo)->first();
+            $itemName = $item ? $item->item_check : "Item $orderNo";
+            $entry = "[$itemName] $reasonTrimmed";
+
+            if ($phase === 'awal') {
+                $curr = $checksheet->notes_awal;
+                $newNote = $curr ? ($curr . ' | ' . $entry) : $entry;
+                $updateData['notes_awal'] = $newNote;
+                $notesAkhir = $checksheet->notes_akhir;
+                $updateData['notes'] = ($newNote && $notesAkhir) ? "[Awal] $newNote | [Akhir] $notesAkhir" : $newNote;
+            } else {
+                $curr = $checksheet->notes_akhir;
+                $newNote = $curr ? ($curr . ' | ' . $entry) : $entry;
+                $updateData['notes_akhir'] = $newNote;
+                $notesAwal = $checksheet->notes_awal;
+                $updateData['notes'] = ($notesAwal && $newNote) ? "[Awal] $notesAwal | [Akhir] $newNote" : $newNote;
+            }
+        }
 
         $masterItems = $this->getMasterItems();
         $awalTotal   = $masterItems->where('phase', 'awal')->count() ?: 9;

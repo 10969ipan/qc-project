@@ -337,15 +337,21 @@ class DandoryChecksheetController extends Controller
         $request->validate([
             'phase'    => 'required|in:awal,akhir',
             'order_no' => 'required|integer',
-            'status'   => 'nullable|in:OK,NG,NA',
+            'status'   => 'nullable|in:OK,NG,NA,Tidak Dilakukan',
+            'reason'   => 'nullable|string|max:255',
         ]);
+
+        $status = $request->status;
+        if ($status === 'Tidak Dilakukan') {
+            $status = 'NG';
+        }
 
         $checksheet = DandoryChecksheet::findOrFail($id);
         if ($checksheet->leader_checked && Auth::user()->role === 'inspector') {
             return response()->json(['success' => false, 'message' => 'Baris ini sudah diverifikasi Leader dan tidak dapat diubah.'], 403);
         }
 
-        $record = $this->service->toggleCell($checksheet, $request->phase, (int)$request->order_no, $request->status);
+        $record = $this->service->toggleCell($checksheet, $request->phase, (int)$request->order_no, $status, $request->reason);
 
         $masterItems = $this->service->getMasterItems();
         $awalTotal   = $masterItems->where('phase', 'awal')->count() ?: 9;
@@ -373,6 +379,9 @@ class DandoryChecksheetController extends Controller
             'akhir_checks'       => $record->akhir_checks,
             'jam_awal'           => $jamAwal,
             'jam_akhir'          => $jamAkhir,
+            'notes_awal'         => $record->notes_awal,
+            'notes_akhir'        => $record->notes_akhir,
+            'notes'              => $record->notes,
             'awal_completed_at'  => $record->awal_completed_at?->format('d/m/Y H:i'),
             'akhir_completed_at' => $record->akhir_completed_at?->format('d/m/Y H:i'),
             'is_awal_done'       => $isAwalDone,

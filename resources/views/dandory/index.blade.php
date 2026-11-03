@@ -692,26 +692,28 @@
                                                 $ketAwal = $cs->notes_awal ?: ($cs->notes_akhir ? null : $cs->notes);
                                                 $ketAkhir = $cs->notes_akhir;
                                             @endphp
-                                            @if($ketAwal && $ketAkhir)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
-                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
-                                                </div>
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
-                                                    <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
-                                                </div>
-                                            @elseif($ketAwal)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
-                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
-                                                </div>
-                                            @elseif($ketAkhir)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
-                                                    <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
-                                                </div>
-                                            @elseif($cs->notes)
-                                                <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $cs->notes }}">
-                                                    <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
-                                                </div>
-                                            @endif
+                                            <div id="notesContainer_{{ $cs->id }}">
+                                                @if($ketAwal && $ketAkhir)
+                                                    <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
+                                                        <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                    </div>
+                                                    <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
+                                                        <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                    </div>
+                                                @elseif($ketAwal)
+                                                    <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $ketAwal }}">
+                                                        <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $ketAwal }}</span></span>
+                                                    </div>
+                                                @elseif($ketAkhir)
+                                                    <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: {{ $ketAkhir }}">
+                                                        <span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">{{ $ketAkhir }}</span></span>
+                                                    </div>
+                                                @elseif($cs->notes)
+                                                    <div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: {{ $cs->notes }}">
+                                                        <span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">{{ $cs->notes }}</span></span>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </td>
 
                                         {{-- Jam Awal Dandory --}}
@@ -987,22 +989,26 @@
                             </thead>
                             <tbody>
                                 @foreach($awalItems as $it)
-                                    <tr>
+                                    <tr data-order="{{ $it->order_no }}" data-item-check="{{ $it->item_check }}" data-standard="{{ $it->standard }}">
                                         <td class="text-center font-weight-bold align-middle">{{ $it->order_no }}</td>
-                                        <td class="font-weight-bold text-dark align-middle">{{ $it->item_check }}</td>
+                                        <td class="font-weight-bold text-dark align-middle">
+                                            {{ $it->item_check }}
+                                            <div class="ng-reason-container mt-1" style="display:none;"></div>
+                                        </td>
                                         <td class="align-middle text-muted">{{ $it->standard }}</td>
                                         <td class="text-center align-middle py-1">
                                             <div class="btn-group btn-group-toggle btn-group-sm" data-toggle="buttons">
                                                 <label class="btn btn-outline-success btn-sm px-2 py-1 active" title="Dilakukan">
                                                     <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="OK" checked> ✓ Dilakukan
                                                 </label>
-                                                <label class="btn btn-outline-danger btn-sm px-2 py-1" title="Tidak dilakukan">
-                                                    <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NG"> ✕ NG
+                                                <label class="btn btn-outline-danger btn-sm px-2 py-1 btn-label-ng" title="Tidak dilakukan">
+                                                    <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NG"> ✕ Tidak Dilakukan
                                                 </label>
                                                 <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
                                                     <input type="radio" name="awal_checks[{{ $it->order_no }}]" value="NA"> - NA
                                                 </label>
                                             </div>
+                                            <input type="hidden" name="item_ng_reasons[{{ $it->order_no }}]" class="item-ng-reason" value="">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1012,7 +1018,7 @@
 
                     <div class="form-group mb-0">
                         <label class="small font-weight-bold text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
-                        <input type="text" name="notes" class="form-control form-control-sm border" placeholder="Tuliskan catatan kondisi khusus jika ada">
+                        <input type="text" name="notes" id="awalNotes" class="form-control form-control-sm border" placeholder="Tuliskan catatan kondisi khusus jika ada">
                     </div>
                 </div>
                 <div class="modal-footer py-2 px-3 bg-light border-top">
@@ -1070,22 +1076,26 @@
                             </thead>
                             <tbody>
                                 @foreach($akhirItems as $it)
-                                    <tr>
+                                    <tr data-order="{{ $it->order_no }}" data-item-check="{{ $it->item_check }}" data-standard="{{ $it->standard }}">
                                         <td class="text-center font-weight-bold align-middle">{{ $it->order_no }}</td>
-                                        <td class="font-weight-bold text-dark align-middle">{{ $it->item_check }}</td>
+                                        <td class="font-weight-bold text-dark align-middle">
+                                            {{ $it->item_check }}
+                                            <div class="ng-reason-container mt-1" style="display:none;"></div>
+                                        </td>
                                         <td class="align-middle text-muted">{{ $it->standard }}</td>
                                         <td class="text-center align-middle py-1">
                                             <div class="btn-group btn-group-toggle btn-group-sm" data-toggle="buttons">
                                                 <label class="btn btn-outline-success btn-sm px-2 py-1 active" title="Dilakukan">
                                                     <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="OK" checked> ✓ Dilakukan
                                                 </label>
-                                                <label class="btn btn-outline-danger btn-sm px-2 py-1" title="Tidak dilakukan">
-                                                    <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NG"> ✕ NG
+                                                <label class="btn btn-outline-danger btn-sm px-2 py-1 btn-label-ng" title="Tidak dilakukan">
+                                                    <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NG"> ✕ Tidak Dilakukan
                                                 </label>
                                                 <label class="btn btn-outline-secondary btn-sm px-2 py-1" title="Item tidak ada di proses">
                                                     <input type="radio" name="akhir_checks[{{ $it->order_no }}]" value="NA"> - NA
                                                 </label>
                                             </div>
+                                            <input type="hidden" name="item_ng_reasons[{{ $it->order_no }}]" class="item-ng-reason" value="">
                                         </td>
                                     </tr>
                                 @endforeach

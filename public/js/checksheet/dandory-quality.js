@@ -156,6 +156,146 @@ $(document).ready(function () {
         });
     });
 
+    // Helper Escape HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Helper sinkronisasi catatan modal saat item Tidak Dilakukan (NG) ditambah / diubah / dihapus
+    function syncModalNotes(modalEl, notesInput) {
+        var reasons = [];
+        modalEl.find('tbody tr').each(function () {
+            var tr = $(this);
+            var val = tr.find('input[type="radio"]:checked').val();
+            if (val === 'NG') {
+                var itemCheck = tr.data('item-check');
+                var reason = tr.find('.item-ng-reason').val();
+                if (reason) {
+                    reasons.push('[' + itemCheck + '] ' + reason);
+                }
+            }
+        });
+
+        var currentNote = notesInput.val() || '';
+        // Pisahkan catatan manual yang diketik pengguna (yang tidak diawali bracket item check)
+        var parts = currentNote.split(' | ');
+        var manualParts = parts.filter(function (part) {
+            part = part.trim();
+            if (!part) return false;
+            var match = part.match(/^\[(.*?)\]/);
+            if (match) {
+                var found = false;
+                modalEl.find('tbody tr').each(function () {
+                    if ($(this).data('item-check') === match[1]) found = true;
+                });
+                return !found;
+            }
+            return true;
+        });
+
+        var combined = reasons.concat(manualParts).join(' | ');
+        notesInput.val(combined);
+    }
+
+    // Tampilkan modal alasan saat memilih Tidak Dilakukan (NG) di modal checklist
+    function promptNgModal(radioEl) {
+        var tr = radioEl.closest('tr');
+        var modalEl = radioEl.closest('.modal');
+        var isAwal = modalEl.attr('id') === 'modalAwalDandory';
+        var notesInput = isAwal ? $('#awalNotes') : $('#akhirNotes');
+        var order = tr.data('order');
+        var itemCheck = tr.data('item-check') || ('Item ' + order);
+        var standard = tr.data('standard') || '-';
+        var currentReason = tr.find('.item-ng-reason').val() || '';
+
+        Swal.fire({
+            title: 'Keterangan Tidak Dilakukan',
+            html: '<div class="text-left" style="font-size: 0.85rem;">' +
+                  '<div class="alert alert-light border py-2 px-3 mb-2" style="background:#fef2f2; border-color:#fecaca !important;">' +
+                  '<div class="font-weight-bold text-danger mb-1"><i class="fas fa-exclamation-triangle mr-1"></i> Item #' + order + ': ' + escapeHtml(itemCheck) + '</div>' +
+                  '<div class="text-muted small"><strong>Standard:</strong> ' + escapeHtml(standard) + '</div>' +
+                  '</div>' +
+                  '<label class="small font-weight-bold text-gray-700 mb-1">Alasan / Keterangan Tidak Dilakukan: <span class="text-danger">*</span></label>' +
+                  '<textarea id="swalNgModalReason" class="form-control form-control-sm border" rows="3" placeholder="Tuliskan keterangan kenapa item ini Tidak Dilakukan...">' + escapeHtml(currentReason) + '</textarea>' +
+                  '</div>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-check mr-1"></i> Simpan Keterangan',
+            cancelButtonText: 'Batal',
+            focusConfirm: false,
+            preConfirm: function () {
+                var r = $('#swalNgModalReason').val().trim();
+                if (!r) {
+                    Swal.showValidationMessage('Keterangan wajib diisi ketika memilih Tidak Dilakukan.');
+                    return false;
+                }
+                return r;
+            }
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                var reason = result.value;
+                tr.find('.item-ng-reason').val(reason);
+                var container = tr.find('.ng-reason-container');
+                container.html(
+                    '<div class="badge badge-light border border-danger text-danger py-1 px-2 font-weight-normal text-left d-inline-block" style="font-size:0.68rem; line-height: 1.3;">' +
+                    '<i class="fas fa-info-circle mr-1"></i><strong>Alasan:</strong> <span class="reason-text">' + escapeHtml(reason) + '</span> ' +
+                    '<a href="javascript:void(0)" class="btn-edit-ng-reason text-primary font-weight-bold ml-1" style="text-decoration:underline;">[Ubah]</a>' +
+                    '</div>'
+                ).show();
+
+                syncModalNotes(modalEl, notesInput);
+            } else {
+                // Jika batal dan belum ada reason sebelumnya, kembalikan ke OK
+                if (!currentReason) {
+                    var okRadio = tr.find('input[type="radio"][value="OK"]');
+                    okRadio.prop('checked', true);
+                    var group = okRadio.closest('.btn-group-toggle');
+                    group.find('label.btn').removeClass('active');
+                    okRadio.closest('label.btn').addClass('active');
+
+                    tr.find('.item-ng-reason').val('');
+                    tr.find('.ng-reason-container').empty().hide();
+                    syncModalNotes(modalEl, notesInput);
+                }
+            }
+        });
+    }
+
+    // Event listener radio button modal checklist saat memilih status
+    $(document).on('change', '#modalAwalDandory input[type="radio"], #modalAkhirDandory input[type="radio"]', function () {
+        var radio = $(this);
+        var val = radio.val();
+        var tr = radio.closest('tr');
+        var modalEl = radio.closest('.modal');
+        var isAwal = modalEl.attr('id') === 'modalAwalDandory';
+        var notesInput = isAwal ? $('#awalNotes') : $('#akhirNotes');
+
+        if (val === 'NG') {
+            promptNgModal(radio);
+        } else {
+            // Jika memilih OK atau NA, hilangkan alasan NG item ini
+            tr.find('.item-ng-reason').val('');
+            tr.find('.ng-reason-container').empty().hide();
+            syncModalNotes(modalEl, notesInput);
+        }
+    });
+
+    // Ubah keterangan NG yang sudah ada di modal checklist
+    $(document).on('click', '.btn-edit-ng-reason', function (e) {
+        e.preventDefault();
+        var tr = $(this).closest('tr');
+        var radioNg = tr.find('input[type="radio"][value="NG"]');
+        promptNgModal(radioNg);
+    });
+
     // 6. Tombol Cepat "Set Semua ✓ (Dilakukan)"
     // Modal Awal
     $('#btnSetAllAwalOk').on('click', function () {
@@ -165,6 +305,9 @@ $(document).ready(function () {
             group.find('label.btn').removeClass('active');
             $(this).closest('label.btn').addClass('active');
         });
+        $('#formAwalDandory .item-ng-reason').val('');
+        $('#formAwalDandory .ng-reason-container').empty().hide();
+        syncModalNotes($('#modalAwalDandory'), $('#awalNotes'));
     });
 
     // Modal Akhir
@@ -175,6 +318,14 @@ $(document).ready(function () {
             group.find('label.btn').removeClass('active');
             $(this).closest('label.btn').addClass('active');
         });
+        $('#formAkhirDandory .item-ng-reason').val('');
+        $('#formAkhirDandory .ng-reason-container').empty().hide();
+        syncModalNotes($('#modalAkhirDandory'), $('#akhirNotes'));
+    });
+
+    // Reset status Awal Dandory setiap kali modal Awal dibuka
+    $('#modalAwalDandory').on('show.bs.modal', function () {
+        $('#btnSetAllAwalOk').trigger('click');
     });
 
     // 7. Simpan Sesi Awal Dandory (Quick Modal 1)
@@ -409,7 +560,7 @@ $(document).ready(function () {
     });
 
     // 9. Klik Langsung Sel Matriks Interaktif (Mode 2: Inline Grid Matrix Toggle)
-    // Siklus Transisi: Kosong -> ✓ (OK) -> ✕ (NG) -> - (NA) -> Kosong
+    // Siklus Transisi: Kosong -> ✓ (OK) -> ✕ (NG / Tidak Dilakukan) -> - (NA) -> Kosong
     $(document).on('click', '.dandory-cell', function () {
         var cell = $(this);
         var id = cell.data('id');
@@ -445,87 +596,157 @@ $(document).ready(function () {
         var oldStatus = currentStatus;
         var oldClass = cell.attr('class');
 
-        // Optimistic UI Update (Responsif tanpa delay)
-        cell.removeClass('cell-ok cell-ng cell-na');
-        if (nextClass) cell.addClass(nextClass);
-        cell.text(nextChar);
-        cell.data('status', nextStatus || '');
+        function sendCellAjax(reasonText) {
+            // Optimistic UI Update (Responsif tanpa delay)
+            cell.removeClass('cell-ok cell-ng cell-na');
+            if (nextClass) cell.addClass(nextClass);
+            cell.text(nextChar);
+            cell.data('status', nextStatus || '');
 
-        var postUrl = config.akhirBaseUrl + '/' + id + '/toggle-cell';
+            var postUrl = config.akhirBaseUrl + '/' + id + '/toggle-cell';
 
-        $.ajax({
-            url: postUrl,
-            type: 'POST',
-            data: {
-                phase: phase,
-                order_no: order,
-                status: nextStatus
-            },
-            dataType: 'json',
-            success: function (res) {
-                if (!res.success) {
+            $.ajax({
+                url: postUrl,
+                type: 'POST',
+                data: {
+                    phase: phase,
+                    order_no: order,
+                    status: nextStatus,
+                    reason: reasonText || null
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (!res.success) {
+                        // Rollback UI
+                        cell.attr('class', oldClass);
+                        cell.text(oldChar);
+                        cell.data('status', oldStatus);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+                        }
+                    } else {
+                        // Update Jam Awal seketika tanpa refresh
+                        if (res.jam_awal !== undefined) {
+                            var cellJamAwal = $('#jamAwal_' + id);
+                            if (cellJamAwal.length) {
+                                cellJamAwal.html('<span>' + res.jam_awal + '</span>');
+                                if (res.awal_completed_at) {
+                                    cellJamAwal.attr('title', 'Waktu Awal: ' + res.awal_completed_at);
+                                }
+                            }
+                        }
+
+                        // Update Jam Akhir seketika saat sudah terisi lengkap tanpa refresh
+                        if (res.jam_akhir !== undefined) {
+                            var cellJamAkhir = $('#jamAkhir_' + id);
+                            if (cellJamAkhir.length) {
+                                if (res.jam_akhir && res.jam_akhir !== '-') {
+                                    cellJamAkhir.html('<span>' + res.jam_akhir + '</span>');
+                                    if (res.akhir_completed_at) {
+                                        cellJamAkhir.attr('title', 'Waktu Akhir: ' + res.akhir_completed_at);
+                                    }
+                                } else {
+                                    cellJamAkhir.html('<span class="text-muted font-weight-normal">-</span>');
+                                    cellJamAkhir.attr('title', 'Akhir Dandory belum diselesaikan');
+                                }
+                            }
+                        }
+
+                        // Update catatan baris jika ada keterangan baru
+                        if (res.notes_awal !== undefined || res.notes_akhir !== undefined) {
+                            var ketAwal = res.notes_awal || '';
+                            var ketAkhir = res.notes_akhir || '';
+                            var container = $('#notesContainer_' + id);
+                            if (container.length) {
+                                var notesHtml = '';
+                                if (ketAwal && ketAkhir) {
+                                    notesHtml += '<div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: ' + escapeHtml(ketAwal) + '">' +
+                                                 '<span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">' + escapeHtml(ketAwal) + '</span></span>' +
+                                                 '</div>' +
+                                                 '<div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: ' + escapeHtml(ketAkhir) + '">' +
+                                                 '<span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">' + escapeHtml(ketAkhir) + '</span></span>' +
+                                                 '</div>';
+                                } else if (ketAwal) {
+                                    notesHtml += '<div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Awal Dandory: ' + escapeHtml(ketAwal) + '">' +
+                                                 '<span>Keterangan Awal Dandory: <span class="text-secondary font-weight-bold">' + escapeHtml(ketAwal) + '</span></span>' +
+                                                 '</div>';
+                                } else if (ketAkhir) {
+                                    notesHtml += '<div class="text-muted font-weight-normal text-truncate" style="font-size: 0.62rem; line-height: 1.15; margin-top: 1px;" title="Keterangan Akhir Dandory: ' + escapeHtml(ketAkhir) + '">' +
+                                                 '<span>Keterangan Akhir Dandory: <span class="text-secondary font-weight-bold">' + escapeHtml(ketAkhir) + '</span></span>' +
+                                                 '</div>';
+                                }
+                                container.html(notesHtml);
+                            }
+                        }
+
+                        // Jika sesi akhir sudah selesai, sembunyikan tombol modal Akhir pada baris ini
+                        if (res.is_akhir_done) {
+                            $('#actionCell_' + id + ' .btn-open-akhir').fadeOut(150);
+                        } else {
+                            $('#actionCell_' + id + ' .btn-open-akhir').fadeIn(150);
+                        }
+
+                        // Update data-complete pada baris checkbox untuk verifikasi Leader
+                        var chkRow = $('#checkRow' + id);
+                        if (chkRow.length && res.is_complete !== undefined) {
+                            chkRow.attr('data-complete', res.is_complete ? '1' : '0');
+                        }
+                    }
+                },
+                error: function (xhr) {
                     // Rollback UI
                     cell.attr('class', oldClass);
                     cell.text(oldChar);
                     cell.data('status', oldStatus);
+                    var errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal memperbarui sel.';
                     if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
-                    }
-                } else {
-                    // Update Jam Awal seketika tanpa refresh
-                    if (res.jam_awal !== undefined) {
-                        var cellJamAwal = $('#jamAwal_' + id);
-                        if (cellJamAwal.length) {
-                            cellJamAwal.html('<span>' + res.jam_awal + '</span>');
-                            if (res.awal_completed_at) {
-                                cellJamAwal.attr('title', 'Waktu Awal: ' + res.awal_completed_at);
-                            }
-                        }
-                    }
-
-                    // Update Jam Akhir seketika saat sudah terisi lengkap tanpa refresh
-                    if (res.jam_akhir !== undefined) {
-                        var cellJamAkhir = $('#jamAkhir_' + id);
-                        if (cellJamAkhir.length) {
-                            if (res.jam_akhir && res.jam_akhir !== '-') {
-                                cellJamAkhir.html('<span>' + res.jam_akhir + '</span>');
-                                if (res.akhir_completed_at) {
-                                    cellJamAkhir.attr('title', 'Waktu Akhir: ' + res.akhir_completed_at);
-                                }
-                            } else {
-                                cellJamAkhir.html('<span class="text-muted font-weight-normal">-</span>');
-                                cellJamAkhir.attr('title', 'Akhir Dandory belum diselesaikan');
-                            }
-                        }
-                    }
-
-                    // Jika sesi akhir sudah selesai, sembunyikan tombol modal Akhir pada baris ini
-                    if (res.is_akhir_done) {
-                        $('#actionCell_' + id + ' .btn-open-akhir').fadeOut(150);
+                        Swal.fire({ icon: 'error', title: 'Kunci Akses', text: errMsg });
                     } else {
-                        $('#actionCell_' + id + ' .btn-open-akhir').fadeIn(150);
+                        alert(errMsg);
                     }
+                }
+            });
+        }
 
-                    // Update data-complete pada baris checkbox untuk verifikasi Leader
-                    var chkRow = $('#checkRow' + id);
-                    if (chkRow.length && res.is_complete !== undefined) {
-                        chkRow.attr('data-complete', res.is_complete ? '1' : '0');
+        if (nextStatus === 'NG') {
+            var itemTitle = $('.th-num-hover[data-phase="' + phase + '"][data-order="' + order + '"]').attr('title') || ('Item #' + order);
+            var partTitle = $('#row_' + id + ' strong').first().text().trim() || 'Part ini';
+
+            Swal.fire({
+                title: 'Keterangan Tidak Dilakukan',
+                html: '<div class="text-left" style="font-size: 0.85rem;">' +
+                      '<div class="alert alert-light border py-2 px-3 mb-2" style="background:#fef2f2; border-color:#fecaca !important;">' +
+                      '<div class="font-weight-bold text-danger mb-1"><i class="fas fa-exclamation-triangle mr-1"></i> ' + (phase === 'awal' ? 'Awal Dandory' : 'Akhir Dandory') + ' - Item #' + order + '</div>' +
+                      '<div class="text-muted small"><strong>Item:</strong> ' + escapeHtml(itemTitle) + '</div>' +
+                      '<div class="text-muted small"><strong>Part:</strong> ' + escapeHtml(partTitle) + '</div>' +
+                      '</div>' +
+                      '<label class="small font-weight-bold text-gray-700 mb-1">Alasan / Keterangan Tidak Dilakukan: <span class="text-danger">*</span></label>' +
+                      '<textarea id="swalNgCellReason" class="form-control form-control-sm border" rows="3" placeholder="Tuliskan keterangan kenapa parameter ini Tidak Dilakukan..."></textarea>' +
+                      '</div>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fas fa-check mr-1"></i> Simpan Keterangan',
+                cancelButtonText: 'Batal',
+                focusConfirm: false,
+                preConfirm: function () {
+                    var r = $('#swalNgCellReason').val().trim();
+                    if (!r) {
+                        Swal.showValidationMessage('Keterangan wajib diisi ketika memilih Tidak Dilakukan.');
+                        return false;
                     }
+                    return r;
                 }
-            },
-            error: function (xhr) {
-                // Rollback UI
-                cell.attr('class', oldClass);
-                cell.text(oldChar);
-                cell.data('status', oldStatus);
-                var errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal memperbarui sel.';
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'error', title: 'Kunci Akses', text: errMsg });
-                } else {
-                    alert(errMsg);
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    sendCellAjax(result.value);
                 }
-            }
-        });
+                // Jika batal, sel tetap pada status saat ini (OK)
+            });
+        } else {
+            sendCellAjax(null);
+        }
     });
 
     // 10. Seleksi Baris Massal (Check All & Floating Bulk Menu Standar In-Process)
