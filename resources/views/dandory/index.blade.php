@@ -891,7 +891,7 @@
 </div>
 
 {{-- MODAL 1: MULAI DANDORY (AWAL DANDORY) --}}
-<div class="modal fade modal-dandory" id="modalAwalDandory" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+<div class="modal fade modal-dandory" id="modalAwalDandory" role="dialog" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header py-2 px-3 bg-light border-bottom">
@@ -1033,7 +1033,7 @@
 </div>
 
 {{-- MODAL 2: SELESAIKAN DANDORY (AKHIR DANDORY) --}}
-<div class="modal fade modal-dandory" id="modalAkhirDandory" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+<div class="modal fade modal-dandory" id="modalAkhirDandory" role="dialog" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header py-2 px-3 bg-light border-bottom">

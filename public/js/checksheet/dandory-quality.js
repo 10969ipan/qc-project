@@ -15,6 +15,11 @@ $(document).ready(function () {
         }
     });
 
+    // Cegah Bootstrap modal membajak focus (enforceFocus) saat SweetAlert muncul di atas modal
+    if ($.fn.modal && $.fn.modal.Constructor) {
+        $.fn.modal.Constructor.prototype._enforceFocus = function () {};
+    }
+
     // 2. Baca Konfigurasi Runtime dari Elemen Tersembunyi #dandory-config
     var cfgEl = document.getElementById('dandory-config');
     var config = cfgEl ? {
@@ -231,6 +236,12 @@ $(document).ready(function () {
             confirmButtonText: '<i class="fas fa-check mr-1"></i> Simpan Keterangan',
             cancelButtonText: 'Batal',
             focusConfirm: false,
+            didOpen: function () {
+                $(document).off('focusin.bs.modal');
+                setTimeout(function () {
+                    $('#swalNgModalReason').focus();
+                }, 50);
+            },
             preConfirm: function () {
                 var r = $('#swalNgModalReason').val().trim();
                 if (!r) {
@@ -730,6 +741,12 @@ $(document).ready(function () {
                 confirmButtonText: '<i class="fas fa-check mr-1"></i> Simpan Keterangan',
                 cancelButtonText: 'Batal',
                 focusConfirm: false,
+                didOpen: function () {
+                    $(document).off('focusin.bs.modal');
+                    setTimeout(function () {
+                        $('#swalNgCellReason').focus();
+                    }, 50);
+                },
                 preConfirm: function () {
                     var r = $('#swalNgCellReason').val().trim();
                     if (!r) {
