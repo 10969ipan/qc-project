@@ -56,6 +56,25 @@ class OperatorComplianceController extends Controller
             $inspectors = $plantOperators->concat([]);
         }
 
+        // Ambil mapping bagian terbaru dari jadwal operator
+        $allOpIds = $inspectors->pluck('id')->toArray();
+        if (!empty($allOpIds)) {
+            $latestBagians = OperatorComplianceSchedule::whereIn('operator_id', $allOpIds)
+                ->whereNotNull('bagian')
+                ->where('bagian', '!=', '')
+                ->orderBy('schedule_date', 'desc')
+                ->get(['operator_id', 'bagian'])
+                ->unique('operator_id')
+                ->pluck('bagian', 'operator_id');
+
+            foreach ($inspectors as $op) {
+                $op->bagian = $latestBagians[$op->id] ?? null;
+            }
+            foreach ($plantOperators as $op) {
+                $op->bagian = $latestBagians[$op->id] ?? null;
+            }
+        }
+
         // Tentukan ID operator yang dipilih (default otomatis pilih yang paling baru di-update)
         $selectedOperatorId = (int) $request->get('operator_id');
         if (!$selectedOperatorId) {
@@ -108,6 +127,20 @@ class OperatorComplianceController extends Controller
         // Hitung total hari dalam bulan yang dipilih
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
+        // Ambil bagian dari jadwal operator (OperatorComplianceSchedule) di bulan ini atau jadwal terbaru
+        $latestScheduleBagian = OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
+            ->whereYear('schedule_date', $year)
+            ->whereMonth('schedule_date', $month)
+            ->whereNotNull('bagian')
+            ->where('bagian', '!=', '')
+            ->latest('schedule_date')
+            ->value('bagian')
+            ?: OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
+                ->whereNotNull('bagian')
+                ->where('bagian', '!=', '')
+                ->latest('schedule_date')
+                ->value('bagian');
+
         // Cari atau buat header checksheet untuk operator, plant, bulan & tahun ini
         $checksheet = OperatorComplianceChecksheet::firstOrCreate(
             [
@@ -117,10 +150,16 @@ class OperatorComplianceController extends Controller
                 'year'       => $year,
             ],
             [
-                'bagian'     => $selectedOperator->bagian ?? 'Quality Control',
+                'bagian'     => $latestScheduleBagian ?: 'Quality Control',
                 'created_by' => $currentUser->id,
             ]
         );
+
+        // Jika bagian di checksheet belum sesuai dengan bagian di jadwal, sinkronkan otomatis
+        if (!empty($latestScheduleBagian) && $checksheet->bagian !== $latestScheduleBagian) {
+            $checksheet->bagian = $latestScheduleBagian;
+            $checksheet->save();
+        }
 
         // Load entri matriks yang udah diisi (diatur berdasarkan item_id dan tanggal)
         $entries = OperatorComplianceEntry::where('checksheet_id', $checksheet->id)->get();
@@ -284,10 +323,29 @@ class OperatorComplianceController extends Controller
         $groupedItems = $items->groupBy('prinsip_dasar');
         $daysInMonth  = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
+        // Ambil bagian dari jadwal operator di bulan ini atau jadwal terbaru
+        $latestScheduleBagian = OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
+            ->whereYear('schedule_date', $year)
+            ->whereMonth('schedule_date', $month)
+            ->whereNotNull('bagian')
+            ->where('bagian', '!=', '')
+            ->latest('schedule_date')
+            ->value('bagian')
+            ?: OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
+                ->whereNotNull('bagian')
+                ->where('bagian', '!=', '')
+                ->latest('schedule_date')
+                ->value('bagian');
+
         $checksheet = OperatorComplianceChecksheet::firstOrCreate(
             ['user_id' => $selectedOperatorId, 'plant_code' => $plantCode, 'month' => $month, 'year' => $year],
-            ['bagian' => $selectedOperator->bagian ?? 'Quality Control', 'created_by' => $currentUser->id]
+            ['bagian' => $latestScheduleBagian ?: 'Quality Control', 'created_by' => $currentUser->id]
         );
+
+        if (!empty($latestScheduleBagian) && $checksheet->bagian !== $latestScheduleBagian) {
+            $checksheet->bagian = $latestScheduleBagian;
+            $checksheet->save();
+        }
 
         $entries       = OperatorComplianceEntry::where('checksheet_id', $checksheet->id)->get();
         $entriesMatrix = [];
@@ -953,6 +1011,13 @@ class OperatorComplianceController extends Controller
             return response()->json(['success' => false, 'message' => 'Silakan tentukan minimal satu tanggal plan.'], 422);
         }
 
+        // Sinkronkan bagian ke header checksheet operator ini agar Bagian/Unit langsung update seketika
+        if (!empty($request->bagian)) {
+            OperatorComplianceChecksheet::where('user_id', $request->operator_id)
+                ->where('plant_code', $plantCode)
+                ->update(['bagian' => $request->bagian]);
+        }
+
         return response()->json([
             'success' => true,
             'message' => count($saved) > 1 
@@ -1006,6 +1071,13 @@ class OperatorComplianceController extends Controller
             'shift'         => $request->shift,
             'schedule_date' => $formattedDate,
         ]);
+
+        // Sinkronkan bagian ke header checksheet operator ini agar Bagian/Unit langsung update seketika
+        if (!empty($request->bagian)) {
+            OperatorComplianceChecksheet::where('user_id', $request->operator_id)
+                ->where('plant_code', $plantCode)
+                ->update(['bagian' => $request->bagian]);
+        }
 
         return response()->json([
             'success' => true,

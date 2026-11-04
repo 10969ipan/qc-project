@@ -457,12 +457,15 @@
                     </div>
                 </div>
 
-                <!-- Input Tanggal (Kalender Dinamis) -->
+                <!-- Input Rentang Tanggal (Kalender: Dari - Sampai) -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700">Tanggal</label>
-                    <div style="width: 140px;">
-                        <input type="date" name="date" id="filterDate" class="form-control form-control-sm filter-select-custom bg-white"
-                               value="{{ $date }}" onchange="this.form.submit()" title="Pilih Tanggal Pemeriksaan (Kalender)">
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 31px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                               style="width: 125px; font-size: 0.72rem; height: 28px;" value="{{ $startDate }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                               style="width: 125px; font-size: 0.72rem; height: 28px;" value="{{ $endDate }}" title="Sampai Tanggal">
                     </div>
                 </div>
 
@@ -470,7 +473,7 @@
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700">Shift</label>
                     <div style="width: 120px;">
-                        <select name="shift" class="form-control form-control-sm filter-select-custom" onchange="this.form.submit()">
+                        <select name="shift" class="form-control form-control-sm filter-select-custom">
                             <option value="">Semua Shift</option>
                             <option value="Shift 1" {{ $shiftFilter === 'Shift 1' ? 'selected' : '' }}>Shift 1</option>
                             <option value="Shift 2" {{ $shiftFilter === 'Shift 2' ? 'selected' : '' }}>Shift 2</option>
@@ -478,6 +481,17 @@
                             <option value="Non Shift" {{ $shiftFilter === 'Non Shift' ? 'selected' : '' }}>Non Shift</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Tombol Cari & Reset Filter -->
+                <div class="d-flex align-items-center mt-auto" style="gap: 4px;">
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center" style="height: 31px; font-size: 0.72rem;" title="Terapkan Filter">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
+                    </button>
+                    <a href="{{ route('checksheet.dandory.index', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId]) }}"
+                       class="btn btn-secondary btn-sm rounded-pill px-2 shadow-sm d-flex align-items-center no-loader" style="height: 31px; font-size: 0.72rem;" title="Reset Filter Tanggal & Shift">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
+                    </a>
                 </div>
 
                 <!-- Tombol Aksi di Kanan -->
@@ -505,7 +519,7 @@
                     @endif
 
                     <!-- Tombol Cetak / Save PDF (Direct Print tanpa buka tab baru) -->
-                    <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'date' => $date, 'shift' => $shiftFilter]) }}"
+                    <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter]) }}"
                        class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center btn-print-direct no-loader" id="btnCetakDandory" style="height: 31px;" title="Cetak Dokumen Dandory Quality">
                         <i class="fas fa-print mr-1"></i> Cetak
                     </a>
@@ -852,7 +866,17 @@
                                 @empty
                                     <tr>
                                         <td colspan="{{ count($awalItems) + count($akhirItems) + ($canVerify ? 9 : 8) }}" class="py-4 text-center text-muted font-italic">
-                                            <i class="fas fa-info-circle mr-1 text-primary"></i> Belum ada data checksheet Dandory Quality untuk Tanggal <strong>{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</strong>{{ $shiftFilter ? ' (' . $shiftFilter . ')' : '' }}. Data selalu baru/ter-reset setiap pergantian hari dan shift.
+                                            <i class="fas fa-info-circle mr-1 text-primary"></i> Belum ada data checksheet Dandory Quality untuk operator <strong>{{ $selectedOperator->name }}</strong>
+                                            @if(!empty($startDate) && !empty($endDate))
+                                                pada periode <strong>{{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}</strong>
+                                            @elseif(!empty($startDate))
+                                                mulai tanggal <strong>{{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }}</strong>
+                                            @elseif(!empty($endDate))
+                                                sampai tanggal <strong>{{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}</strong>
+                                            @elseif(!empty($date))
+                                                pada tanggal <strong>{{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</strong>
+                                            @endif
+                                            {{ $shiftFilter ? ' (' . $shiftFilter . ')' : '' }}.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -862,7 +886,7 @@
                 </div>
             </div>
 
-            {{-- Paginasi Dandory (15 data per halaman) --}}
+            {{-- Paginasi Dandory (20 data per halaman) --}}
             @if(method_exists($checksheets, 'links'))
                 <div class="mt-3 px-1">
                     {{ $checksheets->withQueryString()->links() }}
@@ -907,7 +931,7 @@
                     <div class="row mb-2">
                         <div class="col-md-3">
                             <label class="small font-weight-bold text-gray-700 mb-1">Tanggal</label>
-                            <input type="date" name="check_date" id="awalDate" class="form-control form-control-sm border" value="{{ $date }}" required>
+                            <input type="date" name="check_date" id="awalDate" class="form-control form-control-sm border" value="{{ $date ?: date('Y-m-d') }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="small font-weight-bold text-gray-700 mb-1">Shift</label>
@@ -1376,7 +1400,9 @@
 {{-- CONFIG DATA CONTAINER UNTUK EXTERNAL JS --}}
 <div id="dandory-config" class="d-none"
      data-plant="{{ $plantCode }}"
-     data-date="{{ $date }}"
+     data-date="{{ $date ?: date('Y-m-d') }}"
+     data-start-date="{{ $startDate }}"
+     data-end-date="{{ $endDate }}"
      data-shift="{{ $shiftFilter }}"
      data-month="{{ $month }}"
      data-year="{{ $year }}"

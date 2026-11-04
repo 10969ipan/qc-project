@@ -36,7 +36,13 @@ class DandoryChecksheetService
             $query->where('shift', $filters['shift']);
         }
 
-        if (!empty($filters['date'])) {
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $query->whereBetween('check_date', [$filters['start_date'], $filters['end_date']]);
+        } elseif (!empty($filters['start_date'])) {
+            $query->whereDate('check_date', '>=', $filters['start_date']);
+        } elseif (!empty($filters['end_date'])) {
+            $query->whereDate('check_date', '<=', $filters['end_date']);
+        } elseif (!empty($filters['date'])) {
             $query->whereDate('check_date', $filters['date']);
         } elseif (!empty($filters['month']) && !empty($filters['year'])) {
             $query->whereYear('check_date', $filters['year'])

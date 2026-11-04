@@ -33,21 +33,24 @@ class DandoryChecksheetController extends Controller
         $currentUser = Auth::user();
         $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
 
-        // 1. Filter Tanggal Kalender (Default: Hari ini / Production date berdasarkan jam kerja)
-        $date        = $request->get('date', ShiftHelper::getProductionDate());
-        $dateCarbon  = Carbon::parse($date);
+        // 1. Filter Tanggal (Default: Kosong / Tampilkan semua riwayat checksheet inspector jika tanpa filter)
+        $startDate   = $request->get('start_date');
+        $endDate     = $request->get('end_date');
+        $date        = $request->get('date');
+
+        if ($date && !$startDate && !$endDate) {
+            $startDate = $date;
+            $endDate   = $date;
+        }
+
+        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : now());
         $month       = (int) $dateCarbon->format('n');
         $year        = (int) $dateCarbon->format('Y');
 
-        // 2. Filter Shift (Default: Shift yang sedang aktif sesuai jam saat ini: Shift 1 / 2 / 3)
+        // 2. Filter Shift (Default: Kosong / Semua Shift agar seluruh data inspector tampil)
         $defaultShift = 'Shift ' . ShiftHelper::getShift();
-        if ($request->has('shift')) {
-            $shiftFilter = $request->get('shift'); // bisa "" (Semua Shift) atau "Shift 1", dll
-        } else {
-            $shiftFilter = $defaultShift;
-        }
-
-        $tableFilter = $request->get('table_no');
+        $shiftFilter  = $request->get('shift', ''); // default "" (Semua Shift)
+        $tableFilter  = $request->get('table_no');
 
         // ponytail: check menu view permission
         if ($currentUser->role !== 'admin') {
@@ -72,9 +75,18 @@ class DandoryChecksheetController extends Controller
             $selectedOperatorId = (int) $request->get('operator_id');
 
             if (!$selectedOperatorId) {
-                // Cari checksheet yang paling baru di-update di tanggal, shift & plant ini
-                $latestQuery = DandoryChecksheet::where('plant_code', $plantCode)
-                    ->whereDate('check_date', $date);
+                // Cari checksheet yang paling baru di-update di plant ini (dan tanggal/shift jika difilter)
+                $latestQuery = DandoryChecksheet::where('plant_code', $plantCode);
+
+                if (!empty($startDate) && !empty($endDate)) {
+                    $latestQuery->whereBetween('check_date', [$startDate, $endDate]);
+                } elseif (!empty($startDate)) {
+                    $latestQuery->whereDate('check_date', '>=', $startDate);
+                } elseif (!empty($endDate)) {
+                    $latestQuery->whereDate('check_date', '<=', $endDate);
+                } elseif (!empty($date)) {
+                    $latestQuery->whereDate('check_date', $date);
+                }
 
                 if (!empty($shiftFilter)) {
                     $latestQuery->where('shift', $shiftFilter);
@@ -108,14 +120,17 @@ class DandoryChecksheetController extends Controller
         $awalItems   = $masterItems->where('phase', 'awal')->values();
         $akhirItems  = $masterItems->where('phase', 'akhir')->values();
 
-        // Ambil daftar checksheet transaksi (Hanya per tanggal & per shift)
+        // Ambil daftar checksheet transaksi (Sesuai filter tanggal/shift jika dipilih, atau semua riwayat)
         $filters = [
             'plant_code'  => $plantCode,
             'operator_id' => $selectedOperatorId,
+            'start_date'  => $startDate,
+            'end_date'    => $endDate,
             'date'        => $date,
             'shift'       => $shiftFilter,
+            'table_no'    => $tableFilter,
         ];
-        $checksheets = $this->service->getFilteredChecksheets($filters, 15);
+        $checksheets = $this->service->getFilteredChecksheets($filters, 20);
 
         // Pre-compute row metrics (O(N) in controller, no N+1 in blade)
         $awalTotal = count($awalItems) ?: 9;
@@ -195,7 +210,7 @@ class DandoryChecksheetController extends Controller
         ];
 
         return view('dandory.index', compact(
-            'plantCode', 'date', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
+            'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
             'plantTables', 'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
             'allOpConfigs', 'latestBagianCategories'
@@ -209,8 +224,16 @@ class DandoryChecksheetController extends Controller
     {
         $currentUser = Auth::user();
         $plantCode   = strtolower($request->get('plant', $currentUser->plant ? $currentUser->plant->code : 'karawang'));
-        $date        = $request->get('date', ShiftHelper::getProductionDate());
-        $dateCarbon  = Carbon::parse($date);
+        $startDate   = $request->get('start_date');
+        $endDate     = $request->get('end_date');
+        $date        = $request->get('date');
+
+        if ($date && !$startDate && !$endDate) {
+            $startDate = $date;
+            $endDate   = $date;
+        }
+
+        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : now());
         $month       = (int) $request->get('month', $dateCarbon->format('n'));
         $year        = (int) $request->get('year', $dateCarbon->format('Y'));
         $shiftFilter = $request->get('shift');
@@ -225,8 +248,17 @@ class DandoryChecksheetController extends Controller
             $selectedOperatorId = (int) $request->get('operator_id');
 
             if (!$selectedOperatorId) {
-                $latestQuery = DandoryChecksheet::where('plant_code', $plantCode)
-                    ->whereDate('check_date', $date);
+                $latestQuery = DandoryChecksheet::where('plant_code', $plantCode);
+
+                if (!empty($startDate) && !empty($endDate)) {
+                    $latestQuery->whereBetween('check_date', [$startDate, $endDate]);
+                } elseif (!empty($startDate)) {
+                    $latestQuery->whereDate('check_date', '>=', $startDate);
+                } elseif (!empty($endDate)) {
+                    $latestQuery->whereDate('check_date', '<=', $endDate);
+                } elseif (!empty($date)) {
+                    $latestQuery->whereDate('check_date', $date);
+                }
 
                 if (!empty($shiftFilter)) {
                     $latestQuery->where('shift', $shiftFilter);
@@ -248,8 +280,11 @@ class DandoryChecksheetController extends Controller
         $filters = [
             'plant_code'  => $plantCode,
             'operator_id' => $selectedOperatorId,
+            'start_date'  => $startDate,
+            'end_date'    => $endDate,
             'date'        => $date,
             'shift'       => $shiftFilter,
+            'table_no'    => $tableFilter,
         ];
         $checksheets = $this->service->getFilteredChecksheets($filters);
 
@@ -268,7 +303,7 @@ class DandoryChecksheetController extends Controller
         ];
 
         return view('dandory.print', compact(
-            'plantCode', 'date', 'month', 'year', 'monthNames', 'shiftFilter',
+            'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter',
             'selectedOperator', 'opConfig', 'awalItems', 'akhirItems', 'checksheets', 'chunks', 'totalPages'
         ));
     }

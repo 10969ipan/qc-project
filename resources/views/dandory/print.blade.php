@@ -10,7 +10,13 @@
         'halaman'    => '1/1'
     ]);
 
-    $formattedDate = isset($date) && $date ? \Carbon\Carbon::parse($date)->translatedFormat('d F Y') : ($monthNames[$month] . ' ' . $year);
+    if (!empty($startDate) && !empty($endDate)) {
+        $formattedDate = \Carbon\Carbon::parse($startDate)->format('d/m/Y') . ' - ' . \Carbon\Carbon::parse($endDate)->format('d/m/Y');
+    } elseif (!empty($date)) {
+        $formattedDate = \Carbon\Carbon::parse($date)->translatedFormat('d F Y');
+    } else {
+        $formattedDate = 'Semua Periode';
+    }
     $pageTitle     = 'Checksheet Dandory Quality - ' . ($selectedOperator->name ?? 'Semua Operator') . ' - ' . $formattedDate;
 @endphp
 <html lang="id">
@@ -309,7 +315,17 @@
                         <div>
                             <strong>Nama Operator:</strong> {{ $selectedOperator->name }}
                             &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Bagian:</strong> {{ $opConfig->bagian ?: 'Quality Control' }}
-                            &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}
+                            @if(!empty($startDate) && !empty($endDate))
+                                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Periode:</strong> {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
+                            @elseif(!empty($startDate))
+                                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Mulai:</strong> {{ \Carbon\Carbon::parse($startDate)->format('d/m/Y') }}
+                            @elseif(!empty($endDate))
+                                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Sampai:</strong> {{ \Carbon\Carbon::parse($endDate)->format('d/m/Y') }}
+                            @elseif(!empty($date))
+                                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}
+                            @else
+                                &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Periode:</strong> Semua Tanggal
+                            @endif
                             @if(!empty($shiftFilter))
                                 &nbsp;&nbsp;|&nbsp;&nbsp;<strong>Shift:</strong> {{ $shiftFilter }}
                             @endif
