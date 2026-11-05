@@ -386,7 +386,7 @@
                             {{ $cs->shift }}
                         </div>
                     </td>
-                    <td>{{ $cs->table_no }}</td>
+                    <td>{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</td>
                     <td style="text-align:left; padding-left:5px; font-weight:600;">
                         <div>{{ $cs->part_name }}</div>
                         @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))

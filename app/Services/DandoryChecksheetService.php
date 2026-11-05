@@ -131,6 +131,47 @@ class DandoryChecksheetService
     }
 
     /**
+     * Format penamaan Meja/Mesin secara dinamis sesuai tipe bagian operator.
+     * Jika posisi operator atau catatan jabatan berbasis mesin (Inspector Inproses),
+     * teks 'Meja X' otomatis diubah menjadi 'Mesin X' pada tampilan.
+     */
+    public function formatLocationNo(?string $tableNo, bool $isMachineBased = false, ?string $jabatan = null): string
+    {
+        $raw = trim($tableNo ?? '');
+        if ($raw === '' || $raw === '-') {
+            return '-';
+        }
+
+        $isMachine = $isMachineBased || $this->isMachineBasedBagian($jabatan);
+
+        if ($isMachine) {
+            if (preg_match('/^meja\s*(.*)$/i', $raw, $matches)) {
+                $suffix = trim($matches[1]);
+                return $suffix !== '' ? "Mesin {$suffix}" : 'Mesin';
+            }
+            if (is_numeric($raw)) {
+                return "Mesin {$raw}";
+            }
+            if (!str_starts_with(strtoupper($raw), 'MESIN')) {
+                return "Mesin {$raw}";
+            }
+            return $raw;
+        }
+
+        if (preg_match('/^mesin\s*(.*)$/i', $raw, $matches)) {
+            $suffix = trim($matches[1]);
+            return $suffix !== '' ? "Meja {$suffix}" : 'Meja';
+        }
+        if (is_numeric($raw)) {
+            return "Meja {$raw}";
+        }
+        if (!str_starts_with(strtoupper($raw), 'MEJA')) {
+            return "Meja {$raw}";
+        }
+        return $raw;
+    }
+
+    /**
      * Ambil daftar mesin per plant (otomatis dari checksheet in_process atau fallback)
      */
     public function getPlantMachines(string $plantCode): array

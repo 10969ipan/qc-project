@@ -82,5 +82,35 @@ class DandoryChecksheet extends Model
 
         return $awalCount >= $minAwal && $akhirCount >= $minAkhir;
     }
+
+    /**
+     * Accessor untuk format penamaan Meja/Mesin otomatis jika bagian berbasis mesin.
+     */
+    public function getFormattedTableNoAttribute(): string
+    {
+        $raw = trim($this->table_no ?? '');
+        if ($raw === '' || $raw === '-') {
+            return '-';
+        }
+
+        $b = strtolower(trim($this->jabatan ?? ''));
+        $isMachine = str_contains($b, 'inproses') || str_contains($b, 'in process') || str_contains($b, 'in-process');
+
+        if ($isMachine) {
+            if (preg_match('/^meja\s*(.*)$/i', $raw, $matches)) {
+                $suffix = trim($matches[1]);
+                return $suffix !== '' ? "Mesin {$suffix}" : 'Mesin';
+            }
+            if (is_numeric($raw)) {
+                return "Mesin {$raw}";
+            }
+            if (!str_starts_with(strtoupper($raw), 'MESIN')) {
+                return "Mesin {$raw}";
+            }
+            return $raw;
+        }
+
+        return $raw;
+    }
 }
 

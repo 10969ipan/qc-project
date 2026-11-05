@@ -165,6 +165,9 @@ class DandoryChecksheetController extends Controller
                 $cs->status_badge = 'badge-warning text-dark';
                 $cs->status_text  = 'Proses (Awal)';
             }
+
+            // Pre-compute formatted location (Meja <-> Mesin dinamis)
+            $cs->display_table_no = $this->service->formatLocationNo($cs->table_no, $isMachineBased, $cs->jabatan);
         }
 
         // Ambil part yang diizinkan untuk operator ini
@@ -300,6 +303,10 @@ class DandoryChecksheetController extends Controller
             'table_no'    => $tableFilter,
         ];
         $checksheets = $this->service->getFilteredChecksheets($filters);
+
+        foreach ($checksheets as $cs) {
+            $cs->display_table_no = $this->service->formatLocationNo($cs->table_no, $isMachineBased, $cs->jabatan);
+        }
 
         $masterItems = $this->service->getMasterItems();
         $awalItems   = $masterItems->where('phase', 'awal')->values();
