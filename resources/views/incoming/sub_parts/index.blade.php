@@ -621,68 +621,69 @@
                                         if (empty($activePoints) && $hasUserInputs) {
                                             $activePoints = range(1, count($flatPoints));
                                         }
-
-                                        $toolsArray = $cs->alat_ukur_array;
-                                        if (empty($toolsArray) && !empty($standards)) {
-                                            foreach ($standards as $ptKey => $stdVal) {
-                                                if (is_array($stdVal) && !empty($stdVal['alat_ukur'])) {
-                                                    $toolsArray[(string)$ptKey] = \App\Models\MeasuringTool::resolveDisplayName(trim((string)$stdVal['alat_ukur']), $cs->plant_id ?? ($cs->item->plant_id ?? null));
-                                                }
-                                            }
-                                        }
-                                        $filteredTools = [];
-                                        if (!empty($toolsArray)) {
-                                            foreach ($toolsArray as $ptKey => $toolVal) {
-                                                if ($toolVal !== null && trim((string)$toolVal) !== '') {
-                                                    $filteredTools[(int)$ptKey] = trim((string)$toolVal);
-                                                }
-                                            }
-                                            ksort($filteredTools);
-                                        }
-                                        $uniqueTools = array_unique(array_values($filteredTools));
-                                        $totalTools = count($filteredTools);
                                     @endphp
-                                    <div class="px-2 pt-1 pb-0 text-left">
-                                        <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
-                                            Inspector: {{ $cs->operator_initials ?? '-' }}
-                                        </span>
-                                    </div>
-                                    @if($totalTools > 0)
-                                        @if(count($uniqueTools) === 1)
-                                            <div class="px-2 pt-1 pb-1 text-left">
-                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
-                                                    Alat Ukur: {{ reset($uniqueTools) }}
-                                                </span>
-                                            </div>
-                                        @else
-                                            @php
-                                                $previewParts = [];
-                                                $prevCount = 0;
-                                                foreach ($filteredTools as $pt => $tool) {
-                                                    $previewParts[] = "P{$pt}: {$tool}";
-                                                    if (++$prevCount >= 2) break;
-                                                }
-                                                $previewText = implode(', ', $previewParts);
-                                            @endphp
-                                            <div class="px-2 pt-1 pb-1 text-left d-flex align-items-center flex-wrap" style="gap: 4px;">
-                                                <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
-                                                    Alat Ukur: {{ $previewText }}{{ $totalTools > 2 ? '...' : '' }}
-                                                </span>
-                                                @if($totalTools > 2)
-                                                    <a href="#" 
-                                                        class="btn-detail-alat-ukur font-weight-bold text-dark ml-1" 
-                                                        data-tools='@json($filteredTools)'
-                                                        data-item="{{ $cs->item->name ?? '-' }}"
-                                                        data-part-number="{{ $cs->item->part_number ?? '-' }}"
-                                                        title="Lihat seluruh alat ukur per point"
-                                                        style="font-size: 0.65rem; color: #1e293b !important; text-decoration: underline; cursor: pointer;">
-                                                        (Lihat Selengkapnya)
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    @endif
                                     @if($hasUserInputs && !empty($activePoints))
+                                        @php
+                                            $toolsArray = $cs->alat_ukur_array;
+                                            if (empty($toolsArray) && !empty($standards)) {
+                                                foreach ($standards as $ptKey => $stdVal) {
+                                                    if (is_array($stdVal) && !empty($stdVal['alat_ukur'])) {
+                                                        $toolsArray[(string)$ptKey] = \App\Models\MeasuringTool::resolveDisplayName(trim((string)$stdVal['alat_ukur']), $cs->plant_id ?? ($cs->item->plant_id ?? null));
+                                                    }
+                                                }
+                                            }
+                                            $filteredTools = [];
+                                            if (!empty($toolsArray)) {
+                                                foreach ($toolsArray as $ptKey => $toolVal) {
+                                                    if ($toolVal !== null && trim((string)$toolVal) !== '') {
+                                                        $filteredTools[(int)$ptKey] = trim((string)$toolVal);
+                                                    }
+                                                }
+                                                ksort($filteredTools);
+                                            }
+                                            $uniqueTools = array_unique(array_values($filteredTools));
+                                            $totalTools = count($filteredTools);
+                                        @endphp
+                                        <div class="px-2 pt-1 pb-0 text-left">
+                                            <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                Inspector: {{ $cs->operator_initials ?? '-' }}
+                                            </span>
+                                        </div>
+                                        @if($totalTools > 0)
+                                            @if(count($uniqueTools) === 1)
+                                                <div class="px-2 pt-1 pb-1 text-left">
+                                                    <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                        Alat Ukur: {{ reset($uniqueTools) }}
+                                                    </span>
+                                                </div>
+                                            @else
+                                                @php
+                                                    $previewParts = [];
+                                                    $prevCount = 0;
+                                                    foreach ($filteredTools as $pt => $tool) {
+                                                        $previewParts[] = "P{$pt}: {$tool}";
+                                                        if (++$prevCount >= 2) break;
+                                                    }
+                                                    $previewText = implode(', ', $previewParts);
+                                                @endphp
+                                                <div class="px-2 pt-1 pb-1 text-left d-flex align-items-center flex-wrap" style="gap: 4px;">
+                                                    <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
+                                                        Alat Ukur: {{ $previewText }}{{ $totalTools > 2 ? '...' : '' }}
+                                                    </span>
+                                                    @if($totalTools > 2)
+                                                        <a href="#" 
+                                                            class="btn-detail-alat-ukur font-weight-bold text-dark ml-1" 
+                                                            data-tools='@json($filteredTools)'
+                                                            data-item="{{ $cs->item->name ?? '-' }}"
+                                                            data-part-number="{{ $cs->item->part_number ?? '-' }}"
+                                                            title="Lihat seluruh alat ukur per point"
+                                                            style="font-size: 0.65rem; color: #1e293b !important; text-decoration: underline; cursor: pointer;">
+                                                            (Lihat Selengkapnya)
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        @endif
                                         <div class="p-1" style="max-height: 200px; overflow-x: auto; overflow-y: auto;">
                                             <table class="table-dimension-minimalist">
                                                 <thead class="text-center" style="font-size: 0.6rem;">
