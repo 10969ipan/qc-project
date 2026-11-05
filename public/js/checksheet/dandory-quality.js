@@ -30,6 +30,8 @@ $(document).ready(function () {
         year: cfgEl.dataset.year || '',
         userRole: cfgEl.dataset.userRole || '',
         operatorId: cfgEl.dataset.operatorId || '',
+        isMachine: cfgEl.dataset.isMachine === '1',
+        locationLabel: cfgEl.dataset.locationLabel || 'Meja',
         awalStoreUrl: cfgEl.dataset.awalStoreUrl || '/checksheet/dandory/awal',
         akhirBaseUrl: cfgEl.dataset.akhirBaseUrl || '/checksheet/dandory',
         partPresetUrl: cfgEl.dataset.partPresetUrl || '/checksheet/dandory/part-preset',
@@ -338,18 +340,19 @@ $(document).ready(function () {
 
         var tableNo = $('#awalTableNo').val();
         if (!tableNo) {
+            var locLbl = config.locationLabel || 'Meja';
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Pilih Meja Terlebih Dahulu',
-                    text: 'Silakan pilih nomor meja tempat pemeriksaan aktual berlangsung.',
+                    title: 'Pilih ' + locLbl + ' Terlebih Dahulu',
+                    text: 'Silakan pilih nomor ' + locLbl.toLowerCase() + ' tempat pemeriksaan aktual berlangsung.',
                     confirmButtonColor: '#4e73df',
                     confirmButtonText: 'Mengerti'
                 }).then(function () {
                     $('#awalTableNo').focus();
                 });
             } else {
-                alert('Silakan pilih nomor meja tempat pemeriksaan aktual berlangsung.');
+                alert('Silakan pilih nomor ' + locLbl.toLowerCase() + ' tempat pemeriksaan aktual berlangsung.');
                 $('#awalTableNo').focus();
             }
             return;

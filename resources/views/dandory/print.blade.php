@@ -345,7 +345,7 @@
             <tr>
                 <th rowspan="2" style="width:25px;">NO</th>
                 <th rowspan="2" style="width:65px;">TANGGAL/SHIFT</th>
-                <th rowspan="2" style="width:45px;">MEJA</th>
+                <th rowspan="2" style="width:45px;">{{ $locationLabelUpper ?? 'MEJA' }}</th>
                 <th rowspan="2" style="min-width:160px; text-align:left; padding-left:5px;">NAMA PART</th>
                 <th colspan="{{ (count($awalItems) ?: 1) + 1 }}">AWAL DANDORY</th>
                 <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}">AKHIR DANDORY</th>

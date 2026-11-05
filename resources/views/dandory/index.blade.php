@@ -624,7 +624,7 @@
                                     @endif
                                     <th rowspan="2" style="width: 32px;">NO</th>
                                     <th rowspan="2" style="width: 85px;">TANGGAL/SHIFT</th>
-                                    <th rowspan="2" style="width: 65px;">MEJA</th>
+                                    <th rowspan="2" style="width: 65px;">{{ $locationLabelUpper ?? 'MEJA' }}</th>
                                     <th rowspan="2" style="min-width: 175px;">NAMA PART</th>
                                     <th colspan="{{ (count($awalItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AWAL DANDORY</th>
                                     <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AKHIR DANDORY</th>
@@ -946,10 +946,10 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="small font-weight-bold text-gray-700 mb-1">No. Meja <span class="text-danger">*</span></label>
+                            <label class="small font-weight-bold text-gray-700 mb-1">No. {{ $locationLabel ?? 'Meja' }} <span class="text-danger">*</span></label>
                             <select name="table_no" id="awalTableNo" class="form-control form-control-sm border" required>
-                                <option value="">-- Pilih Meja --</option>
-                                @foreach($plantTables as $tbl)
+                                <option value="">-- Pilih {{ $locationLabel ?? 'Meja' }} --</option>
+                                @foreach(($locationOptions ?? $plantTables) as $tbl)
                                     <option value="{{ $tbl }}">{{ $tbl }}</option>
                                 @endforeach
                             </select>
@@ -1408,6 +1408,8 @@
      data-year="{{ $year }}"
      data-user-role="{{ auth()->user()->role }}"
      data-operator-id="{{ $selectedOperatorId }}"
+     data-is-machine="{{ !empty($isMachineBased) ? '1' : '0' }}"
+     data-location-label="{{ $locationLabel ?? 'Meja' }}"
      data-awal-store-url="{{ route('checksheet.dandory.awal.store') }}"
      data-akhir-base-url="{{ url('/checksheet/dandory') }}"
      data-part-preset-url="{{ route('checksheet.dandory.part_preset') }}"

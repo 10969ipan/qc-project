@@ -115,6 +115,14 @@ class DandoryChecksheetController extends Controller
         // Ambil daftar meja per plant
         $plantTables = $this->service->getPlantTables($plantCode);
 
+        // Khusus posisi/bagian Inspector Inproses: Meja diubah dinamis menjadi Mesin
+        $isMachineBased     = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
+        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja';
+        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA';
+        $locationOptions    = $isMachineBased
+            ? $this->service->getPlantMachines($plantCode)
+            : $plantTables;
+
         // Ambil master item parameter standar (Awal & Akhir)
         $masterItems = $this->service->getMasterItems();
         $awalItems   = $masterItems->where('phase', 'awal')->values();
@@ -212,7 +220,8 @@ class DandoryChecksheetController extends Controller
         return view('dandory.index', compact(
             'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
-            'plantTables', 'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
+            'plantTables', 'isMachineBased', 'locationLabel', 'locationLabelUpper', 'locationOptions',
+            'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
             'allOpConfigs', 'latestBagianCategories'
         ));
     }
@@ -277,6 +286,10 @@ class DandoryChecksheetController extends Controller
         $selectedOperator   = User::find($selectedOperatorId) ?? $currentUser;
         $opConfig           = $this->service->getOperatorConfig($plantCode, $selectedOperatorId);
 
+        $isMachineBased     = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
+        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja';
+        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA';
+
         $filters = [
             'plant_code'  => $plantCode,
             'operator_id' => $selectedOperatorId,
@@ -304,7 +317,8 @@ class DandoryChecksheetController extends Controller
 
         return view('dandory.print', compact(
             'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter',
-            'selectedOperator', 'opConfig', 'awalItems', 'akhirItems', 'checksheets', 'chunks', 'totalPages'
+            'selectedOperator', 'opConfig', 'isMachineBased', 'locationLabel', 'locationLabelUpper',
+            'awalItems', 'akhirItems', 'checksheets', 'chunks', 'totalPages'
         ));
     }
 

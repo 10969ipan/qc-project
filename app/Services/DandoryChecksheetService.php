@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Plant;
 use App\Models\Category;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
 class DandoryChecksheetService
@@ -115,6 +116,70 @@ class DandoryChecksheetService
             ]
         );
         Cache::forget('general_settings_' . $key);
+    }
+
+    /**
+     * Cek apakah posisi/bagian operator berbasis mesin (khusus Inspector Inproses)
+     */
+    public function isMachineBasedBagian(?string $bagian): bool
+    {
+        if (empty($bagian)) {
+            return false;
+        }
+        $b = strtolower(trim($bagian));
+        return str_contains($b, 'inproses') || str_contains($b, 'in process') || str_contains($b, 'in-process');
+    }
+
+    /**
+     * Ambil daftar mesin per plant (otomatis dari checksheet in_process atau fallback)
+     */
+    public function getPlantMachines(string $plantCode): array
+    {
+        $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
+        $plantId = $plant ? $plant->id : null;
+
+        $rawMachines = Cache::remember("dandory_plant_machines_{$plantCode}", 1800, function () use ($plantId) {
+            return DB::table('in_process_checksheets')
+                ->when($plantId, function ($q) use ($plantId) {
+                    $q->where('plant_id', $plantId);
+                })
+                ->whereNotNull('code_machine')
+                ->where('code_machine', '!=', '')
+                ->where('code_machine', '!=', '-')
+                ->distinct()
+                ->pluck('code_machine')
+                ->values();
+        });
+
+        if ($rawMachines->isEmpty()) {
+            $rawMachines = collect(range(1, 25))->map(fn($n) => (string) $n);
+        }
+
+        $normalized = $rawMachines->map(function ($m) {
+            $trimmed = trim($m);
+            if (is_numeric($trimmed)) {
+                return (string) intval($trimmed);
+            }
+            return $trimmed;
+        })->unique()->values();
+
+        $sorted = $normalized->sort(function ($a, $b) {
+            $aIsNum = is_numeric($a);
+            $bIsNum = is_numeric($b);
+            if ($aIsNum && $bIsNum) {
+                return (int)$a <=> (int)$b;
+            }
+            if ($aIsNum) return -1;
+            if ($bIsNum) return 1;
+            return strnatcasecmp($a, $b);
+        })->values();
+
+        return $sorted->map(function ($m) {
+            if (str_starts_with(strtoupper($m), 'MESIN')) {
+                return $m;
+            }
+            return 'Mesin ' . $m;
+        })->unique()->values()->toArray();
     }
 
     /**
