@@ -97,14 +97,11 @@ class DandoryChecksheet extends Model
         $isMachine = str_contains($b, 'inproses') || str_contains($b, 'in process') || str_contains($b, 'in-process');
 
         if ($isMachine) {
-            if (preg_match('/^meja\s*(.*)$/i', $raw, $matches)) {
+            if (preg_match('/^meja\s+(\d+.*)$/i', $raw, $matches)) {
                 $suffix = trim($matches[1]);
                 return $suffix !== '' ? "Mesin {$suffix}" : 'Mesin';
             }
             if (is_numeric($raw)) {
-                return "Mesin {$raw}";
-            }
-            if (!str_starts_with(strtoupper($raw), 'MESIN')) {
                 return "Mesin {$raw}";
             }
             return $raw;

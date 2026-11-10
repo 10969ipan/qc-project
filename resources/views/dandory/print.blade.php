@@ -345,8 +345,8 @@
             <tr>
                 <th rowspan="2" style="width:25px;">NO</th>
                 <th rowspan="2" style="width:65px;">TANGGAL/SHIFT</th>
-                <th rowspan="2" style="width:45px;">{{ $locationLabelUpper ?? 'MEJA' }}</th>
-                <th rowspan="2" style="min-width:160px; text-align:left; padding-left:5px;">NAMA PART</th>
+                <th rowspan="2" style="width:auto; white-space:nowrap; padding:0 4px;">{{ $locationLabelUpper ?? 'MEJA/RUANGAN' }}</th>
+                <th rowspan="2" style="min-width:160px; text-align:left; padding-left:5px;">NAME PART/PART NO/SAP/KET</th>
                 <th colspan="{{ (count($awalItems) ?: 1) + 1 }}">AWAL DANDORY</th>
                 <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}">AKHIR DANDORY</th>
                 <th rowspan="2" style="width:80px;">DIPERIKSA<br>(LEADER)</th>
@@ -386,7 +386,7 @@
                             {{ $cs->shift }}
                         </div>
                     </td>
-                    <td>{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</td>
+                    <td style="white-space:nowrap; padding:0 4px;">{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</td>
                     <td style="text-align:left; padding-left:5px; font-weight:600;">
                         <div>{{ $cs->part_name }}</div>
                         @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))

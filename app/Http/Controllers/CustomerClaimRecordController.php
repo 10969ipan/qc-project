@@ -75,11 +75,14 @@ class CustomerClaimRecordController extends Controller
             });
         }
 
-        // ponytail: Load all records client-side to support instant DataTables search, similar to Kakotora.
-        $records = $query->get();
+        $records = $query->paginate(10)->withQueryString();
 
         $plants = Plant::orderBy('name')->get();
-        $customers = CustomerClaimRecord::distinct()->orderBy('customer')->pluck('customer');
+        $customers = CustomerClaimRecord::whereNotNull('customer')
+            ->where('customer', '!=', '')
+            ->distinct()
+            ->orderBy('customer')
+            ->pluck('customer');
         $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
 
         return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'customers'));

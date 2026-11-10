@@ -117,8 +117,8 @@ class DandoryChecksheetController extends Controller
 
         // Khusus posisi/bagian Inspector Inproses: Meja diubah dinamis menjadi Mesin
         $isMachineBased     = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
-        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja';
-        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA';
+        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja/Ruangan';
+        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA/RUANGAN';
         $locationOptions    = $isMachineBased
             ? $this->service->getPlantMachines($plantCode)
             : $plantTables;
@@ -290,8 +290,8 @@ class DandoryChecksheetController extends Controller
         $opConfig           = $this->service->getOperatorConfig($plantCode, $selectedOperatorId);
 
         $isMachineBased     = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
-        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja';
-        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA';
+        $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja/Ruangan';
+        $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA/RUANGAN';
 
         $filters = [
             'plant_code'  => $plantCode,
@@ -383,6 +383,34 @@ class DandoryChecksheetController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Gagal menyelesaikan Akhir Dandory: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Update nama Meja / Mesin langsung pada baris checksheet via AJAX
+     */
+    public function updateTableNo(Request $request, $id)
+    {
+        $request->validate([
+            'table_no' => 'required|string|max:100',
+        ]);
+
+        $checksheet = DandoryChecksheet::findOrFail($id);
+        if ($checksheet->leader_checked && Auth::user()->role === 'inspector') {
+            return response()->json(['success' => false, 'message' => 'Baris ini sudah diverifikasi Leader dan tidak dapat diubah.'], 403);
+        }
+
+        $tableNo = trim($request->table_no);
+        $checksheet->update(['table_no' => $tableNo]);
+
+        $isMachineBased = $this->service->isMachineBasedBagian($checksheet->jabatan ?? '');
+        $displayTableNo = $this->service->formatLocationNo($checksheet->table_no, $isMachineBased, $checksheet->jabatan);
+
+        return response()->json([
+            'success'          => true,
+            'message'          => 'Nama meja berhasil diperbarui.',
+            'table_no'         => $checksheet->table_no,
+            'display_table_no' => $displayTableNo,
+        ]);
     }
 
     /**

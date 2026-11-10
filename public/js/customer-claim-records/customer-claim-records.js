@@ -1,6 +1,37 @@
 $(document).ready(function () {
     const config = window.__CUSTOMER_CLAIM_RECORDS__ || {};
 
+    if (typeof initItemSearch === 'function') {
+        initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+    }
+
+    function syncExportLinks() {
+        const query = $('#filterFormClaim').serialize();
+        if (config.exportUrl) {
+            $('#btnExportClaim').attr('href', config.exportUrl + (query ? '?' + query : ''));
+        }
+        if (config.printUrl) {
+            $('#btnPrintClaim').attr('href', config.printUrl + (query ? '?' + query : ''));
+        }
+    }
+
+    $('#filterFormClaim input, #filterFormClaim select').on('change input', syncExportLinks);
+
+    $('#filterFormClaim').on('submit', function (e) {
+        const startDate = $(this).find('[name="start_date"]').val();
+        const endDate = $(this).find('[name="end_date"]').val();
+
+        if (startDate && endDate && startDate > endDate) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rentang Tanggal Tidak Valid',
+                text: 'Tanggal awal tidak boleh lebih besar dari tanggal akhir!',
+                confirmButtonColor: '#4e73df'
+            });
+        }
+    });
+
     function updateEvaluasiDate(inputSelector, targetSelector) {
         const dateVal = $(inputSelector).val();
         if (dateVal) {
@@ -215,7 +246,48 @@ $(document).ready(function () {
         });
     });
 
+    const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024; // 10MB
+
+    function getOversizedFiles(fileInput) {
+        const oversized = [];
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            Array.from(fileInput.files).forEach(function (file) {
+                if (file.size > MAX_EVIDENCE_BYTES) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    oversized.push(`<li><strong>${file.name}</strong> (${sizeMB} MB)</li>`);
+                }
+            });
+        }
+        return oversized;
+    }
+
+    function showOversizedModal(oversizedList) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ukuran File Melebihi 10MB',
+            html: `<div style="text-align: left; font-size: 0.9em;">File Evidence berikut melebihi batas maksimal <strong>10 MB</strong> per file:<ul style="margin-top: 10px; padding-left: 20px;">${oversizedList.join('')}</ul>Silakan pilih file dengan ukuran maksimal 10 MB.</div>`,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Mengerti'
+        });
+    }
+
+    $(document).on('change', 'input[name="attachments[]"]', function () {
+        const oversized = getOversizedFiles(this);
+        if (oversized.length > 0) {
+            $(this).val('');
+            showOversizedModal(oversized);
+        }
+    });
+
     $('#formTambahRecord, #formEditRecord').on('submit', function(e) {
+        const fileInput = $(this).find('input[name="attachments[]"]')[0];
+        const oversized = getOversizedFiles(fileInput);
+        if (oversized.length > 0) {
+            e.preventDefault();
+            showOversizedModal(oversized);
+            return;
+        }
+
         let emptyFields = [];
         
         $(this).find('input[required], select[required], textarea[required]').each(function() {

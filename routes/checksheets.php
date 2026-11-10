@@ -116,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checksheet/dandory/awal', [DandoryChecksheetController::class, 'storeAwal'])->name('checksheet.dandory.awal.store');
         Route::post('/checksheet/dandory/{id}/akhir', [DandoryChecksheetController::class, 'storeAkhir'])->name('checksheet.dandory.akhir.store');
         Route::post('/checksheet/dandory/{id}/toggle-cell', [DandoryChecksheetController::class, 'toggleCell'])->name('checksheet.dandory.toggle_cell');
+        Route::post('/checksheet/dandory/{id}/update-table', [DandoryChecksheetController::class, 'updateTableNo'])->name('checksheet.dandory.update_table');
         Route::post('/checksheet/dandory/{id}/verify', [DandoryChecksheetController::class, 'toggleVerify'])->name('checksheet.dandory.verify');
         Route::post('/checksheet/dandory/{id}/reject', [DandoryChecksheetController::class, 'reject'])->name('checksheet.dandory.reject');
         Route::post('/checksheet/dandory/bulk-verify', [DandoryChecksheetController::class, 'bulkVerify'])->name('checksheet.dandory.bulk_verify');

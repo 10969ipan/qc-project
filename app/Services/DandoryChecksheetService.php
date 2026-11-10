@@ -145,27 +145,21 @@ class DandoryChecksheetService
         $isMachine = $isMachineBased || $this->isMachineBasedBagian($jabatan);
 
         if ($isMachine) {
-            if (preg_match('/^meja\s*(.*)$/i', $raw, $matches)) {
+            if (preg_match('/^meja\s+(\d+.*)$/i', $raw, $matches)) {
                 $suffix = trim($matches[1]);
                 return $suffix !== '' ? "Mesin {$suffix}" : 'Mesin';
             }
             if (is_numeric($raw)) {
                 return "Mesin {$raw}";
             }
-            if (!str_starts_with(strtoupper($raw), 'MESIN')) {
-                return "Mesin {$raw}";
-            }
             return $raw;
         }
 
-        if (preg_match('/^mesin\s*(.*)$/i', $raw, $matches)) {
+        if (preg_match('/^mesin\s+(\d+.*)$/i', $raw, $matches)) {
             $suffix = trim($matches[1]);
             return $suffix !== '' ? "Meja {$suffix}" : 'Meja';
         }
         if (is_numeric($raw)) {
-            return "Meja {$raw}";
-        }
-        if (!str_starts_with(strtoupper($raw), 'MEJA')) {
             return "Meja {$raw}";
         }
         return $raw;

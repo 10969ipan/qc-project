@@ -624,8 +624,8 @@
                                     @endif
                                     <th rowspan="2" style="width: 32px;">NO</th>
                                     <th rowspan="2" style="width: 85px;">TANGGAL/SHIFT</th>
-                                    <th rowspan="2" style="width: 65px;">{{ $locationLabelUpper ?? 'MEJA' }}</th>
-                                    <th rowspan="2" style="min-width: 175px;">NAMA PART</th>
+                                    <th rowspan="2" style="width: auto; white-space: nowrap;">{{ $locationLabelUpper ?? 'MEJA/RUANGAN' }}</th>
+                                    <th rowspan="2" style="min-width: 175px;">NAME PART/PART NO/SAP/KET</th>
                                     <th colspan="{{ (count($awalItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AWAL DANDORY</th>
                                     <th colspan="{{ (count($akhirItems) ?: 1) + 1 }}" style="border-bottom: 1px solid #e2e8f0 !important;">AKHIR DANDORY</th>
                                     <th rowspan="2" style="width: 115px;">DIPERIKSA<br>(LEADER)</th>
@@ -686,7 +686,9 @@
                                                 {{ $cs->shift }}
                                             </div>
                                         </td>
-                                        <td>{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</td>
+                                        <td class="dandory-table-cell text-nowrap px-2" data-id="{{ $cs->id }}" data-table="{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}" style="cursor: pointer; width: auto; white-space: nowrap;" title="Klik untuk edit {{ $locationLabel ?? 'Meja/Ruangan' }}">
+                                            <span class="table-no-text">{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</span>
+                                        </td>
                                         <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | Part Number: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
                                             <div class="font-weight-bold text-dark text-truncate">{{ $cs->part_name }}</div>
                                             @if($cs->item && ($cs->item->part_number || $cs->item->sap_code))
@@ -946,9 +948,9 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="small font-weight-bold text-gray-700 mb-1">No. {{ $locationLabel ?? 'Meja' }} <span class="text-danger">*</span></label>
+                            <label class="small font-weight-bold text-gray-700 mb-1">{{ $locationLabel ?? 'Meja/Ruangan' }} <span class="text-danger">*</span></label>
                             <select name="table_no" id="awalTableNo" class="form-control form-control-sm border" required>
-                                <option value="">-- Pilih {{ $locationLabel ?? 'Meja' }} --</option>
+                                <option value="">-- Pilih {{ $locationLabel ?? 'Meja/Ruangan' }} --</option>
                                 @foreach(($locationOptions ?? $plantTables) as $tbl)
                                     <option value="{{ $tbl }}">{{ $tbl }}</option>
                                 @endforeach
@@ -1260,7 +1262,7 @@
                             <div id="tableListContainer" class="mb-2">
                                 @foreach($plantTables as $tbl)
                                     <div class="input-group input-group-sm mb-1 table-item-row">
-                                        <input type="text" name="tables[]" class="form-control form-control-sm border" value="{{ $tbl }}" required>
+                                        <input type="text" name="tables[]" class="form-control form-control-sm border no-autoupper" value="{{ $tbl }}" required>
                                         <div class="input-group-append">
                                             <button type="button" class="btn btn-outline-danger btn-remove-table" title="Hapus Meja">
                                                 <i class="fas fa-times"></i>

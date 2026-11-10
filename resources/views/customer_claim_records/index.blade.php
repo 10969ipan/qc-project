@@ -69,87 +69,100 @@
             </div>
 
             <form action="{{ route('admin.customer-claim-records.index') }}" method="GET"
-                class="d-flex flex-wrap align-items-center bg-light p-2 rounded mb-3 shadow-sm"
-                style="gap: 10px;" id="filterFormClaim">
+                class="d-flex flex-wrap align-items-end bg-white p-2 rounded mb-2 border"
+                style="gap: 8px; overflow-x: auto; border-color: #e2e8f0 !important;" id="filterFormClaim">
 
+                {{-- Preserve Context Parameters --}}
                 @if(request('plant'))
                     <input type="hidden" name="plant" value="{{ request('plant') }}">
                 @endif
 
-                <!-- Instant Smart Search -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-1 small font-weight-bold text-gray-700">Cari:</label>
-                    <input type="text" name="search" class="form-control form-control-sm shadow-sm border-0 no-autoupper" 
-                        placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="width: 120px; font-size: 0.75rem;">
-                </div>
-
-                <!-- Field: Tanggal -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Tanggal:</label>
-                    <div class="d-flex align-items-center shadow-sm rounded bg-white overflow-hidden">
-                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('start_date') }}">
-                        <span class="px-2 text-gray-500 small">-</span>
-                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0"
-                            style="width: 130px; font-size: 0.75rem;" value="{{ request('end_date') }}">
+                <!-- 1. Field: Cari -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Cari</label>
+                    <div style="width: 180px;" class="custom-filter-wrapper">
+                        <input type="text" name="search" class="form-control form-control-sm no-autoupper" 
+                            placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="font-size: 0.68rem; height: 26px;">
                     </div>
                 </div>
 
-                <!-- Field: Customer -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Customer:</label>
-                    <select name="customer" class="form-control form-control-sm border-0 shadow-sm" style="width: 140px; font-size: 0.75rem;">
-                        <option value="">SEMUA</option>
-                        @foreach($customers as $cust)
-                            <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>{{ $cust }}</option>
-                        @endforeach
-                    </select>
+                <!-- 2. Field: Customer -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
+                    <div style="width: 140px;" class="custom-filter-wrapper">
+                        <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
+                            <option value="">Semua Customer</option>
+                            @foreach($customers as $cust)
+                                <option value="{{ $cust }}" {{ request('customer') == $cust ? 'selected' : '' }}>{{ $cust }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Field: Claim Type -->
-                <div class="d-flex align-items-center">
-                    <label class="mb-0 mr-2 small font-weight-bold text-gray-700 text-nowrap">Type:</label>
-                    <select name="claim_type" class="form-control form-control-sm border-0 shadow-sm" style="width: 130px; font-size: 0.75rem;">
-                        <option value="">SEMUA</option>
-                        <option value="OFFICIAL" {{ request('claim_type') == 'OFFICIAL' ? 'selected' : '' }}>Officially</option>
-                        <option value="NON OFFICIAL" {{ request('claim_type') == 'NON OFFICIAL' ? 'selected' : '' }}>Non Officially</option>
-                        <option value="SUSPECT" {{ request('claim_type') == 'SUSPECT' ? 'selected' : '' }}>Suspect</option>
-                    </select>
+                <!-- 3. Field: Tanggal (dari - sampai) -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Tanggal</label>
+                    <div class="d-flex align-items-center rounded bg-white overflow-hidden" style="border: 1px solid #cbd5e1; height: 26px;">
+                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('start_date') }}" title="Dari Tanggal">
+                        <span class="px-2 text-gray-500 font-weight-bold small">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm border-0 shadow-none"
+                            style="width: 125px; font-size: 0.68rem; height: 24px;" value="{{ request('end_date') }}" title="Sampai Tanggal">
+                    </div>
                 </div>
 
+                <!-- 4. Field: Claim Type -->
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Type</label>
+                    <div style="width: 130px;" class="custom-filter-wrapper">
+                        <select name="claim_type" id="filterClaimType" class="form-control form-control-sm" style="font-size: 0.68rem; height: 26px;">
+                            <option value="">Semua</option>
+                            <option value="OFFICIAL" {{ request('claim_type') == 'OFFICIAL' ? 'selected' : '' }}>Officially</option>
+                            <option value="NON OFFICIAL" {{ request('claim_type') == 'NON OFFICIAL' ? 'selected' : '' }}>Non Officially</option>
+                            <option value="SUSPECT" {{ request('claim_type') == 'SUSPECT' ? 'selected' : '' }}>Suspect</option>
+                        </select>
+                    </div>
+                </div>
 
-
-                <!-- Tombol Aksi -->
-                <div class="ml-auto d-flex" style="gap: 5px;">
+                <!-- Tombol Filter & Reset -->
+                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
                     <style>
                         .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 4px 20px 4px 8px; font-size: 0.72rem; border: none; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); height: calc(1.5em + 0.5rem + 2px); }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 11px; }
-                        .custom-filter-wrapper { position: relative; top: -1px; }
+                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
+                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                        .custom-filter-wrapper { position: relative; top: 0px; }
+                        #filterFormClaim label { white-space: nowrap; }
+                        #filterFormClaim input[type="text"].form-control-sm,
+                        #filterFormClaim select.form-control-sm { height: 26px !important; min-height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
                         .uppercase-input { text-transform: uppercase; }
                     </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" title="Cari Data">
-                        <i class="fas fa-search fa-sm mr-1"></i>
+                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
+                        <i class="fas fa-search fa-sm mr-1"></i> Filter
                     </button>
                     <a href="{{ route('admin.customer-claim-records.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-3 no-loader" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm"></i>
+                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
+                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                </div>
+
+                <!-- Tombol Navigasi & Ekspor (Paling Kanan) -->
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
                     @if($canExport)
-                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type'])) }}"
-                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-3 no-loader btn-download" title="Export PDF">
-                        <i class="fas fa-file-pdf fa-sm"></i>
+                    <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type', 'search'])) }}"
+                        class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" title="Export PDF"
+                        style="font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-file-pdf fa-sm mr-1"></i> Export PDF
                     </a>
-                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type'])) }}"
+                    <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type', 'search'])) }}"
                         target="_blank"
-                        class="btn btn-sm shadow-sm rounded-pill px-3 no-loader btn-print" title="Print"
-                        style="background-color: #17a589; color: white;">
-                        <i class="fas fa-print fa-sm"></i>
+                        class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print d-flex align-items-center" title="Print"
+                        style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
                     </a>
                     @endif
                     @if (!in_array(auth()->user()->role, ['manager', 'asst_manager']))
-                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3" data-toggle="modal"
-                            data-target="#modalTambahRecord">
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center"
+                            style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalTambahRecord">
                             <i class="fas fa-plus fa-sm mr-1"></i> Tambah Data
                         </button>
                     @endif
@@ -180,61 +193,62 @@
 
             <style>
                 .table-responsive {
-        max-height: calc(100vh - 220px) !important;
-        overflow: auto !important;
-        border: none !important;
-        box-shadow: inset 0 0 5px rgba(0,0,0,0.02);
-    }
+                    max-height: none !important;
+                    overflow-x: auto !important;
+                    overflow-y: visible !important;
+                    border: none !important;
+                    box-shadow: none !important;
+                }
+                #dataTable {
+                    border-collapse: separate !important;
+                    border-spacing: 0 !important;
+                    border: none !important;
+                    width: 100% !important;
+                    table-layout: auto !important;
+                }
+                #dataTable td, #dataTable th {
+                    border-left: none !important;
+                    border-right: 1px solid #f1f5f9 !important;
+                }
+                #dataTable tbody td {
+                    border-bottom: 1px solid #f1f5f9 !important;
+                    border-top: none !important;
+                    vertical-align: middle !important;
+                    color: #334155 !important;
+                    padding: 6px 8px !important;
+                }
+                
+                /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
+                #dataTable > thead > tr > th,
+                #dataTable thead th,
+                .table#dataTable thead th {
+                    position: -webkit-sticky !important;
+                    position: sticky !important;
+                    background-color: #f8fafc !important;
+                    background-clip: padding-box !important;
+                    color: #475569 !important;
+                    font-weight: 700 !important;
+                    text-transform: uppercase !important;
+                    font-size: 0.65rem !important;
+                    letter-spacing: 0.2px !important;
+                    padding: 8px 12px !important;
+                    border-left: none !important;
+                    border-right: 1px solid #e2e8f0 !important;
+                    border-bottom: 1px solid #e2e8f0 !important;
+                    border-top: 1px solid #e2e8f0 !important;
+                    vertical-align: middle !important;
+                    line-height: 1.2 !important;
+                    white-space: nowrap !important;
+                    box-shadow: inset 0 -1px 0 #cbd5e1 !important;
+                    top: 0 !important;
+                    z-index: 105 !important;
+                }
 
-    @media (max-width: 992px) {
-        .table-responsive {
-            max-height: 60vh !important;
-        }
-    }
-    #dataTable {
-        border-collapse: separate !important;
-        border-spacing: 0 !important;
-        border: none !important;
-        width: 100% !important;
-        table-layout: auto !important;
-    }
-    #dataTable td, #dataTable th {
-        border-left: none !important;
-        border-right: 1px solid #f1f5f9 !important;
-    }
-    #dataTable tbody td {
-        border-bottom: 1px solid #f1f5f9 !important;
-        border-top: none !important;
-        vertical-align: middle !important;
-        color: #334155 !important;
-        padding: 6px 8px !important;
-    }
-    
-    /* Global TH sticky setup - Forced override for admin.blade.php blue headers */
-    #dataTable > thead > tr > th,
-    #dataTable thead th,
-    .table#dataTable thead th {
-        position: -webkit-sticky !important;
-        position: sticky !important;
-        background-color: #f8fafc !important;
-        background-clip: padding-box !important;
-        color: #475569 !important;
-        font-weight: 700 !important;
-        text-transform: uppercase !important;
-        font-size: 0.65rem !important;
-        letter-spacing: 0.2px !important;
-        padding: 8px 12px !important;
-        border-left: none !important;
-        border-right: 1px solid #e2e8f0 !important;
-        border-bottom: 1px solid #e2e8f0 !important;
-        border-top: 1px solid #e2e8f0 !important;
-        vertical-align: middle !important;
-        line-height: 1.2 !important;
-        white-space: nowrap !important;
-        box-shadow: inset 0 -1px 0 #cbd5e1 !important;
-        top: 0 !important;
-        z-index: 105 !important;
-    }
+                #dataTable tbody tr:hover {
+                    background-color: #f1f5f9 !important;
+                    transition: background-color 0.2s ease;
+                }
+
                 .badge {
                     font-size: 0.65rem !important;
                     padding: 0.25rem 0.45rem !important;
@@ -245,47 +259,10 @@
                     padding: 0.2rem 0.4rem !important; 
                     font-size: 0.65rem !important;
                 }
-
-                /* Pagination & Info bottom area */
-                .dataTables_wrapper > .row:last-child {
-                    background-color: #ffffff !important;
-                    padding: 10px 0 !important;
-                    margin: 0 !important;
-                    border-top: 1px solid #e2e8f0 !important;
-                    position: sticky;
-                    bottom: 0;
-                    z-index: 10;
-                    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-                }
-                
-                .dataTables_info {
-                    font-size: 0.7rem !important;
-                    color: #475569 !important;
-                    font-weight: 600 !important;
-                    padding-top: 5px !important;
-                }
-                
-                .dataTables_paginate .pagination {
-                    margin: 0 !important;
-                }
-                
-                .page-link {
-                    padding: 0.3rem 0.6rem !important;
-                    font-size: 0.7rem !important;
-                }
             </style>
 
-        <!-- Loading Spinner -->
-        <div id="tableLoader" class="text-center py-5">
-            <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
-                <span class="sr-only">Loading...</span>
-            </div>
-            <h6 class="text-muted font-weight-bold">Memuat Data Claim...</h6>
-        </div>
-
-        <!-- Table Container (Hidden until initialized) -->
-        <div id="tableContainer" style="display: none;">
-            <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
+            <div class="table-responsive">
+                <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead class="bg-light">
                         <tr>
                             <th>No</th>
@@ -318,9 +295,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($records as $record)
+                        @forelse($records as $record)
                             <tr>
-                                <td class="text-center align-middle">{{ $loop->iteration }}</td>
+                                <td class="text-center align-middle">{{ $records->firstItem() + $loop->index }}</td>
                                 <td class="text-nowrap align-middle text-center" data-order="{{ $record->tanggal_claim ? $record->tanggal_claim->format('Y-m-d') : '' }}">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
@@ -416,9 +393,17 @@
                                     @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="27" class="text-center text-muted py-4">Belum ada data claim</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-4">
+                {{ $records->withQueryString()->links() }}
+            </div>
         </div>
     </div>
 
@@ -462,143 +447,15 @@
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('vendor/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
     <script>
         window.__CUSTOMER_CLAIM_RECORDS__ = {
             baseUrl: "{{ url('admin/customer-claim-records') }}",
+            exportUrl: "{{ route('admin.customer-claim-records.export') }}",
+            printUrl: "{{ route('admin.customer-claim-records.print') }}",
             deleteAttachmentUrl: "{{ route('admin.customer-claim-records.attachment.destroy', [':id', ':index']) }}",
             plant: "{{ request('plant') }}"
         };
-
-        $(document).ready(function() {
-            var table = $('#dataTable').DataTable({
-                dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
-                     "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                "order": [[1, "desc"]],
-                "autoWidth": false,
-                "deferRender": true,
-                "columnDefs": [
-                    { "orderable": false, "targets": [0, 23, 26] } // Disable ordering on No, Evidential, Action columns
-                ],
-                language: {
-                    emptyTable: "Belum ada data claim",
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    }
-                },
-                initComplete: function(settings, json) {
-                    $('#tableLoader').hide();
-                    $('#tableContainer').fadeIn('fast', function() {
-                        table.columns.adjust();
-                    });
-                },
-                drawCallback: function(settings) {
-                    var api = this.api();
-
-                    // Dynamically update the 'No' column (Column 0) sequentially (1, 2, 3...) based on sorted/filtered order
-                    var pageInfo = api.page.info();
-                    api.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
-                        cell.innerHTML = i + 1 + pageInfo.start;
-                    });
-
-                    // ponytail: Highlight search keywords safely using TreeWalker
-                    var tbody = api.table().body();
-                    
-                    $(tbody).find('mark.hlt').each(function() {
-                        $(this).replaceWith(this.childNodes);
-                    });
-                    tbody.normalize();
-
-                    var searchStr = api.search();
-                    if (!searchStr) return;
-
-                    var keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
-                    if (keywords.length === 0) return;
-
-                    keywords = keywords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
-                    var regex = new RegExp("(" + keywords.join('|') + ")", "gi");
-
-                    api.rows({ page: 'current' }).nodes().each(function(row) {
-                        $(row).find('td:not(:last-child)').each(function() {
-                            var walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
-                            var nodes = [];
-                            while (walker.nextNode()) nodes.push(walker.currentNode);
-                            nodes.forEach(function(node) {
-                                var text = node.nodeValue;
-                                if (text.trim() && regex.test(text)) {
-                                    var span = document.createElement('span');
-                                    span.innerHTML = text.replace(regex, "<mark class='hlt' style='background-color: #fffa90; color: #000000; padding: 0 2px; border-radius: 2px;'>$1</mark>");
-                                    var frag = document.createDocumentFragment();
-                                    while (span.firstChild) frag.appendChild(span.firstChild);
-                                    node.parentNode.replaceChild(frag, node);
-                                }
-                            });
-                        });
-                    });
-                }
-            });
-
-            // Prevent form submit on Enter key press on search input
-            $('input[name="search"]').on('keypress', function (e) {
-                if (e.which == 13) {
-                    e.preventDefault();
-                }
-            });
-
-            // Instant smart search with Debounce (300ms delay to prevent lag on fast typing)
-            let searchDebounceTimer;
-            $('input[name="search"]').on('keyup input', function () {
-                let $inputEl = $(this);
-                clearTimeout(searchDebounceTimer);
-                searchDebounceTimer = setTimeout(function () {
-                    // Smart NLP Search - Remove Indonesian stop words so conversational queries like 
-                    // "tolong keluarkan claim bintik di customer honda" become "bintik customer honda".
-                    let input = $inputEl.val().toLowerCase();
-                    let stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'claim', 'database', 'dari', 'ke', 'untuk'];
-                    let keywords = input.split(/[\s,.]+/).filter(w => w && !stops.includes(w));
-                    table.search(keywords.length ? keywords.join(' ') : input).draw();
-                }, 300);
-            });
-
-            var initialSearch = $('input[name="search"]').val();
-            if (initialSearch) {
-                table.search(initialSearch).draw();
-            }
-
-            var form = document.getElementById('filterFormClaim');
-            if (form) {
-                window.syncExportLinks = function() {
-                    var baseUrlPdf = "{{ route('admin.customer-claim-records.export') }}";
-                    var baseUrlPrint = "{{ route('admin.customer-claim-records.print') }}";
-                    var params = new URLSearchParams();
-                    var formData = new FormData(form);
-                    for (var pair of formData.entries()) {
-                        if (pair[1]) params.append(pair[0], pair[1]);
-                    }
-                    
-                    // Add current search input to export params
-                    var searchVal = $('input[name="search"]').val();
-                    if (searchVal) params.append('search', searchVal);
-
-                    var queryString = params.toString();
-                    
-                    var pdfBtn = form.querySelector('.btn-download');
-                    if (pdfBtn) pdfBtn.href = baseUrlPdf + '?' + queryString;
-                    
-                    var printBtn = form.querySelector('.btn-print');
-                    if (printBtn) printBtn.href = baseUrlPrint + '?' + queryString;
-                };
-
-                $(form).find('input, select').on('change keyup input', window.syncExportLinks);
-                window.syncExportLinks();
-            }
-        });
     </script>
     <script src="{{ asset('js/customer-claim-records/customer-claim-records.js') }}?v={{ filemtime(public_path('js/customer-claim-records/customer-claim-records.js')) }}"></script>
 @endpush
