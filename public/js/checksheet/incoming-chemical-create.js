@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const formInputs = form.find("input, select, textarea, button")
         .not("#startTimerBtn")
         .not('[type="hidden"]');
-    
+
     formInputs.prop("disabled", true);
     form.addClass("inputs-locked");
 
@@ -58,16 +58,19 @@ document.addEventListener('DOMContentLoaded', function () {
         $('<style id="lockStyle">#checksheetForm.inputs-locked input:disabled, #checksheetForm.inputs-locked select:disabled, #checksheetForm.inputs-locked textarea:disabled { background-color: #f0f0f0 !important; cursor: not-allowed; }</style>').appendTo("head");
     }
 
-    $("#startTimerBtn").on("click", function() {
+    $("#startTimerBtn").on("click", function () {
         if (!timerRunning) {
-            formInputs.prop("disabled", false);
+            form.find("input, select, textarea, button")
+                .not("#startTimerBtn")
+                .not('[type="hidden"]')
+                .prop("disabled", false);
             $("#saveBtn").prop("disabled", false);
             form.removeClass("inputs-locked");
-            
+
             $(this).removeClass('btn-success').addClass('btn-secondary text-white')
-                   .html('<i class="far fa-clock"></i> Running...')
-                   .css('cursor', 'default');
-            
+                .html('<i class="far fa-clock"></i> Running...')
+                .css('cursor', 'default');
+
             timerInterval = setInterval(() => {
                 totalSeconds++;
                 const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
@@ -76,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 $('#timerDisplay').text(`${h}:${m}:${s}`);
                 $('#cycleTimeInput').val(totalSeconds);
             }, 1000);
-            
+
             timerRunning = true;
         }
     });
@@ -86,14 +89,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const selected = $(this).find(':selected');
         const defects = selected.data('defects');
         updateDefectOptions(defects);
-        
+
         if ($(this).val()) {
             $('#addDefectBtn').show();
-            
+
             // PDF Logic
             const files = selected.data('files');
             const validFiles = Array.isArray(files) ? files.filter(f => f && f.trim && f.trim() !== '') : [];
-            
+
             pdfDoc = null;
             pageNum = 1;
             standardFileIndex = 0;
@@ -152,14 +155,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const firstRow = container.find('.defect-row').first().clone();
         firstRow.find('input').val('');
         firstRow.find('select').val('');
-        
+
         const lastCol = firstRow.find('.action-col');
         lastCol.empty().append('<button type="button" class="btn btn-danger btn-sm shadow-sm remove-defect-btn"><i class="fas fa-times"></i></button>');
-        
+
         container.append(firstRow);
     });
 
-    $(document).on('click', '.remove-defect-btn', function() {
+    $(document).on('click', '.remove-defect-btn', function () {
         if ($('.defect-row').length > 1) {
             $(this).closest('.defect-row').remove();
             calculateAndJudge();
@@ -169,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Qty (Kg, liter, Botol) sekarang diisi manual tanpa memicu perhitungan otomatis
 
     // Hitung otomatis AQL (Sampling Size) hanya dari input Komp/Jirigen
-    $('#komperJirigenInput').on('input', function() {
+    $('#komperJirigenInput').on('input', function () {
         const totalJirigen = parseFloat($(this).val()) || 0;
         const sampleSize = AQL_TABLE.getSampleSize(totalJirigen);
         $('#totalCheckInput').val(sampleSize).trigger('input');
@@ -190,26 +193,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 totalNg += qty;
             }
         });
-        
+
         const totalCheck = parseInt($('#totalCheckInput').val()) || 0;
         const aql = AQL_TABLE.getAqlLimits(totalCheck);
-        
+
         $('#totalNgInput').val(totalNg);
-        
+
         const judgment = (totalNg >= aql.rej) ? 'NG' : 'OK';
         $('#judgmentSelect').val(judgment);
-        
+
         const badge = $('#judgmentBadge');
         if (judgment === 'OK') {
             badge.removeClass('d-none border-danger text-danger border-warning text-warning')
-                 .addClass('border-success text-success')
-                 .text('OK');
+                .addClass('border-success text-success')
+                .text('OK');
         } else {
             badge.removeClass('d-none border-success text-success border-warning text-warning')
-                 .addClass('border-danger text-danger')
-                 .text('NG');
+                .addClass('border-danger text-danger')
+                .text('NG');
         }
-        
+
         if (totalCheck > 0) {
             $('#aql_info').show();
             $('#acc_val').text(aql.acc);
@@ -224,11 +227,11 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
 
         const form = $(this);
-        
+
         // Validasi Manual untuk Required Fields
         let isValid = true;
         let missingFields = [];
-        
+
         const fieldNames = {
             'item_id': 'Chemical Name',
             'tanggal_datang': 'Tgl Datang',
@@ -242,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'operator_initials': 'QC (Inisial)'
         };
 
-        form.find('input[required], select[required], textarea[required]').each(function() {
+        form.find('input[required], select[required], textarea[required]').each(function () {
             // Trim spasi jika berupa string
             let val = $(this).val();
             if (typeof val === 'string') {
@@ -266,12 +269,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let errorHtml = 'Pastikan semua kolom yang wajib sudah terisi sebelum menyimpan data.<br><br>';
             if (missingFields.length > 0) {
                 errorHtml += '<div class="text-left"><strong class="text-danger">Kolom yang belum diisi:</strong><ul class="text-danger mt-1">';
-                missingFields.forEach(function(field) {
+                missingFields.forEach(function (field) {
                     errorHtml += `<li>${field}</li>`;
                 });
                 errorHtml += '</ul></div>';
             }
-            
+
             Swal.fire({
                 icon: 'warning',
                 title: 'Data Belum Lengkap!',
@@ -285,12 +288,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const originalHtml = saveBtn.html();
 
         // Bersihkan defect yang dipilih tapi tidak ada qty atau qty = 0
-        $('.defect-row').each(function() {
+        $('.defect-row').each(function () {
             const typeInput = $(this).find('.defect-select');
             const qtyInput = $(this).find('.defect-qty');
             const type = typeInput.val();
             const qty = parseInt(qtyInput.val()) || 0;
-            
+
             if (type && qty === 0) {
                 typeInput.val('');
                 qtyInput.val('');
@@ -311,6 +314,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (response.success) {
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    timerRunning = false;
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
@@ -351,17 +360,63 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function resetState(form) {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerRunning = false;
+        totalSeconds = 0;
+        $('#timerDisplay').text('00:00:00');
+        $('#cycleTimeInput').val(0);
+
+        $('#startTimerBtn')
+            .removeClass('btn-secondary text-white')
+            .addClass('btn-success')
+            .prop('disabled', false)
+            .css('cursor', 'pointer')
+            .html('<i class="fas fa-play mr-1"></i> Start');
+
+        $('#saveBtn')
+            .prop('disabled', true)
+            .html('<i class="fas fa-save mr-1"></i> SIMPAN DATA');
+
         form[0].reset();
+
+        const itemSelectEl = document.getElementById('itemSelect');
+        if (itemSelectEl && typeof itemSelectEl._ipsReset === 'function') {
+            itemSelectEl._ipsReset();
+        }
         $('#itemSelect').val('').trigger('change');
+
         $('#defectContainer').find('.defect-row').not(':first').remove();
+        $('#defectContainer').find('.defect-select').val('');
+        $('#defectContainer').find('.defect-qty').val('');
+        $('#addDefectBtn').hide();
+
         $('#totalNgInput').val(0);
-        $('#judgmentSelect').val('OK');
-        $('#aqlInfoBox').empty();
-        
+        $('#judgmentSelect').val('');
+        $('#judgmentBadge')
+            .addClass('d-none')
+            .removeClass('border-success text-success border-danger text-danger border-warning text-warning')
+            .text('-');
+
+        $('#aql_info').hide();
+        $('#acc_val').text('-');
+        $('#rej_val').text('-');
+
+        form.find('.is-invalid').removeClass('is-invalid');
+
         // Khusus untuk Select2 jika digunakan
         if ($.fn.select2) {
             form.find('.select2').trigger('change');
         }
+
+        // Kunci kembali input form hingga Start diklik lagi
+        form.find("input, select, textarea, button")
+            .not("#startTimerBtn")
+            .not('[type="hidden"]')
+            .prop("disabled", true);
+        form.addClass("inputs-locked");
     }
 
     // --- PDF Viewer Logic ---
@@ -418,10 +473,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 $canvas.removeClass("d-none").show();
                 pdfDoc = pdf;
                 pageNum = pNum;
-                
+
                 const fileInfo = standardFiles.length > 1 ? ` (${standardFileIndex + 1}/${standardFiles.length})` : '';
                 $("#standardPageInfo").text(`P ${pageNum}/${pdf.numPages}${fileInfo}`);
-                
+
                 if (standardFiles.length > 0) $(".standard-nav-controls").attr("style", "display: flex !important;");
                 else $(".standard-nav-controls").hide();
             });
@@ -481,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Clear is-invalid class on input
-    $('#checksheetForm').on('input change', 'input[required], select[required], textarea[required]', function() {
+    $('#checksheetForm').on('input change', 'input[required], select[required], textarea[required]', function () {
         if ($(this).val()) {
             $(this).removeClass('is-invalid');
         }
@@ -565,47 +620,47 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    $("#prevPdf").click(function() {
+    $("#prevPdf").click(function () {
         if (typeof currentPdfIndexFull === 'number' && currentPdfIndexFull > 0) {
             currentPdfIndexFull--;
             loadFullPdf(fullCurrentItemId, currentPdfIndexFull);
         }
     });
 
-    $("#nextPdf").click(function() {
+    $("#nextPdf").click(function () {
         if (typeof currentPdfIndexFull === 'number' && currentPdfIndexFull < totalPdfFilesFull - 1) {
             currentPdfIndexFull++;
             loadFullPdf(fullCurrentItemId, currentPdfIndexFull);
         }
     });
 
-    $("#prevPage").click(function() {
+    $("#prevPage").click(function () {
         if (fullPdfDoc && fullPageNum > 1) {
             fullPageNum--;
             renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
         }
     });
 
-    $("#nextPage").click(function() {
+    $("#nextPage").click(function () {
         if (fullPdfDoc && fullPageNum < fullPdfDoc.numPages) {
             fullPageNum++;
             renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
         }
     });
 
-    $("#pdfZoomIn").click(function() {
+    $("#pdfZoomIn").click(function () {
         fullScale += 0.25;
         if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
     });
 
-    $("#pdfZoomOut").click(function() {
+    $("#pdfZoomOut").click(function () {
         if (fullScale > 0.25) {
             fullScale -= 0.25;
             if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
         }
     });
 
-    $("#pdfZoomReset").click(function() {
+    $("#pdfZoomReset").click(function () {
         fullScale = 1.0;
         if (fullPdfDoc) renderFullPage(fullPdfDoc, fullCanvas, fullCtx, fullPageNum, fullScale);
     });
