@@ -103,19 +103,32 @@ class DandoryChecksheetService
     /**
      * Simpan daftar meja per plant ke GeneralSetting
      */
-    public function savePlantTables(string $plantCode, array $tables): void
+    public function savePlantTables(string $plantCode, array $tables, array $oldTables = []): void
     {
-        $key = 'dandory_tables_' . strtolower($plantCode);
+        $plant = strtolower($plantCode);
+        $key = 'dandory_tables_' . $plant;
+        $cleanTables = array_values(array_filter(array_map('trim', $tables)));
+
         GeneralSetting::updateOrCreate(
             ['key' => $key],
             [
-                'plant_code'  => strtolower($plantCode),
+                'plant_code'  => $plant,
                 'category'    => 'dandory',
-                'value'       => json_encode(array_values(array_filter(array_map('trim', $tables)))),
+                'value'       => json_encode($cleanTables),
                 'description' => 'Daftar nama meja inspeksi untuk Dandory Quality Plant ' . ucfirst($plantCode),
             ]
         );
         Cache::forget('general_settings_' . $key);
+
+        foreach ($tables as $idx => $newName) {
+            $newName = trim((string) $newName);
+            $oldName = trim((string) ($oldTables[$idx] ?? ''));
+            if ($oldName !== '' && $newName !== '' && $oldName !== $newName) {
+                DandoryChecksheet::where('plant_code', $plant)
+                    ->where('table_no', $oldName)
+                    ->update(['table_no' => $newName]);
+            }
+        }
     }
 
     /**

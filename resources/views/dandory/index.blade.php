@@ -686,8 +686,8 @@
                                                 {{ $cs->shift }}
                                             </div>
                                         </td>
-                                        <td class="dandory-table-cell text-nowrap px-2" data-id="{{ $cs->id }}" data-table="{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}" style="cursor: pointer; width: auto; white-space: nowrap;" title="Klik untuk edit {{ $locationLabel ?? 'Meja/Ruangan' }}">
-                                            <span class="table-no-text">{{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}</span>
+                                        <td class="text-nowrap px-2" style="width: auto; white-space: nowrap;">
+                                            {{ $cs->display_table_no ?? $cs->formatted_table_no ?? $cs->table_no }}
                                         </td>
                                         <td class="text-left px-2" style="min-width: 175px; max-width: 260px;" title="{{ $cs->part_name }} {{ $cs->item?->part_number ? ' | Part Number: ' . $cs->item->part_number : '' }} {{ $cs->item?->sap_code ? ' | SAP: ' . $cs->item->sap_code : '' }}">
                                             <div class="font-weight-bold text-dark text-truncate">{{ $cs->part_name }}</div>
@@ -1262,6 +1262,7 @@
                             <div id="tableListContainer" class="mb-2">
                                 @foreach($plantTables as $tbl)
                                     <div class="input-group input-group-sm mb-1 table-item-row">
+                                        <input type="hidden" name="old_tables[]" value="{{ $tbl }}">
                                         <input type="text" name="tables[]" class="form-control form-control-sm border no-autoupper" value="{{ $tbl }}" required>
                                         <div class="input-group-append">
                                             <button type="button" class="btn btn-outline-danger btn-remove-table" title="Hapus Meja">

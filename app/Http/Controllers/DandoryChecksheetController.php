@@ -699,12 +699,18 @@ class DandoryChecksheetController extends Controller
         }
 
         $request->validate([
-            'plant_code' => 'required|string',
-            'tables'     => 'required|array',
-            'tables.*'   => 'required|string',
+            'plant_code'   => 'required|string',
+            'tables'       => 'required|array',
+            'tables.*'     => 'required|string|max:100',
+            'old_tables'   => 'nullable|array',
+            'old_tables.*' => 'nullable|string|max:100',
         ]);
 
-        $this->service->savePlantTables($request->plant_code, $request->tables);
+        $this->service->savePlantTables(
+            $request->plant_code,
+            $request->tables,
+            $request->input('old_tables', [])
+        );
 
         return response()->json([
             'success' => true,

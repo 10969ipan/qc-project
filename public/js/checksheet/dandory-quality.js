@@ -1398,6 +1398,7 @@ $(document).ready(function () {
 
         var newRow = $(
             '<div class="input-group input-group-sm mb-1 table-item-row">' +
+            '    <input type="hidden" name="old_tables[]" value="">' +
             '    <input type="text" name="tables[]" class="form-control form-control-sm border no-autoupper" value="' + autoValue + '" required>' +
             '    <div class="input-group-append">' +
             '        <button type="button" class="btn btn-outline-danger btn-remove-table" title="Hapus Meja">' +
@@ -1407,72 +1408,6 @@ $(document).ready(function () {
             '</div>'
         );
         $('#tableListContainer').append(newRow);
-    });
-
-    // Inline Edit Kolom Meja pada Tabel Checksheet Dandory
-    $(document).on('click', '.dandory-table-cell', function () {
-        var cell = $(this);
-        if (cell.find('.dandory-table-inline-input').length > 0) return;
-
-        var id = cell.data('id');
-        var currentVal = String(cell.attr('data-table') || cell.find('.table-no-text').text() || '').trim();
-        var input = $('<input type="text" class="form-control form-control-sm text-center no-autoupper dandory-table-inline-input" style="min-width: 90px; height: 22px; font-size: 0.62rem; padding: 1px 4px;">');
-        input.val(currentVal);
-
-        cell.html(input);
-        input.focus().select();
-
-        var isSaving = false;
-        function saveTableEdit() {
-            if (isSaving) return;
-            isSaving = true;
-
-            var newVal = input.val().trim();
-            if (!newVal || newVal === currentVal) {
-                cell.html('<span class="table-no-text">' + escapeHtml(currentVal) + '</span>');
-                return;
-            }
-
-            $.ajax({
-                url: config.akhirBaseUrl + '/' + id + '/update-table',
-                type: 'POST',
-                data: { table_no: newVal },
-                dataType: 'json',
-                success: function (res) {
-                    if (res && res.success) {
-                        var displayVal = res.display_table_no || res.table_no || newVal;
-                        cell.attr('data-table', displayVal);
-                        cell.html('<span class="table-no-text">' + escapeHtml(displayVal) + '</span>');
-                    } else {
-                        cell.html('<span class="table-no-text">' + escapeHtml(currentVal) + '</span>');
-                        if (typeof Swal !== 'undefined' && res && res.message) {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
-                        }
-                    }
-                },
-                error: function (xhr) {
-                    cell.html('<span class="table-no-text">' + escapeHtml(currentVal) + '</span>');
-                    var errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal mengubah nama meja.';
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg });
-                    }
-                }
-            });
-        }
-
-        input.on('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                saveTableEdit();
-            } else if (e.key === 'Escape') {
-                isSaving = true;
-                cell.html('<span class="table-no-text">' + escapeHtml(currentVal) + '</span>');
-            }
-        });
-
-        input.on('blur', function () {
-            saveTableEdit();
-        });
     });
 
     $(document).on('click', '.btn-remove-table', function () {
