@@ -625,6 +625,10 @@ class DandoryChecksheetController extends Controller
     public function exportExcel(Request $request)
     {
         $currentUser = Auth::user();
+        if (in_array($currentUser->role, ['inspector', 'operator'])) {
+            abort(403, 'Anda tidak memiliki akses untuk melakukan export Excel.');
+        }
+
         $plantCode   = $request->get('plant', $currentUser->plant_code ?? 'karawang');
         $startDate   = $request->get('start_date');
         $endDate     = $request->get('end_date');

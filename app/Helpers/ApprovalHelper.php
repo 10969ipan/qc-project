@@ -221,6 +221,30 @@ class ApprovalHelper
     }
 
     /**
+     * Get alias role keys for a given approval role.
+     * Plating roles are kept separate from QC roles so their sampling quotas stay independent.
+     */
+    public static function getRelatedRoleKeys(string $role): array
+    {
+        $roleNorm = strtolower(trim($role));
+
+        if (in_array($roleNorm, ['karu_qc', 'kashift', 'kashift_qc'])) {
+            return ['karu_qc', 'kashift', 'kashift_qc'];
+        }
+        if (in_array($roleNorm, ['supervisor', 'supervisor_qc'])) {
+            return ['supervisor', 'supervisor_qc'];
+        }
+        if (in_array($roleNorm, ['asst_manager', 'asst_manager_qc'])) {
+            return ['asst_manager', 'asst_manager_qc'];
+        }
+        if (in_array($roleNorm, ['manager', 'manager_qc'])) {
+            return ['manager', 'manager_qc'];
+        }
+
+        return [$roleNorm];
+    }
+
+    /**
      * Get sampling quota requirement per role.
      */
     public static function getSamplingQuotaRequirement(string $role): array
@@ -316,16 +340,7 @@ class ApprovalHelper
         }
 
         // Filter sampling method for this role or related role keys
-        $roleKeys = [$roleNorm];
-        if (in_array($roleNorm, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating']));
-        } elseif (in_array($roleNorm, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
-        } elseif (in_array($roleNorm, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
-        } elseif (in_array($roleNorm, ['manager', 'manager_qc', 'manager_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
-        }
+        $roleKeys = self::getRelatedRoleKeys($roleNorm);
 
         $approverCol = null;
         if (in_array($roleNorm, ['kashift', 'karu_qc', 'kashift_qc'])) {
@@ -795,16 +810,7 @@ class ApprovalHelper
         }
 
         // Filter sampling method for this role or related role keys
-        $roleKeys = [$role];
-        if (in_array($role, ['karu_qc', 'kashift', 'kashift_qc'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['karu_qc', 'kashift', 'kashift_qc']));
-        } elseif (in_array($role, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
-        } elseif (in_array($role, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
-        } elseif (in_array($role, ['manager', 'manager_qc', 'manager_plating'])) {
-            $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
-        }
+        $roleKeys = self::getRelatedRoleKeys($role);
 
         if (self::tableHasColumn($table, 'approval_methods')) {
             $query->where(function ($q) use ($roleKeys, $table) {

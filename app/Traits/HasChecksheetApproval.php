@@ -901,17 +901,8 @@ trait HasChecksheetApproval
                         ];
                     }
 
-                    // Alias role keys for checking existing sampling
-                    $roleKeys = [$type];
-                    if (in_array($type, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating'])) {
-                        $roleKeys = array_unique(array_merge($roleKeys, ['karu_qc', 'kashift', 'kashift_qc', 'kashift_plating']));
-                    } elseif (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-                        $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
-                    } elseif (in_array($type, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
-                        $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
-                    } elseif (in_array($type, ['manager', 'manager_qc', 'manager_plating'])) {
-                        $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
-                    }
+                    // Alias role keys for checking existing sampling (Plating terpisah dari QC)
+                    $roleKeys = \App\Helpers\ApprovalHelper::getRelatedRoleKeys($type);
 
                     // Optimized: Batch query existing sampling counts to eliminate N+1 query loop
                     $existingCounts = [];
@@ -926,7 +917,10 @@ trait HasChecksheetApproval
                         $targetDates = array_keys($targetDates);
 
                         if (!empty($targetDates)) {
-                            $batchExistQ = $modelClass::withoutGlobalScopes();
+                            $batchExistQ = $modelClass::withoutGlobalScopes()
+                                ->whereNotNull("{$table}.{$field}")
+                                ->where("{$table}.{$field}", '!=', '')
+                                ->where("{$table}.{$field}", '!=', 'REJECTED');
                             if ($request->filled('plant') && Schema::hasColumn($table, 'plant_id')) {
                                 $resolvedP = \App\Models\Plant::resolveId($request->input('plant'));
                                 if ($resolvedP) {

@@ -526,11 +526,13 @@
                         </button>
                     @endif
 
-                    <!-- Tombol Export Excel -->
-                    <a href="{{ route('checksheet.dandory.export_excel', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter, 'status_filter' => $statusFilter ?? '']) }}"
-                       class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center no-loader" id="btnExportExcelDandory" style="height: 31px;" title="Export Data Dandory Quality ke Excel (.xlsx)">
-                        <i class="fas fa-file-excel mr-1"></i> Excel
-                    </a>
+                    <!-- Tombol Export Excel (Di atas Inspector saja) -->
+                    @if(!in_array(auth()->user()->role, ['inspector', 'operator']))
+                        <a href="{{ route('checksheet.dandory.export_excel', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter, 'status_filter' => $statusFilter ?? '']) }}"
+                           class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center no-loader" id="btnExportExcelDandory" style="height: 31px;" title="Export Data Dandory Quality ke Excel (.xlsx)">
+                            <i class="fas fa-file-excel mr-1"></i> Excel
+                        </a>
+                    @endif
 
                     <!-- Tombol Cetak / Save PDF (Direct Print tanpa buka tab baru) -->
                     <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter]) }}"
