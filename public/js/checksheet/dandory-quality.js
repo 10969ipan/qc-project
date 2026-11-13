@@ -1599,5 +1599,130 @@ $(document).ready(function () {
             }
         }
     });
+
+    // 16. Filter Cepat Belum Akhir Dandory (Outstanding)
+    $('#btnToggleOutstanding').on('click', function () {
+        var input = $('#statusFilterInput');
+        input.val(input.val() === 'outstanding' ? '' : 'outstanding');
+        $('#filterFormDandory').submit();
+    });
+
+    // 17. Edit Data Sesi Dandory (Tanggal / Shift / Part / Catatan)
+    $(document).on('click', '.btn-edit-dandory', function () {
+        var btn = $(this);
+        $('#editSesiId').val(btn.data('id'));
+        $('#editSesiDate').val(btn.data('date'));
+        $('#editSesiShift').val(btn.data('shift'));
+        $('#editSesiItemId').val(btn.data('item-id') || '').trigger('change.select2');
+        $('#editSesiPartName').val(btn.data('part-name') || '');
+        $('#editSesiNotesAwal').val(btn.data('notes-awal') || '');
+        $('#editSesiNotesAkhir').val(btn.data('notes-akhir') || '');
+        $('#modalEditSesiDandory').modal('show');
+    });
+
+    $('#editSesiItemId').on('change', function () {
+        var selectedName = $(this).find('option:selected').data('name');
+        if (selectedName) {
+            $('#editSesiPartName').val(selectedName);
+        }
+    });
+
+    $('#formEditSesiDandory').on('submit', function (e) {
+        e.preventDefault();
+        var id = $('#editSesiId').val();
+        var btnSubmit = $('#btnSubmitEditSesi');
+        var originalHtml = btnSubmit.html();
+        btnSubmit.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+        $.ajax({
+            url: config.akhirBaseUrl + '/' + id,
+            type: 'POST',
+            data: $(this).serialize() + '&_method=PUT',
+            dataType: 'json',
+            success: function (res) {
+                btnSubmit.prop('disabled', false).html(originalHtml);
+                if (res.success) {
+                    $('#modalEditSesiDandory').modal('hide');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Diperbarui',
+                            text: res.message,
+                            timer: 1300,
+                            showConfirmButton: false
+                        }).then(function () {
+                            location.reload();
+                        });
+                    } else {
+                        location.reload();
+                    }
+                }
+            },
+            error: function (xhr) {
+                btnSubmit.prop('disabled', false).html(originalHtml);
+                var errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal memperbarui data sesi.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg });
+                }
+            }
+        });
+    });
+
+    // 18. Ajukan Ulang Setelah Reject (Resubmit)
+    $(document).on('click', '.btn-resubmit-row', function () {
+        var id = $(this).data('id');
+        var partName = $(this).data('part') || '-';
+        var remarks = $(this).data('remarks') || '-';
+
+        function doResubmit() {
+            $.ajax({
+                url: config.akhirBaseUrl + '/' + id + '/resubmit',
+                type: 'POST',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.success) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Diajukan Ulang',
+                                text: res.message,
+                                timer: 1400,
+                                showConfirmButton: false
+                            }).then(function () {
+                                location.reload();
+                            });
+                        } else {
+                            location.reload();
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    var errMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Gagal mengajukan ulang.';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: errMsg });
+                    }
+                }
+            });
+        }
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Ajukan Ulang untuk Approval?',
+                html: '<div class="text-left small"><strong>Part:</strong> ' + escapeHtml(String(partName)) + '<br><strong>Alasan Reject:</strong> <span class="text-danger">' + escapeHtml(String(remarks)) + '</span><br><br>Pastikan data sudah diperbaiki sebelum diajukan ulang ke Leader.</div>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Ajukan Ulang',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    doResubmit();
+                }
+            });
+        } else if (confirm('Ajukan ulang pemeriksaan untuk part ' + partName + '?')) {
+            doResubmit();
+        }
+    });
 });
 

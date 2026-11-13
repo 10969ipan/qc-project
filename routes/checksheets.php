@@ -113,12 +113,15 @@ Route::middleware(['auth'])->group(function () {
         // Dandory Quality Checksheet
         Route::get('/checksheet/dandory', [DandoryChecksheetController::class, 'index'])->name('checksheet.dandory.index');
         Route::get('/checksheet/dandory/print', [DandoryChecksheetController::class, 'print'])->name('checksheet.dandory.print');
+        Route::get('/checksheet/dandory/export-excel', [DandoryChecksheetController::class, 'exportExcel'])->name('checksheet.dandory.export_excel');
         Route::post('/checksheet/dandory/awal', [DandoryChecksheetController::class, 'storeAwal'])->name('checksheet.dandory.awal.store');
+        Route::put('/checksheet/dandory/{id}', [DandoryChecksheetController::class, 'updateSession'])->name('checksheet.dandory.update');
         Route::post('/checksheet/dandory/{id}/akhir', [DandoryChecksheetController::class, 'storeAkhir'])->name('checksheet.dandory.akhir.store');
         Route::post('/checksheet/dandory/{id}/toggle-cell', [DandoryChecksheetController::class, 'toggleCell'])->name('checksheet.dandory.toggle_cell');
         Route::post('/checksheet/dandory/{id}/update-table', [DandoryChecksheetController::class, 'updateTableNo'])->name('checksheet.dandory.update_table');
         Route::post('/checksheet/dandory/{id}/verify', [DandoryChecksheetController::class, 'toggleVerify'])->name('checksheet.dandory.verify');
         Route::post('/checksheet/dandory/{id}/reject', [DandoryChecksheetController::class, 'reject'])->name('checksheet.dandory.reject');
+        Route::post('/checksheet/dandory/{id}/resubmit', [DandoryChecksheetController::class, 'resubmit'])->name('checksheet.dandory.resubmit');
         Route::post('/checksheet/dandory/bulk-verify', [DandoryChecksheetController::class, 'bulkVerify'])->name('checksheet.dandory.bulk_verify');
         Route::post('/checksheet/dandory/bulk-destroy', [DandoryChecksheetController::class, 'bulkDestroy'])->name('checksheet.dandory.bulk_destroy');
         Route::delete('/checksheet/dandory/{id}', [DandoryChecksheetController::class, 'destroy'])->name('checksheet.dandory.destroy');

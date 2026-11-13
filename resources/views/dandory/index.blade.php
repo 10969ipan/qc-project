@@ -435,6 +435,7 @@
                   class="d-flex flex-wrap align-items-end bg-white p-0 rounded mb-2" style="gap: 12px;">
 
                 <input type="hidden" name="plant" value="{{ $plantCode }}">
+                <input type="hidden" name="status_filter" id="statusFilterInput" value="{{ $statusFilter ?? '' }}">
 
                 <!-- Dropdown Operator / Inspector -->
                 <div class="d-flex flex-column align-items-start">
@@ -483,7 +484,7 @@
                     </div>
                 </div>
 
-                <!-- Tombol Cari & Reset Filter -->
+                <!-- Tombol Cari, Reset, & Filter Cepat Outstanding -->
                 <div class="d-flex align-items-center mt-auto" style="gap: 4px;">
                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center" style="height: 31px; font-size: 0.72rem;" title="Terapkan Filter">
                         <i class="fas fa-search fa-sm mr-1"></i> Filter
@@ -492,6 +493,13 @@
                        class="btn btn-secondary btn-sm rounded-pill px-2 shadow-sm d-flex align-items-center no-loader" style="height: 31px; font-size: 0.72rem;" title="Reset Filter Tanggal & Shift">
                         <i class="fas fa-undo fa-sm mr-1"></i> Reset
                     </a>
+                    <button type="button" id="btnToggleOutstanding"
+                            class="btn {{ ($statusFilter ?? '') === 'outstanding' ? 'btn-warning text-dark font-weight-bold' : 'btn-outline-warning text-dark' }} btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center"
+                            style="height: 31px; font-size: 0.72rem;"
+                            title="Filter cepat sesi yang belum selesai Akhir Dandory">
+                        <i class="fas fa-hourglass-half fa-sm mr-1"></i> Belum Akhir
+                        <span class="badge {{ ($statusFilter ?? '') === 'outstanding' ? 'badge-dark' : 'badge-warning text-dark' }} ml-1">{{ $outstandingCount ?? 0 }}</span>
+                    </button>
                 </div>
 
                 <!-- Tombol Aksi di Kanan -->
@@ -517,6 +525,12 @@
                             <i class="fas fa-cogs mr-1"></i> Master Item
                         </button>
                     @endif
+
+                    <!-- Tombol Export Excel -->
+                    <a href="{{ route('checksheet.dandory.export_excel', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter, 'status_filter' => $statusFilter ?? '']) }}"
+                       class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center no-loader" id="btnExportExcelDandory" style="height: 31px;" title="Export Data Dandory Quality ke Excel (.xlsx)">
+                        <i class="fas fa-file-excel mr-1"></i> Excel
+                    </a>
 
                     <!-- Tombol Cetak / Save PDF (Direct Print tanpa buka tab baru) -->
                     <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter]) }}"
@@ -854,6 +868,32 @@
                                                     @endif
                                                 @endif
 
+                                                {{-- Tombol Ajukan Ulang Setelah Reject (Inspector/Operator/Admin) --}}
+                                                @if($cs->is_rejected && !$cs->leader_checked && in_array(auth()->user()->role, ['inspector', 'operator', 'admin']))
+                                                    <button type="button" class="btn btn-warning btn-xs rounded-pill px-2 shadow-xs btn-resubmit-row text-dark font-weight-bold"
+                                                            data-id="{{ $cs->id }}"
+                                                            data-part="{{ $cs->part_name }}"
+                                                            data-remarks="{{ $cs->rejection_remarks }}"
+                                                            style="font-size:0.6rem; padding: 2px 6px;" title="Ajukan Ulang Setelah Perbaikan">
+                                                        <i class="fas fa-paper-plane mr-1"></i> Ajukan Ulang
+                                                    </button>
+                                                @endif
+
+                                                {{-- Tombol Edit Sesi (Tanggal / Shift / Part / Catatan) --}}
+                                                @if(!$cs->leader_checked || auth()->user()->role === 'admin')
+                                                    <button type="button" class="btn btn-outline-primary btn-xs rounded-circle shadow-xs btn-edit-dandory"
+                                                            data-id="{{ $cs->id }}"
+                                                            data-date="{{ \Carbon\Carbon::parse($cs->check_date)->format('Y-m-d') }}"
+                                                            data-shift="{{ $cs->shift }}"
+                                                            data-item-id="{{ $cs->item_id }}"
+                                                            data-part-name="{{ $cs->part_name }}"
+                                                            data-notes-awal="{{ $cs->notes_awal ?: $cs->notes }}"
+                                                            data-notes-akhir="{{ $cs->notes_akhir }}"
+                                                            style="width:24px; height:24px; padding:0;" title="Edit Data Sesi">
+                                                        <i class="fas fa-edit fa-xs"></i>
+                                                    </button>
+                                                @endif
+
                                                 {{-- Tombol Hapus: Khusus Data Belum Diverifikasi untuk Inspector, atau Bebas untuk Admin --}}
                                                 @if((!$cs->leader_checked && in_array(auth()->user()->role, ['inspector', 'operator'])) || auth()->user()->role === 'admin')
                                                     <button type="button" class="btn btn-outline-danger btn-xs rounded-circle shadow-xs btn-delete-dandory"
@@ -1144,6 +1184,76 @@
                     <button type="button" class="btn btn-sm btn-light border" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-sm btn-success shadow-sm" id="btnSubmitAkhir">
                         <i class="fas fa-check mr-1"></i> Simpan Akhir Dandory
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL 2B: EDIT DATA SESI DANDORY (TANGGAL / SHIFT / PART / CATATAN) --}}
+<div class="modal fade modal-dandory" id="modalEditSesiDandory" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header py-2 px-3 bg-light border-bottom">
+                <h6 class="modal-title font-weight-bold text-primary mb-0">
+                    <i class="fas fa-edit mr-1"></i> Edit Data Sesi Dandory
+                </h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formEditSesiDandory" class="modal-form-flex" novalidate>
+                <input type="hidden" id="editSesiId">
+                <div class="modal-body p-3" style="font-size: 0.8rem;">
+                    <div class="row mb-2">
+                        <div class="col-md-4">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Tanggal <span class="text-danger">*</span></label>
+                            <input type="date" name="check_date" id="editSesiDate" class="form-control form-control-sm border" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Shift <span class="text-danger">*</span></label>
+                            <select name="shift" id="editSesiShift" class="form-control form-control-sm border" required>
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
+                                <option value="Shift 3">Shift 3</option>
+                                <option value="Non Shift">Non Shift</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Pilih Part <span class="text-danger">*</span></label>
+                            <select name="item_id" id="editSesiItemId" class="form-control form-control-sm border select2-item-edit">
+                                <option value="">-- Pilih / Cari Part --</option>
+                                @foreach($availableItems as $it)
+                                    <option value="{{ $it->id }}"
+                                            data-name="{{ $it->name }}"
+                                            data-part-no="{{ $it->part_number }}"
+                                            data-sap="{{ $it->sap_code }}">
+                                        {{ $it->name }} {{ $it->part_number ? ' | ' . $it->part_number : '' }} {{ $it->sap_code ? ' | ' . $it->sap_code : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="small font-weight-bold text-gray-700 mb-1">Nama Part (Teks)</label>
+                        <input type="text" name="part_name" id="editSesiPartName" class="form-control form-control-sm border" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Catatan Awal Dandory</label>
+                            <input type="text" name="notes_awal" id="editSesiNotesAwal" class="form-control form-control-sm border" maxlength="255" placeholder="Opsional">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Catatan Akhir Dandory</label>
+                            <input type="text" name="notes_akhir" id="editSesiNotesAkhir" class="form-control form-control-sm border" maxlength="255" placeholder="Opsional">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-3 bg-light border-top">
+                    <button type="button" class="btn btn-sm btn-light border" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm" id="btnSubmitEditSesi">
+                        <i class="fas fa-save mr-1"></i> Simpan Perubahan
                     </button>
                 </div>
             </form>

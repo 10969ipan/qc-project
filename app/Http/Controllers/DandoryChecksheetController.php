@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Helpers\ShiftHelper;
 use App\Models\AppMenu;
 use App\Models\Category;
@@ -51,6 +52,7 @@ class DandoryChecksheetController extends Controller
         $defaultShift = 'Shift ' . ShiftHelper::getShift();
         $shiftFilter  = $request->get('shift', ''); // default "" (Semua Shift)
         $tableFilter  = $request->get('table_no');
+        $statusFilter = $request->get('status_filter', '');
 
         // ponytail: check menu view permission
         if ($currentUser->role !== 'admin') {
@@ -138,15 +140,17 @@ class DandoryChecksheetController extends Controller
 
         // Ambil daftar checksheet transaksi (Sesuai filter tanggal/shift jika dipilih, atau semua riwayat)
         $filters = [
-            'plant_code'  => $plantCode,
-            'operator_id' => $selectedOperatorId,
-            'start_date'  => $startDate,
-            'end_date'    => $endDate,
-            'date'        => $date,
-            'shift'       => $shiftFilter,
-            'table_no'    => $tableFilter,
+            'plant_code'    => $plantCode,
+            'operator_id'   => $selectedOperatorId,
+            'start_date'    => $startDate,
+            'end_date'      => $endDate,
+            'date'          => $date,
+            'shift'         => $shiftFilter,
+            'table_no'      => $tableFilter,
+            'status_filter' => $statusFilter,
         ];
         $checksheets = $this->service->getFilteredChecksheets($filters, 20);
+        $outstandingCount = $this->service->countOutstandingChecksheets($filters);
 
         // Pre-compute row metrics (O(N) in controller, no N+1 in blade)
         $awalTotal = count($awalItems) ?: 9;
@@ -230,6 +234,7 @@ class DandoryChecksheetController extends Controller
 
         return view('dandory.index', compact(
             'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
+            'statusFilter', 'outstandingCount',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
             'plantTables', 'isMachineBased', 'isPerformanceTest', 'defaultLocation', 'locationLabel', 'locationLabelUpper', 'locationOptions',
             'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
@@ -556,6 +561,131 @@ class DandoryChecksheetController extends Controller
             'rejection_remarks' => $record->rejection_remarks,
             'rejector_name'     => $record->rejector_name,
             'rejected_at'       => $record->rejected_at ? $record->rejected_at->format('d/m/y H:i') : null,
+        ]);
+    }
+
+    /**
+     * Update Data Sesi Dandory (Tanggal, Shift, Part, Catatan)
+     */
+    public function updateSession(Request $request, $id)
+    {
+        $checksheet = DandoryChecksheet::findOrFail($id);
+        if ($checksheet->leader_checked && Auth::user()->role !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'Data yang sudah diverifikasi Leader tidak dapat diubah.'], 403);
+        }
+
+        $request->validate([
+            'check_date'  => 'required|date',
+            'shift'       => 'required|string|max:50',
+            'item_id'     => 'nullable|string',
+            'part_name'   => 'nullable|string|max:255',
+            'notes_awal'  => 'nullable|string|max:255',
+            'notes_akhir' => 'nullable|string|max:255',
+        ]);
+
+        if (empty($request->item_id) && empty(trim((string) $request->part_name))) {
+            return response()->json(['success' => false, 'message' => 'Part harus dipilih atau diisi.'], 422);
+        }
+
+        $record = $this->service->updateSession($checksheet, $request->only([
+            'check_date', 'shift', 'item_id', 'part_name', 'notes_awal', 'notes_akhir'
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data sesi Dandory berhasil diperbarui.',
+            'record'  => $record,
+        ]);
+    }
+
+    /**
+     * Ajukan Ulang Checksheet Setelah Di-Reject Leader
+     */
+    public function resubmit($id)
+    {
+        $checksheet = DandoryChecksheet::findOrFail($id);
+        if ($checksheet->leader_checked) {
+            return response()->json(['success' => false, 'message' => 'Data sudah diverifikasi Leader.'], 422);
+        }
+        if (!$checksheet->is_rejected) {
+            return response()->json(['success' => false, 'message' => 'Hanya data berstatus Rejected yang dapat diajukan ulang.'], 422);
+        }
+
+        $this->service->resubmitChecksheet($checksheet);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data berhasil diajukan ulang dan berstatus Pending untuk diperiksa Leader.',
+        ]);
+    }
+
+    /**
+     * Export Data Dandory Quality ke Excel (.xlsx)
+     */
+    public function exportExcel(Request $request)
+    {
+        $currentUser = Auth::user();
+        $plantCode   = $request->get('plant', $currentUser->plant_code ?? 'karawang');
+        $startDate   = $request->get('start_date');
+        $endDate     = $request->get('end_date');
+        $date        = $request->get('date');
+        $shiftFilter = $request->get('shift', '');
+        $tableFilter = $request->get('table_no');
+        $statusFilter = $request->get('status_filter', '');
+
+        $selectedOperatorId = $request->get('operator_id');
+        if (in_array($currentUser->role, ['inspector', 'operator'])) {
+            $selectedOperatorId = $currentUser->id;
+        }
+
+        $selectedOperator = $selectedOperatorId ? User::find($selectedOperatorId) : null;
+        $opConfig = $selectedOperatorId ? $this->service->getOperatorConfig($plantCode, $selectedOperatorId) : null;
+        $isMachineBased = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
+
+        $filters = [
+            'plant_code'    => $plantCode,
+            'operator_id'   => $selectedOperatorId,
+            'start_date'    => $startDate,
+            'end_date'      => $endDate,
+            'date'          => $date,
+            'shift'         => $shiftFilter,
+            'table_no'      => $tableFilter,
+            'status_filter' => $statusFilter,
+        ];
+        $checksheets = $this->service->getFilteredChecksheets($filters);
+        foreach ($checksheets as $cs) {
+            $cs->display_table_no = $this->service->formatLocationNo($cs->table_no, $isMachineBased, $cs->jabatan);
+        }
+
+        $masterItems = $this->service->getMasterItems();
+        $awalItems   = $masterItems->where('phase', 'awal')->values();
+        $akhirItems  = $masterItems->where('phase', 'akhir')->values();
+
+        $periodLabel = ($startDate && $endDate)
+            ? Carbon::parse($startDate)->format('d/m/Y') . ' - ' . Carbon::parse($endDate)->format('d/m/Y')
+            : ($date ? Carbon::parse($date)->format('d/m/Y') : 'Semua Tanggal');
+
+        $tableNoList = $tableFilter ?: ($checksheets->pluck('display_table_no')->filter()->unique()->implode(', ') ?: '-');
+        $docNo = strtoupper($plantCode) === 'JAKARTA' ? 'QC-JKT-F-0094' : 'QC-KRW-F-0094';
+
+        $spreadsheet = $this->service->buildExcelExport($checksheets, $awalItems, $akhirItems, [
+            'plantCode'     => $plantCode,
+            'docNo'         => $docNo,
+            'operatorName'  => $selectedOperator?->name ?? 'Semua Operator',
+            'bagian'        => $opConfig?->bagian ?: 'Quality Control',
+            'tableNo'       => $tableNoList,
+            'periodLabel'   => $periodLabel,
+            'shiftLabel'    => $shiftFilter ?: 'Semua Shift',
+            'locationLabel' => $isMachineBased ? 'No Mesin' : 'No Meja',
+        ]);
+
+        $filename = 'dandory_quality_' . strtolower($plantCode) . '_' . date('Ymd_His') . '.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 

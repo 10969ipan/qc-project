@@ -13,14 +13,20 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class DandoryChecksheetService
 {
     /**
-     * Ambil data transaksi Dandory terfilter dengan eager loading
-     * ponytail: lean eloquent query without N+1
+     * Bangun query dasar transaksi Dandory terfilter
      */
-    public function getFilteredChecksheets(array $filters, ?int $perPage = null)
+    private function buildFilteredQuery(array $filters)
     {
         $query = DandoryChecksheet::with(['operator:id,name,initials', 'item:id,name,part_number,sap_code'])
             ->where('plant_code', $filters['plant_code'] ?? 'karawang');
@@ -50,14 +56,37 @@ class DandoryChecksheetService
                   ->whereMonth('check_date', $filters['month']);
         }
 
-        $query->orderBy('check_date', 'desc')
-              ->orderBy('created_at', 'desc');
+        if (($filters['status_filter'] ?? '') === 'outstanding') {
+            $query->whereNull('akhir_completed_at');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Ambil data transaksi Dandory terfilter dengan eager loading
+     * ponytail: lean eloquent query without N+1
+     */
+    public function getFilteredChecksheets(array $filters, ?int $perPage = null)
+    {
+        $query = $this->buildFilteredQuery($filters)
+            ->orderBy('check_date', 'desc')
+            ->orderBy('created_at', 'desc');
 
         if ($perPage) {
             return $query->paginate($perPage)->withQueryString();
         }
 
         return $query->get();
+    }
+
+    /**
+     * Hitung jumlah sesi Dandory yang belum selesai Akhir Dandory (Outstanding)
+     */
+    public function countOutstandingChecksheets(array $filters): int
+    {
+        $filters['status_filter'] = 'outstanding';
+        return $this->buildFilteredQuery($filters)->count();
     }
 
     /**
@@ -594,6 +623,333 @@ class DandoryChecksheetService
         ]);
 
         return $checksheet;
+    }
+
+    /**
+     * Update data sesi checksheet (Tanggal, Shift, Part, Catatan)
+     */
+    public function updateSession(DandoryChecksheet $checksheet, array $data): DandoryChecksheet
+    {
+        $item = !empty($data['item_id']) ? Item::find($data['item_id']) : null;
+        $partName = $item ? $item->name : (trim((string) ($data['part_name'] ?? '')) ?: $checksheet->part_name);
+
+        $notesAwal  = array_key_exists('notes_awal', $data) ? (trim((string) $data['notes_awal']) ?: null) : $checksheet->notes_awal;
+        $notesAkhir = array_key_exists('notes_akhir', $data) ? (trim((string) $data['notes_akhir']) ?: null) : $checksheet->notes_akhir;
+
+        $checksheet->update([
+            'check_date'  => $data['check_date'],
+            'shift'       => $data['shift'],
+            'item_id'     => $item ? $item->id : (!empty($data['part_name']) ? null : $checksheet->item_id),
+            'part_name'   => $partName,
+            'notes_awal'  => $notesAwal,
+            'notes_akhir' => $notesAkhir,
+            'notes'       => $notesAkhir ?: $notesAwal,
+        ]);
+
+        return $checksheet->fresh(['operator:id,name,initials', 'item:id,name,part_number,sap_code']);
+    }
+
+    /**
+     * Ajukan ulang checksheet yang sebelumnya di-reject oleh Leader
+     */
+    public function resubmitChecksheet(DandoryChecksheet $checksheet): DandoryChecksheet
+    {
+        $checksheet->update([
+            'is_rejected'       => false,
+            'rejection_remarks' => null,
+            'rejected_by'       => null,
+            'rejector_name'     => null,
+            'rejected_at'       => null,
+        ]);
+
+        return $checksheet;
+    }
+
+    /**
+     * Bangun file Excel (.xlsx) sesuai format standar QC-KRW-F-0094
+     */
+    public function buildExcelExport($checksheets, $awalItems, $akhirItems, array $meta): Spreadsheet
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Quality');
+        $sheet->getPageSetup()
+            ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
+            ->setPaperSize(PageSetup::PAPERSIZE_A4)
+            ->setFitToWidth(1)
+            ->setFitToHeight(0);
+
+        $awalList  = $awalItems->values();
+        $akhirList = $akhirItems->values();
+        $awalCount = max($awalList->count(), 1);
+        $akhirCount = max($akhirList->count(), 1);
+
+        // Kolom: A-E (Parameter Standar), F (Tanggal), G (Shift), H (Nama Part),
+        // I.. (Awal), .. (Akhir), terakhir (Diperiksa Leader)
+        $awalStartIdx  = 9; // I
+        $awalEndIdx    = $awalStartIdx + $awalCount - 1;
+        $akhirStartIdx = $awalEndIdx + 1;
+        $akhirEndIdx   = $akhirStartIdx + $akhirCount - 1;
+        $leaderColIdx  = $akhirEndIdx + 1;
+
+        $awalStartCol  = Coordinate::stringFromColumnIndex($awalStartIdx);
+        $awalEndCol    = Coordinate::stringFromColumnIndex($awalEndIdx);
+        $akhirStartCol = Coordinate::stringFromColumnIndex($akhirStartIdx);
+        $akhirEndCol   = Coordinate::stringFromColumnIndex($akhirEndIdx);
+        $leaderCol     = Coordinate::stringFromColumnIndex($leaderColIdx);
+
+        $docLblStartCol = Coordinate::stringFromColumnIndex(max($leaderColIdx - 2, 9));
+        $docLblEndCol   = Coordinate::stringFromColumnIndex(max($leaderColIdx - 1, 10));
+        $titleEndCol    = Coordinate::stringFromColumnIndex(max($leaderColIdx - 3, 8));
+
+        // 1. Header Dokumen ISO (Row 1 - 5)
+        $sheet->mergeCells('A1:C5');
+        $logoPath = public_path('master item/ipp.jpg');
+        if (file_exists($logoPath)) {
+            $drawing = new Drawing();
+            $drawing->setName('IPP Logo');
+            $drawing->setPath($logoPath);
+            $drawing->setCoordinates('A1');
+            $drawing->setOffsetX(8);
+            $drawing->setOffsetY(6);
+            $drawing->setHeight(62);
+            $drawing->setWorksheet($sheet);
+        }
+
+        $sheet->mergeCells("D1:{$titleEndCol}5");
+        $sheet->setCellValue('D1', 'CHECK SHEET DANDORY QUALITY');
+        $sheet->getStyle('D1')->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 16],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+
+        $docRows = [
+            1 => ['No. Dokumen', $meta['docNo'] ?? 'QC-KRW-F-0094'],
+            2 => ['Tgl. Terbit', '17/10/2025'],
+            3 => ['Revisi ke', '-'],
+            4 => ['Tgl Revisi', '-'],
+            5 => ['Halaman', '1/1'],
+        ];
+        foreach ($docRows as $r => [$lbl, $val]) {
+            $sheet->mergeCells("{$docLblStartCol}{$r}:{$docLblEndCol}{$r}");
+            $sheet->setCellValue("{$docLblStartCol}{$r}", $lbl);
+            $sheet->setCellValue("{$leaderCol}{$r}", $val);
+            $sheet->getStyle("{$docLblStartCol}{$r}")->getFont()->setSize(9)->setBold(true);
+            $sheet->getStyle("{$leaderCol}{$r}")->getFont()->setSize(9);
+        }
+        $sheet->getStyle("A1:{$leaderCol}5")->applyFromArray([
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+
+        // 2. Info Operator & Legenda Simbol (Row 7 - 9)
+        $sheet->setCellValue('B7', $meta['locationLabel'] ?? 'No Meja');
+        $sheet->setCellValue('D7', ':');
+        $sheet->setCellValue('E7', $meta['tableNo'] ?? '-');
+
+        $sheet->setCellValue('B8', 'Nama Operator');
+        $sheet->setCellValue('D8', ':');
+        $sheet->setCellValue('E8', $meta['operatorName'] ?? '-');
+
+        $sheet->setCellValue('B9', 'Jabatan');
+        $sheet->setCellValue('D9', ':');
+        $sheet->setCellValue('E9', $meta['bagian'] ?? 'Quality Control');
+
+        $sheet->setCellValue('J7', 'Note :');
+        $sheet->setCellValue('K7', '✓');
+        $sheet->mergeCells('L7:M7');
+        $sheet->setCellValue('L7', 'Dilakukan');
+
+        $sheet->setCellValue('K8', '✕');
+        $sheet->mergeCells('L8:N8');
+        $sheet->setCellValue('L8', 'Tidak dilakukan');
+
+        $sheet->setCellValue('K9', '-');
+        $sheet->mergeCells('L9:N9');
+        $sheet->setCellValue('L9', 'Item tidak ada di proses');
+        $sheet->getStyle('B7:N9')->getFont()->setSize(9);
+        $sheet->getStyle('B7:B9')->getFont()->setBold(true);
+        $sheet->getStyle('K7:K9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // 3. Header Tabel Matriks (Row 11 - 12)
+        $sheet->mergeCells('A11:E12');
+        $sheet->setCellValue('A11', 'PARAMETER STANDAR');
+        $sheet->mergeCells('F11:F12');
+        $sheet->setCellValue('F11', 'TANGGAL');
+        $sheet->mergeCells('G11:G12');
+        $sheet->setCellValue('G11', 'SHIFT');
+        $sheet->mergeCells('H11:H12');
+        $sheet->setCellValue('H11', 'NAMA PART');
+        $sheet->mergeCells("{$awalStartCol}11:{$awalEndCol}11");
+        $sheet->setCellValue("{$awalStartCol}11", 'AWAL DANDORY');
+        $sheet->mergeCells("{$akhirStartCol}11:{$akhirEndCol}11");
+        $sheet->setCellValue("{$akhirStartCol}11", 'AKHIR DANDORY');
+        $sheet->mergeCells("{$leaderCol}11:{$leaderCol}12");
+        $sheet->setCellValue("{$leaderCol}11", 'DIPERIKSA (LEADER)');
+
+        foreach ($awalList as $i => $it) {
+            $col = Coordinate::stringFromColumnIndex($awalStartIdx + $i);
+            $sheet->setCellValue("{$col}12", $it->order_no);
+        }
+        foreach ($akhirList as $i => $it) {
+            $col = Coordinate::stringFromColumnIndex($akhirStartIdx + $i);
+            $sheet->setCellValue("{$col}12", $it->order_no);
+        }
+
+        $sheet->getStyle("A11:{$leaderCol}12")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 9],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $sheet->getRowDimension(11)->setRowHeight(20);
+        $sheet->getRowDimension(12)->setRowHeight(18);
+
+        // 4. Panel Kiri: Referensi Parameter Standar (Mulai Row 14)
+        $refRow = 14;
+        $sheet->mergeCells("B{$refRow}:D{$refRow}");
+        $sheet->setCellValue("B{$refRow}", 'AWAL DANDORY');
+        $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 9],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E2E8F0']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $refRow++;
+
+        $sheet->setCellValue("B{$refRow}", 'NO');
+        $sheet->setCellValue("C{$refRow}", 'ITEM CHECK');
+        $sheet->setCellValue("D{$refRow}", 'STANDARD');
+        $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 8.5],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8FAFC']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $refRow++;
+
+        foreach ($awalList as $it) {
+            $sheet->setCellValue("B{$refRow}", $it->order_no);
+            $sheet->setCellValue("C{$refRow}", $it->item_check);
+            $sheet->setCellValue("D{$refRow}", $it->standard);
+            $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+                'font'      => ['size' => 8.5],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+            ]);
+            $sheet->getStyle("B{$refRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $refRow++;
+        }
+
+        $refRow++; // Spasi 1 baris sesuai template
+        $sheet->mergeCells("B{$refRow}:D{$refRow}");
+        $sheet->setCellValue("B{$refRow}", 'AKHIR DANDORY');
+        $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 9],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E2E8F0']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $refRow++;
+
+        $sheet->setCellValue("B{$refRow}", 'NO');
+        $sheet->setCellValue("C{$refRow}", 'ITEM CHECK');
+        $sheet->setCellValue("D{$refRow}", 'STANDARD');
+        $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+            'font'      => ['bold' => true, 'size' => 8.5],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8FAFC']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ]);
+        $refRow++;
+
+        foreach ($akhirList as $it) {
+            $sheet->setCellValue("B{$refRow}", $it->order_no);
+            $sheet->setCellValue("C{$refRow}", $it->item_check);
+            $sheet->setCellValue("D{$refRow}", $it->standard);
+            $sheet->getStyle("B{$refRow}:D{$refRow}")->applyFromArray([
+                'font'      => ['size' => 8.5],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+            ]);
+            $sheet->getStyle("B{$refRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $refRow++;
+        }
+
+        // 5. Panel Kanan: Data Transaksi Checksheet (Mulai Row 13)
+        $symbolMap = ['OK' => '✓', 'NG' => '✕', 'NA' => '-'];
+        $dataRow = 13;
+        $minRows = max($checksheets->count(), 25);
+
+        for ($idx = 0; $idx < $minRows; $idx++) {
+            $cs = $checksheets[$idx] ?? null;
+            if ($cs) {
+                $awalMap  = (array) ($cs->awal_checks ?? []);
+                $akhirMap = (array) ($cs->akhir_checks ?? []);
+
+                $sheet->setCellValue("F{$dataRow}", Carbon::parse($cs->check_date)->format('d/m/Y'));
+                $sheet->setCellValue("G{$dataRow}", $cs->shift);
+                $sheet->setCellValue("H{$dataRow}", $cs->part_name);
+
+                foreach ($awalList as $i => $it) {
+                    $col = Coordinate::stringFromColumnIndex($awalStartIdx + $i);
+                    $val = $awalMap[$it->order_no] ?? null;
+                    $sheet->setCellValue("{$col}{$dataRow}", $symbolMap[$val] ?? '');
+                    if ($val === 'NG') {
+                        $sheet->getStyle("{$col}{$dataRow}")->getFont()->getColor()->setRGB('DC2626');
+                    } elseif ($val === 'OK') {
+                        $sheet->getStyle("{$col}{$dataRow}")->getFont()->getColor()->setRGB('16A34A');
+                    }
+                }
+
+                foreach ($akhirList as $i => $it) {
+                    $col = Coordinate::stringFromColumnIndex($akhirStartIdx + $i);
+                    $val = $akhirMap[$it->order_no] ?? null;
+                    $sheet->setCellValue("{$col}{$dataRow}", $symbolMap[$val] ?? '');
+                    if ($val === 'NG') {
+                        $sheet->getStyle("{$col}{$dataRow}")->getFont()->getColor()->setRGB('DC2626');
+                    } elseif ($val === 'OK') {
+                        $sheet->getStyle("{$col}{$dataRow}")->getFont()->getColor()->setRGB('16A34A');
+                    }
+                }
+
+                $leaderText = 'PENDING';
+                if ($cs->leader_checked) {
+                    $leaderText = 'APPROVED' . ($cs->leader_name ? ' (' . $cs->leader_name . ')' : '');
+                } elseif ($cs->is_rejected) {
+                    $leaderText = 'REJECTED' . ($cs->rejector_name ? ' (' . $cs->rejector_name . ')' : '');
+                }
+                $sheet->setCellValue("{$leaderCol}{$dataRow}", $leaderText);
+            }
+
+            $sheet->getStyle("F{$dataRow}:{$leaderCol}{$dataRow}")->applyFromArray([
+                'font'      => ['size' => 8.5],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+            ]);
+            $sheet->getStyle("H{$dataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $dataRow++;
+        }
+
+        // Border luar panel kiri A13:E{maxRow}
+        $maxDataRow = max($dataRow - 1, $refRow - 1);
+        $sheet->getStyle("A13:E{$maxDataRow}")->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+
+        // 6. Lebar Kolom sesuai template 094
+        $sheet->getColumnDimension('A')->setWidth(2.5);
+        $sheet->getColumnDimension('B')->setWidth(6.2);
+        $sheet->getColumnDimension('C')->setWidth(16);
+        $sheet->getColumnDimension('D')->setWidth(24);
+        $sheet->getColumnDimension('E')->setWidth(2.2);
+        $sheet->getColumnDimension('F')->setWidth(11.5);
+        $sheet->getColumnDimension('G')->setWidth(8.5);
+        $sheet->getColumnDimension('H')->setWidth(24);
+        for ($c = $awalStartIdx; $c <= $akhirEndIdx; $c++) {
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($c))->setWidth(5.5);
+        }
+        $sheet->getColumnDimension($leaderCol)->setWidth(18);
+
+        return $spreadsheet;
     }
 
     /**
