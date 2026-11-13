@@ -952,7 +952,7 @@
                             <select name="table_no" id="awalTableNo" class="form-control form-control-sm border" required>
                                 <option value="">-- Pilih {{ $locationLabel ?? 'Meja/Ruangan' }} --</option>
                                 @foreach(($locationOptions ?? $plantTables) as $tbl)
-                                    <option value="{{ $tbl }}">{{ $tbl }}</option>
+                                    <option value="{{ $tbl }}" {{ ($defaultLocation ?? '') === $tbl ? 'selected' : '' }}>{{ $tbl }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -1412,6 +1412,7 @@
      data-user-role="{{ auth()->user()->role }}"
      data-operator-id="{{ $selectedOperatorId }}"
      data-is-machine="{{ !empty($isMachineBased) ? '1' : '0' }}"
+     data-default-location="{{ $defaultLocation ?? '' }}"
      data-location-label="{{ $locationLabel ?? 'Meja' }}"
      data-awal-store-url="{{ route('checksheet.dandory.awal.store') }}"
      data-akhir-base-url="{{ url('/checksheet/dandory') }}"

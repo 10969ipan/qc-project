@@ -144,6 +144,18 @@ class DandoryChecksheetService
     }
 
     /**
+     * Cek apakah posisi/bagian operator adalah Performance Test
+     */
+    public function isPerformanceTestBagian(?string $bagian): bool
+    {
+        if (empty($bagian)) {
+            return false;
+        }
+        $b = strtolower(trim($bagian));
+        return str_contains($b, 'performance test') || str_contains($b, 'perfoment test');
+    }
+
+    /**
      * Format penamaan Meja/Mesin secara dinamis sesuai tipe bagian operator.
      * Jika posisi operator atau catatan jabatan berbasis mesin (Inspector Inproses),
      * teks 'Meja X' otomatis diubah menjadi 'Mesin X' pada tampilan.
@@ -396,11 +408,13 @@ class DandoryChecksheetService
 
         $notesAwal = !empty($data['notes']) ? trim($data['notes']) : null;
 
+        $defaultTable = $this->isPerformanceTestBagian($bagian) ? 'Ruangan Durability Test' : 'Meja 1';
+
         return DandoryChecksheet::create([
             'plant_code'        => strtolower($data['plant_code'] ?? 'karawang'),
             'check_date'        => $data['check_date'] ?? date('Y-m-d'),
             'shift'             => $data['shift'] ?? 'Shift 1',
-            'table_no'          => $data['table_no'] ?? 'Meja 1',
+            'table_no'          => !empty($data['table_no']) ? $data['table_no'] : $defaultTable,
             'operator_id'       => $data['operator_id'],
             'jabatan'           => $bagian,
             'item_id'           => $item?->id,

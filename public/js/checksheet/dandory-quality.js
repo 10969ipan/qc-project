@@ -31,6 +31,7 @@ $(document).ready(function () {
         userRole: cfgEl.dataset.userRole || '',
         operatorId: cfgEl.dataset.operatorId || '',
         isMachine: cfgEl.dataset.isMachine === '1',
+        defaultLocation: cfgEl.dataset.defaultLocation || '',
         locationLabel: cfgEl.dataset.locationLabel || 'Meja',
         awalStoreUrl: cfgEl.dataset.awalStoreUrl || '/checksheet/dandory/awal',
         akhirBaseUrl: cfgEl.dataset.akhirBaseUrl || '/checksheet/dandory',
@@ -332,6 +333,9 @@ $(document).ready(function () {
     // Reset status Awal Dandory setiap kali modal Awal dibuka
     $('#modalAwalDandory').on('show.bs.modal', function () {
         $('#btnSetAllAwalOk').trigger('click');
+        if (config.defaultLocation) {
+            $('#awalTableNo').val(config.defaultLocation);
+        }
     });
 
     // 7. Simpan Sesi Awal Dandory (Quick Modal 1)

@@ -116,12 +116,20 @@ class DandoryChecksheetController extends Controller
         $plantTables = $this->service->getPlantTables($plantCode);
 
         // Khusus posisi/bagian Inspector Inproses: Meja diubah dinamis menjadi Mesin
-        $isMachineBased     = $this->service->isMachineBasedBagian($opConfig->bagian ?? '');
+        // Khusus bagian Performance Test: Meja/Ruangan otomatis terisi Ruangan Durability Test
+        $bagian             = $opConfig->bagian ?? '';
+        $isMachineBased     = $this->service->isMachineBasedBagian($bagian);
+        $isPerformanceTest  = $this->service->isPerformanceTestBagian($bagian);
         $locationLabel      = $isMachineBased ? 'Mesin' : 'Meja/Ruangan';
         $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA/RUANGAN';
-        $locationOptions    = $isMachineBased
-            ? $this->service->getPlantMachines($plantCode)
-            : $plantTables;
+        $defaultLocation    = $isPerformanceTest ? 'Ruangan Durability Test' : '';
+        if ($isMachineBased) {
+            $locationOptions = $this->service->getPlantMachines($plantCode);
+        } elseif ($isPerformanceTest) {
+            $locationOptions = array_values(array_unique(array_merge(['Ruangan Durability Test'], $plantTables)));
+        } else {
+            $locationOptions = $plantTables;
+        }
 
         // Ambil master item parameter standar (Awal & Akhir)
         $masterItems = $this->service->getMasterItems();
@@ -223,7 +231,7 @@ class DandoryChecksheetController extends Controller
         return view('dandory.index', compact(
             'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
-            'plantTables', 'isMachineBased', 'locationLabel', 'locationLabelUpper', 'locationOptions',
+            'plantTables', 'isMachineBased', 'isPerformanceTest', 'defaultLocation', 'locationLabel', 'locationLabelUpper', 'locationOptions',
             'awalItems', 'akhirItems', 'checksheets', 'availableItems', 'categories',
             'allOpConfigs', 'latestBagianCategories'
         ));
