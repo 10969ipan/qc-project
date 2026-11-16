@@ -881,8 +881,8 @@
                                                     </button>
                                                 @endif
 
-                                                {{-- Tombol Edit Sesi (Tanggal / Shift / Part / Catatan) --}}
-                                                @if(!$cs->leader_checked || auth()->user()->role === 'admin')
+                                                {{-- Tombol Edit Sesi (Hanya Leader ke atas, bukan Inspector) --}}
+                                                @if($canVerify && (!$cs->leader_checked || auth()->user()->role === 'admin'))
                                                     <button type="button" class="btn btn-outline-primary btn-xs rounded-circle shadow-xs btn-edit-dandory"
                                                             data-id="{{ $cs->id }}"
                                                             data-date="{{ \Carbon\Carbon::parse($cs->check_date)->format('Y-m-d') }}"
@@ -896,8 +896,8 @@
                                                     </button>
                                                 @endif
 
-                                                {{-- Tombol Hapus: Khusus Data Belum Diverifikasi untuk Inspector, atau Bebas untuk Admin --}}
-                                                @if((!$cs->leader_checked && in_array(auth()->user()->role, ['inspector', 'operator'])) || auth()->user()->role === 'admin')
+                                                {{-- Tombol Hapus: Data Belum Diverifikasi untuk Inspector/Operator, atau Bebas untuk Leader ke Atas --}}
+                                                @if((!$cs->leader_checked && in_array(auth()->user()->role, ['inspector', 'operator'])) || $canVerify)
                                                     <button type="button" class="btn btn-outline-danger btn-xs rounded-circle shadow-xs btn-delete-dandory"
                                                             data-id="{{ $cs->id }}" data-part="{{ $cs->part_name }}"
                                                             style="width:24px; height:24px; padding:0;" title="Hapus Sesi Dandory">
@@ -1193,7 +1193,8 @@
     </div>
 </div>
 
-{{-- MODAL 2B: EDIT DATA SESI DANDORY (TANGGAL / SHIFT / PART / CATATAN) --}}
+{{-- MODAL 2B: EDIT DATA SESI DANDORY (LEADER KE ATAS) --}}
+@if($canVerify)
 <div class="modal fade modal-dandory" id="modalEditSesiDandory" role="dialog" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
         <div class="modal-content">
@@ -1262,6 +1263,7 @@
         </div>
     </div>
 </div>
+@endif
 
 {{-- MODAL 3: KELOLA OPERATOR & MEJA (NON-INSPECTOR ONLY) --}}
 @if(auth()->user()->role !== 'inspector')

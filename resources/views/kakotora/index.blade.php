@@ -91,32 +91,25 @@
         padding: 0.2rem 0.4rem !important;
     }
 
-    /* Pagination & Info bottom area */
+    /* Pagination & Info bottom area (Standard Bootstrap like customer_claim_records) */
     .dataTables_wrapper > .row:last-child {
-        background-color: #ffffff !important;
-        padding: 10px 0 !important;
-        margin: 0 !important;
-        border-top: 1px solid #e2e8f0 !important;
-        position: sticky;
-        bottom: 0;
-        z-index: 10;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 1rem 0 0 0 !important;
+        border-top: none !important;
+        position: static !important;
+        box-shadow: none !important;
     }
-    
+
     .dataTables_info {
-        font-size: 0.7rem !important;
-        color: #475569 !important;
-        font-weight: 600 !important;
-        padding-top: 5px !important;
+        font-size: 0.875rem !important;
+        color: #6c757d !important;
+        font-weight: 400 !important;
+        padding-top: 0.35rem !important;
     }
-    
+
     .dataTables_paginate .pagination {
         margin: 0 !important;
-    }
-    
-    .page-link {
-        padding: 0.3rem 0.6rem !important;
-        font-size: 0.7rem !important;
     }
 
     td.details-control {
@@ -1456,7 +1449,7 @@
 
             var table = $('#dataTableKakotora').DataTable({
                 dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
-                     "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                     "<'row mt-3 align-items-center'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7 d-flex justify-content-md-end'p>>",
                 "order": [],
                 "autoWidth": false,
                 "columnDefs": [
@@ -1464,14 +1457,14 @@
                     { "visible": false, "targets": [14 + colOffset, 16 + colOffset, 18 + colOffset, 19 + colOffset] }
                 ],
                 language: {
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ results",
+                    infoEmpty: "Showing 0 to 0 of 0 results",
                     infoFiltered: "(filtered from _MAX_ total records)",
                     paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
+                        first: "&laquo;",
+                        last: "&raquo;",
+                        next: "&rsaquo;",
+                        previous: "&lsaquo;"
                     }
                 },
                 initComplete: function(settings, json) {

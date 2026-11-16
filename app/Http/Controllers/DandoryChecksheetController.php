@@ -569,6 +569,11 @@ class DandoryChecksheetController extends Controller
      */
     public function updateSession(Request $request, $id)
     {
+        $allowedLeaderRoles = ['admin', 'manager', 'asst_manager', 'supervisor', 'kashift', 'karu_qc'];
+        if (!in_array(Auth::user()->role, $allowedLeaderRoles)) {
+            return response()->json(['success' => false, 'message' => 'Hanya Leader ke atas yang berhak mengedit data sesi Dandory.'], 403);
+        }
+
         $checksheet = DandoryChecksheet::findOrFail($id);
         if ($checksheet->leader_checked && Auth::user()->role !== 'admin') {
             return response()->json(['success' => false, 'message' => 'Data yang sudah diverifikasi Leader tidak dapat diubah.'], 403);
@@ -755,7 +760,7 @@ class DandoryChecksheetController extends Controller
     {
         $checksheet = DandoryChecksheet::findOrFail($id);
 
-        if ($checksheet->leader_checked && Auth::user()->role === 'inspector') {
+        if ($checksheet->leader_checked && in_array(Auth::user()->role, ['inspector', 'operator'])) {
             return response()->json(['success' => false, 'message' => 'Data yang sudah diverifikasi Leader tidak dapat dihapus oleh Inspector.'], 403);
         }
 
