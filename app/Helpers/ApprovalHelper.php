@@ -713,14 +713,7 @@ class ApprovalHelper
                 ->values()
                 ->all();
 
-            $roleKeys = [$role];
-            if (in_array($role, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-                $roleKeys = array_unique(array_merge($roleKeys, ['supervisor', 'supervisor_qc', 'supervisor_plating']));
-            } elseif (in_array($role, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
-                $roleKeys = array_unique(array_merge($roleKeys, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating']));
-            } elseif (in_array($role, ['manager', 'manager_qc', 'manager_plating'])) {
-                $roleKeys = array_unique(array_merge($roleKeys, ['manager', 'manager_qc', 'manager_plating']));
-            }
+            $roleKeys = self::getRelatedRoleKeys($role);
 
             $samplingQuery = (clone $baseDateQuery);
             if (self::tableHasColumn($table, 'approval_methods')) {

@@ -535,7 +535,7 @@
                     @endif
 
                     <!-- Tombol Cetak / Save PDF (Direct Print tanpa buka tab baru) -->
-                    <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter]) }}"
+                    <a href="{{ route('checksheet.dandory.print', ['plant' => $plantCode, 'operator_id' => $selectedOperatorId, 'start_date' => $startDate, 'end_date' => $endDate, 'date' => $date, 'shift' => $shiftFilter, 'status_filter' => $statusFilter ?? '']) }}"
                        class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center btn-print-direct no-loader" id="btnCetakDandory" style="height: 31px;" title="Cetak Dokumen Dandory Quality">
                         <i class="fas fa-print mr-1"></i> Cetak
                     </a>

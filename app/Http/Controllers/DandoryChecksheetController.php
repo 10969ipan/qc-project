@@ -261,8 +261,9 @@ class DandoryChecksheetController extends Controller
         $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : now());
         $month       = (int) $request->get('month', $dateCarbon->format('n'));
         $year        = (int) $request->get('year', $dateCarbon->format('Y'));
-        $shiftFilter = $request->get('shift');
-        $tableFilter = $request->get('table_no');
+        $shiftFilter  = $request->get('shift');
+        $tableFilter  = $request->get('table_no');
+        $statusFilter = $request->get('status_filter', '');
 
         $isInspector = in_array($currentUser->role, ['operator', 'inspector']);
 
@@ -307,13 +308,14 @@ class DandoryChecksheetController extends Controller
         $locationLabelUpper = $isMachineBased ? 'MESIN' : 'MEJA/RUANGAN';
 
         $filters = [
-            'plant_code'  => $plantCode,
-            'operator_id' => $selectedOperatorId,
-            'start_date'  => $startDate,
-            'end_date'    => $endDate,
-            'date'        => $date,
-            'shift'       => $shiftFilter,
-            'table_no'    => $tableFilter,
+            'plant_code'    => $plantCode,
+            'operator_id'   => $selectedOperatorId,
+            'start_date'    => $startDate,
+            'end_date'      => $endDate,
+            'date'          => $date,
+            'shift'         => $shiftFilter,
+            'table_no'      => $tableFilter,
+            'status_filter' => $statusFilter,
         ];
         $checksheets = $this->service->getFilteredChecksheets($filters);
 

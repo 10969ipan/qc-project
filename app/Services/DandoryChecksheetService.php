@@ -149,14 +149,25 @@ class DandoryChecksheetService
         );
         Cache::forget('general_settings_' . $key);
 
+        $renames = [];
         foreach ($tables as $idx => $newName) {
             $newName = trim((string) $newName);
             $oldName = trim((string) ($oldTables[$idx] ?? ''));
             if ($oldName !== '' && $newName !== '' && $oldName !== $newName) {
-                DandoryChecksheet::where('plant_code', $plant)
-                    ->where('table_no', $oldName)
-                    ->update(['table_no' => $newName]);
+                $renames[$idx] = ['old' => $oldName, 'new' => $newName];
             }
+        }
+
+        // Two-phase rename agar tidak bentrok jika ada pertukaran nama meja (misal Meja 1 -> Meja 2 dan Meja 2 -> Meja 3)
+        foreach ($renames as $idx => $pair) {
+            DandoryChecksheet::where('plant_code', $plant)
+                ->where('table_no', $pair['old'])
+                ->update(['table_no' => "__tmp_dandory_tbl_{$idx}__"]);
+        }
+        foreach ($renames as $idx => $pair) {
+            DandoryChecksheet::where('plant_code', $plant)
+                ->where('table_no', "__tmp_dandory_tbl_{$idx}__")
+                ->update(['table_no' => $pair['new']]);
         }
     }
 

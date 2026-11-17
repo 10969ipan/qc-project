@@ -2061,11 +2061,29 @@
                 $('#add_issue_date_hidden').val('');
             });
 
-            function validateKakotoraFileSize(inputEl, maxMB, label) {
+            function validateKakotoraFileSize(inputEl, maxMB, label, allowedExts) {
                 var files = inputEl && inputEl.files ? inputEl.files : [];
                 if (files.length === 0) return true;
 
                 var file = files[0];
+                if (allowedExts && allowedExts.length > 0 && file.name) {
+                    var ext = file.name.split('.').pop().toLowerCase();
+                    if (allowedExts.indexOf(ext) === -1) {
+                        $(inputEl).val('');
+                        var extList = allowedExts.join(', ');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Format File Tidak Valid',
+                                text: 'Format file ' + label + ' tidak sesuai. Format yang diperbolehkan: ' + extList + '.'
+                            });
+                        } else {
+                            alert('Format file ' + label + ' tidak sesuai. Format yang diperbolehkan: ' + extList + '.');
+                        }
+                        return false;
+                    }
+                }
+
                 var maxBytes = maxMB * 1024 * 1024;
                 if (file.size > maxBytes) {
                     var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
@@ -2086,11 +2104,11 @@
 
             // Handle clear & validasi ukuran input file
             $('#add_form_analysis').on('change', function() {
-                validateKakotoraFileSize(this, 10, 'Form Analysis');
+                validateKakotoraFileSize(this, 10, 'Form Analysis', ['pptx', 'xlsx', 'doc', 'docx', 'pdf']);
             });
 
             $('#edit_form_analysis').on('change', function() {
-                if (validateKakotoraFileSize(this, 10, 'Form Analysis') && $(this)[0].files.length > 0) {
+                if (validateKakotoraFileSize(this, 10, 'Form Analysis', ['pptx', 'xlsx', 'doc', 'docx', 'pdf']) && $(this)[0].files.length > 0) {
                     $('#clear_edit_file').removeClass('d-none');
                 } else {
                     $('#clear_edit_file').addClass('d-none');
@@ -2115,7 +2133,7 @@
                     }
                 }
 
-                if (validateKakotoraFileSize(this, 5, 'Foto') && $(this)[0].files.length > 0) {
+                if (validateKakotoraFileSize(this, 5, 'Foto', ['jpeg', 'jpg', 'png', 'gif']) && $(this)[0].files.length > 0) {
                     $('#clear_edit_foto').removeClass('d-none');
                 } else {
                     $('#clear_edit_foto').addClass('d-none');
@@ -2135,7 +2153,7 @@
                     }
                 }
 
-                validateKakotoraFileSize(this, 5, 'Foto');
+                validateKakotoraFileSize(this, 5, 'Foto', ['jpeg', 'jpg', 'png', 'gif']);
             });
 
             $('#clear_edit_foto').on('click', function() {

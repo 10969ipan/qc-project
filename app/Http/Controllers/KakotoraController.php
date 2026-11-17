@@ -24,7 +24,8 @@ class KakotoraController extends Controller
         $kakotoras = $query->orderBy('date', 'desc')->get();
         
         // Get unique claims and statuses for dropdown filters
-        $claims = Kakotora::where('plant', $plant)->whereNotNull('category_claim')->where('category_claim', '!=', '')->distinct()->pluck('category_claim');
+        $dbClaims = Kakotora::where('plant', $plant)->whereNotNull('category_claim')->where('category_claim', '!=', '')->distinct()->pluck('category_claim');
+        $claims = collect(['External', 'Internal'])->merge($dbClaims)->unique()->values();
         $dbStatuses = Kakotora::where('plant', $plant)->whereNotNull('status')->where('status', '!=', '')->distinct()->pluck('status');
         $statuses = collect(['Open', 'Closed', 'On Progress'])->merge($dbStatuses)->unique()->values();
         $problems = KakotoraProblem::where('plant', $plant)->orderBy('name')->pluck('name');
@@ -41,23 +42,37 @@ class KakotoraController extends Controller
         $query->where('plant', $plant);
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('part_name', 'like', "%{$search}%")
-                  ->orWhere('part_number', 'like', "%{$search}%")
-                  ->orWhere('model', 'like', "%{$search}%")
-                  ->orWhere('no_reg', 'like', "%{$search}%")
-                  ->orWhere('problem', 'like', "%{$search}%")
-                  ->orWhere('cause', 'like', "%{$search}%")
-                  ->orWhere('countermeasure', 'like', "%{$search}%")
-                  ->orWhere('pic', 'like', "%{$search}%")
-                  ->orWhere('section', 'like', "%{$search}%")
-                  ->orWhere('process', 'like', "%{$search}%")
-                  ->orWhere('family', 'like', "%{$search}%")
-                  ->orWhere('category_claim', 'like', "%{$search}%")
-                  ->orWhere('status', 'like', "%{$search}%")
-                  ->orWhere('remarks', 'like', "%{$search}%");
-            });
+            $rawSearch = strtolower(trim((string) $request->search));
+            $stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'kakotora', 'database', 'dari', 'ke', 'untuk'];
+            $keywords = array_values(array_filter(preg_split('/[\s,.]+/', $rawSearch), fn($w) => $w !== '' && !in_array($w, $stops)));
+            if (empty($keywords)) {
+                $keywords = [$rawSearch];
+            }
+
+            foreach ($keywords as $kw) {
+                $query->where(function ($q) use ($kw) {
+                    $q->where('part_name', 'like', "%{$kw}%")
+                      ->orWhere('part_number', 'like', "%{$kw}%")
+                      ->orWhere('model', 'like', "%{$kw}%")
+                      ->orWhere('no_reg', 'like', "%{$kw}%")
+                      ->orWhere('problem', 'like', "%{$kw}%")
+                      ->orWhere('cause', 'like', "%{$kw}%")
+                      ->orWhere('countermeasure', 'like', "%{$kw}%")
+                      ->orWhere('similar_part', 'like', "%{$kw}%")
+                      ->orWhere('mould', 'like', "%{$kw}%")
+                      ->orWhere('owner_mould', 'like', "%{$kw}%")
+                      ->orWhere('supplier', 'like', "%{$kw}%")
+                      ->orWhere('defect_category', 'like', "%{$kw}%")
+                      ->orWhere('pic', 'like', "%{$kw}%")
+                      ->orWhere('section', 'like', "%{$kw}%")
+                      ->orWhere('process', 'like', "%{$kw}%")
+                      ->orWhere('family', 'like', "%{$kw}%")
+                      ->orWhere('category_nm_mp', 'like', "%{$kw}%")
+                      ->orWhere('category_claim', 'like', "%{$kw}%")
+                      ->orWhere('status', 'like', "%{$kw}%")
+                      ->orWhere('remarks', 'like', "%{$kw}%");
+                });
+            }
         }
 
         if ($request->filled('category_claim')) {
