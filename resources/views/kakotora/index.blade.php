@@ -221,7 +221,7 @@
 
             <!-- Tombol Aksi Kanan (Cetak & Tambah Data) -->
             <div class="ml-auto d-flex align-items-center" style="gap: 5px; align-self: flex-end;">
-                <button type="submit" formaction="{{ route('kakotora.print') }}" formtarget="_blank" class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Print Preview" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
+                <button type="button" id="btnCetakKakotora" data-print-url="{{ route('kakotora.print') }}" class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" title="Cetak Database Kakotora" style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
                     <i class="fas fa-print fa-sm mr-1"></i> Cetak
                 </button>
                 <button type="button" class="btn btn-primary btn-sm shadow-sm rounded-pill px-3 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" data-toggle="modal" data-target="#modalTambahKakotora">
@@ -339,11 +339,7 @@
                                     <td>{{ $item->pic ?? '-' }}</td>
                                     <td>{{ $item->supplier ?? '-' }}</td>
                                     <td>{{ $item->defect_category ?? '-' }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ $item->status == 'Closed' ? 'success' : 'warning' }}">
-                                            {{ $item->status }}
-                                        </span>
-                                    </td>
+                                    <td><span class="badge badge-{{ $item->status == 'Closed' ? 'success' : 'warning' }}">{{ trim($item->status) }}</span></td>
                                     <td class="text-center align-middle">
                                         @if ($item->foto_path)
                                             <button type="button" class="btn btn-outline-info btn-sm shadow-sm rounded view-foto-btn-kakotora"
@@ -1526,11 +1522,33 @@
                 }
             });
 
-            // Prevent normal form submission unless printing
-            $('#filterFormKakotora').on('submit', function (e) {
-                if (document.activeElement && document.activeElement.hasAttribute('formaction')) {
-                    return;
+            // Direct Print Cetak (Tanpa pindah halaman / buka tab baru)
+            $('#btnCetakKakotora').on('click', function (e) {
+                e.preventDefault();
+                var baseUrl = $(this).data('print-url');
+                var query = $('#filterFormKakotora').serialize();
+                var printUrl = baseUrl + (query ? '?' + query : '');
+
+                var oldIframe = document.getElementById('silentPrintIframe');
+                if (oldIframe) {
+                    oldIframe.parentNode.removeChild(oldIframe);
                 }
+
+                var iframe = document.createElement('iframe');
+                iframe.id = 'silentPrintIframe';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.style.opacity = '0';
+                iframe.src = printUrl;
+                document.body.appendChild(iframe);
+            });
+
+            // Prevent normal form submission
+            $('#filterFormKakotora').on('submit', function (e) {
                 e.preventDefault();
             });
 
@@ -1558,7 +1576,7 @@
             // Instant status filter (Column index 23)
             $('#filterFormKakotora select[name="status"]').on('change', function () {
                 var val = $(this).val();
-                table.column(23 + colOffset).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+                table.column(23 + colOffset).search(val ? '^\\s*' + $.fn.dataTable.util.escapeRegex(val) + '\\s*$' : '', true, false).draw();
             });
 
             // Run initial filters if preset
@@ -1572,7 +1590,7 @@
             }
             var initialStatus = $('#filterFormKakotora select[name="status"]').val();
             if (initialStatus) {
-                table.column(23 + colOffset).search('^' + $.fn.dataTable.util.escapeRegex(initialStatus) + '$', true, false);
+                table.column(23 + colOffset).search('^\\s*' + $.fn.dataTable.util.escapeRegex(initialStatus) + '\\s*$', true, false);
             }
             if (initialSearch || initialClaim || initialStatus) {
                 table.draw();
@@ -2043,9 +2061,36 @@
                 $('#add_issue_date_hidden').val('');
             });
 
-            // Handle clear input file
+            function validateKakotoraFileSize(inputEl, maxMB, label) {
+                var files = inputEl && inputEl.files ? inputEl.files : [];
+                if (files.length === 0) return true;
+
+                var file = files[0];
+                var maxBytes = maxMB * 1024 * 1024;
+                if (file.size > maxBytes) {
+                    var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    $(inputEl).val('');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Ukuran File Melebihi Batas',
+                            text: 'Ukuran file ' + label + ' (' + sizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB. Silakan pilih file yang lebih kecil.'
+                        });
+                    } else {
+                        alert('Ukuran file ' + label + ' (' + sizeMB + ' MB) melebihi batas maksimal ' + maxMB + ' MB.');
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            // Handle clear & validasi ukuran input file
+            $('#add_form_analysis').on('change', function() {
+                validateKakotoraFileSize(this, 10, 'Form Analysis');
+            });
+
             $('#edit_form_analysis').on('change', function() {
-                if ($(this)[0].files.length > 0) {
+                if (validateKakotoraFileSize(this, 10, 'Form Analysis') && $(this)[0].files.length > 0) {
                     $('#clear_edit_file').removeClass('d-none');
                 } else {
                     $('#clear_edit_file').addClass('d-none');
@@ -2070,7 +2115,7 @@
                     }
                 }
 
-                if ($(this)[0].files.length > 0) {
+                if (validateKakotoraFileSize(this, 5, 'Foto') && $(this)[0].files.length > 0) {
                     $('#clear_edit_foto').removeClass('d-none');
                 } else {
                     $('#clear_edit_foto').addClass('d-none');
@@ -2089,6 +2134,8 @@
                         console.error("Gagal kompres foto:", err);
                     }
                 }
+
+                validateKakotoraFileSize(this, 5, 'Foto');
             });
 
             $('#clear_edit_foto').on('click', function() {

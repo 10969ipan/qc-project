@@ -1612,7 +1612,41 @@ document.addEventListener('DOMContentLoaded', function () {
             const fname   = document.getElementById('bulk_fname_text');
             const label   = document.querySelector('label[for="bulk_pdf_file"]');
             if (this.files && this.files[0]) {
-                const name = this.files[0].name;
+                const file = this.files[0];
+                const isPdf = file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
+                if (!isPdf) {
+                    this.value = '';
+                    if (label) label.textContent = 'Pilih file PDF...';
+                    preview.classList.add('d-none');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Format File Tidak Valid',
+                            text: 'Hanya file berformat PDF (.pdf) yang diperbolehkan untuk Dokumen 1 / Dokumen 2.'
+                        });
+                    } else {
+                        alert('Hanya file berformat PDF (.pdf) yang diperbolehkan.');
+                    }
+                    return;
+                }
+                const maxBytes = 10 * 1024 * 1024;
+                if (file.size > maxBytes) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    this.value = '';
+                    if (label) label.textContent = 'Pilih file PDF...';
+                    preview.classList.add('d-none');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Ukuran File Melebihi Batas',
+                            text: 'Ukuran file PDF (' + sizeMB + ' MB) melebihi batas maksimal 10 MB. Silakan pilih file yang lebih kecil.'
+                        });
+                    } else {
+                        alert('Ukuran file PDF (' + sizeMB + ' MB) melebihi batas maksimal 10 MB.');
+                    }
+                    return;
+                }
+                const name = file.name;
                 if (label) label.textContent = name;
                 fname.textContent = name;
                 preview.classList.remove('d-none');

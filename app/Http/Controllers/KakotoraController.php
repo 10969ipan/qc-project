@@ -25,7 +25,8 @@ class KakotoraController extends Controller
         
         // Get unique claims and statuses for dropdown filters
         $claims = Kakotora::where('plant', $plant)->whereNotNull('category_claim')->where('category_claim', '!=', '')->distinct()->pluck('category_claim');
-        $statuses = Kakotora::where('plant', $plant)->whereNotNull('status')->where('status', '!=', '')->distinct()->pluck('status');
+        $dbStatuses = Kakotora::where('plant', $plant)->whereNotNull('status')->where('status', '!=', '')->distinct()->pluck('status');
+        $statuses = collect(['Open', 'Closed', 'On Progress'])->merge($dbStatuses)->unique()->values();
         $problems = KakotoraProblem::where('plant', $plant)->orderBy('name')->pluck('name');
         
         $similarParts = \App\Models\Item::withoutGlobalScope('plant')->select('name', 'part_number')->distinct()->orderBy('name')->get();

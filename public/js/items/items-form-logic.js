@@ -125,18 +125,58 @@
         }
 
         input.addEventListener('change', function () {
+            const maxBytes = 10 * 1024 * 1024; // 10 MB
             const newFiles = Array.from(this.files);
+            const validFiles = [];
+            const nonPdf = [];
+            const oversized = [];
+
+            newFiles.forEach(function (file) {
+                const isPdf = file.type === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
+                if (!isPdf) {
+                    nonPdf.push(file.name);
+                } else if (file.size > maxBytes) {
+                    oversized.push(file.name + ' (' + (file.size / (1024 * 1024)).toFixed(2) + ' MB)');
+                } else {
+                    validFiles.push(file);
+                }
+            });
+
+            if (nonPdf.length > 0 || oversized.length > 0) {
+                const messages = [];
+                if (nonPdf.length > 0) {
+                    messages.push('Hanya file berformat PDF yang diperbolehkan:\n' + nonPdf.join(', '));
+                }
+                if (oversized.length > 0) {
+                    messages.push('File berikut melebihi batas maksimal 10 MB:\n' + oversized.join(', '));
+                }
+                const fullMsg = messages.join('\n\n');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: nonPdf.length > 0 ? 'Format / Ukuran File Tidak Valid' : 'Ukuran File Melebihi Batas',
+                        text: fullMsg
+                    });
+                } else {
+                    alert(fullMsg);
+                }
+            }
+
             if (isMultiple) {
-                // Merge newly selected files with existing ones (avoid duplicates by name+size)
-                newFiles.forEach(function (newFile) {
+                // Merge newly selected valid files with existing ones (avoid duplicates by name+size)
+                validFiles.forEach(function (newFile) {
                     const isDuplicate = selectedFiles.some(
                         f => f.name === newFile.name && f.size === newFile.size
                     );
                     if (!isDuplicate) selectedFiles.push(newFile);
                 });
-            } else {
-                selectedFiles = newFiles.slice(0, 1);
+            } else if (validFiles.length > 0) {
+                selectedFiles = validFiles.slice(0, 1);
+            } else if (nonPdf.length > 0 || oversized.length > 0) {
+                selectedFiles = [];
+                input.value = '';
             }
+
             // Rebuild the input's file list to reflect merged selection
             try {
                 input.files = rebuildFileList(selectedFiles);
