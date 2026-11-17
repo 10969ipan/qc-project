@@ -33,7 +33,7 @@ class AppMenu
         if ($menus->isEmpty()) {
             // Strip suffixes like .report.*, .bulk_approve, .store, .update, etc., and normalize -trial
             $cleanRoute = str_replace('-trial', '', $route);
-            $baseRoute = preg_replace('/(\.report(\.[a-z_]+)?|\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject|export_pdf))$/', '.index', $cleanRoute);
+            $baseRoute = preg_replace('/(\.report(\.[a-z_]+)?|\.(bulk_approve|bulk_destroy|store|update|destroy|edit|create|approve|reject|export_pdf|export_excel|export|print))$/', '.index', $cleanRoute);
             if ($baseRoute !== $route) {
                 $menus = AppMenuModel::where('route', $baseRoute)->get();
             }

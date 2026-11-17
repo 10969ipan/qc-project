@@ -27,7 +27,8 @@ class RoleMiddleware
         if (!in_array($userRole, $allowedRoles)) {
             // Dynamic fallback: Jika role tidak ada di daftar kaku, periksa apakah user/role diberi izin di menu Pengaturan
             $routeName = $request->route() ? $request->route()->getName() : null;
-            if ($routeName && \App\Helpers\AppMenu::checkPermission($routeName, 'view')) {
+            $action = ($routeName && preg_match('/\.(export|export_pdf|export_excel|print)$/', $routeName)) ? 'export' : 'view';
+            if ($routeName && \App\Helpers\AppMenu::checkPermission($routeName, $action)) {
                 return $next($request);
             }
 

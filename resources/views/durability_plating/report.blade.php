@@ -638,9 +638,9 @@
                                 <td class="text-center td-standar">{{ $std->thickness_ni ?? '-' }}</td>
                                 <td class="text-center td-standar">{{ $std->thickness_cu ?? '-' }}</td>
                                 @php
-                                    $is_cr_ng = (is_numeric($report->actual_cr) && is_numeric($std->thickness_cr)) ? ((float)$report->actual_cr < (float)$std->thickness_cr) : false;
-                                    $is_ni_ng = (is_numeric($report->actual_ni) && is_numeric($std->thickness_ni)) ? ((float)$report->actual_ni < (float)$std->thickness_ni) : false;
-                                    $is_cu_ng = (is_numeric($report->actual_cu) && is_numeric($std->thickness_cu)) ? ((float)$report->actual_cu < (float)$std->thickness_cu) : false;
+                                    $is_cr_ng = (is_numeric($report->actual_cr) && is_numeric($std?->thickness_cr)) ? ((float)$report->actual_cr < (float)$std->thickness_cr) : false;
+                                    $is_ni_ng = (is_numeric($report->actual_ni) && is_numeric($std?->thickness_ni)) ? ((float)$report->actual_ni < (float)$std->thickness_ni) : false;
+                                    $is_cu_ng = (is_numeric($report->actual_cu) && is_numeric($std?->thickness_cu)) ? ((float)$report->actual_cu < (float)$std->thickness_cu) : false;
                                 @endphp
                                 <td class="text-center font-weight-bold {{ $is_cr_ng ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_cr ?? '-' }}</td>
                                 <td class="text-center font-weight-bold {{ $is_ni_ng ? 'text-danger' : 'text-primary' }} td-aktual">{{ $report->actual_ni ?? '-' }}</td>
@@ -954,10 +954,10 @@
                                                     <button type="button" class="dropdown-item btn-edit-thickness" 
                                                         data-id="{{ $report->id }}" 
                                                         data-item="{{ json_encode($reportData) }}" 
-                                                        data-part="{{ $std->part_name }}"
-                                                        data-stdcu="{{ $std->thickness_cu }}"
-                                                        data-stdni="{{ $std->thickness_ni }}"
-                                                        data-stdcr="{{ $std->thickness_cr }}">
+                                                        data-part="{{ $std->part_name ?? '-' }}"
+                                                        data-stdcu="{{ $std->thickness_cu ?? '' }}"
+                                                        data-stdni="{{ $std->thickness_ni ?? '' }}"
+                                                        data-stdcr="{{ $std->thickness_cr ?? '' }}">
                                                         <i class="fas fa-edit text-info fa-fw mr-2"></i> Edit Laporan
                                                     </button>
                                                 @endif
@@ -977,24 +977,24 @@
 
                                                 @if(($canCreateReport || $canEditReport))
                                                     @if($testType == 'thickness')
-                                                        <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->corrodkote_time }}">
+                                                        <button type="button" class="dropdown-item btn-input-corrodkote" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-time="{{ $std->corrodkote_time ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Corrodkote
                                                         </button>
-                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-time="{{ $std->cass_time ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
                                                         </button>
-                                                        <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->salt_spray_time }}">
+                                                        <button type="button" class="dropdown-item btn-input-salt-spray" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-time="{{ $std->salt_spray_time ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Salt Spray
                                                         </button>
-                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-stdmin="{{ $std->porecount_std_min ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
                                                         </button>
                                                     @elseif($testType == 'porecount')
-                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-time="{{ $std->cass_time }}">
+                                                        <button type="button" class="dropdown-item btn-input-cass" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-time="{{ $std->cass_time ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Cass Test
                                                         </button>
                                                     @elseif($testType == 'cass')
-                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name }}" data-customer="{{ $std->customer_name }}" data-std="{{ $std->customer_standard }}" data-stdmin="{{ $std->porecount_std_min }}">
+                                                        <button type="button" class="dropdown-item btn-input-porecount" data-id="{{ $report->id }}" data-item="{{ json_encode($report) }}" data-part="{{ $std->part_name ?? '-' }}" data-customer="{{ $std->customer_name ?? '-' }}" data-std="{{ $std->customer_standard ?? '-' }}" data-stdmin="{{ $std->porecount_std_min ?? '' }}">
                                                             <i class="fas fa-plus text-primary fa-fw mr-2"></i> Input Porecount
                                                         </button>
                                                     @endif
