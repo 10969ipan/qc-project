@@ -662,7 +662,12 @@ class ApprovalHelper
             }
 
             if (!empty($filters['start_date']) && !empty($filters['end_date']) && $filters['start_date'] !== $filters['end_date']) {
-                $baseDateQuery->whereBetween("{$table}.{$effectiveDateCol}", [$filters['start_date'], $filters['end_date']]);
+                $baseDateQuery->whereDate("{$table}.{$effectiveDateCol}", '>=', $filters['start_date'])
+                              ->whereDate("{$table}.{$effectiveDateCol}", '<=', $filters['end_date']);
+            } elseif (!empty($filters['start_date'])) {
+                $baseDateQuery->whereDate("{$table}.{$effectiveDateCol}", $filters['start_date']);
+            } elseif (!empty($filters['end_date'])) {
+                $baseDateQuery->whereDate("{$table}.{$effectiveDateCol}", $filters['end_date']);
             } elseif ($targetDate) {
                 $baseDateQuery->whereDate("{$table}.{$effectiveDateCol}", $targetDate);
             }
@@ -705,17 +710,65 @@ class ApprovalHelper
                 }
             });
 
-            $presentCategories = (clone $baseDateQuery)
+            $roleKeys = self::getRelatedRoleKeys($role);
+
+            $approverCol = null;
+            if (in_array($role, ['kashift', 'karu_qc', 'kashift_qc'])) {
+                $approverCol = 'kashift_qc';
+            } elseif ($role === 'kashift_plating') {
+                $approverCol = 'kashift_plating';
+            } elseif (in_array($role, ['supervisor', 'supervisor_qc'])) {
+                $approverCol = 'supervisor_qc';
+            } elseif ($role === 'supervisor_plating') {
+                $approverCol = 'supervisor_plating';
+            } elseif (in_array($role, ['asst_manager', 'asst_manager_qc'])) {
+                $approverCol = 'asst_manager_qc';
+            } elseif ($role === 'asst_manager_plating') {
+                $approverCol = 'asst_manager_plating';
+            } elseif (in_array($role, ['manager', 'manager_qc'])) {
+                $approverCol = 'manager_qc';
+            } elseif ($role === 'manager_plating') {
+                $approverCol = 'manager_plating';
+            }
+
+            // Cari tanggal-tanggal dalam filter yang masih memiliki baris pending untuk role ini
+            $activeDatesQuery = (clone $baseDateQuery)->whereNotNull("{$table}.{$effectiveDateCol}");
+            if ($approverCol && self::tableHasColumn($table, $approverCol)) {
+                $activeDatesQuery->where(function ($q) use ($table, $approverCol) {
+                    $q->whereNull("{$table}.{$approverCol}")
+                      ->orWhere("{$table}.{$approverCol}", '')
+                      ->orWhere("{$table}.{$approverCol}", 'REJECTED');
+                });
+            }
+            $activeDates = $activeDatesQuery
+                ->selectRaw("DATE({$table}.{$effectiveDateCol}) as d")
                 ->distinct()
-                ->pluck('standard_performance_tests.category')
+                ->pluck('d')
                 ->filter()
-                ->unique()
                 ->values()
                 ->all();
 
-            $roleKeys = self::getRelatedRoleKeys($role);
+            $scopedQuery = (clone $baseDateQuery)->whereNotNull("{$table}.{$effectiveDateCol}");
+            if (!empty($activeDates)) {
+                $scopedQuery->where(function ($dq) use ($table, $effectiveDateCol, $activeDates) {
+                    foreach ($activeDates as $ad) {
+                        $dq->orWhereDate("{$table}.{$effectiveDateCol}", $ad);
+                    }
+                });
+            }
 
-            $samplingQuery = (clone $baseDateQuery);
+            // Ambil pasangan (tanggal, kategori) yang wajib memiliki minimal 1 sampling pada hari tersebut
+            $presentDayCategories = (clone $scopedQuery)
+                ->selectRaw("DATE({$table}.{$effectiveDateCol}) as check_date, standard_performance_tests.category as category")
+                ->distinct()
+                ->get();
+
+            $samplingQuery = (clone $scopedQuery);
+            if ($approverCol && self::tableHasColumn($table, $approverCol)) {
+                $samplingQuery->whereNotNull("{$table}.{$approverCol}")
+                    ->where("{$table}.{$approverCol}", '!=', '')
+                    ->where("{$table}.{$approverCol}", '!=', 'REJECTED');
+            }
             if (self::tableHasColumn($table, 'approval_methods')) {
                 $samplingQuery->where(function ($q) use ($roleKeys, $table) {
                     foreach ($roleKeys as $rk) {
@@ -726,26 +779,37 @@ class ApprovalHelper
                 $samplingQuery->whereRaw('1 = 0');
             }
 
-            $samplingCounts = $samplingQuery
-                ->groupBy('standard_performance_tests.category')
-                ->select('standard_performance_tests.category', \DB::raw('COUNT(*) as total'))
-                ->pluck('total', 'category')
-                ->all();
+            $samplingRows = $samplingQuery
+                ->selectRaw("DATE({$table}.{$effectiveDateCol}) as check_date, standard_performance_tests.category as category, COUNT(*) as total")
+                ->groupByRaw("DATE({$table}.{$effectiveDateCol}), standard_performance_tests.category")
+                ->get();
+
+            $samplingCounts = [];
+            foreach ($samplingRows as $sRow) {
+                $samplingCounts["{$sRow->check_date}___{$sRow->category}"] = (int) $sRow->total;
+            }
 
             $unfulfilledCategories = [];
-            if (empty($presentCategories)) {
+            if ($presentDayCategories->isEmpty()) {
                 $current = 0;
                 $isFulfilled = true;
             } else {
                 $minCurrent = 999999;
-                foreach ($presentCategories as $cat) {
-                    $c = (int)($samplingCounts[$cat] ?? 0);
+                $multipleDays = $presentDayCategories->pluck('check_date')->unique()->count() > 1;
+                foreach ($presentDayCategories as $row) {
+                    $d = (string) $row->check_date;
+                    $cat = (string) $row->category;
+                    $key = "{$d}___{$cat}";
+                    $c = (int) ($samplingCounts[$key] ?? 0);
                     if ($c < $minCurrent) {
                         $minCurrent = $c;
                     }
                     if ($c < $required) {
-                        $unfulfilledCategories[$cat] = [
-                            'category' => $cat,
+                        $label = $multipleDays && $d !== ''
+                            ? $cat . ' (' . \Carbon\Carbon::parse($d)->format('d/m/Y') . ')'
+                            : $cat;
+                        $unfulfilledCategories[$key] = [
+                            'category' => $label,
                             'current' => $c,
                             'required' => $required,
                         ];

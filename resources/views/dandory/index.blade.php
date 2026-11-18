@@ -1019,7 +1019,7 @@
                             <select name="item_id" id="awalItemId" class="form-control form-control-sm filter-select-custom">
                                 <option value="">-- Ketik / Pilih Nama Part --</option>
                                 @foreach($availableItems as $item)
-                                    <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-no="{{ $item->part_number }}" data-sap-code="{{ $item->sap_code }}">
+                                    <option value="{{ $item->id }}" data-name="{{ $item->name }}" data-part-number="{{ $item->part_number }}" data-part-no="{{ $item->part_number }}" data-sap-code="{{ $item->sap_code }}">
                                         {{ $item->name }} {{ $item->part_number ? "({$item->part_number})" : '' }} {{ $item->sap_code ? "[SAP: {$item->sap_code}]" : '' }}
                                     </option>
                                 @endforeach
@@ -1230,7 +1230,9 @@
                                 @foreach($availableItems as $it)
                                     <option value="{{ $it->id }}"
                                             data-name="{{ $it->name }}"
+                                            data-part-number="{{ $it->part_number }}"
                                             data-part-no="{{ $it->part_number }}"
+                                            data-sap-code="{{ $it->sap_code }}"
                                             data-sap="{{ $it->sap_code }}">
                                         {{ $it->name }} {{ $it->part_number ? ' | ' . $it->part_number : '' }} {{ $it->sap_code ? ' | ' . $it->sap_code : '' }}
                                     </option>
@@ -1544,7 +1546,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/vendor/item-search.js') }}?v=1.4"></script>
+<script src="{{ asset('js/vendor/item-search.js') }}?v=1.5"></script>
 <script src="{{ asset('js/checksheet/dandory-quality.js') }}?v={{ time() }}"></script>
 @endpush
 

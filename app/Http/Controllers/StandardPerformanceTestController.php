@@ -1728,7 +1728,41 @@ class StandardPerformanceTestController extends Controller
             $report->$field = $userName;
             $report->$timeField = $now;
 
-            // Record approval method (auto-sampling)
+            // Record approval method: 1 data pertama per kategori per hari = 'sampling' (biru), selebihnya = 'bulk' (hijau)
+            $roleKeys = \App\Helpers\ApprovalHelper::getRelatedRoleKeys($type);
+            $catVal = trim((string) ($report->standard?->category ?? ''));
+            $rawDate = ($report->tanggal_cek_porecount && ($request->input('type') === 'porecount'))
+                ? $report->tanggal_cek_porecount
+                : $report->tanggal_cek;
+            $targetDate = $rawDate ? substr((string) $rawDate, 0, 10) : null;
+
+            $alreadySampledQuery = DurabilityThicknessReport::query()
+                ->leftJoin('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                ->where('durability_thickness_reports.id', '!=', $report->id)
+                ->where('durability_thickness_reports.is_trial', (bool) $report->is_trial)
+                ->whereNotNull("durability_thickness_reports.{$field}")
+                ->where("durability_thickness_reports.{$field}", '!=', '')
+                ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
+                ->where(function ($eq) use ($roleKeys) {
+                    foreach ($roleKeys as $rk) {
+                        $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
+                    }
+                });
+
+            if ($targetDate) {
+                $alreadySampledQuery->whereDate('durability_thickness_reports.tanggal_cek', $targetDate);
+            }
+            if ($catVal !== '') {
+                $alreadySampledQuery->where('standard_performance_tests.category', $catVal);
+            } else {
+                $alreadySampledQuery->where(function ($cq) {
+                    $cq->whereNull('standard_performance_tests.category')
+                       ->orWhere('standard_performance_tests.category', '');
+                });
+            }
+
+            $approvalMethod = $alreadySampledQuery->exists() ? 'bulk' : 'sampling';
+
             $methods = $report->approval_methods ?? [];
             if (is_string($methods)) {
                 $methods = json_decode($methods, true) ?: [];
@@ -1736,7 +1770,7 @@ class StandardPerformanceTestController extends Controller
             if (!is_array($methods)) {
                 $methods = [];
             }
-            $methods[$type] = 'sampling';
+            $methods[$type] = $approvalMethod;
             $report->approval_methods = $methods;
 
             $report->save();
@@ -1754,7 +1788,7 @@ class StandardPerformanceTestController extends Controller
             })->update([
                 $field => $userName,
                 $timeField => $now,
-                'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', 'sampling')"),
+                'approval_methods' => \Illuminate\Support\Facades\DB::raw("JSON_SET(COALESCE(approval_methods, '{}'), '$.\"{$type}\"', '{$approvalMethod}')"),
             ]);
 
             ActivityLogger::log('approved', $report, "Melakukan approval ({$label}) pada laporan Durability Plating: {$report->standard->part_name} (Lot: {$report->lot_no})");
@@ -1914,45 +1948,76 @@ class StandardPerformanceTestController extends Controller
             // Terapkan filter hierarki approval berjenjang
             $this->applySequentialApprovalFilter($query, $type);
 
-            // Validasi Sampling: Wajib ada minimal 1 data sampling per kategori yang ada dalam filter
+            // Validasi Sampling: Wajib ada minimal 1 data sampling per kategori PER HARI pada tanggal yang memiliki data pending
             if ($user->role !== 'admin') {
                 $testType = $request->input('test_type', 'thickness');
-                $dateCol = ($testType === 'porecount') ? \Illuminate\Support\Facades\DB::raw('COALESCE(tanggal_cek_porecount, tanggal_cek)') : 'tanggal_cek';
+                $dateExpr = ($testType === 'porecount') ? 'COALESCE(durability_thickness_reports.tanggal_cek_porecount, durability_thickness_reports.tanggal_cek)' : 'durability_thickness_reports.tanggal_cek';
+                $roleKeys = \App\Helpers\ApprovalHelper::getRelatedRoleKeys($type);
 
-                // Ambil daftar kategori unik yang ada pada data yang difilter
-                $distinctCategories = (clone $query)
-                    ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                    ->whereNotNull('standard_performance_tests.category')
-                    ->where('standard_performance_tests.category', '!=', '')
+                $pendingDates = (clone $query)
+                    ->where(function ($q) use ($field) {
+                        $q->whereNull("durability_thickness_reports.{$field}")
+                          ->orWhere("durability_thickness_reports.{$field}", '')
+                          ->orWhere("durability_thickness_reports.{$field}", 'REJECTED');
+                    })
+                    ->selectRaw("DATE({$dateExpr}) as d")
                     ->distinct()
-                    ->pluck('standard_performance_tests.category')
+                    ->pluck('d')
                     ->filter()
-                    ->unique()
                     ->values()
                     ->all();
 
-                if (!empty($distinctCategories)) {
-                    $unapprovedCategories = [];
-                    foreach ($distinctCategories as $cat) {
-                        $hasSampling = DurabilityThicknessReport::query()
-                            ->join('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
-                            ->where('standard_performance_tests.category', $cat)
-                            ->where('durability_thickness_reports.is_trial', $isTrial)
-                            ->where(function($q) use ($request, $dateCol) {
-                                if ($request->filled('start_date')) {
-                                    $q->whereDate($dateCol, '>=', $request->start_date);
-                                }
-                                if ($request->filled('end_date')) {
-                                    $q->whereDate($dateCol, '<=', $request->end_date);
-                                }
-                            })
-                            ->whereNotNull("durability_thickness_reports.{$field}")
-                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
-                            ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$type}\"')) = 'sampling'")
-                            ->exists();
+                $catExpr = "COALESCE(NULLIF(TRIM(standard_performance_tests.category), ''), 'Tanpa Kategori')";
+                $dayCatQuery = (clone $query)
+                    ->leftJoin('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id');
 
-                        if (!$hasSampling) {
-                            $unapprovedCategories[] = $cat;
+                if (!empty($pendingDates)) {
+                    $dayCatQuery->where(function ($dq) use ($dateExpr, $pendingDates) {
+                        foreach ($pendingDates as $pd) {
+                            $dq->orWhereDate(\Illuminate\Support\Facades\DB::raw($dateExpr), $pd);
+                        }
+                    });
+                }
+
+                $distinctDayCategories = $dayCatQuery
+                    ->selectRaw("DATE({$dateExpr}) as check_date, {$catExpr} as category")
+                    ->distinct()
+                    ->get();
+
+                if ($distinctDayCategories->isNotEmpty()) {
+                    $unapprovedCategories = [];
+                    $multipleDays = $distinctDayCategories->pluck('check_date')->unique()->count() > 1;
+
+                    foreach ($distinctDayCategories as $row) {
+                        $d = (string) $row->check_date;
+                        $cat = (string) $row->category;
+
+                        $hasSamplingQ = DurabilityThicknessReport::query()
+                            ->leftJoin('standard_performance_tests', 'durability_thickness_reports.standard_performance_test_id', '=', 'standard_performance_tests.id')
+                            ->where('durability_thickness_reports.is_trial', $isTrial)
+                            ->whereDate(\Illuminate\Support\Facades\DB::raw($dateExpr), $d)
+                            ->whereNotNull("durability_thickness_reports.{$field}")
+                            ->where("durability_thickness_reports.{$field}", '!=', '')
+                            ->where("durability_thickness_reports.{$field}", '!=', 'REJECTED')
+                            ->where(function ($eq) use ($roleKeys) {
+                                foreach ($roleKeys as $rk) {
+                                    $eq->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(durability_thickness_reports.approval_methods, '$.\"{$rk}\"')) = 'sampling'");
+                                }
+                            });
+
+                        if ($cat === 'Tanpa Kategori') {
+                            $hasSamplingQ->where(function ($cq) {
+                                $cq->whereNull('standard_performance_tests.category')
+                                   ->orWhere('standard_performance_tests.category', '');
+                            });
+                        } else {
+                            $hasSamplingQ->where('standard_performance_tests.category', $cat);
+                        }
+
+                        if (!$hasSamplingQ->exists()) {
+                            $unapprovedCategories[] = $multipleDays && $d !== ''
+                                ? $cat . ' (' . \Carbon\Carbon::parse($d)->format('d/m/Y') . ')'
+                                : $cat;
                         }
                     }
 
@@ -1960,7 +2025,7 @@ class StandardPerformanceTestController extends Controller
                         $catStr = implode(', ', $unapprovedCategories);
                         return response()->json([
                             'success' => false,
-                            'message' => "Bulk Approval ditolak: Kategori berikut belum memiliki approval sampling ({$catStr}). Harap lakukan approval sampling minimal 1 data per kategori terlebih dahulu sebelum dapat Approve Semua.",
+                            'message' => "Bulk Approval ditolak: Kategori berikut belum memiliki approval sampling pada hari terkait ({$catStr}). Harap lakukan approval sampling minimal 1 data setiap kategori per hari terlebih dahulu sebelum dapat Approve Semua.",
                         ], 422);
                     }
                 }
@@ -1979,20 +2044,11 @@ class StandardPerformanceTestController extends Controller
                     $testType = $request->input('test_type', 'thickness');
                     $dateCol = ($testType === 'porecount') ? 'tanggal_cek_porecount' : 'tanggal_cek';
 
-                    // Determine alias role keys to inspect existing sampling in DB
-                    $roleKeys = [$type];
-                    if (in_array($type, ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'])) {
-                        $roleKeys = ['asst_manager', 'asst_manager_qc', 'asst_manager_plating'];
-                    } elseif (in_array($type, ['supervisor', 'supervisor_qc', 'supervisor_plating'])) {
-                        $roleKeys = ['supervisor', 'supervisor_qc', 'supervisor_plating'];
-                    }
+                    // Determine alias role keys to inspect existing sampling in DB (Plating terpisah dari QC)
+                    $roleKeys = \App\Helpers\ApprovalHelper::getRelatedRoleKeys($type);
 
-                    // Scope: Durability Plating approval hierarki hanya sampai Asst Manager (SPV QC, SPV Plating, Asst Mgr QC, Asst Mgr Plating)
-                    // Asst Manager = 1 data sampling per hari per kategori
-                    // Supervisor = 1 data sampling per shift per kategori
-                    $isDailyScope = in_array($type, [
-                        'asst_manager', 'asst_manager_qc', 'asst_manager_plating'
-                    ]);
+                    // Acuan Durability Plating: 1 data sampling setiap kategori per hari
+                    $isDailyScope = true;
 
                     // Fetch candidate records directly without mutating the base query
                     $candidateRecords = DurabilityThicknessReport::query()
