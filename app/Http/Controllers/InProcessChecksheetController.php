@@ -1485,7 +1485,11 @@ class InProcessChecksheetController extends Controller
      */
     public function getLeaderSamplingData($id)
     {
-        $checksheet = InProcessChecksheet::with(['item', 'user'])->findOrFail($id);
+        $query = InProcessChecksheet::with(['item', 'user']);
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
 
         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
         $dimensions = $dimensions ?: [];

@@ -151,7 +151,7 @@ class IncomingSubPartService extends BaseService
             $defects = $this->processDefects($data);
             $checkDimensi = $this->resolveCheckDimensi($data);
 
-            $checksheet->update([
+            $updatePayload = [
                 'item_id' => $data['item_id'],
                 'standard' => $data['standard'] ?? null,
                 'tanggal_datang' => $data['tanggal_datang'],
@@ -166,7 +166,34 @@ class IncomingSubPartService extends BaseService
                 'remarks' => $data['remarks'] ?? null,
                 'cycle_time' => $data['cycle_time'] ?? $checksheet->cycle_time,
                 'defects' => json_encode($defects),
-            ]);
+            ];
+
+            if (array_key_exists('leader_dimensions', $data) && is_array($data['leader_dimensions'])) {
+                $cleanedLeaderDims = [];
+                foreach ($data['leader_dimensions'] as $cav => $pts) {
+                    if (is_array($pts)) {
+                        $filteredPts = array_filter($pts, fn($v) => $v !== null && trim((string)$v) !== '' && trim((string)$v) !== '-');
+                        if (!empty($filteredPts)) {
+                            $cleanedLeaderDims[$cav] = $filteredPts;
+                        }
+                    }
+                }
+                if (!empty($cleanedLeaderDims)) {
+                    $updatePayload['leader_dimension_check'] = $cleanedLeaderDims;
+                    $updatePayload['leader_dimension_at'] = now();
+                    if (empty($checksheet->leader_dimension_user_id)) {
+                        $updatePayload['leader_dimension_user_id'] = auth()->id();
+                    }
+                }
+            }
+            if (array_key_exists('leader_alat_ukur', $data)) {
+                $updatePayload['leader_alat_ukur'] = $data['leader_alat_ukur'];
+            }
+
+            $checksheet->update($updatePayload);
+            $checksheet->refresh();
+            \App\Helpers\ApprovalHelper::syncDimensionJudgment($checksheet);
+            $checksheet->save();
 
             DB::commit();
             \Illuminate\Support\Facades\Cache::forget("incoming_sub_parts_filters_" . md5(json_encode([$checksheet->plant_id])));

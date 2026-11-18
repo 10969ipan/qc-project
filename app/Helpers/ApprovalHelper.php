@@ -1067,6 +1067,285 @@ class ApprovalHelper
             ->get()
             ->toArray();
     }
+
+    /**
+     * Sinkronisasi otomatis Judgment, Defects ("Dimensi"), Total NG/OK, dan flag is_dimension_ng
+     * berdasarkan pengukuran dimensi Inspector (dimension_check / check_dimensi) DAN Leader (leader_dimension_check).
+     * Jika ada minimal 1 titik NG -> Judgment = NG. Sebaliknya jika semua titik OK (dan defect lain < batas AQL) -> Judgment = OK.
+     */
+    public static function syncDimensionJudgment($checksheet): void
+    {
+        if (!$checksheet) {
+            return;
+        }
+
+        $item = $checksheet->item ?? ($checksheet->item_id ? \App\Models\Item::find($checksheet->item_id) : null);
+        $standards = [];
+
+        if ($item && !empty($item->dimension_standards)) {
+            $rawStds = is_array($item->dimension_standards) ? $item->dimension_standards : json_decode($item->dimension_standards, true);
+            if (is_array($rawStds)) {
+                foreach ($rawStds as $idx => $std) {
+                    if (is_array($std)) {
+                        $pKey = (string)($std['point'] ?? ($idx + 1));
+                        $standards[$pKey] = [
+                            'size' => $std['size'] ?? null,
+                            'tolerance' => $std['tolerance'] ?? null,
+                            'min' => $std['min'] ?? null,
+                            'max' => $std['max'] ?? null,
+                        ];
+                    }
+                }
+            }
+        }
+
+        if (empty($standards) && $item && !empty($item->part_number)) {
+            if ($checksheet instanceof \App\Models\InProcessChecksheet || $checksheet instanceof \App\Models\FirstPieceApproval) {
+                try {
+                    $normalizedPn = strtoupper(str_replace([' ', "\xc2\xa0", "\t", "\n", "\r"], '', str_replace(["\xe2\x80\x92", "\xe2\x80\x93", "\xe2\x80\x94", "\xe2\x88\x92"], '-', $item->part_number)));
+                    $consolidated = app(\App\Services\InProcessChecksheetService::class)->getConsolidatedStandards();
+                    $standards = $consolidated[$normalizedPn] ?? [];
+                } catch (\Throwable $e) {
+                    $standards = [];
+                }
+            }
+        }
+
+        $normStd = function ($v) {
+            if ($v === null || $v === '') {
+                return '';
+            }
+            $s = str_replace(',', '.', (string)$v);
+            $s = str_replace(["\u{2012}", "\u{2013}", "\u{2014}", "\u{2212}"], '-', $s);
+            $s = str_replace(['Ø', '⌀', 'ø', '±', "\u{00B1}", "\u{00D8}", "\u{00F8}", "\u{2300}"], '', $s);
+            return trim($s);
+        };
+
+        $checkValueNg = function ($val, ?array $std) use ($normStd): bool {
+            if ($val === null) {
+                return false;
+            }
+            $cleanStr = trim((string)$val);
+            if ($cleanStr === '' || $cleanStr === '-') {
+                return false;
+            }
+            $upper = strtoupper($cleanStr);
+            if ($upper === 'NG') {
+                return true;
+            }
+            if ($upper === 'OK') {
+                return false;
+            }
+            $numStr = str_replace(',', '.', $cleanStr);
+            if (!is_numeric($numStr) || empty($std)) {
+                return false;
+            }
+
+            $fVal = (float)$numStr;
+            $eps = 0.00001;
+
+            // 1. Min / Max
+            $minRaw = $normStd($std['min'] ?? null);
+            if ($minRaw !== '' && $minRaw !== '-' && is_numeric($minRaw)) {
+                if ($fVal < ((float)$minRaw - $eps)) {
+                    return true;
+                }
+            }
+            $maxRaw = $normStd($std['max'] ?? null);
+            if ($maxRaw !== '' && $maxRaw !== '-' && is_numeric($maxRaw)) {
+                if ($fVal > ((float)$maxRaw + $eps)) {
+                    return true;
+                }
+            }
+
+            // 2. Size +/- Tolerance
+            $szRaw = $normStd($std['size'] ?? null);
+            $tolRaw = $normStd($std['tolerance'] ?? null);
+            if ($szRaw !== '' && $szRaw !== '-' && $tolRaw !== '' && $tolRaw !== '-') {
+                if (!str_starts_with($szRaw, '+') && !str_starts_with($szRaw, '-') && is_numeric($szRaw)) {
+                    $base = (float)$szRaw;
+                    $lb = $base;
+                    $ub = $base;
+                    if (str_contains($tolRaw, '/')) {
+                        foreach (explode('/', $tolRaw) as $p) {
+                            $p = $normStd($p);
+                            $fv = (float)$p;
+                            if (str_starts_with($p, '+') || $fv > 0) {
+                                $ub = $base + abs($fv);
+                            } elseif (str_starts_with($p, '-') || $fv < 0) {
+                                $lb = $base - abs($fv);
+                            }
+                        }
+                    } elseif (str_starts_with($tolRaw, '+')) {
+                        $ub = $base + (float)substr($tolRaw, 1);
+                    } elseif (str_starts_with($tolRaw, '-')) {
+                        $lb = $base + (float)$tolRaw;
+                    } elseif (is_numeric($tolRaw)) {
+                        $tv = abs((float)$tolRaw);
+                        $lb = $base - $tv;
+                        $ub = $base + $tv;
+                    }
+                    if ($fVal < ($lb - $eps) || $fVal > ($ub + $eps)) {
+                        return true;
+                    }
+                }
+            }
+
+            // 3. Special Size prefix (+ or -)
+            if ($szRaw !== '' && $szRaw !== '-') {
+                if (str_starts_with($szRaw, '+') || str_starts_with($szRaw, '-')) {
+                    $op = $szRaw[0];
+                    $bound = (float)substr($szRaw, 1);
+                    if ($op === '+' && $fVal < ($bound - $eps)) {
+                        return true;
+                    }
+                    if ($op === '-' && $fVal > ($bound + $eps)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        $inspectSet = function ($rawDim) use ($standards, $checkValueNg): array {
+            $hasAnyVal = false;
+            $hasNg = false;
+
+            if (is_string($rawDim)) {
+                $rawDim = json_decode($rawDim, true);
+            }
+            if (!is_array($rawDim) || empty($rawDim)) {
+                return ['has_val' => false, 'has_ng' => false];
+            }
+
+            // Normalisasi jika 1D (misal IncomingSubPart check_dimensi [1 => val, 2 => val])
+            $isNested = false;
+            foreach ($rawDim as $elem) {
+                if (is_array($elem)) {
+                    $isNested = true;
+                    break;
+                }
+            }
+            $matrix = $isNested ? $rawDim : [1 => $rawDim];
+
+            foreach ($matrix as $cavKey => $points) {
+                if (!is_array($points)) {
+                    continue;
+                }
+                foreach ($points as $pKey => $valOrArr) {
+                    $cleanPt = is_numeric($pKey) ? (string)$pKey : ((string)filter_var($pKey, FILTER_SANITIZE_NUMBER_INT) ?: (string)$pKey);
+                    $std = $standards[$cleanPt] ?? ($standards[$pKey] ?? null);
+                    $vals = is_array($valOrArr) ? array_values($valOrArr) : [$valOrArr];
+                    foreach ($vals as $v) {
+                        if ($v !== null && trim((string)$v) !== '' && trim((string)$v) !== '-') {
+                            $hasAnyVal = true;
+                            if ($checkValueNg($v, $std)) {
+                                $hasNg = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return ['has_val' => $hasAnyVal, 'has_ng' => $hasNg];
+        };
+
+        $inspDimRaw = $checksheet->dimension_check ?? $checksheet->check_dimensi ?? null;
+        $leaderDimRaw = $checksheet->leader_dimension_check ?? null;
+
+        $inspRes = $inspectSet($inspDimRaw);
+        $leaderRes = $inspectSet($leaderDimRaw);
+
+        if (!$inspRes['has_val'] && !$leaderRes['has_val']) {
+            return;
+        }
+
+        $isAnyDimNg = $inspRes['has_ng'] || $leaderRes['has_ng'];
+
+        $defectsRaw = $checksheet->defects;
+        $defects = is_array($defectsRaw) ? $defectsRaw : (json_decode($defectsRaw ?? '[]', true) ?: []);
+        if (!is_array($defects)) {
+            $defects = [];
+        }
+
+        $isDimensiType = function ($t): bool {
+            $key = strtolower(trim((string)$t));
+            return in_array($key, ['dimensi', 'dimension', 'ng dimensi']);
+        };
+
+        $baseTotalNg = 0;
+        foreach ($defects as $d) {
+            if (is_array($d)) {
+                if (!$isDimensiType($d['type'] ?? '')) {
+                    $baseTotalNg += (int)($d['qty'] ?? 0);
+                }
+            }
+        }
+
+        if ($isAnyDimNg) {
+            $found = false;
+            foreach ($defects as &$d) {
+                if (is_array($d) && $isDimensiType($d['type'] ?? '')) {
+                    $d['type'] = 'Dimensi';
+                    $d['qty'] = max(1, (int)($d['qty'] ?? 1));
+                    $found = true;
+                    break;
+                }
+            }
+            unset($d);
+            if (!$found) {
+                $defects[] = ['type' => 'Dimensi', 'qty' => 1];
+            }
+            $dimQty = 1;
+            foreach ($defects as $d) {
+                if (is_array($d) && $isDimensiType($d['type'] ?? '')) {
+                    $dimQty = max(1, (int)($d['qty'] ?? 1));
+                    break;
+                }
+            }
+            $totalNg = $baseTotalNg + $dimQty;
+        } else {
+            $defects = array_values(array_filter($defects, function ($d) use ($isDimensiType) {
+                return !(is_array($d) && $isDimensiType($d['type'] ?? ''));
+            }));
+            $totalNg = $baseTotalNg;
+        }
+
+        $table = $checksheet->getTable();
+        if (method_exists($checksheet, 'hasCast') && $checksheet->hasCast('defects', ['array', 'json', 'collection'])) {
+            $checksheet->defects = $defects;
+        } else {
+            $checksheet->defects = json_encode($defects);
+        }
+
+        if (self::tableHasColumn($table, 'total_ng')) {
+            $checksheet->total_ng = $totalNg;
+        }
+        if (self::tableHasColumn($table, 'total_ok') && self::tableHasColumn($table, 'sampling_qty')) {
+            $checksheet->total_ok = max(0, (int)$checksheet->sampling_qty - $totalNg);
+        }
+        if (self::tableHasColumn($table, 'is_dimension_ng')) {
+            $checksheet->is_dimension_ng = $isAnyDimNg;
+        }
+
+        $sampleSize = (int)($checksheet->sampling_qty ?? $checksheet->sampling_size_pcs ?? 0);
+        $rej = 1;
+        if ($sampleSize >= 1250) $rej = 15;
+        elseif ($sampleSize >= 800) $rej = 11;
+        elseif ($sampleSize >= 500) $rej = 8;
+        elseif ($sampleSize >= 315) $rej = 6;
+        elseif ($sampleSize >= 200) $rej = 4;
+        elseif ($sampleSize >= 125) $rej = 3;
+        elseif ($sampleSize >= 50) $rej = 2;
+
+        $newJudgment = ($isAnyDimNg || $totalNg >= $rej) ? 'NG' : 'OK';
+        $checksheet->judgment = $newJudgment;
+
+        if ($newJudgment === 'OK' && $totalNg === 0 && self::tableHasColumn($table, 'next_proses')) {
+            $checksheet->next_proses = null;
+        }
+    }
 }
 }
 

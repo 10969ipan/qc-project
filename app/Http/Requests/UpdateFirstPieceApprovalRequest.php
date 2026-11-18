@@ -60,6 +60,8 @@ class UpdateFirstPieceApprovalRequest extends FormRequest
             'remarks' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'alat_ukur' => 'nullable',
+            'leader_dimensions' => 'nullable|array',
+            'leader_alat_ukur' => 'nullable|string',
             'cycle_time' => 'nullable|integer',
             'jam_before' => 'nullable|date_format:H:i',
             'jam_after' => 'nullable|date_format:H:i',

@@ -891,10 +891,15 @@
                                         @endphp
                                         @if(!empty($leaderDim))
                                             <div style="border-top: 1px dashed #cbd5e1; margin: 6px 0 4px 0;"></div>
-                                            <div class="px-2 pt-1 pb-0 text-left">
+                                            <div class="px-2 pt-1 pb-0 text-left d-flex justify-content-between align-items-center">
                                                 <span class="text-dark font-weight-bold" style="font-size: 0.65rem;">
                                                     {{ (in_array(strtolower($plantCode ?? 'karawang'), ['jakarta', 'jkt'])) ? 'Kepala Regu' : 'Kashift QC' }}: {{ $cs->leaderUser->name ?? $cs->kashift_qc ?? '-' }}
                                                 </span>
+                                                @if(auth()->check() && auth()->user()->role !== 'inspector')
+                                                    <button type="button" class="btn btn-link btn-xs p-0 ml-2 text-primary font-weight-bold btn-edit-leader-sampling" data-id="{{ $cs->id }}" title="Edit Pengukuran Sampling Leader" style="font-size: 0.63rem; text-decoration: none;">
+                                                        <i class="fas fa-edit"></i> Edit
+                                                    </button>
+                                                @endif
                                             </div>
                                             @if(!empty($cs->leader_alat_ukur))
                                                 <div class="px-2 pb-1 text-left">

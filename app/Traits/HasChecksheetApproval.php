@@ -130,9 +130,50 @@ trait HasChecksheetApproval
                     }
                 }
 
+                // 3. Allow leader & higher QC roles to update existing leader_dimension_check
+                if ($request->filled('leader_dimension_check') && $this->normalizeApprovalType($type) === 'kashift') {
+                    if (in_array($user->role, ['kashift', 'kashift_qc', 'karu_qc', 'supervisor', 'supervisor_qc', 'asst_manager', 'asst_manager_qc', 'manager', 'manager_qc'])) {
+                        $isAllowed = true;
+                    }
+                }
+
                 if (!$isAllowed) {
                     abort(403);
                 }
+            }
+
+            $field = $map['field'];
+            $timeField = $map['time'];
+
+            // If already approved at kashift level and request is updating leader_dimension_check, update sampling data directly
+            if ($checksheet->$field && $checksheet->$field !== 'REJECTED' && $request->filled('leader_dimension_check') && $this->normalizeApprovalType($type) === 'kashift') {
+                $leaderDimData = $request->input('leader_dimension_check');
+                if (is_string($leaderDimData)) {
+                    $leaderDimData = json_decode($leaderDimData, true) ?: [];
+                }
+                $checksheet->leader_dimension_check = $leaderDimData;
+                if (empty($checksheet->leader_dimension_user_id)) {
+                    $checksheet->leader_dimension_user_id = $user->id;
+                }
+                $checksheet->leader_dimension_at = now();
+                if ($request->filled('leader_alat_ukur')) {
+                    $checksheet->leader_alat_ukur = $request->input('leader_alat_ukur');
+                }
+                \App\Helpers\ApprovalHelper::syncDimensionJudgment($checksheet);
+                $checksheet->save();
+
+                $modelName = str_replace(['App\\Models\\', 'Checksheet'], ['', ''], $modelClass);
+                ActivityLogger::log('updated', $checksheet, "Memperbarui data pengukuran sampling leader pada checksheet {$modelName}: ID #{$checksheet->id}");
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'is_update' => true,
+                        'message' => 'Data pengukuran sampling leader berhasil diperbarui.',
+                        'redirect' => url()->previous()
+                    ]);
+                }
+                return redirect()->back()->with('success', 'Data pengukuran sampling leader berhasil diperbarui.');
             }
 
             // Guard: Check if Next Process is still OPEN
@@ -144,9 +185,6 @@ trait HasChecksheetApproval
                 }
                 return redirect()->back()->with('error', $openMsg);
             }
-
-            $field = $map['field'];
-            $timeField = $map['time'];
 
             // Clear Rejection if it was rejected
             if ($checksheet->$field === 'REJECTED') {
@@ -269,6 +307,7 @@ trait HasChecksheetApproval
                         if ($request->filled('leader_alat_ukur')) {
                             $checksheet->leader_alat_ukur = $request->input('leader_alat_ukur');
                         }
+                        \App\Helpers\ApprovalHelper::syncDimensionJudgment($checksheet);
                     } else {
                         // Check if this leader already performed a dimension check on this date & plant
                         $dateCol = $this->getApprovalDateColumn();

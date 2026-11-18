@@ -396,6 +396,74 @@
         </div>
     </div>
 
+    @php
+        $leaderDimEdit = is_array($checksheet->leader_dimension_check) ? $checksheet->leader_dimension_check : (json_decode($checksheet->leader_dimension_check, true) ?? []);
+    @endphp
+    @if(!empty($leaderDimEdit))
+        @php
+            $leaderPointsEdit = [];
+            foreach ($leaderDimEdit as $lCav => $lPts) {
+                if (is_array($lPts)) {
+                    foreach (array_keys($lPts) as $lPt) {
+                        $leaderPointsEdit[(int)$lPt] = (int)$lPt;
+                    }
+                }
+            }
+            ksort($leaderPointsEdit);
+            if (empty($leaderPointsEdit)) {
+                $leaderPointsEdit = range(1, $maxPointFound);
+            }
+        @endphp
+        <div class="font-weight-bold text-primary mb-2 pb-2 d-flex justify-content-between align-items-center mt-3 flex-wrap" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem; gap: 8px;">
+            <span><i class="fas fa-user-check mr-1"></i> PENGUKURAN SAMPLING {{ ($plantCode === 'jakarta') ? 'KEPALA REGU' : 'KASHIFT QC' }} (MM)</span>
+            <button type="button" class="btn btn-outline-primary btn-xs px-2 btn-edit-leader-sampling" data-id="{{ $checksheet->id }}" style="font-size: 0.7rem;">
+                <i class="fas fa-external-link-alt mr-1"></i> Buka Modal Sampling
+            </button>
+        </div>
+        <div class="form-group row align-items-center mb-2">
+            <label class="col-sm-3 col-form-label small font-weight-bold text-gray-700">Alat Ukur Sampling</label>
+            <div class="col-sm-5">
+                <input type="text" name="leader_alat_ukur" class="form-control form-control-sm border shadow-sm font-weight-bold"
+                    value="{{ $checksheet->leader_alat_ukur }}" placeholder="Alat ukur sampling...">
+            </div>
+        </div>
+        <div class="table-responsive bg-white rounded shadow-sm border mb-4" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-bordered table-hover mb-0">
+                <thead class="bg-light text-center small font-weight-bold">
+                    <tr>
+                        <th style="min-width: 65px; width: 65px; position: sticky; top: 0; left: 0; z-index: 10; background: #f8f9fc; border-right: 2px solid #dee2e6;">Cavity / Point</th>
+                        @foreach ($leaderPointsEdit as $lPt)
+                            <th class="p-1" style="position: sticky; top: 0; background-color: #f8f9fc !important; color: #475569 !important; z-index: 9; min-width: 80px;">P{{ $lPt }}</th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($leaderDimEdit as $lCavKey => $lCavPts)
+                        @php
+                            $lCavNum = is_numeric($lCavKey) ? $lCavKey : ((int) filter_var($lCavKey, FILTER_SANITIZE_NUMBER_INT) ?: 1);
+                        @endphp
+                        <tr>
+                            <td class="text-center font-weight-bold bg-light small" style="position: sticky; left: 0; z-index: 5; background: #f8f9fc !important; border-right: 2px solid #dee2e6; vertical-align: middle;">
+                                Cavity {{ $lCavNum }}
+                            </td>
+                            @foreach ($leaderPointsEdit as $lPt)
+                                @php
+                                    $lVal = is_array($lCavPts) ? ($lCavPts[$lPt] ?? ($lCavPts["$lPt"] ?? '')) : '';
+                                @endphp
+                                <td class="p-0">
+                                    <input type="text" class="form-control form-control-sm edit-dimension-input border-0 text-center font-weight-bold"
+                                        style="min-width: 60px; font-size: 0.8rem; height: 36px; border-radius: 0;"
+                                        name="leader_dimensions[{{ $lCavNum }}][{{ $lPt }}]"
+                                        value="{{ $lVal }}" placeholder="-">
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
     <div class="bg-white border-top py-3 px-4 d-flex justify-content-end align-items-center" style="margin: 1.5rem -1.5rem -1.5rem -1.5rem; border-radius: 0 0 12px 12px;">
         <button type="button" class="btn btn-light border px-4 font-weight-bold mr-2" data-dismiss="modal">Batal</button>
         <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btnSubmit"><i class="fas fa-save mr-1"></i> Simpan Perubahan</button>
@@ -1058,11 +1126,16 @@
                     }
                 }
                 const valStr = $(this).val().trim();
+                const upperVal = valStr.toUpperCase();
                 const value = parseFloat(valStr.replace(',', '.'));
 
                 $(this).removeClass('is-invalid is-valid');
 
-                if (standard && valStr !== '' && !isNaN(value)) {
+                if (upperVal === 'NG') {
+                    $(this).addClass('is-invalid');
+                } else if (upperVal === 'OK') {
+                    $(this).addClass('is-valid');
+                } else if (standard && valStr !== '' && valStr !== '-' && !isNaN(value)) {
                     let isInvalid = false;
                     const epsilon = 0.00001;
 

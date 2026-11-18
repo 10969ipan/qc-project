@@ -59,21 +59,212 @@ $(document).ready(function () {
         }
     });
 
-    // Opsional: Logika judgment otomatis untuk formulir edit jika diperlukan
-    $(document).on('input', '.edit-defect-qty, .edit-defect-select', function() {
+    // Logika validasi dimensi & judgment otomatis pada modal edit Incoming
+    function normalizeEditStd(val) {
+        if (val === null || val === undefined || val === '') return null;
+        return String(val)
+            .replace(',', '.')
+            .replace(/[\u2012\u2013\u2014\u2212]/g, '-')
+            .replace(/[Ø⌀ø±\u00B1\u00D8\u00F8\u2300]/g, '')
+            .trim();
+    }
+
+    function recalculateEditJudgment() {
+        const isDimInvalid = $('#editChecksheetForm .edit-dimension-input.is-invalid').length > 0;
+
+        let hasDimDefect = false;
+        $('#editDefectContainer .edit-defect-select').each(function () {
+            const val = ($(this).val() || '').trim().toLowerCase();
+            const txt = ($(this).find('option:selected').text() || '').trim().toLowerCase();
+            if (val.includes('dimens') || txt.includes('dimens')) {
+                hasDimDefect = true;
+                return false;
+            }
+        });
+
+        if (isDimInvalid && !hasDimDefect) {
+            let targetRow = null;
+            $('#editDefectContainer .edit-defect-row').each(function () {
+                if (!$(this).find('.edit-defect-select').val()) {
+                    targetRow = $(this);
+                    return false;
+                }
+            });
+            if (!targetRow) {
+                const newRow = $(`
+                    <div class="row no-gutters mb-2 edit-defect-row align-items-center shadow-sm bg-white p-1 rounded">
+                        <div class="col-8 pr-1">
+                            <select class="form-control form-control-sm edit-defect-select font-weight-bold" name="defect_types[]">
+                                <option value="">-- Pilih Defect --</option>
+                                <option value="Dimensi" selected>Dimensi</option>
+                            </select>
+                        </div>
+                        <div class="col-3 pr-1">
+                            <input type="number" class="form-control form-control-sm edit-defect-qty text-center font-weight-bold" name="defect_quantities[]" value="1" min="1">
+                        </div>
+                        <div class="col-1 text-center">
+                            <button type="button" class="btn btn-danger btn-xs px-2 remove-defect-btn" title="Hapus"><i class="fas fa-minus"></i></button>
+                        </div>
+                    </div>
+                `);
+                $('#editDefectContainer').append(newRow);
+            } else {
+                const $sel = targetRow.find('.edit-defect-select');
+                if ($sel.find('option[value="Dimensi"]').length === 0) {
+                    $sel.append('<option value="Dimensi">Dimensi</option>');
+                }
+                $sel.val('Dimensi');
+                targetRow.find('.edit-defect-qty').val(1);
+            }
+        } else if (!isDimInvalid && hasDimDefect) {
+            $('#editDefectContainer .edit-defect-row').each(function () {
+                const val = ($(this).find('.edit-defect-select').val() || '').trim().toLowerCase();
+                const txt = ($(this).find('.edit-defect-select option:selected').text() || '').trim().toLowerCase();
+                if (val.includes('dimens') || txt.includes('dimens')) {
+                    if ($('#editDefectContainer .edit-defect-row').length > 1) {
+                        $(this).remove();
+                    } else {
+                        $(this).find('.edit-defect-select').val('');
+                        $(this).find('.edit-defect-qty').val('');
+                    }
+                }
+            });
+        }
+
         let totalNg = 0;
-        $('.edit-defect-row').each(function() {
+        $('#editDefectContainer .edit-defect-row').each(function () {
             const qty = parseInt($(this).find('.edit-defect-qty').val()) || 0;
             if ($(this).find('.edit-defect-select').val()) {
                 totalNg += qty;
             }
         });
-        
-        const judgmentSelect = $('#editJudgmentSelect');
-        if (judgmentSelect.length) {
-            judgmentSelect.val(totalNg > 0 ? 'NG' : 'OK');
+
+        const sampleSize = parseInt($('input[name="sampling_size_pcs"], input[name="sampling_qty"]').val()) || 0;
+        const aql = AQL_TABLE_EDIT.getAqlLimits(sampleSize);
+        const judgment = (isDimInvalid || totalNg >= aql.rej) ? 'NG' : 'OK';
+
+        const $judgmentSelect = $('#judgmentSelect, #editJudgmentSelect');
+        if ($judgmentSelect.length) {
+            $judgmentSelect.val(judgment);
         }
+    }
+
+    function validateEditDimensions() {
+        const $itemOpt = $('#editChecksheetForm #item_id option:selected');
+        let stds = $itemOpt.data('dimension-standards');
+        if (typeof stds === 'string') {
+            try { stds = JSON.parse(stds); } catch (e) { stds = null; }
+        }
+
+        $('#editChecksheetForm .edit-dimension-input').each(function () {
+            const $input = $(this);
+            const name = $input.attr('name') || '';
+            const matches = name.match(/\[(\d+)\]/g);
+            if (!matches || matches.length === 0) return;
+            const pt = matches[matches.length - 1].replace(/[\[\]]/g, '');
+
+            let std = null;
+            if (stds) {
+                if (Array.isArray(stds)) {
+                    std = stds.find(function (s, idx) {
+                        return String(s.point ?? (idx + 1)) === String(pt);
+                    }) || null;
+                } else if (typeof stds === 'object') {
+                    std = stds[pt] || stds[String(pt)] || null;
+                }
+            }
+
+            const rawStr = ($input.val() || '').trim();
+            const upper = rawStr.toUpperCase();
+            const numVal = parseFloat(rawStr.replace(',', '.'));
+
+            $input.removeClass('is-invalid is-valid text-danger text-success');
+
+            if (rawStr === '' || rawStr === '-') {
+                return;
+            }
+            if (upper === 'NG') {
+                $input.addClass('is-invalid text-danger');
+                return;
+            }
+            if (upper === 'OK') {
+                $input.addClass('is-valid text-success');
+                return;
+            }
+
+            if (std && !isNaN(numVal)) {
+                let isInvalid = false;
+                const eps = 0.00001;
+
+                if (std.min !== null && std.min !== undefined && std.min !== '' && std.min !== '-') {
+                    const minB = parseFloat(normalizeEditStd(std.min));
+                    if (!isNaN(minB) && numVal < minB - eps) isInvalid = true;
+                }
+                if (!isInvalid && std.max !== null && std.max !== undefined && std.max !== '' && std.max !== '-') {
+                    const maxB = parseFloat(normalizeEditStd(std.max));
+                    if (!isNaN(maxB) && numVal > maxB + eps) isInvalid = true;
+                }
+                if (!isInvalid && std.size !== null && std.size !== undefined && std.size !== '' && std.tolerance !== null && std.tolerance !== undefined && std.tolerance !== '') {
+                    const szStr = normalizeEditStd(std.size);
+                    if (szStr && !szStr.startsWith('+') && !szStr.startsWith('-')) {
+                        const base = parseFloat(szStr);
+                        const tol = normalizeEditStd(std.tolerance);
+                        if (!isNaN(base) && tol) {
+                            let lb = base, ub = base;
+                            if (tol.includes('/')) {
+                                tol.split('/').forEach(function (p) {
+                                    p = normalizeEditStd(p);
+                                    const fv = parseFloat(p);
+                                    if (p.startsWith('+') || fv > 0) ub = base + Math.abs(fv);
+                                    else if (p.startsWith('-') || fv < 0) lb = base - Math.abs(fv);
+                                });
+                            } else if (tol.startsWith('+')) {
+                                ub = base + parseFloat(tol.substring(1));
+                            } else if (tol.startsWith('-')) {
+                                lb = base + parseFloat(tol);
+                            } else {
+                                const tv = Math.abs(parseFloat(tol));
+                                if (!isNaN(tv)) {
+                                    lb = base - tv;
+                                    ub = base + tv;
+                                }
+                            }
+                            if (numVal < lb - eps || numVal > ub + eps) isInvalid = true;
+                        }
+                    }
+                }
+                if (!isInvalid && std.size !== null && std.size !== undefined && std.size !== '') {
+                    const szStr = normalizeEditStd(std.size);
+                    if (szStr && (szStr.startsWith('+') || szStr.startsWith('-'))) {
+                        const op = szStr.charAt(0);
+                        const b = parseFloat(szStr.substring(1));
+                        if (!isNaN(b)) {
+                            if (op === '+' && numVal < b - eps) isInvalid = true;
+                            else if (op === '-' && numVal > b + eps) isInvalid = true;
+                        }
+                    }
+                }
+
+                if (isInvalid) {
+                    $input.addClass('is-invalid text-danger');
+                } else {
+                    $input.addClass('is-valid text-success');
+                }
+            }
+        });
+
+        recalculateEditJudgment();
+    }
+
+    $(document).on('input change', '.edit-defect-qty, .edit-defect-select', function () {
+        recalculateEditJudgment();
     });
+
+    $(document).on('input change', '#editChecksheetForm .edit-dimension-input, #editChecksheetForm #item_id', function () {
+        validateEditDimensions();
+    });
+
+    validateEditDimensions();
 
     // Hitung otomatis Qty Balance Sisa dari Qty Kedatangan Awal dikurang Total Check
     function updateEditQtyBalance() {

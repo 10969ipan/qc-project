@@ -24,6 +24,8 @@ class UpdateIncomingSubPartRequest extends FormRequest
             'check_dimensi' => 'nullable|string',
             'dimensions' => 'nullable|array',
             'dimensions.*' => 'nullable',
+            'leader_dimensions' => 'nullable|array',
+            'leader_alat_ukur' => 'nullable|string',
             'judgment' => 'required|in:OK,NG',
             'total_ng' => 'nullable|integer',
             'remarks' => 'nullable|string',

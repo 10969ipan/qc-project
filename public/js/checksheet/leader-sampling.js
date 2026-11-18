@@ -167,6 +167,15 @@
                 const defaultTool = res.existing_leader_tool || cs.inspector_tools || '';
                 $('#leaderAlatUkurInput').val(defaultTool !== '-' ? defaultTool : '');
 
+                const hasExistingLeaderData = res.existing_leader_check && typeof res.existing_leader_check === 'object' && Object.keys(res.existing_leader_check).length > 0;
+                if (hasExistingLeaderData) {
+                    $('#modalLeaderSamplingTitle').text(`Edit Sampling Pengukuran Dimensi (${roleLabel})`);
+                    $('#btnSubmitLeaderSampling').html('<i class="fas fa-save mr-1"></i> Simpan Perubahan Sampling');
+                } else {
+                    $('#modalLeaderSamplingTitle').text(`Input Sampling Pengukuran Dimensi (${roleLabel})`);
+                    $('#btnSubmitLeaderSampling').html('<i class="fas fa-check-circle mr-1"></i> Simpan & Approve Sampling');
+                }
+
                 currentStandards = res.standards || {};
                 currentActivePoints = res.active_points || [];
                 if (Array.isArray(res.active_cavities) && res.active_cavities.length > 0) {
@@ -559,10 +568,13 @@
             success: function (res) {
                 if (res.success) {
                     $('#modalLeaderDimensionSampling').modal('hide');
+                    const isUpdate = !!res.is_update;
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil Disetujui',
-                        text: 'Sampling pengukuran mandiri berhasil disimpan dan data telah di-approve.',
+                        title: isUpdate ? 'Berhasil Diperbarui' : 'Berhasil Disetujui',
+                        text: res.message || (isUpdate
+                            ? 'Data pengukuran sampling leader berhasil diperbarui.'
+                            : 'Sampling pengukuran mandiri berhasil disimpan dan data telah di-approve.'),
                         timer: 1200,
                         showConfirmButton: false
                     }).then(function () {
@@ -626,6 +638,17 @@
         }
         if (res && res.requires_leader_sampling && res.checksheet_id) {
             window.openLeaderSamplingModal(res.checksheet_id);
+        }
+    });
+
+    $(document).on('click', '.btn-edit-leader-sampling', function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        if (id) {
+            if ($('#editModal').hasClass('show')) {
+                $('#editModal').modal('hide');
+            }
+            window.openLeaderSamplingModal(id);
         }
     });
 

@@ -342,14 +342,9 @@ class FirstPieceApprovalController extends Controller
             
             $result = $this->firstPieceService->updateChecksheet($id, $validatedData);
             
-            // Refresh data setelah update di service
+            // Refresh data setelah update & sinkronisasi otomatis dimensi (termasuk leader sampling) di service
             $checksheet->refresh();
-            $newJudgment = $checksheet->judgment;
-
-            // --- Otomatis kelola defect "Dimensi" (Update) ---
-            $this->syncNgDimensiDefect($checksheet, $oldJudgment, $newJudgment, $result['ok_points_count'] ?? null, $result['ng_points_count'] ?? null);
-            
-            // PENTING: Lakukan save() manual karena syncNgDimensiDefect merubah model tanpa menyimpan
+            \App\Helpers\ApprovalHelper::syncDimensionJudgment($checksheet);
             $checksheet->save(); 
 
             ActivityLogger::log('updated', $checksheet, "Memperbarui checksheet First Piece Approval: {$checksheet->item->name}");
@@ -954,7 +949,11 @@ class FirstPieceApprovalController extends Controller
      */
     public function getLeaderSamplingData($id)
     {
-        $checksheet = FirstPieceApproval::with(['item', 'user'])->findOrFail($id);
+        $query = FirstPieceApproval::with(['item', 'user']);
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
 
         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
         $dimensions = $dimensions ?: [];

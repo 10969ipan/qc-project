@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('item_change_histories')) {
+            return;
+        }
+
         Schema::create('item_change_histories', function (Blueprint $table) {
             $table->id();
             $table->string('item_id'); // support UUID / string item id

@@ -845,6 +845,28 @@ class InProcessChecksheetService extends BaseService
                 $updateData['user_id'] = $data['user_id'];
             }
 
+            if (array_key_exists('leader_dimensions', $data) && is_array($data['leader_dimensions'])) {
+                $cleanedLeaderDims = [];
+                foreach ($data['leader_dimensions'] as $cav => $pts) {
+                    if (is_array($pts)) {
+                        $filteredPts = array_filter($pts, fn($v) => $v !== null && trim((string)$v) !== '' && trim((string)$v) !== '-');
+                        if (!empty($filteredPts)) {
+                            $cleanedLeaderDims[$cav] = $filteredPts;
+                        }
+                    }
+                }
+                if (!empty($cleanedLeaderDims)) {
+                    $updateData['leader_dimension_check'] = $cleanedLeaderDims;
+                    $updateData['leader_dimension_at'] = now();
+                    if (empty($checksheet->leader_dimension_user_id)) {
+                        $updateData['leader_dimension_user_id'] = auth()->id();
+                    }
+                }
+            }
+            if (array_key_exists('leader_alat_ukur', $data)) {
+                $updateData['leader_alat_ukur'] = $data['leader_alat_ukur'];
+            }
+
             // Update created_at and cycle_time if user has authority
             if (auth()->user()->role !== 'inspector') {
                 $currentDate = $checksheet->created_at->format('Y-m-d');
@@ -870,6 +892,9 @@ class InProcessChecksheetService extends BaseService
             }
 
             $checksheet->update($updateData);
+            $checksheet->refresh();
+            \App\Helpers\ApprovalHelper::syncDimensionJudgment($checksheet);
+            $checksheet->save();
 
             // Clear manual machine status override
             \App\Models\MachineStatus::withoutGlobalScope('plant')->updateOrCreate(

@@ -332,7 +332,11 @@ class IncomingSubPartController extends Controller
      */
     public function getLeaderSamplingData($id)
     {
-        $checksheet = IncomingSubPart::with(['item', 'leaderUser'])->findOrFail($id);
+        $query = IncomingSubPart::with(['item', 'leaderUser']);
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            $query->withoutGlobalScope('plant');
+        }
+        $checksheet = $query->findOrFail($id);
 
         $dimensions = is_array($checksheet->dimension_check) ? $checksheet->dimension_check : json_decode($checksheet->dimension_check, true);
         if (!is_array($dimensions)) {
