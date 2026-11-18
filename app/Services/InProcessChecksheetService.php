@@ -601,15 +601,15 @@ class InProcessChecksheetService extends BaseService
     }
 
     /**
-     * Process dimensions into JSON
+     * Process dimensions into array
      * 
      * @param array|null $dimensions
-     * @return string
+     * @return array
      */
-    private function processDimensions(?array $dimensions): string
+    private function processDimensions(?array $dimensions): array
     {
         if (empty($dimensions)) {
-            return json_encode([]);
+            return [];
         }
 
         $filteredDimensions = [];
@@ -633,7 +633,7 @@ class InProcessChecksheetService extends BaseService
             }
         }
 
-        return json_encode($filteredDimensions);
+        return $filteredDimensions;
     }
 
     /**
@@ -1223,7 +1223,7 @@ class InProcessChecksheetService extends BaseService
     /**
      * Tentukan flag precomputed has_dimension dan is_dimension_ng secara instan
      */
-    protected function determineDimensionFlags(array $data, ?string $dimensionCheck): array
+    protected function determineDimensionFlags(array $data, $dimensionCheck): array
     {
         $scanMethod = $data['scan_method'] ?? 'manual';
         $qrCode = $data['qrcode'] ?? null;

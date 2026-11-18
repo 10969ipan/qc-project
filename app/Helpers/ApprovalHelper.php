@@ -1212,8 +1212,12 @@ class ApprovalHelper
             $hasAnyVal = false;
             $hasNg = false;
 
-            if (is_string($rawDim)) {
-                $rawDim = json_decode($rawDim, true);
+            while (is_string($rawDim)) {
+                $decoded = json_decode($rawDim, true);
+                if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                    break;
+                }
+                $rawDim = $decoded;
             }
             if (!is_array($rawDim) || empty($rawDim)) {
                 return ['has_val' => false, 'has_ng' => false];
