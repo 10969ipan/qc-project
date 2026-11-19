@@ -99,9 +99,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/checksheet/kepatuhan-operator/verify', [OperatorComplianceController::class, 'toggleVerification'])->name('checksheet.operator_compliance.verify');
         Route::post('/checksheet/kepatuhan-operator/problem', [OperatorComplianceController::class, 'storeProblem'])->name('checksheet.operator_compliance.problem.store');
         Route::delete('/checksheet/kepatuhan-operator/problem/{id}', [OperatorComplianceController::class, 'destroyProblem'])->name('checksheet.operator_compliance.problem.destroy');
+        Route::get('/checksheet/kepatuhan-operator/master-item/list', [OperatorComplianceController::class, 'listMasterItems'])->name('checksheet.operator_compliance.master_item.list');
         Route::post('/checksheet/kepatuhan-operator/master-item', [OperatorComplianceController::class, 'storeMasterItem'])->name('checksheet.operator_compliance.master_item.store');
         Route::put('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'updateMasterItem'])->name('checksheet.operator_compliance.master_item.update');
         Route::delete('/checksheet/kepatuhan-operator/master-item/{id}', [OperatorComplianceController::class, 'destroyMasterItem'])->name('checksheet.operator_compliance.master_item.destroy');
+        Route::post('/checksheet/kepatuhan-operator/master-item/{id}/toggle-bagian', [OperatorComplianceController::class, 'toggleMasterItemBagian'])->name('checksheet.operator_compliance.master_item.toggle_bagian');
+        Route::post('/checksheet/kepatuhan-operator/master-item/{id}/reset-bagian', [OperatorComplianceController::class, 'resetMasterItemBagian'])->name('checksheet.operator_compliance.master_item.reset_bagian');
         
         // Schedule Routes
         Route::get('/checksheet/kepatuhan-operator/schedule', [OperatorComplianceController::class, 'schedule'])->name('checksheet.operator_compliance.schedule');

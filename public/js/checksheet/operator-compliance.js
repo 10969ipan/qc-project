@@ -22,10 +22,13 @@ $(document).ready(function () {
         problemBaseUrl: _cfgEl.dataset.problemBaseUrl || _cfgEl.getAttribute('data-problem-base-url') || '/checksheet/kepatuhan-operator/problem',
         masterItemStoreUrl: _cfgEl.dataset.masterItemStoreUrl || _cfgEl.getAttribute('data-master-item-store-url') || '/checksheet/kepatuhan-operator/master-item',
         masterItemBaseUrl: _cfgEl.dataset.masterItemBaseUrl || _cfgEl.getAttribute('data-master-item-base-url') || '/checksheet/kepatuhan-operator/master-item',
+        masterItemListUrl: _cfgEl.dataset.masterItemListUrl || _cfgEl.getAttribute('data-master-item-list-url') || '/checksheet/kepatuhan-operator/master-item/list',
         scheduleStoreUrl: _cfgEl.dataset.scheduleStoreUrl || _cfgEl.getAttribute('data-schedule-store-url') || '/checksheet/kepatuhan-operator/schedule',
         scheduleBaseUrl: _cfgEl.dataset.scheduleBaseUrl || _cfgEl.getAttribute('data-schedule-base-url') || '/checksheet/kepatuhan-operator/schedule',
         monthName: _cfgEl.dataset.monthName || _cfgEl.getAttribute('data-month-name') || ''
     } : (window.opComplianceConfig || {}); // Cadangan aman
+
+    var masterItemsChanged = false;
 
     // Buka kembali modal Kelola Jadwal jika ditandai di sessionStorage setelah reload
     try {
@@ -180,7 +183,7 @@ $(document).ready(function () {
                         $('#corrective_action').val('');
                         $('#pic_name').val('');
                         $('input[name="status"][value="Open"]').prop('checked', true);
-                        $('#formProblemTitle').html('<i class="fas fa-plus-circle mr-1"></i> FORM INPUT ITEM MASALAH ABNORMAL');
+                        $('#formProblemTitle').html('FORM INPUT ITEM MASALAH ABNORMAL');
 
                         $('#problemLogModal').modal('show');
                     }
@@ -560,7 +563,7 @@ $(document).ready(function () {
         if (st === 'In Progres') st = 'In Progress';
         $('input[name="status"][value="' + st + '"]').prop('checked', true);
 
-        $('#formProblemTitle').html('<i class="fas fa-edit mr-1"></i> EDIT ITEM MASALAH ABNORMAL');
+        $('#formProblemTitle').html('EDIT ITEM MASALAH ABNORMAL');
         $('#problemLogModal .modal-body').animate({ scrollTop: 0 }, 'fast');
     });
 
@@ -648,55 +651,436 @@ $(document).ready(function () {
         $('#pic_name').val('');
         $('#target_date').val('');
         $('input[name="status"][value="Open"]').prop('checked', true);
-        $('#formProblemTitle').html('<i class="fas fa-plus-circle mr-1"></i> FORM INPUT ITEM MASALAH ABNORMAL');
+        $('#formProblemTitle').html('FORM INPUT ITEM MASALAH ABNORMAL');
     });
 
-    // Submit Form Tambah / Edit Master Item Audit (Khusus Admin)
+    function escapeHtmlMi(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function resetMasterItemForm() {
+        var currentBagian = $('#mi_bagian_filter').val() || '';
+        $('#master_item_id').val('');
+        $('#mi_bagian').val(currentBagian);
+        $('#mi_prinsip_dasar').val('');
+        $('#mi_item_check').val('');
+        $('#mi_standard').val('');
+        $('#mi_order_no').val('');
+        if (currentBagian) {
+            $('#masterItemFormTitle').html('TAMBAH ITEM KHUSUS: ' + escapeHtmlMi(currentBagian.toUpperCase()));
+            $('#miFormScopeHint').html('Item baru akan ditambahkan <strong>khusus untuk bagian ' + escapeHtmlMi(currentBagian) + '</strong> (tidak masuk ke Default).');
+        } else {
+            $('#masterItemFormTitle').html('TAMBAH ITEM AUDIT BARU (DEFAULT)');
+            $('#miFormScopeHint').html('Item baru akan ditambahkan ke <strong>Template Default</strong> (berlaku untuk semua bagian).');
+        }
+        $('#btnCancelEditMi').addClass('d-none');
+    }
+
+    function renderMasterItemsTable(selectedBagian, data) {
+        $('#mi_bagian').val(selectedBagian);
+        $('#miTableBagianLabel').text(selectedBagian ? selectedBagian.toUpperCase() : 'DEFAULT / SEMUA BAGIAN');
+
+        var payload = data || {};
+        var items = Array.isArray(payload.items) ? payload.items : [];
+
+        if (!selectedBagian) {
+            $('.mi-col-status').addClass('d-none');
+        } else {
+            $('.mi-col-status').removeClass('d-none');
+        }
+
+        if (!$('#master_item_id').val()) {
+            if (selectedBagian) {
+                $('#masterItemFormTitle').html('TAMBAH ITEM KHUSUS: ' + escapeHtmlMi(selectedBagian.toUpperCase()));
+                $('#miFormScopeHint').html('Item baru akan ditambahkan <strong>khusus untuk bagian ' + escapeHtmlMi(selectedBagian) + '</strong> (tidak masuk ke Default).');
+            } else {
+                $('#masterItemFormTitle').html('TAMBAH ITEM AUDIT BARU (DEFAULT)');
+                $('#miFormScopeHint').html('Item baru akan ditambahkan ke <strong>Template Default</strong> (berlaku untuk semua bagian).');
+            }
+        }
+
+        var tbody = $('#masterItemTableBody');
+        tbody.empty();
+        if (items.length === 0) {
+            var colSpan = selectedBagian ? 6 : 5;
+            tbody.append('<tr><td colspan="' + colSpan + '" class="text-center text-muted py-3">Belum ada item audit terdaftar.</td></tr>');
+            return;
+        }
+
+        var activeSeq = 0;
+        items.forEach(function (mi) {
+            var isEnabled = mi.is_enabled !== false;
+            var noHtml = '';
+            if (isEnabled) {
+                activeSeq++;
+                noHtml = escapeHtmlMi(activeSeq);
+            } else {
+                noHtml = '<span class="text-muted">-</span>';
+            }
+
+            var statusTd = '';
+            if (selectedBagian) {
+                statusTd = '<td class="text-center align-middle">' +
+                    '<div class="custom-control custom-switch d-inline-block m-0" title="' + (isEnabled ? 'Aktif' : 'Nonaktif') + '">' +
+                    '<input type="checkbox" class="custom-control-input mi-toggle-bagian" id="miSwitch_' + escapeHtmlMi(mi.id) + '" data-id="' + escapeHtmlMi(mi.id) + '"' + (isEnabled ? ' checked' : '') + '>' +
+                    '<label class="custom-control-label" for="miSwitch_' + escapeHtmlMi(mi.id) + '" style="cursor:pointer;"></label>' +
+                    '</div>' +
+                    '</td>';
+            }
+
+            var sourceBadge = '';
+            if (selectedBagian) {
+                if (!mi.is_default) {
+                    sourceBadge = '<div><span class="badge badge-primary mt-1" style="font-size:0.65rem;">Khusus Bagian</span></div>';
+                } else if (mi.is_custom_override) {
+                    sourceBadge = '<div><span class="badge badge-info mt-1" style="font-size:0.65rem;">Default • Diedit</span></div>';
+                } else {
+                    sourceBadge = '<div><span class="badge badge-light border text-muted mt-1" style="font-size:0.65rem;">Default</span></div>';
+                }
+            }
+
+            var actionButtons = '<button type="button" class="btn btn-sm btn-info py-0 px-2 rounded-circle btn-edit-mi mr-1" ' +
+                'data-id="' + escapeHtmlMi(mi.id) + '" ' +
+                'data-prinsip="' + escapeHtmlMi(mi.prinsip_dasar) + '" ' +
+                'data-item="' + escapeHtmlMi(mi.item_check) + '" ' +
+                'data-standard="' + escapeHtmlMi(mi.standard) + '" ' +
+                'data-order="' + escapeHtmlMi(mi.order_no) + '" ' +
+                'data-is-default="' + (mi.is_default ? '1' : '0') + '" ' +
+                'title="Edit Item Audit"><i class="fas fa-edit"></i></button>';
+
+            if (selectedBagian && mi.is_default && mi.is_custom_override) {
+                actionButtons += '<button type="button" class="btn btn-sm btn-warning py-0 px-2 rounded-circle btn-reset-mi-bagian mr-1" ' +
+                    'data-id="' + escapeHtmlMi(mi.id) + '" ' +
+                    'title="Kembalikan ke Default"><i class="fas fa-undo"></i></button>';
+            }
+
+            if (!selectedBagian || !mi.is_default) {
+                actionButtons += '<button type="button" class="btn btn-sm btn-danger py-0 px-2 rounded-circle btn-del-mi" ' +
+                    'data-id="' + escapeHtmlMi(mi.id) + '" ' +
+                    'title="Hapus Item Audit"><i class="fas fa-trash"></i></button>';
+            }
+
+            var rowStyle = isEnabled ? '' : ' style="opacity: 0.55; background-color: #f8fafc;"';
+            var tr = '<tr' + rowStyle + '>' +
+                '<td class="text-center font-weight-bold align-middle">' + noHtml + '</td>' +
+                statusTd +
+                '<td class="align-middle">' + escapeHtmlMi(mi.prinsip_dasar) + sourceBadge + '</td>' +
+                '<td class="font-weight-bold align-middle">' + escapeHtmlMi(mi.item_check) + '</td>' +
+                '<td class="align-middle">' + escapeHtmlMi(mi.standard) + '</td>' +
+                '<td class="text-center align-middle text-nowrap">' + actionButtons + '</td>' +
+                '</tr>';
+            tbody.append(tr);
+        });
+    }
+
+    var miListXhr = null;
+    var miListSeq = 0;
+    var miPendingToggles = 0;
+
+    function loadMasterItems(selectedBagian, silent) {
+        var cleanBagian = selectedBagian || '';
+        $('#mi_bagian').val(cleanBagian);
+        if (cleanBagian) {
+            $('.mi-col-status').removeClass('d-none');
+        } else {
+            $('.mi-col-status').addClass('d-none');
+        }
+        var colSpan = cleanBagian ? 6 : 5;
+        if (!silent) {
+            $('#masterItemTableBody').html('<tr><td colspan="' + colSpan + '" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat daftar item audit...</td></tr>');
+        }
+
+        // Batalkan request list sebelumnya agar response lama tidak menimpa tampilan terbaru
+        if (miListXhr) {
+            miListXhr.abort();
+        }
+        var mySeq = ++miListSeq;
+
+        miListXhr = $.ajax({
+            url: config.masterItemListUrl || '/checksheet/kepatuhan-operator/master-item/list',
+            type: 'GET',
+            data: { bagian: cleanBagian },
+            dataType: 'json',
+            success: function (res) {
+                if (mySeq !== miListSeq || ($('#mi_bagian_filter').val() || '') !== cleanBagian) return;
+                if (res && res.success) {
+                    renderMasterItemsTable(cleanBagian, res.data);
+                } else {
+                    $('#masterItemTableBody').html('<tr><td colspan="' + colSpan + '" class="text-center text-danger py-3">Gagal memuat data item audit.</td></tr>');
+                }
+            },
+            error: function (xhr, status) {
+                if (status === 'abort' || mySeq !== miListSeq) return;
+                $('#masterItemTableBody').html('<tr><td colspan="' + colSpan + '" class="text-center text-danger py-3">Terjadi kesalahan saat memuat daftar item audit.</td></tr>');
+            }
+        });
+    }
+
+    $('#btnCancelEditMi').on('click', function () {
+        resetMasterItemForm();
+    });
+
+    $('#masterItemModal').on('show.bs.modal', function () {
+        masterItemsChanged = false;
+        resetMasterItemForm();
+        loadMasterItems($('#mi_bagian_filter').val() || '');
+    });
+
+    $('#masterItemModal').on('hidden.bs.modal', function () {
+        if (masterItemsChanged) {
+            location.reload();
+        }
+    });
+
+    // Ganti Bagian pada Modal Kelola Master Item Audit
+    $('#mi_bagian_filter').on('change', function () {
+        var selectedBagian = $(this).val() || '';
+        resetMasterItemForm();
+        loadMasterItems(selectedBagian);
+    });
+
+    // Submit Form Tambah / Edit Master Item Audit
     $('#masterItemForm').on('submit', function (e) {
         e.preventDefault();
         var id = $('#master_item_id').val();
+        var currentBagian = $('#mi_bagian_filter').val() || '';
+        $('#mi_bagian').val(currentBagian);
+
         var baseUrl = config.masterItemBaseUrl || '/checksheet/kepatuhan-operator/master-item';
         var url = id ? baseUrl + '/' + id : (config.masterItemStoreUrl || baseUrl);
         var type = id ? "PUT" : "POST";
+
+        var $btn = $('#btnSaveMasterItem');
+        var origBtnHtml = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
 
         $.ajax({
             url: url,
             type: type,
             data: $(this).serialize(),
+            dataType: 'json',
             success: function (res) {
-                if (res.success) {
-                    location.reload();
+                if (res && res.success) {
+                    masterItemsChanged = true;
+                    resetMasterItemForm();
+                    renderMasterItemsTable(currentBagian, res.data);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: res.message || 'Berhasil disimpan.',
+                            showConfirmButton: false,
+                            timer: 1800
+                        });
+                    }
                 }
+            },
+            error: function (xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal menyimpan item audit.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                } else {
+                    alert(msg);
+                }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).html(origBtnHtml);
             }
         });
     });
 
-    // Tombol Edit Master Item Audit (Khusus Admin)
+    // Tombol Edit Master Item Audit
     $(document).on('click', '.btn-edit-mi', function () {
         var btn = $(this);
-        $('#master_item_id').val(btn.data('id'));
-        $('#mi_prinsip_dasar').val(btn.data('prinsip'));
-        $('#mi_item_check').val(btn.data('item'));
-        $('#mi_standard').val(btn.data('standard'));
-        $('#mi_order_no').val(btn.data('order'));
+        var currentBagian = $('#mi_bagian_filter').val() || '';
+        var isDefault = String(btn.attr('data-is-default')) === '1';
 
-        $('#masterItemFormTitle').html('<i class="fas fa-edit mr-1"></i> EDIT ITEM AUDIT');
+        $('#master_item_id').val(btn.attr('data-id'));
+        $('#mi_bagian').val(currentBagian);
+        $('#mi_prinsip_dasar').val(btn.attr('data-prinsip'));
+        $('#mi_item_check').val(btn.attr('data-item'));
+        $('#mi_standard').val(btn.attr('data-standard'));
+        $('#mi_order_no').val(btn.attr('data-order'));
+
+        if (currentBagian && isDefault) {
+            $('#masterItemFormTitle').html('EDIT ITEM UNTUK BAGIAN "' + escapeHtmlMi(currentBagian.toUpperCase()) + '"');
+            $('#miFormScopeHint').html('Perubahan ini hanya berlaku untuk bagian <strong>' + escapeHtmlMi(currentBagian) + '</strong> (Template Default tetap utuh).');
+        } else {
+            $('#masterItemFormTitle').html('EDIT ITEM AUDIT');
+        }
+        $('#btnCancelEditMi').removeClass('d-none');
+        $('#masterItemModal .modal-body').animate({ scrollTop: 0 }, 'fast');
     });
 
-    // Tombol Hapus Master Item Audit (Khusus Admin)
-    $(document).on('click', '.btn-del-mi', function () {
-        if (!confirm('Yakin ingin menghapus item audit ini?')) return;
-        var id = $(this).data('id');
+    // Toggle ON / OFF item per bagian tanpa reload
+    $(document).on('change', '.mi-toggle-bagian', function () {
+        var $sw = $(this);
+        var id = $sw.data('id');
+        var currentBagian = $('#mi_bagian_filter').val() || '';
+        if (!currentBagian) return;
+
+        var isChecked = $sw.is(':checked');
         var baseUrl = config.masterItemBaseUrl || '/checksheet/kepatuhan-operator/master-item';
+        $sw.prop('disabled', true);
+        miPendingToggles++;
+
         $.ajax({
-            url: baseUrl + '/' + id,
-            type: "DELETE",
+            url: baseUrl + '/' + id + '/toggle-bagian',
+            type: 'POST',
+            data: {
+                bagian: currentBagian,
+                is_enabled: isChecked ? 1 : 0
+            },
+            dataType: 'json',
             success: function (res) {
-                if (res.success) {
-                    location.reload();
+                if (res && res.success) {
+                    masterItemsChanged = true;
+                } else {
+                    $sw.prop('checked', !isChecked);
+                }
+            },
+            error: function (xhr) {
+                $sw.prop('checked', !isChecked);
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal mengubah status item.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                } else {
+                    alert(msg);
+                }
+            },
+            complete: function () {
+                miPendingToggles--;
+                $sw.prop('disabled', false);
+                // Sinkronkan tabel (nomor urut & redup) hanya setelah SEMUA toggle selesai,
+                // agar response lama tidak menimpa switch yang baru diklik.
+                if (miPendingToggles === 0 && ($('#mi_bagian_filter').val() || '') === currentBagian) {
+                    loadMasterItems(currentBagian, true);
                 }
             }
         });
+    });
+
+    // Reset teks item yang dioverride di bagian kembali ke Default
+    $(document).on('click', '.btn-reset-mi-bagian', function () {
+        var id = $(this).data('id');
+        var currentBagian = $('#mi_bagian_filter').val() || '';
+        if (!currentBagian) return;
+        var baseUrl = config.masterItemBaseUrl || '/checksheet/kepatuhan-operator/master-item';
+
+        var execReset = function () {
+            $.ajax({
+                url: baseUrl + '/' + id + '/reset-bagian',
+                type: 'POST',
+                data: { bagian: currentBagian },
+                dataType: 'json',
+                success: function (res) {
+                    if (res && res.success) {
+                        masterItemsChanged = true;
+                        resetMasterItemForm();
+                        renderMasterItemsTable(currentBagian, res.data);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: res.message || 'Dikembalikan ke Default.',
+                                showConfirmButton: false,
+                                timer: 1800
+                            });
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal mengembalikan item ke Default.';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                    } else {
+                        alert(msg);
+                    }
+                }
+            });
+        };
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Kembalikan ke Default?',
+                text: 'Teks item ini untuk bagian "' + currentBagian + '" akan dikembalikan mengikuti Template Default.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#f6c23e',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Reset ke Default',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) execReset();
+            });
+        } else if (confirm('Kembalikan item ini ke isi Default?')) {
+            execReset();
+        }
+    });
+
+    // Tombol Hapus Master Item Audit
+    $(document).on('click', '.btn-del-mi', function () {
+        var id = $(this).data('id');
+        var bagian = $('#mi_bagian_filter').val() || '';
+        var baseUrl = config.masterItemBaseUrl || '/checksheet/kepatuhan-operator/master-item';
+
+        var execDelete = function () {
+            $.ajax({
+                url: baseUrl + '/' + id,
+                type: "DELETE",
+                data: { bagian: bagian },
+                dataType: 'json',
+                success: function (res) {
+                    if (res && res.success) {
+                        masterItemsChanged = true;
+                        resetMasterItemForm();
+                        renderMasterItemsTable(bagian, res.data);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: res.message || 'Item berhasil dihapus.',
+                                showConfirmButton: false,
+                                timer: 1800
+                            });
+                        }
+                    }
+                },
+                error: function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Gagal menghapus item audit.';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                    } else {
+                        alert(msg);
+                    }
+                }
+            });
+        };
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Hapus Item Audit?',
+                text: 'Item yang dihapus akan langsung disusun ulang urutannya secara otomatis.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: '<i class="fas fa-trash mr-1"></i> Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) execDelete();
+            });
+        } else if (confirm('Yakin ingin menghapus item audit ini?')) {
+            execDelete();
+        }
     });
 
     // Tombol Cetak Langsung (pake hidden iframe biar nggak perlu buka tab baru)
@@ -728,7 +1112,7 @@ $(document).ready(function () {
                     document.title = printTitle;
                     try {
                         frameWin.document.title = printTitle;
-                    } catch (err) {}
+                    } catch (err) { }
                 }
                 frameWin.focus();
                 frameWin.print();
@@ -932,15 +1316,15 @@ $(document).ready(function () {
         var newRowHtml = '<div class="input-group input-group-sm sch-date-row mt-1">' +
             '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
             '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
-                '<option value="Non Shift"' + (lastShift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
-                '<option value="Shift 1"' + (lastShift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
-                '<option value="Shift 2"' + (lastShift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
-                '<option value="Shift 3"' + (lastShift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
+            '<option value="Non Shift"' + (lastShift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
+            '<option value="Shift 1"' + (lastShift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
+            '<option value="Shift 2"' + (lastShift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
+            '<option value="Shift 3"' + (lastShift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
             '</select>' +
             '<div class="input-group-append">' +
-                '<button class="btn btn-outline-danger border-0 shadow-sm btn-remove-date-row" type="button" title="Hapus Baris Plan" style="width: 34px; padding: 0;">' +
-                    '<i class="fas fa-times"></i>' +
-                '</button>' +
+            '<button class="btn btn-outline-danger border-0 shadow-sm btn-remove-date-row" type="button" title="Hapus Baris Plan" style="width: 34px; padding: 0;">' +
+            '<i class="fas fa-times"></i>' +
+            '</button>' +
             '</div>' +
             '</div>';
         $('#schDatesContainer').append(newRowHtml);
@@ -984,17 +1368,17 @@ $(document).ready(function () {
             '<div class="input-group input-group-sm sch-date-row">' +
             '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" value="' + date + '" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
             '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
-                '<option value="Non Shift"' + (shift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
-                '<option value="Shift 1"' + (shift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
-                '<option value="Shift 2"' + (shift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
-                '<option value="Shift 3"' + (shift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
+            '<option value="Non Shift"' + (shift === 'Non Shift' ? ' selected' : '') + '>Non Shift</option>' +
+            '<option value="Shift 1"' + (shift === 'Shift 1' ? ' selected' : '') + '>Shift 1</option>' +
+            '<option value="Shift 2"' + (shift === 'Shift 2' ? ' selected' : '') + '>Shift 2</option>' +
+            '<option value="Shift 3"' + (shift === 'Shift 3' ? ' selected' : '') + '>Shift 3</option>' +
             '</select>' +
             '</div>'
         );
         $('#schDatesHint').hide();
 
         // Ubah tampilan form ke mode Edit
-        $('#formScheduleTitle').html('<i class="fas fa-edit mr-1 text-primary"></i> Edit Jadwal');
+        $('#formScheduleTitle').html('Edit Jadwal');
         $('#btnSaveSchedule').html('<i class="fas fa-check mr-1"></i> Update Jadwal');
         $('#btnCancelEditSchedule').removeClass('d-none');
 
@@ -1014,15 +1398,15 @@ $(document).ready(function () {
             '<div class="input-group input-group-sm sch-date-row">' +
             '<input type="date" class="form-control form-control-sm border-0 shadow-sm sch-date-input" style="cursor: pointer; background-color: #fff; min-width: 120px;" onclick="try{this.showPicker()}catch(e){}">' +
             '<select class="form-control form-control-sm border-0 shadow-sm sch-shift-select" style="cursor: pointer; background-color: #fff; max-width: 105px; border-left: 1px solid #edf2f7 !important;">' +
-                '<option value="Non Shift">Non Shift</option>' +
-                '<option value="Shift 1">Shift 1</option>' +
-                '<option value="Shift 2">Shift 2</option>' +
-                '<option value="Shift 3">Shift 3</option>' +
+            '<option value="Non Shift">Non Shift</option>' +
+            '<option value="Shift 1">Shift 1</option>' +
+            '<option value="Shift 2">Shift 2</option>' +
+            '<option value="Shift 3">Shift 3</option>' +
             '</select>' +
             '<div class="input-group-append">' +
-                '<button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan & Shift" style="width: 34px; padding: 0;">' +
-                    '<i class="fas fa-plus"></i>' +
-                '</button>' +
+            '<button type="button" class="btn btn-primary shadow-sm" id="btnAddDateRow" title="Tambah Tanggal Plan & Shift" style="width: 34px; padding: 0;">' +
+            '<i class="fas fa-plus"></i>' +
+            '</button>' +
             '</div>' +
             '</div>'
         );

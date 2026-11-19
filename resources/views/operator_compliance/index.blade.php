@@ -476,6 +476,7 @@
                      data-master-item-base-url="{{ url('/checksheet/kepatuhan-operator/master-item') }}"
                      data-schedule-store-url="{{ route('checksheet.operator_compliance.schedule.store') }}"
                      data-schedule-base-url="{{ url('/checksheet/kepatuhan-operator/schedule') }}"
+                     data-master-item-list-url="{{ route('checksheet.operator_compliance.master_item.list') }}"
                      data-month-name="{{ $monthNames[$month] }} {{ $year }}"
                      data-plan-days='@json($planDays ?? [])'
                 ></div>
@@ -544,7 +545,7 @@
                         @endif
 
                         <!-- Tombol Pengaturan Master Item (Role SPV ke Atas) -->
-                        @if(in_array(auth()->user()->role, ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating']))
+                        @if(in_array(auth()->user()->role, \App\Models\OperatorComplianceItem::MASTER_MANAGER_ROLES))
                             <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-sm"
                                     data-toggle="modal" data-target="#masterItemModal">
                                 <i class="fas fa-cog fa-sm mr-1"></i> Kelola Master Item
@@ -604,6 +605,13 @@
                         </thead>
                         <tbody>
                             @php $itemIndex = 1; @endphp
+                            @if($groupedItems->isEmpty())
+                                <tr>
+                                    <td colspan="{{ $daysInMonth + 5 }}" class="text-center text-muted py-4">
+                                        Belum ada item audit aktif untuk bagian {{ $checksheet->bagian ?: 'Quality Control' }}. Aktifkan item melalui Kelola Master Item.
+                                    </td>
+                                </tr>
+                            @endif
                             @foreach($groupedItems as $prinsip => $itemList)
                                 @php $firstInGroup = true; $groupCount = count($itemList); @endphp
                                 @foreach($itemList as $item)
@@ -869,7 +877,7 @@
                     <div class="col-md-12">
                         <div class="card border-left-primary shadow-xs">
                             <div class="card-body p-3">
-                                <h6 class="font-weight-bold text-primary mb-2">
+                                <h6 class="font-weight-bold text-dark mb-2">
                                     <i class="fas fa-info-circle mr-1"></i> Cara Pengisian & Metode Input Data:
                                 </h6>
                                 <ol class="pl-3 mb-0 small text-gray-800" style="line-height: 1.6;">
@@ -892,7 +900,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
                 <div class="modal-header bg-white" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem;">
-                    <h5 class="modal-title text-primary font-weight-bold" id="problemLogModalLabel">
+                    <h5 class="modal-title text-dark font-weight-bold" id="problemLogModalLabel">
                         Daftar Item Masalah (Kontrol Kepatuhan)
                     </h5>
                     <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
@@ -902,7 +910,7 @@
                 <div class="modal-body bg-light px-4 py-4">
 
                     <!-- Section 1: Form Input Item Masalah -->
-                    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;" id="formProblemTitle">
+                    <div class="font-weight-bold text-dark mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;" id="formProblemTitle">
                         FORM INPUT ITEM MASALAH ABNORMAL
                     </div>
 
@@ -972,7 +980,7 @@
                     </form>
 
                     <!-- Section 2: Tabel Daftar Masalah (Schedule Grid Style) -->
-                    <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                    <div class="font-weight-bold text-dark mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
                         DAFTAR RIWAYAT ITEM MASALAH TERDAFTAR
                     </div>
 
@@ -1042,28 +1050,55 @@
     </div>
 
     <!-- Modal 2: Kelola Master Item Audit (Role SPV ke Atas - Schedule Style & Tanpa Scrollbar) -->
-    @if(in_array(auth()->user()->role, ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating']))
+    @if(in_array(auth()->user()->role, \App\Models\OperatorComplianceItem::MASTER_MANAGER_ROLES))
         <div class="modal fade" id="masterItemModal" tabindex="-1" role="dialog" aria-labelledby="masterItemModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
                     <div class="modal-header bg-white" style="border-bottom: 2px solid #e2e8f0; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem;">
-                        <h5 class="modal-title text-primary font-weight-bold" id="masterItemModalLabel">
-                            <i class="fas fa-cogs mr-2"></i>Kelola Master Item Audit
+                        <h5 class="modal-title text-dark font-weight-bold" id="masterItemModalLabel">
+                            Kelola Master Item Audit
                         </h5>
                         <button type="button" class="close text-secondary" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body bg-light px-4 py-4">
+                        @php
+                            $bagianOpts = $bagianOptions ?? \App\Models\OperatorComplianceItem::getBagianOptions();
+                            $activeBagianModal = in_array($checksheet->bagian ?? '', $bagianOpts) ? $checksheet->bagian : '';
+                        @endphp
+
+                        <!-- Filter / Target Bagian Audit -->
+                        <div class="bg-white p-3 mb-3 shadow-sm border d-flex flex-wrap align-items-center justify-content-between" style="border-radius: 8px; gap: 10px;">
+                            <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                                <label for="mi_bagian_filter" class="small font-weight-bold text-gray-800 mb-0">
+                                    Pilih Bagian:
+                                </label>
+                                <select id="mi_bagian_filter" class="form-control form-control-sm border shadow-xs font-weight-bold" style="width: 310px;">
+                                    <option value="" {{ $activeBagianModal === '' ? 'selected' : '' }}>Default / Umum (Semua Bagian)</option>
+                                    @foreach($bagianOpts as $bOpt)
+                                        <option value="{{ $bOpt }}" {{ $activeBagianModal === $bOpt ? 'selected' : '' }}>{{ $bOpt }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                         
                         <!-- Form Section -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;" id="masterItemFormTitle">
-                            <i class="fas fa-plus-circle mr-1"></i> TAMBAH ITEM AUDIT BARU
+                        <div class="font-weight-bold text-dark mb-1 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;" id="masterItemFormTitle">
+                            TAMBAH ITEM AUDIT BARU
+                        </div>
+                        <div id="miFormScopeHint" class="small text-muted mb-3">
+                            @if($activeBagianModal === '')
+                                Item baru akan ditambahkan ke <strong>Template Default</strong> (berlaku untuk semua bagian).
+                            @else
+                                Item baru akan ditambahkan <strong>khusus untuk bagian {{ $activeBagianModal }}</strong> (tidak masuk ke Default).
+                            @endif
                         </div>
 
                         <form id="masterItemForm" class="bg-white p-3 mb-4 shadow-sm border" style="border-radius: 8px;">
                             @csrf
                             <input type="hidden" name="master_item_id" id="master_item_id">
+                            <input type="hidden" name="bagian" id="mi_bagian" value="{{ $activeBagianModal }}">
 
                             <div class="form-row">
                                 <div class="form-group col-md-4">
@@ -1076,21 +1111,26 @@
                                 </div>
                                 <div class="form-group col-md-4">
                                     <label class="small font-weight-bold text-gray-700">Urutan (Order No)</label>
-                                    <input type="number" name="order_no" id="mi_order_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="1, 2, 3...">
+                                    <input type="number" name="order_no" id="mi_order_no" class="form-control form-control-sm border-0 shadow-sm" placeholder="Otomatis jika kosong...">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="small font-weight-bold text-gray-700">Standard / Kriteria Audit <span class="text-danger">*</span></label>
                                 <textarea name="standard" id="mi_standard" rows="2" class="form-control form-control-sm border-0 shadow-sm" placeholder="Penjelasan standar kriteria audit..." required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-dark btn-sm font-weight-bold px-4 shadow-sm">
-                                <i class="fas fa-save mr-1"></i> Simpan Item Audit
-                            </button>
+                            <div class="d-flex align-items-center" style="gap: 8px;">
+                                <button type="submit" id="btnSaveMasterItem" class="btn btn-dark btn-sm font-weight-bold px-4 shadow-sm">
+                                    <i class="fas fa-save mr-1"></i> Simpan Item Audit
+                                </button>
+                                <button type="button" id="btnCancelEditMi" class="btn btn-light border btn-sm font-weight-bold px-3 d-none">
+                                    Batal Edit
+                                </button>
+                            </div>
                         </form>
 
                         <!-- Master Item List Table (Schedule Style & Tanpa Scrollbar) -->
-                        <div class="font-weight-bold text-primary mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
-                            <i class="fas fa-table mr-1"></i> DAFTAR MASTER ITEM AUDIT TERDAFTAR (SELURUH DATA)
+                        <div class="font-weight-bold text-dark mb-3 pb-2" style="border-bottom: 2px solid #e2e8f0; font-size: 0.9rem;">
+                            DAFTAR MASTER ITEM AUDIT TERDAFTAR (<span id="miTableBagianLabel">{{ $activeBagianModal ?: 'DEFAULT / SEMUA BAGIAN' }}</span>)
                         </div>
 
                         <div class="bg-white p-3 shadow-sm border" style="border-radius: 8px;">
@@ -1098,36 +1138,20 @@
                                 <table class="table table-bordered table-hover mb-0 table-schedule-style">
                                     <thead>
                                         <tr class="text-center">
-                                            <th style="width:40px;">NO</th>
+                                            <th style="width:45px;">NO</th>
+                                            <th class="mi-col-status {{ $activeBagianModal === '' ? 'd-none' : '' }}" style="width:65px;">STATUS</th>
                                             <th>PRINSIP DASAR</th>
                                             <th>ITEM CHECK</th>
                                             <th>STANDARD</th>
-                                            <th style="width:80px;">AKSI</th>
+                                            <th style="width:105px;">AKSI</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @foreach($items as $mIdx => $mi)
-                                            <tr>
-                                                <td class="text-center font-weight-bold align-middle">{{ $mi->order_no }}</td>
-                                                <td class="align-middle">{{ $mi->prinsip_dasar }}</td>
-                                                <td class="font-weight-bold align-middle">{{ $mi->item_check }}</td>
-                                                <td class="align-middle">{{ $mi->standard }}</td>
-                                                <td class="text-center align-middle">
-                                                    <button class="btn btn-sm btn-info py-0 px-2 rounded-circle btn-edit-mi"
-                                                            data-id="{{ $mi->id }}"
-                                                            data-prinsip="{{ $mi->prinsip_dasar }}"
-                                                            data-item="{{ $mi->item_check }}"
-                                                            data-standard="{{ $mi->standard }}"
-                                                            data-order="{{ $mi->order_no }}"
-                                                            title="Edit Item Audit">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-danger py-0 px-2 rounded-circle btn-del-mi" data-id="{{ $mi->id }}" title="Hapus Item Audit">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                                    <tbody id="masterItemTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-3">
+                                                <i class="fas fa-spinner fa-spin mr-1"></i> Memuat daftar item audit...
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

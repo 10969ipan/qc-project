@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OperatorComplianceItem;
+use App\Models\OperatorComplianceItemBagianSetting;
 use App\Models\OperatorComplianceChecksheet;
 use App\Models\OperatorComplianceEntry;
 use App\Models\OperatorComplianceProblem;
@@ -116,14 +117,6 @@ class OperatorComplianceController extends Controller
             $inspectors->push($selectedOperator);
         }
 
-        // Ambil semua item audit yang aktif
-        $items = OperatorComplianceItem::where('is_active', true)
-            ->orderBy('order_no')
-            ->get();
-
-        // Kelompokkan item audit berdasarkan Prinsip Dasar
-        $groupedItems = $items->groupBy('prinsip_dasar');
-
         // Hitung total hari dalam bulan yang dipilih
         $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
@@ -161,12 +154,13 @@ class OperatorComplianceController extends Controller
             $checksheet->save();
         }
 
-        // Load entri matriks yang udah diisi (diatur berdasarkan item_id dan tanggal)
-        $entries = OperatorComplianceEntry::where('checksheet_id', $checksheet->id)->get();
-        $entriesMatrix = [];
-        foreach ($entries as $entry) {
-            $entriesMatrix[$entry->item_id][$entry->day] = $entry->status;
-        }
+        // Ambil item audit yang aktif sesuai bagian operator (fallback ke Default/NULL)
+        $items = OperatorComplianceItem::getItemsForBagian($checksheet->bagian);
+        $groupedItems = $items->groupBy('prinsip_dasar');
+        $bagianOptions = OperatorComplianceItem::getBagianOptions();
+
+        // Load entri matriks yang udah diisi
+        $entriesMatrix = OperatorComplianceItem::buildEntriesMatrix($checksheet->id, $items);
 
         // Hitung skor harian dan total persentase bulanan
         $totalItemsCount = $items->count();
@@ -255,7 +249,8 @@ class OperatorComplianceController extends Controller
             'monthlyPct',
             'problems',
             'planDays',
-            'allSchedules'
+            'allSchedules',
+            'bagianOptions'
         ));
     }
 
@@ -318,10 +313,7 @@ class OperatorComplianceController extends Controller
             $inspectors->push($selectedOperator);
         }
 
-        // Ambil master item & hitung statistik sama kayak di index
-        $items        = OperatorComplianceItem::where('is_active', true)->orderBy('order_no')->get();
-        $groupedItems = $items->groupBy('prinsip_dasar');
-        $daysInMonth  = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
+        $daysInMonth = \Carbon\Carbon::createFromDate($year, $month, 1)->daysInMonth;
 
         // Ambil bagian dari jadwal operator di bulan ini atau jadwal terbaru
         $latestScheduleBagian = OperatorComplianceSchedule::where('operator_id', $selectedOperatorId)
@@ -347,11 +339,9 @@ class OperatorComplianceController extends Controller
             $checksheet->save();
         }
 
-        $entries       = OperatorComplianceEntry::where('checksheet_id', $checksheet->id)->get();
-        $entriesMatrix = [];
-        foreach ($entries as $entry) {
-            $entriesMatrix[$entry->item_id][$entry->day] = $entry->status;
-        }
+        $items         = OperatorComplianceItem::getItemsForBagian($checksheet->bagian);
+        $groupedItems  = $items->groupBy('prinsip_dasar');
+        $entriesMatrix = OperatorComplianceItem::buildEntriesMatrix($checksheet->id, $items);
 
         $dailyScores        = [];
         $totalOkMonth       = 0;
@@ -432,6 +422,15 @@ class OperatorComplianceController extends Controller
 
         $previousStatus = $entry ? $entry->status : null;
 
+        // Item yang OFF / bukan milik bagian checksheet ini tidak boleh diisi (boleh dikosongkan)
+        $activeItemIds = OperatorComplianceItem::getItemsForBagian($checksheet->bagian)->pluck('id')->all();
+        if (!empty($status) && !in_array((int) $itemId, array_map('intval', $activeItemIds), true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Item ini tidak aktif (OFF) untuk bagian checksheet ini. Muat ulang halaman.',
+            ], 422);
+        }
+
         if ($status === null || $status === '') {
             // Kalau status dikosongkan, hapus dari database
             OperatorComplianceEntry::where('checksheet_id', $checksheetId)
@@ -483,8 +482,12 @@ class OperatorComplianceController extends Controller
             $checksheet->touch();
         }
 
-        // Hitung ulang statistik harian & bulanan secara realtime
-        $allEntries = OperatorComplianceEntry::where('checksheet_id', $checksheetId)->get();
+        // Hitung ulang statistik harian & bulanan secara realtime (hanya item yang aktif & ON pada bagian checksheet)
+        $allEntries = empty($activeItemIds)
+            ? collect()
+            : OperatorComplianceEntry::where('checksheet_id', $checksheetId)
+                ->whereIn('item_id', $activeItemIds)
+                ->get();
 
         $dayOk = $allEntries->where('day', $day)->where('status', 'OK')->count();
         $dayNg = $allEntries->where('day', $day)->where('status', 'NG')->count();
@@ -664,87 +667,283 @@ class OperatorComplianceController extends Controller
     }
 
     /**
-     * Tambah item audit baru ke master (Role SPV ke Atas)
+     * Ambil daftar Master Item Audit untuk Modal (mode Default atau mode Bagian)
      */
-    public function storeMasterItem(Request $request)
+    public function listMasterItems(Request $request)
     {
-        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
         if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
+        $bagian = trim((string) $request->query('bagian', '')) ?: null;
+
+        return response()->json([
+            'success' => true,
+            'bagian'  => $bagian ?? '',
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($bagian),
+        ]);
+    }
+
+    /**
+     * Rapikan spasi berlebih agar grup Prinsip Dasar tidak terpecah oleh perbedaan spasi
+     */
+    private function normalizeMasterItemInput(Request $request): void
+    {
+        $clean = [];
+        foreach (['prinsip_dasar', 'item_check', 'standard'] as $f) {
+            if ($request->has($f)) {
+                $clean[$f] = trim((string) $request->input($f));
+            }
+        }
+        $request->merge($clean);
+    }
+
+    /**
+     * Tambah item audit baru ke master (Role SPV ke Atas)
+     */
+    public function storeMasterItem(Request $request)
+    {
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $this->normalizeMasterItemInput($request);
         $request->validate([
+            'bagian'        => 'nullable|string|max:100',
             'prinsip_dasar' => 'required|string',
             'item_check'    => 'required|string',
             'standard'      => 'required|string',
-            'order_no'      => 'nullable|integer',
+            'order_no'      => 'nullable|integer|min:1',
         ]);
 
-        $maxOrder = OperatorComplianceItem::max('order_no') ?? 0;
+        $targetBagian = trim((string) $request->input('bagian', '')) ?: null;
+
+        $maxDefaultOrder = (int) (OperatorComplianceItem::where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('bagian')->orWhere('bagian', '');
+            })
+            ->max('order_no') ?? 0);
+
+        if ($targetBagian !== null) {
+            $maxBagianOrder = (int) (OperatorComplianceItem::where('is_active', true)
+                ->where('bagian', $targetBagian)
+                ->max('order_no') ?? 0);
+            $nextOrder = max($maxDefaultOrder, $maxBagianOrder) + 1;
+        } else {
+            $nextOrder = $maxDefaultOrder + 1;
+        }
 
         $item = OperatorComplianceItem::create([
+            'bagian'        => $targetBagian,
             'prinsip_dasar' => $request->prinsip_dasar,
             'item_check'    => $request->item_check,
             'standard'      => $request->standard,
-            'order_no'      => $request->order_no ?: ($maxOrder + 1),
+            'order_no'      => $request->order_no ?: $nextOrder,
             'is_active'     => true,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Master Item Audit berhasil ditambahkan.',
+            'message' => $targetBagian
+                ? "Item khusus bagian {$targetBagian} berhasil ditambahkan."
+                : 'Master Item Audit Default berhasil ditambahkan.',
             'item'    => $item,
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($targetBagian),
         ]);
     }
 
     /**
-     * Update item audit master (Role SPV ke Atas)
+     * Update item audit master atau override khusus bagian (Role SPV ke Atas)
      */
     public function updateMasterItem(Request $request, $id)
     {
-        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
         if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
+        $this->normalizeMasterItemInput($request);
         $request->validate([
+            'bagian'        => 'nullable|string|max:100',
             'prinsip_dasar' => 'required|string',
             'item_check'    => 'required|string',
             'standard'      => 'required|string',
-            'order_no'      => 'nullable|integer',
+            'order_no'      => 'nullable|integer|min:1',
         ]);
 
+        $targetBagian = trim((string) $request->input('bagian', '')) ?: null;
         $item = OperatorComplianceItem::findOrFail($id);
-        $item->update([
-            'prinsip_dasar' => $request->prinsip_dasar,
-            'item_check'    => $request->item_check,
-            'standard'      => $request->standard,
-            'order_no'      => $request->order_no ?? $item->order_no,
-        ]);
+
+        if (!empty($item->bagian) && $item->bagian !== $targetBagian) {
+            return response()->json(['success' => false, 'message' => 'Item ini bukan milik bagian yang dipilih.'], 422);
+        }
+
+        if ($targetBagian !== null && empty($item->bagian)) {
+            // Simpan hanya nilai yang berbeda dari Default (sama dengan Default = null / ikut Default,
+            // sehingga tidak ikut "terkunci" saat urutan/isi Default berubah)
+            $diff = fn($new, $orig) => ((string) $new === (string) $orig) ? null : $new;
+            $custom = [
+                'custom_prinsip_dasar' => $diff($request->prinsip_dasar, $item->prinsip_dasar),
+                'custom_item_check'    => $diff($request->item_check, $item->item_check),
+                'custom_standard'      => $diff($request->standard, $item->standard),
+                'custom_order_no'      => $request->order_no ? $diff((int) $request->order_no, (int) $item->order_no) : null,
+            ];
+
+            $setting = OperatorComplianceItemBagianSetting::where('item_id', $item->id)
+                ->where('bagian', $targetBagian)
+                ->first();
+
+            if (!array_filter($custom, fn($v) => $v !== null) && (!$setting || $setting->is_enabled)) {
+                // Tidak ada perbedaan dari Default & item ON -> tidak perlu menyimpan baris setting
+                if ($setting) {
+                    $setting->delete();
+                }
+            } else {
+                OperatorComplianceItemBagianSetting::updateOrCreate(
+                    ['item_id' => $item->id, 'bagian' => $targetBagian],
+                    $custom
+                );
+            }
+            $msg = "Item untuk bagian {$targetBagian} berhasil disesuaikan tanpa mengubah Default.";
+        } else {
+            $item->update([
+                'prinsip_dasar' => $request->prinsip_dasar,
+                'item_check'    => $request->item_check,
+                'standard'      => $request->standard,
+                'order_no'      => $request->order_no ?? $item->order_no,
+            ]);
+            $msg = 'Master Item Audit berhasil diperbarui.';
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Master Item Audit berhasil diperbarui.',
+            'message' => $msg,
             'item'    => $item,
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($targetBagian),
         ]);
     }
 
     /**
      * Hapus item audit dari master (Role SPV ke Atas)
      */
-    public function destroyMasterItem($id)
+    public function destroyMasterItem(Request $request, $id)
     {
-        $allowedRoles = ['admin', 'manager', 'manager_plating', 'asst_manager', 'asst_manager_plating', 'supervisor', 'supervisor_plating'];
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
         if (!in_array(Auth::user()->role, $allowedRoles)) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
+        $targetBagian = trim((string) $request->input('bagian', '')) ?: null;
         $item = OperatorComplianceItem::findOrFail($id);
-        $item->delete();
+
+        if ($targetBagian !== null && empty($item->bagian)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Item Default tidak dihapus dari mode Bagian. Gunakan toggle ON/OFF untuk menonaktifkannya pada bagian ini.',
+            ], 422);
+        }
+
+        // Item khusus bagian hanya boleh dihapus dari bagian pemiliknya
+        if (!empty($item->bagian) && $item->bagian !== $targetBagian) {
+            return response()->json(['success' => false, 'message' => 'Item ini bukan milik bagian yang dipilih.'], 422);
+        }
+
+        // Nonaktifkan (soft-delete), bukan hapus permanen: FK entries ON DELETE CASCADE
+        // akan menghapus seluruh riwayat audit checksheet jika baris item benar-benar dihapus.
+        $deletedBagian = $item->bagian;
+        $item->update(['is_active' => false]);
+
+        // Susun ulang nomor urut (order_no) agar tetap berurutan tanpa lompat
+        OperatorComplianceItem::resequenceOrderNumbers($deletedBagian);
 
         return response()->json([
             'success' => true,
             'message' => 'Master Item Audit berhasil dihapus.',
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($targetBagian),
+        ]);
+    }
+
+    /**
+     * Toggle status ON/OFF sebuah item pada bagian tertentu (Role SPV ke Atas)
+     */
+    public function toggleMasterItemBagian(Request $request, $id)
+    {
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'bagian'     => 'required|string|max:100',
+            'is_enabled' => 'required|boolean',
+        ]);
+
+        $item = OperatorComplianceItem::findOrFail($id);
+        $bagian = trim((string) $request->input('bagian'));
+        $isEnabled = filter_var($request->input('is_enabled'), FILTER_VALIDATE_BOOLEAN);
+
+        // Item khusus milik bagian lain / item nonaktif tidak boleh di-toggle dari bagian ini
+        if (!$item->is_active || (!empty($item->bagian) && $item->bagian !== $bagian)) {
+            return response()->json(['success' => false, 'message' => 'Item ini bukan milik bagian yang dipilih.'], 422);
+        }
+
+        OperatorComplianceItemBagianSetting::updateOrCreate(
+            [
+                'item_id' => $item->id,
+                'bagian'  => $bagian,
+            ],
+            [
+                'is_enabled' => $isEnabled,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => $isEnabled
+                ? "Item diaktifkan (ON) untuk bagian {$bagian}."
+                : "Item dinonaktifkan (OFF) untuk bagian {$bagian}.",
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($bagian),
+        ]);
+    }
+
+    /**
+     * Kembalikan teks/urutan item yang telah diedit pada bagian tertentu ke isi Default (Role SPV ke Atas)
+     */
+    public function resetMasterItemBagian(Request $request, $id)
+    {
+        $allowedRoles = OperatorComplianceItem::MASTER_MANAGER_ROLES;
+        if (!in_array(Auth::user()->role, $allowedRoles)) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'bagian' => 'required|string|max:100',
+        ]);
+
+        $bagian = trim((string) $request->input('bagian'));
+        $setting = OperatorComplianceItemBagianSetting::where('item_id', $id)
+            ->where('bagian', $bagian)
+            ->first();
+
+        if ($setting) {
+            if ($setting->is_enabled) {
+                $setting->delete();
+            } else {
+                $setting->update([
+                    'custom_prinsip_dasar' => null,
+                    'custom_item_check'    => null,
+                    'custom_standard'      => null,
+                    'custom_order_no'      => null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item berhasil dikembalikan ke isi Default.',
+            'data'    => OperatorComplianceItem::getModalItemsForBagian($bagian),
         ]);
     }
 
