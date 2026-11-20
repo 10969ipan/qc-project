@@ -34,17 +34,9 @@
 
     @php
         $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
-        $plantCode = (is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant;
-        $plantCode = strtolower($plantCode ?: 'karawang');
-    @endphp
-
-
-    @php
-        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
-        $tableOptions = range(1, 15);
-        if ($plant === 'jakarta') {
-            $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-        }
+        $plantCode = strtolower($plantCode ?? ((is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant) ?: 'karawang');
+        $isJakarta = $isJakarta ?? in_array($plantCode, ['jakarta', 'jkt']);
+        $tableOptions = $tableOptions ?? range(1, 15);
     @endphp
 
 
@@ -84,10 +76,6 @@
     <div class="card shadow mb-4">
         <div class="card-body">
             @php
-                $currentPlant = strtolower(request('plant') ?? optional(auth()->user()->plant)->code ?? '');
-                $isJakarta = ($currentPlant === 'jakarta');
-                $plantCode = strtolower($currentPlant ?: 'karawang');
-
                 $docHeader = \App\Models\GeneralSetting::getDocHeader('sub_assy', $plantCode, [
                     'no_dokumen' => 'QC-KRW-F-0205',
                     'tgl_terbit' => '01/01/2026',

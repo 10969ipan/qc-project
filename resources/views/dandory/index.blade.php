@@ -975,7 +975,7 @@
                     <div class="row mb-2">
                         <div class="col-md-3">
                             <label class="small font-weight-bold text-gray-700 mb-1">Tanggal</label>
-                            <input type="date" name="check_date" id="awalDate" class="form-control form-control-sm border" value="{{ $date ?: date('Y-m-d') }}" required>
+                            <input type="date" name="check_date" id="awalDate" class="form-control form-control-sm border" value="{{ $date ?: $defaultDate }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="small font-weight-bold text-gray-700 mb-1">Shift</label>
@@ -1519,7 +1519,7 @@
 {{-- CONFIG DATA CONTAINER UNTUK EXTERNAL JS --}}
 <div id="dandory-config" class="d-none"
      data-plant="{{ $plantCode }}"
-     data-date="{{ $date ?: date('Y-m-d') }}"
+     data-date="{{ $date ?: $defaultDate }}"
      data-start-date="{{ $startDate }}"
      data-end-date="{{ $endDate }}"
      data-shift="{{ $shiftFilter }}"

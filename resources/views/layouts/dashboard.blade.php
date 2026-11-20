@@ -612,7 +612,7 @@
                     </div>
                     <div class="card-body bg-light" style="background: #fdfdfe;">
                         <div class="row px-2">
-                            @foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as $i)
+                            @foreach (range(1, 15) as $i)
                                 @php
                                     $data = $productionJakarta['activeLines']->get($i);
                                     $manualStatus = $productionJakarta['lineStatuses']->get($i);
@@ -1251,11 +1251,7 @@
             <div class="col-xl-6 col-lg-12 mb-5">
                 <div class="modern-card h-100">
                     @php
-                        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
                         $tableOptions = range(1, 15);
-                        if ($plant === 'jakarta') {
-                            $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-                        }
                     @endphp
                     <div class="modern-card-header d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">

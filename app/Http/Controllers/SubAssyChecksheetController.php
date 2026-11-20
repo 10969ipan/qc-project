@@ -227,14 +227,22 @@ class SubAssyChecksheetController extends Controller
         $defaultDate = ShiftHelper::getProductionDate($now);
         $defaultShift = ShiftHelper::getShift($now);
 
-        $plant = \App\Models\Plant::resolveId($request->query('plant') ?? $user->plant_id);
+        $plantInput = in_array($user->role, $canSwitchPlants)
+            ? ($request->query('plant') ?? $user->plant_id)
+            : $user->plant_id;
+        $plant = \App\Models\Plant::resolveId($plantInput);
+        $plantModel = $plant ? \App\Models\Plant::find($plant) : null;
+        $plantCode = strtolower($plantModel?->code ?? 'karawang');
+        $isJakarta = in_array($plantCode, ['jakarta', 'jkt']);
+        $tableOptions = range(1, 15);
+
         $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
             ->where('module', 'sub_assy')
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
 
-        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'nextProcesses'));
+        return view('sub_assy.create', compact('items', 'defaultDate', 'defaultShift', 'plant', 'plantCode', 'isJakarta', 'tableOptions', 'nextProcesses'));
     }
 
     /**
@@ -320,7 +328,7 @@ class SubAssyChecksheetController extends Controller
         if (in_array(auth()->user()->role, ['manager', 'asst_manager'])) {
             abort(403, 'Unauthorized action. Managers can only perform approvals.');
         }
-        $query = SubAssyChecksheet::query();
+        $query = SubAssyChecksheet::with('plant');
         if (auth()->user()->role === 'admin') {
             $query->withoutGlobalScope('plant');
         }

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\ShiftHelper;
 use App\Models\DandoryChecksheet;
 use App\Models\DandoryItem;
 use App\Models\DandoryOperatorConfig;
@@ -452,7 +453,7 @@ class DandoryChecksheetService
 
         return DandoryChecksheet::create([
             'plant_code'        => strtolower($data['plant_code'] ?? 'karawang'),
-            'check_date'        => $data['check_date'] ?? date('Y-m-d'),
+            'check_date'        => $data['check_date'] ?? ShiftHelper::getProductionDate(),
             'shift'             => $data['shift'] ?? 'Shift 1',
             'table_no'          => !empty($data['table_no']) ? $data['table_no'] : $defaultTable,
             'operator_id'       => $data['operator_id'],

@@ -97,11 +97,7 @@
             </div>
 
             @php
-                $plant = strtolower(auth()->user()->plant->code ?? request('plant') ?? 'karawang');
                 $tableOptions = range(1, 15);
-                if ($plant === 'jakarta') {
-                    $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-                }
             @endphp
             <div class="form-group row align-items-center mb-2">
                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Meja <span class="text-danger">*</span></label>

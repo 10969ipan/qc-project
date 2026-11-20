@@ -44,7 +44,8 @@ class DandoryChecksheetController extends Controller
             $endDate   = $date;
         }
 
-        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : now());
+        $defaultDate = ShiftHelper::getProductionDate();
+        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : Carbon::parse($defaultDate));
         $month       = (int) $dateCarbon->format('n');
         $year        = (int) $dateCarbon->format('Y');
 
@@ -233,7 +234,7 @@ class DandoryChecksheetController extends Controller
         ];
 
         return view('dandory.index', compact(
-            'plantCode', 'date', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
+            'plantCode', 'date', 'defaultDate', 'startDate', 'endDate', 'month', 'year', 'monthNames', 'shiftFilter', 'defaultShift', 'tableFilter',
             'statusFilter', 'outstandingCount',
             'inspectors', 'selectedOperatorId', 'selectedOperator', 'opConfig',
             'plantTables', 'isMachineBased', 'isPerformanceTest', 'defaultLocation', 'locationLabel', 'locationLabelUpper', 'locationOptions',
@@ -258,7 +259,7 @@ class DandoryChecksheetController extends Controller
             $endDate   = $date;
         }
 
-        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : now());
+        $dateCarbon  = $startDate ? Carbon::parse($startDate) : ($date ? Carbon::parse($date) : Carbon::parse(ShiftHelper::getProductionDate()));
         $month       = (int) $request->get('month', $dateCarbon->format('n'));
         $year        = (int) $request->get('year', $dateCarbon->format('Y'));
         $shiftFilter  = $request->get('shift');

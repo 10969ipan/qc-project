@@ -186,7 +186,7 @@
                 <th rowspan="2" style="width: 30px;">OK</th>
                 <th rowspan="2" style="width: 30px;">NG</th>
                 <th colspan="2">Detail NG</th>
-                <th rowspan="2">Jdg</th>
+                {{-- <th rowspan="2">Jdg</th> --}}
                 <th rowspan="2">Inisial</th>
                 <th rowspan="2">Ket</th>
             </tr>
@@ -253,11 +253,13 @@
                         @endif
                     </td>
 
+                    {{--
                     <td>
                         <span class="badge badge-{{ $checksheet->judgment == 'OK' ? 'success' : 'danger' }}">
                             {{ $checksheet->judgment }}
                         </span>
                     </td>
+                    --}}
                     <td class="text-uppercase">{{ $checksheet->operator_initials }}</td>
                     <td>{{ $checksheet->remarks ?? '-' }}</td>
                 </tr>

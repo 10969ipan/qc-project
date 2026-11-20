@@ -269,7 +269,7 @@
                 @if(!$isVerification)
                     <th colspan="2">Detail NG</th>
                 @endif
-                <th rowspan="2">Judgment</th>
+                {{-- <th rowspan="2">Judgment</th> --}}
                 @if(!$isVerification)
                     <th colspan="4">Approval Status</th>
                 @endif
@@ -347,10 +347,11 @@
                         </td>
                     @endif
 
-                    {{-- Judgment (Full Black Bold Text) --}}
+                    {{-- Judgment (Hidden)
                     <td style="font-weight: bold; white-space: nowrap; color: #000;">
                         {{ $checksheet->judgment }}
                     </td>
+                    --}}
 
                     @if(!$isVerification)
                         {{-- 4 Approval Columns: Full Black Bold Text --}}

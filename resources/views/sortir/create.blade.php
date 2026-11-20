@@ -11,11 +11,7 @@
     @endphp
 
     @php
-        $plant = strtolower(optional(auth()->user()->plant)->code ?? request('plant') ?? '');
         $tableOptions = range(1, 15);
-        if ($plant === 'jakarta') {
-            $tableOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-        }
 
         $docHeader = \App\Models\GeneralSetting::getDocHeader('sortir', $plantCode, [
             'no_dokumen' => 'QC-KRW-F-0208',

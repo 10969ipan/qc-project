@@ -439,7 +439,7 @@
                             <th rowspan="2" class="align-middle">OK</th>
                             <th rowspan="2" class="align-middle">NG</th>
                             <th colspan="2" class="align-middle">Detail NG</th>
-                            <th rowspan="2" class="align-middle">Judgment</th>
+                            <th rowspan="2" class="align-middle d-none">Judgment</th>
 
                             @if(request('view_mode') !== 'verifikasi')
                                 <th colspan="4" class="align-middle">Approval Status</th>
@@ -589,7 +589,7 @@
                                     @endif
                                 </td>
 
-                                <td class="align-middle">
+                                <td class="align-middle d-none">
                                     @if($checksheet->qrcode)
                                         <span class="badge badge-pill px-3 py-1 font-weight-bold" 
                                             style="background-color: {{ $checksheet->judgment == 'OK' ? '#1cc88a' : '#e74a3b' }}; color: white; font-size: 0.7rem;">
