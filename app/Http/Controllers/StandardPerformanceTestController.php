@@ -1046,6 +1046,43 @@ class StandardPerformanceTestController extends Controller
         $rekapQuery->getQuery()->limit = null;
         $rekapQuery->getQuery()->offset = null;
 
+        $masterMap = $masterItems->keyBy('id');
+
+        // Statistik OK / NG per elemen (Cr, Ni, Cu) per part, NG = aktual < standar (sama dengan penilaian di tabel)
+        $thicknessStats = [];
+        if ($testType === 'thickness') {
+            $thicknessRows = (clone $rekapQuery)
+                ->withoutEagerLoads()
+                ->reorder()
+                ->select('standard_performance_test_id', 'actual_cr', 'actual_ni', 'actual_cu')
+                ->cursor();
+
+            foreach ($thicknessRows as $row) {
+                $std = $masterMap->get($row->standard_performance_test_id);
+                $stat = &$thicknessStats[$row->standard_performance_test_id];
+                $stat ??= ['ok' => 0, 'ng_cr' => 0, 'ng_ni' => 0, 'ng_cu' => 0];
+
+                $hasData = false;
+                $hasNg = false;
+                foreach (['cr', 'ni', 'cu'] as $el) {
+                    $actual = $row->{'actual_' . $el};
+                    if (!is_numeric($actual)) {
+                        continue;
+                    }
+                    $hasData = true;
+                    $standard = $std?->{'thickness_' . $el};
+                    if (is_numeric($standard) && (float) $actual < (float) $standard) {
+                        $stat['ng_' . $el]++;
+                        $hasNg = true;
+                    }
+                }
+                if ($hasData && !$hasNg) {
+                    $stat['ok']++;
+                }
+                unset($stat);
+            }
+        }
+
         $rekapCounts = $rekapQuery
             ->withoutEagerLoads()
             ->reorder()
@@ -1053,16 +1090,19 @@ class StandardPerformanceTestController extends Controller
             ->groupBy('standard_performance_test_id')
             ->get();
 
-        $masterMap = $masterItems->keyBy('id');
-
-        $rekapSummary = $rekapCounts->map(function ($row) use ($masterMap) {
+        $rekapSummary = $rekapCounts->map(function ($row) use ($masterMap, $thicknessStats) {
             $std = $masterMap->get($row->standard_performance_test_id);
+            $stat = $thicknessStats[$row->standard_performance_test_id] ?? [];
             return (object)[
                 'part_name' => $std->part_name ?? '-',
                 'part_number' => $std->part_number ?? '-',
                 'customer_name' => $std->customer_name ?? '-',
                 'customer_standard' => $std->customer_standard ?? '-',
                 'total' => (int) $row->total,
+                'ok' => $stat['ok'] ?? 0,
+                'ng_cr' => $stat['ng_cr'] ?? 0,
+                'ng_ni' => $stat['ng_ni'] ?? 0,
+                'ng_cu' => $stat['ng_cu'] ?? 0,
             ];
         })->sortBy('part_name')->values();
 

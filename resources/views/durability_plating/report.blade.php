@@ -3352,6 +3352,7 @@
 </div>
 
 <!-- Modal Rekap Data Part -->
+@php $isThickRekap = $testType === 'thickness' && isset($rekapSummary); @endphp
 <div class="modal fade" id="modalRekapData" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 950px;">
         <div class="modal-content border-0" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
@@ -3367,25 +3368,38 @@
                 
                 <!-- Metadata Header Card -->
                 <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
-                    <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
-                        <div>
-                            <span class="small font-weight-bold text-gray-700 uppercase" style="letter-spacing: 0.5px;">
-                                PERIODE:
-                            </span>
-                            <span class="font-weight-bold text-gray-800 ml-1" style="font-size: 0.85rem;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-3 pb-2" style="border-bottom: 1px solid #f1f5f9;">
+                            <span class="small font-weight-bold text-gray-700 text-uppercase" style="letter-spacing: 0.5px;">Periode</span>
+                            <span class="font-weight-bold text-gray-800 ml-2" style="font-size: 0.85rem;">
                                 @if(request('start_date') || request('end_date'))
-                                    {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : 'Awal' }} 
-                                    s/d 
+                                    {{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : 'Awal' }}
+                                    s/d
                                     {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : 'Akhir' }}
                                 @else
                                     Semua Periode Tanggal
                                 @endif
                             </span>
                         </div>
-                        <div>
-                            <div class="small font-weight-bold text-gray-800" style="font-size: 0.8rem;">
-                                Total: <span class="text-gray-900" id="rekapPartCount">{{ count($rekapSummary ?? []) }} Part</span> &nbsp;|&nbsp; <span class="text-gray-900" id="rekapTestCount">{{ $rekapSummary ? $rekapSummary->sum('total') : 0 }} Pengujian</span>
-                            </div>
+                        @php
+                            $summaryTiles = [
+                                ['id' => 'rekapPartCount', 'label' => 'Part', 'value' => count($rekapSummary ?? []), 'color' => '#1e293b', 'bg' => '#f8fafc', 'border' => '#e2e8f0'],
+                                ['id' => 'rekapTestCount', 'label' => 'Pengujian', 'value' => $rekapSummary ? $rekapSummary->sum('total') : 0, 'color' => '#1e293b', 'bg' => '#f8fafc', 'border' => '#e2e8f0'],
+                            ];
+                            if ($isThickRekap) {
+                                $summaryTiles[] = ['id' => 'rekapSumOk', 'label' => 'OK', 'value' => $rekapSummary->sum('ok'), 'color' => '#15803d', 'bg' => '#f0fdf4', 'border' => '#bbf7d0'];
+                                $summaryTiles[] = ['id' => 'rekapSumNgCr', 'label' => 'NG Cr', 'value' => $rekapSummary->sum('ng_cr'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
+                                $summaryTiles[] = ['id' => 'rekapSumNgNi', 'label' => 'NG Ni', 'value' => $rekapSummary->sum('ng_ni'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
+                                $summaryTiles[] = ['id' => 'rekapSumNgCu', 'label' => 'NG Cu', 'value' => $rekapSummary->sum('ng_cu'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
+                            }
+                        @endphp
+                        <div style="display: grid; grid-template-columns: repeat({{ count($summaryTiles) }}, minmax(0, 1fr)); gap: 10px;">
+                            @foreach($summaryTiles as $tile)
+                                <div class="text-center" style="background: {{ $tile['bg'] }}; border: 1px solid {{ $tile['border'] }}; border-radius: 8px; padding: 8px 6px;">
+                                    <div id="{{ $tile['id'] }}" class="font-weight-bold" style="font-size: 1.25rem; line-height: 1.2; color: {{ $tile['color'] }};">{{ $tile['value'] }}</div>
+                                    <div class="text-uppercase font-weight-bold" style="font-size: 0.62rem; letter-spacing: 0.4px; color: {{ $tile['color'] }}; opacity: 0.8;">{{ $tile['label'] }}</div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -3408,6 +3422,11 @@
                                         <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Customer</th>
                                         <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Standard Customer</th>
                                         <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 90px;">Total</th>
+                                        @if($isThickRekap)
+                                            @foreach(['OK' => '#15803d', 'NG Cr' => '#b91c1c', 'NG Ni' => '#b91c1c', 'NG Cu' => '#b91c1c'] as $thLabel => $thColor)
+                                                <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: {{ $thColor }} !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 70px;">{{ $thLabel }}</th>
+                                            @endforeach
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3418,13 +3437,19 @@
                                             <td class="text-center align-middle font-mono">{{ $r->part_number }}</td>
                                             <td class="align-middle">{{ $r->customer_name }}</td>
                                             <td class="align-middle">{{ $r->customer_standard }}</td>
-                                            <td class="text-center align-middle font-weight-bold text-gray-800" style="font-size: 0.82rem;">
+                                            <td class="rekap-total text-center align-middle font-weight-bold text-gray-800" style="font-size: 0.82rem;">
                                                 {{ $r->total }}
                                             </td>
+                                            @if($isThickRekap)
+                                                <td class="rekap-ok text-center align-middle font-weight-bold {{ $r->ok > 0 ? 'text-success' : 'text-muted' }}">{{ $r->ok }}</td>
+                                                <td class="rekap-ng-cr text-center align-middle font-weight-bold {{ $r->ng_cr > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_cr }}</td>
+                                                <td class="rekap-ng-ni text-center align-middle font-weight-bold {{ $r->ng_ni > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_ni }}</td>
+                                                <td class="rekap-ng-cu text-center align-middle font-weight-bold {{ $r->ng_cu > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_cu }}</td>
+                                            @endif
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted italic">
+                                            <td colspan="{{ $isThickRekap ? 10 : 6 }}" class="text-center py-4 text-muted italic">
                                                 <i class="fas fa-info-circle mr-1"></i> Tidak ada data pengujian part pada periode/filter ini.
                                             </td>
                                         </tr>
@@ -3437,6 +3462,12 @@
                                             <td class="text-center py-2 text-gray-800 font-weight-bold" id="rekapGrandTotal" style="font-size: 0.85rem;">
                                                 {{ $rekapSummary ? $rekapSummary->sum('total') : 0 }}
                                             </td>
+                                            @if($isThickRekap)
+                                                <td class="text-center py-2 text-success font-weight-bold" id="rekapGrandOk">{{ $rekapSummary->sum('ok') }}</td>
+                                                <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgCr">{{ $rekapSummary->sum('ng_cr') }}</td>
+                                                <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgNi">{{ $rekapSummary->sum('ng_ni') }}</td>
+                                                <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgCu">{{ $rekapSummary->sum('ng_cu') }}</td>
+                                            @endif
                                         </tr>
                                     </tfoot>
                                 @endif
@@ -3463,10 +3494,13 @@
     @include('partials.bulk_approve_script')
     <script>
         $(document).ready(function() {
+            var rekapIsThickness = {{ $isThickRekap ? 'true' : 'false' }};
+            var rekapSumCols = { total: '.rekap-total', ok: '.rekap-ok', ngCr: '.rekap-ng-cr', ngNi: '.rekap-ng-ni', ngCu: '.rekap-ng-cu' };
+
             $('#searchRekapInput').on('keyup input', function() {
                 var value = $(this).val().toLowerCase().trim();
                 var visibleCount = 0;
-                var grandTotal = 0;
+                var sums = { total: 0, ok: 0, ngCr: 0, ngNi: 0, ngCu: 0 };
 
                 $('#tableRekapData tbody tr').each(function() {
                     var isNoData = $(this).find('td[colspan]').length > 0;
@@ -3479,21 +3513,28 @@
                     if (match) {
                         visibleCount++;
                         $(this).find('td:first').text(visibleCount);
-                        var cellVal = parseInt($(this).find('td:last').text().trim(), 10) || 0;
-                        grandTotal += cellVal;
+                        Object.keys(sums).forEach(function(k) {
+                            sums[k] += parseInt($(this).find(rekapSumCols[k]).text().trim(), 10) || 0;
+                        }, this);
                     }
                 });
 
-                $('#rekapPartCount').text(visibleCount + ' Part');
-                $('#rekapTestCount').text(grandTotal + ' Pengujian');
-                $('#rekapGrandTotal').text(grandTotal);
+                $('#rekapPartCount').text(visibleCount);
+                $('#rekapTestCount').text(sums.total);
+                $('#rekapGrandTotal').text(sums.total);
+                if (rekapIsThickness) {
+                    $('#rekapSumOk, #rekapGrandOk').text(sums.ok);
+                    $('#rekapSumNgCr, #rekapGrandNgCr').text(sums.ngCr);
+                    $('#rekapSumNgNi, #rekapGrandNgNi').text(sums.ngNi);
+                    $('#rekapSumNgCu, #rekapGrandNgCu').text(sums.ngCu);
+                }
             });
 
             $('#btnPrintRekapData').on('click', function() {
                 var title = "REKAP DATA PENGUJIAN PART " + "{{ strtoupper(ucwords(str_replace('_', ' ', $testType))) }} TEST";
                 var periode = "@if(request('start_date') || request('end_date')){{ request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->format('d/m/Y') : 'Awal' }} s/d {{ request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->format('d/m/Y') : 'Akhir' }}@else Semua Periode Tanggal @endif";
-                var totalPart = $('#rekapPartCount').text();
-                var totalPengujian = $('#rekapTestCount').text();
+                var totalPart = $('#rekapPartCount').text().trim() + ' Part';
+                var totalPengujian = $('#rekapTestCount').text().trim() + ' Pengujian';
                 var logoUrl = "{{ asset('master item/ipp.jpg') }}";
 
                 var rowsHtml = '';
@@ -3504,6 +3545,12 @@
                         var partNo = $(this).find('td:nth-child(3)').text().trim();
                         var customer = $(this).find('td:nth-child(4)').text().trim();
                         var total = $(this).find('td:nth-child(6)').text().trim();
+                        var thickCells = '';
+                        if (rekapIsThickness) {
+                            ['.rekap-ok', '.rekap-ng-cr', '.rekap-ng-ni', '.rekap-ng-cu'].forEach(function(sel) {
+                                thickCells += '<td style="text-align: center; padding: 5px;">' + $(this).find(sel).text().trim() + '</td>';
+                            }, this);
+                        }
 
                         rowsHtml += '<tr>' +
                             '<td style="text-align: center; padding: 5px;">' + (idx++) + '</td>' +
@@ -3511,11 +3558,24 @@
                             '<td style="text-align: center; padding: 5px;">' + partNo + '</td>' +
                             '<td style="text-align: left; padding: 5px;">' + customer + '</td>' +
                             '<td style="text-align: center; padding: 5px; font-weight: bold;">' + total + '</td>' +
+                            thickCells +
                         '</tr>';
                     }
                 });
 
                 var grandTotal = $('#rekapGrandTotal').text().trim();
+                var thickHeadHtml = rekapIsThickness
+                    ? '<th style="width: 45px;">OK</th><th style="width: 45px;">NG CR</th><th style="width: 45px;">NG NI</th><th style="width: 45px;">NG CU</th>'
+                    : '';
+                var thickFootHtml = rekapIsThickness
+                    ? ['#rekapGrandOk', '#rekapGrandNgCr', '#rekapGrandNgNi', '#rekapGrandNgCu'].map(function(id) {
+                        return '<td style="text-align: center;">' + $(id).text().trim() + '</td>';
+                    }).join('')
+                    : '';
+                var thickMeta = rekapIsThickness
+                    ? '<div>OK: ' + $('#rekapSumOk').text() + ' | NG CR: ' + $('#rekapSumNgCr').text() + ' | NG NI: ' + $('#rekapSumNgNi').text() + ' | NG CU: ' + $('#rekapSumNgCu').text() + '</div>'
+                    : '';
+                var emptyColspan = rekapIsThickness ? 9 : 5;
 
                 var printContent = '<!DOCTYPE html>' +
                 '<html>' +
@@ -3550,6 +3610,7 @@
                     '<div class="meta-info">' +
                         '<div>PERIODE: ' + periode + '</div>' +
                         '<div>TOTAL: ' + totalPart + ' | ' + totalPengujian + '</div>' +
+                        thickMeta +
                     '</div>' +
                     '<table class="table">' +
                         '<thead>' +
@@ -3559,15 +3620,17 @@
                                 '<th style="width: 110px;">PART NO</th>' +
                                 '<th>CUSTOMER</th>' +
                                 '<th style="width: 70px;">TOTAL</th>' +
+                                thickHeadHtml +
                             '</tr>' +
                         '</thead>' +
                         '<tbody>' +
-                            (rowsHtml || '<tr><td colspan="5" style="text-align:center; padding:10px;">Tidak ada data</td></tr>') +
+                            (rowsHtml || '<tr><td colspan="' + emptyColspan + '" style="text-align:center; padding:10px;">Tidak ada data</td></tr>') +
                         '</tbody>' +
                         '<tfoot>' +
                             '<tr>' +
                                 '<td colspan="4" style="text-align: right;">Total Keseluruhan Pengujian:</td>' +
                                 '<td style="text-align: center;">' + grandTotal + '</td>' +
+                                thickFootHtml +
                             '</tr>' +
                         '</tfoot>' +
                     '</table>' +
