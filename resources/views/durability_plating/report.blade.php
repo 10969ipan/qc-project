@@ -3388,6 +3388,7 @@
                             ];
                             if ($isThickRekap) {
                                 $summaryTiles[] = ['id' => 'rekapSumOk', 'label' => 'OK', 'value' => $rekapSummary->sum('ok'), 'color' => '#15803d', 'bg' => '#f0fdf4', 'border' => '#bbf7d0'];
+                                $summaryTiles[] = ['id' => 'rekapSumNg', 'label' => 'Total NG', 'value' => $rekapSummary->sum('ng'), 'color' => '#991b1b', 'bg' => '#fee2e2', 'border' => '#fca5a5'];
                                 $summaryTiles[] = ['id' => 'rekapSumNgCr', 'label' => 'NG Cr', 'value' => $rekapSummary->sum('ng_cr'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
                                 $summaryTiles[] = ['id' => 'rekapSumNgNi', 'label' => 'NG Ni', 'value' => $rekapSummary->sum('ng_ni'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
                                 $summaryTiles[] = ['id' => 'rekapSumNgCu', 'label' => 'NG Cu', 'value' => $rekapSummary->sum('ng_cu'), 'color' => '#b91c1c', 'bg' => '#fef2f2', 'border' => '#fecaca'];
@@ -3423,7 +3424,7 @@
                                         <th class="align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important;">Standard Customer</th>
                                         <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: #475569 !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 90px;">Total</th>
                                         @if($isThickRekap)
-                                            @foreach(['OK' => '#15803d', 'NG Cr' => '#b91c1c', 'NG Ni' => '#b91c1c', 'NG Cu' => '#b91c1c'] as $thLabel => $thColor)
+                                            @foreach(['OK' => '#15803d', 'Total NG' => '#991b1b', 'NG Cr' => '#b91c1c', 'NG Ni' => '#b91c1c', 'NG Cu' => '#b91c1c'] as $thLabel => $thColor)
                                                 <th class="text-center align-middle py-2" style="background-color: #f8fafc !important; color: {{ $thColor }} !important; font-weight: 700 !important; text-transform: uppercase !important; font-size: 0.65rem !important; letter-spacing: 0.2px !important; border-bottom: 2px solid #e2e8f0 !important; width: 70px;">{{ $thLabel }}</th>
                                             @endforeach
                                         @endif
@@ -3442,6 +3443,7 @@
                                             </td>
                                             @if($isThickRekap)
                                                 <td class="rekap-ok text-center align-middle font-weight-bold {{ $r->ok > 0 ? 'text-success' : 'text-muted' }}">{{ $r->ok }}</td>
+                                                <td class="rekap-ng text-center align-middle font-weight-bold {{ $r->ng > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng }}</td>
                                                 <td class="rekap-ng-cr text-center align-middle font-weight-bold {{ $r->ng_cr > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_cr }}</td>
                                                 <td class="rekap-ng-ni text-center align-middle font-weight-bold {{ $r->ng_ni > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_ni }}</td>
                                                 <td class="rekap-ng-cu text-center align-middle font-weight-bold {{ $r->ng_cu > 0 ? 'text-danger' : 'text-muted' }}">{{ $r->ng_cu }}</td>
@@ -3449,7 +3451,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="{{ $isThickRekap ? 10 : 6 }}" class="text-center py-4 text-muted italic">
+                                            <td colspan="{{ $isThickRekap ? 11 : 6 }}" class="text-center py-4 text-muted italic">
                                                 <i class="fas fa-info-circle mr-1"></i> Tidak ada data pengujian part pada periode/filter ini.
                                             </td>
                                         </tr>
@@ -3464,6 +3466,7 @@
                                             </td>
                                             @if($isThickRekap)
                                                 <td class="text-center py-2 text-success font-weight-bold" id="rekapGrandOk">{{ $rekapSummary->sum('ok') }}</td>
+                                                <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNg">{{ $rekapSummary->sum('ng') }}</td>
                                                 <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgCr">{{ $rekapSummary->sum('ng_cr') }}</td>
                                                 <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgNi">{{ $rekapSummary->sum('ng_ni') }}</td>
                                                 <td class="text-center py-2 text-danger font-weight-bold" id="rekapGrandNgCu">{{ $rekapSummary->sum('ng_cu') }}</td>
@@ -3495,12 +3498,12 @@
     <script>
         $(document).ready(function() {
             var rekapIsThickness = {{ $isThickRekap ? 'true' : 'false' }};
-            var rekapSumCols = { total: '.rekap-total', ok: '.rekap-ok', ngCr: '.rekap-ng-cr', ngNi: '.rekap-ng-ni', ngCu: '.rekap-ng-cu' };
+            var rekapSumCols = { total: '.rekap-total', ok: '.rekap-ok', ng: '.rekap-ng', ngCr: '.rekap-ng-cr', ngNi: '.rekap-ng-ni', ngCu: '.rekap-ng-cu' };
 
             $('#searchRekapInput').on('keyup input', function() {
                 var value = $(this).val().toLowerCase().trim();
                 var visibleCount = 0;
-                var sums = { total: 0, ok: 0, ngCr: 0, ngNi: 0, ngCu: 0 };
+                var sums = { total: 0, ok: 0, ng: 0, ngCr: 0, ngNi: 0, ngCu: 0 };
 
                 $('#tableRekapData tbody tr').each(function() {
                     var isNoData = $(this).find('td[colspan]').length > 0;
@@ -3524,6 +3527,7 @@
                 $('#rekapGrandTotal').text(sums.total);
                 if (rekapIsThickness) {
                     $('#rekapSumOk, #rekapGrandOk').text(sums.ok);
+                    $('#rekapSumNg, #rekapGrandNg').text(sums.ng);
                     $('#rekapSumNgCr, #rekapGrandNgCr').text(sums.ngCr);
                     $('#rekapSumNgNi, #rekapGrandNgNi').text(sums.ngNi);
                     $('#rekapSumNgCu, #rekapGrandNgCu').text(sums.ngCu);
@@ -3547,7 +3551,7 @@
                         var total = $(this).find('td:nth-child(6)').text().trim();
                         var thickCells = '';
                         if (rekapIsThickness) {
-                            ['.rekap-ok', '.rekap-ng-cr', '.rekap-ng-ni', '.rekap-ng-cu'].forEach(function(sel) {
+                            ['.rekap-ok', '.rekap-ng', '.rekap-ng-cr', '.rekap-ng-ni', '.rekap-ng-cu'].forEach(function(sel) {
                                 thickCells += '<td style="text-align: center; padding: 5px;">' + $(this).find(sel).text().trim() + '</td>';
                             }, this);
                         }
@@ -3565,17 +3569,17 @@
 
                 var grandTotal = $('#rekapGrandTotal').text().trim();
                 var thickHeadHtml = rekapIsThickness
-                    ? '<th style="width: 45px;">OK</th><th style="width: 45px;">NG CR</th><th style="width: 45px;">NG NI</th><th style="width: 45px;">NG CU</th>'
+                    ? '<th style="width: 42px;">OK</th><th style="width: 50px;">TOTAL NG</th><th style="width: 42px;">NG CR</th><th style="width: 42px;">NG NI</th><th style="width: 42px;">NG CU</th>'
                     : '';
                 var thickFootHtml = rekapIsThickness
-                    ? ['#rekapGrandOk', '#rekapGrandNgCr', '#rekapGrandNgNi', '#rekapGrandNgCu'].map(function(id) {
+                    ? ['#rekapGrandOk', '#rekapGrandNg', '#rekapGrandNgCr', '#rekapGrandNgNi', '#rekapGrandNgCu'].map(function(id) {
                         return '<td style="text-align: center;">' + $(id).text().trim() + '</td>';
                     }).join('')
                     : '';
                 var thickMeta = rekapIsThickness
-                    ? '<div>OK: ' + $('#rekapSumOk').text() + ' | NG CR: ' + $('#rekapSumNgCr').text() + ' | NG NI: ' + $('#rekapSumNgNi').text() + ' | NG CU: ' + $('#rekapSumNgCu').text() + '</div>'
+                    ? '<div>OK: ' + $('#rekapSumOk').text() + ' | TOTAL NG: ' + $('#rekapSumNg').text() + ' | NG CR: ' + $('#rekapSumNgCr').text() + ' | NG NI: ' + $('#rekapSumNgNi').text() + ' | NG CU: ' + $('#rekapSumNgCu').text() + '</div>'
                     : '';
-                var emptyColspan = rekapIsThickness ? 9 : 5;
+                var emptyColspan = rekapIsThickness ? 10 : 5;
 
                 var printContent = '<!DOCTYPE html>' +
                 '<html>' +

@@ -1060,7 +1060,7 @@ class StandardPerformanceTestController extends Controller
             foreach ($thicknessRows as $row) {
                 $std = $masterMap->get($row->standard_performance_test_id);
                 $stat = &$thicknessStats[$row->standard_performance_test_id];
-                $stat ??= ['ok' => 0, 'ng_cr' => 0, 'ng_ni' => 0, 'ng_cu' => 0];
+                $stat ??= ['ok' => 0, 'ng' => 0, 'ng_cr' => 0, 'ng_ni' => 0, 'ng_cu' => 0];
 
                 $hasData = false;
                 $hasNg = false;
@@ -1076,8 +1076,12 @@ class StandardPerformanceTestController extends Controller
                         $hasNg = true;
                     }
                 }
-                if ($hasData && !$hasNg) {
-                    $stat['ok']++;
+                if ($hasData) {
+                    if ($hasNg) {
+                        $stat['ng']++;
+                    } else {
+                        $stat['ok']++;
+                    }
                 }
                 unset($stat);
             }
@@ -1100,6 +1104,7 @@ class StandardPerformanceTestController extends Controller
                 'customer_standard' => $std->customer_standard ?? '-',
                 'total' => (int) $row->total,
                 'ok' => $stat['ok'] ?? 0,
+                'ng' => $stat['ng'] ?? 0,
                 'ng_cr' => $stat['ng_cr'] ?? 0,
                 'ng_ni' => $stat['ng_ni'] ?? 0,
                 'ng_cu' => $stat['ng_cu'] ?? 0,
