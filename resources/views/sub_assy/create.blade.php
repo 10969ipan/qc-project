@@ -36,7 +36,7 @@
         $plant = $plant ?? request('plant') ?? auth()->user()->plant_id;
         $plantCode = strtolower($plantCode ?? ((is_string($plant) && strlen($plant) > 30) ? \App\Models\Plant::where('id', $plant)->value('code') : (string) $plant) ?: 'karawang');
         $isJakarta = $isJakarta ?? in_array($plantCode, ['jakarta', 'jkt']);
-        $tableOptions = $tableOptions ?? range(1, 15);
+        $tableOptions = $tableOptions ?? range(1, 20);
     @endphp
 
 

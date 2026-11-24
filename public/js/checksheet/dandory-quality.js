@@ -704,11 +704,13 @@ $(document).ready(function () {
                             $('#actionCell_' + id + ' .btn-open-akhir').fadeIn(150);
                         }
 
-                        // Update data-complete pada baris checkbox untuk verifikasi Leader
+                        // Update status siap-approve pada baris checkbox & tombol verifikasi Leader
+                        var canApproveNow = res.can_approve !== undefined ? !!res.can_approve : !!res.is_complete;
                         var chkRow = $('#checkRow' + id);
-                        if (chkRow.length && res.is_complete !== undefined) {
-                            chkRow.attr('data-complete', res.is_complete ? '1' : '0');
+                        if (chkRow.length) {
+                            chkRow.attr('data-complete', canApproveNow ? '1' : '0').data('complete', canApproveNow ? 1 : 0);
                         }
+                        $('#actionCell_' + id + ' .btn-approve-row, #actionCell_' + id + ' .btn-reject-row').toggleClass('d-none', !canApproveNow);
                     }
                 },
                 error: function (xhr) {
@@ -845,7 +847,9 @@ $(document).ready(function () {
             Swal.fire({
                 icon: 'warning',
                 title: 'Belum Bisa Approval',
-                text: 'Semua data checksheet yang dipilih belum melengkapi pemeriksaan Dandory Awal dan Akhir. Approval hanya dapat dilakukan jika pemeriksaan sudah lengkap.',
+                text: config.isMachine
+                    ? 'Semua data checksheet yang dipilih belum melengkapi pemeriksaan Dandory Awal. Approval bagian Inspector Inproses memerlukan Dandory Awal lengkap.'
+                    : 'Semua data checksheet yang dipilih belum melengkapi pemeriksaan Dandory Awal dan Akhir. Approval hanya dapat dilakukan jika pemeriksaan sudah lengkap.',
                 confirmButtonColor: '#4e73df',
                 confirmButtonText: 'Mengerti'
             });
@@ -854,7 +858,8 @@ $(document).ready(function () {
 
         var confirmHtml = '<p class="mb-2">Sebanyak <strong>' + selectedIds.length + ' data</strong> sesi pemeriksaan Dandory yang dipilih akan diverifikasi sekaligus atas nama Anda.</p>';
         if (incompleteBoxes.length > 0) {
-            confirmHtml += '<div class="alert alert-warning py-1 px-2 small mb-0 text-left"><i class="fas fa-exclamation-triangle mr-1"></i> <strong>Perhatian:</strong> Ada ' + incompleteBoxes.length + ' data yang belum lengkap (Dandory Awal/Akhir) dan akan otomatis dilewati.</div>';
+            var reqLabel = config.isMachine ? 'Dandory Awal' : 'Dandory Awal/Akhir';
+            confirmHtml += '<div class="alert alert-warning py-1 px-2 small mb-0 text-left"><i class="fas fa-exclamation-triangle mr-1"></i> <strong>Perhatian:</strong> Ada ' + incompleteBoxes.length + ' data yang belum lengkap (' + reqLabel + ') dan akan otomatis dilewati.</div>';
         }
 
         Swal.fire({
@@ -971,11 +976,9 @@ $(document).ready(function () {
         if (isApproved) {
             html += '<button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2 shadow-xs btn-unapprove-row" data-id="' + id + '" style="font-size:0.6rem; padding: 2px 6px;" title="Batalkan Approval"><i class="fas fa-undo mr-1"></i> Batal</button>';
         } else {
-            // Tombol Verifikasi Leader (Approve & Reject): Hanya muncul jika Dandory Awal & Akhir sudah lengkap
-            if (isComplete) {
-                html += '<button type="button" class="btn btn-success btn-xs rounded-pill px-2 shadow-xs btn-approve-row" data-id="' + id + '" style="font-size:0.6rem; padding: 2px 6px;" title="Approve Sesi Dandory"><i class="fas fa-check mr-1"></i> Approve</button>';
-                html += '<button type="button" class="btn btn-danger btn-xs rounded-pill px-2 shadow-xs btn-reject-row" data-id="' + id + '" data-part="' + (partName || '') + '" style="font-size:0.6rem; padding: 2px 6px;" title="' + (isRejected ? 'Ubah Alasan Reject' : 'Reject Sesi Dandory') + '"><i class="fas fa-' + (isRejected ? 'edit' : 'times') + ' mr-1"></i> ' + (isRejected ? 'Ubah Reject' : 'Reject') + '</button>';
-            }
+            var hideCls = isComplete ? '' : ' d-none';
+            html += '<button type="button" class="btn btn-success btn-xs rounded-pill px-2 shadow-xs btn-approve-row' + hideCls + '" data-id="' + id + '" style="font-size:0.6rem; padding: 2px 6px;" title="Approve Sesi Dandory"><i class="fas fa-check mr-1"></i> Approve</button>';
+            html += '<button type="button" class="btn btn-danger btn-xs rounded-pill px-2 shadow-xs btn-reject-row' + hideCls + '" data-id="' + id + '" data-part="' + (partName || '') + '" style="font-size:0.6rem; padding: 2px 6px;" title="' + (isRejected ? 'Ubah Alasan Reject' : 'Reject Sesi Dandory') + '"><i class="fas fa-' + (isRejected ? 'edit' : 'times') + ' mr-1"></i> ' + (isRejected ? 'Ubah Reject' : 'Reject') + '</button>';
         }
         if (config.userRole === 'admin') {
             html += '<button type="button" class="btn btn-outline-danger btn-xs rounded-circle shadow-xs btn-delete-dandory" data-id="' + id + '" data-part="' + (partName || '') + '" style="width:24px; height:24px; padding:0;" title="Hapus Sesi Dandory"><i class="fas fa-trash-alt fa-xs"></i></button>';
@@ -1060,7 +1063,7 @@ $(document).ready(function () {
                     dataType: 'json',
                     success: function (res) {
                         if (res.success) {
-                            var isComplete = $('#checkRow' + id).data('complete') == '1';
+                            var isComplete = $('#checkRow' + id).attr('data-complete') === '1';
                             var html = '<span class="badge badge-warning text-dark px-2 py-1"><i class="fas fa-clock mr-1"></i> PENDING</span>';
                             cell.html(html);
 
@@ -1148,7 +1151,7 @@ $(document).ready(function () {
                                        (res.rejection_remarks ? '<br><small class="text-danger font-italic d-inline-block text-truncate" style="max-width:110px;" title="Alasan: ' + res.rejection_remarks + '">* ' + res.rejection_remarks + '</small>' : '');
                             cell.html(html);
 
-                            var isComplete = $('#checkRow' + id).data('complete') == '1';
+                            var isComplete = $('#checkRow' + id).attr('data-complete') === '1';
                             actionCell.html(buildActionButtonsHtml(id, false, true, partName, isComplete));
 
                             var checkbox = $('#checkRow' + id);

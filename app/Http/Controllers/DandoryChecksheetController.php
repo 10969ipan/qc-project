@@ -158,19 +158,17 @@ class DandoryChecksheetController extends Controller
         $akhirTotal = count($akhirItems) ?: 10;
 
         foreach ($checksheets as $cs) {
-            $awalCount = count((array) ($cs->awal_checks ?? []));
-            $akhirCount = count((array) ($cs->akhir_checks ?? []));
-
-            $cs->is_awal_done = $awalTotal > 0 && $awalCount >= $awalTotal;
-            $cs->is_akhir_done = $akhirTotal > 0 && $akhirCount >= $akhirTotal;
+            $cs->is_awal_done = $cs->isAwalComplete($awalTotal);
+            $cs->is_akhir_done = $cs->isAkhirComplete($akhirTotal);
             $cs->is_complete = $cs->is_awal_done && $cs->is_akhir_done;
+            $cs->can_approve = $this->service->canApproveChecksheet($cs, $awalTotal, $akhirTotal, $isMachineBased);
 
             if ($cs->leader_checked) {
                 $cs->status_badge = 'badge-success';
                 $cs->status_text  = 'Terverifikasi';
-            } elseif ($cs->is_complete) {
+            } elseif ($cs->can_approve) {
                 $cs->status_badge = 'badge-primary';
-                $cs->status_text  = 'Lengkap (Siap Approval)';
+                $cs->status_text  = $cs->is_complete ? 'Lengkap (Siap Approval)' : 'Awal Selesai (Siap Approval)';
             } elseif ($cs->is_akhir_done) {
                 $cs->status_badge = 'badge-primary';
                 $cs->status_text  = 'Akhir Selesai';
@@ -385,7 +383,11 @@ class DandoryChecksheetController extends Controller
 
         try {
             $checksheet = DandoryChecksheet::findOrFail($id);
-            if ($checksheet->leader_checked && Auth::user()->role === 'inspector') {
+            $masterItems = $this->service->getMasterItems();
+            $akhirTotal  = $masterItems->where('phase', 'akhir')->count() ?: 10;
+            $allowAkhirAfterApprove = $this->service->isInprosesChecksheet($checksheet) && !$checksheet->isAkhirComplete($akhirTotal);
+
+            if ($checksheet->leader_checked && in_array(Auth::user()->role, ['inspector', 'operator']) && !$allowAkhirAfterApprove) {
                 return response()->json(['success' => false, 'message' => 'Sesi Dandory ini sudah diverifikasi Leader dan tidak dapat diubah.'], 403);
             }
 
@@ -447,7 +449,8 @@ class DandoryChecksheetController extends Controller
         }
 
         $checksheet = DandoryChecksheet::findOrFail($id);
-        if ($checksheet->leader_checked && Auth::user()->role === 'inspector') {
+        $allowAkhirCellAfterApprove = $request->phase === 'akhir' && $this->service->isInprosesChecksheet($checksheet);
+        if ($checksheet->leader_checked && in_array(Auth::user()->role, ['inspector', 'operator']) && !$allowAkhirCellAfterApprove) {
             return response()->json(['success' => false, 'message' => 'Baris ini sudah diverifikasi Leader dan tidak dapat diubah.'], 403);
         }
 
@@ -457,12 +460,10 @@ class DandoryChecksheetController extends Controller
         $awalTotal   = $masterItems->where('phase', 'awal')->count() ?: 9;
         $akhirTotal  = $masterItems->where('phase', 'akhir')->count() ?: 10;
 
-        $awalCount   = count((array) ($record->awal_checks ?? []));
-        $akhirCount  = count((array) ($record->akhir_checks ?? []));
-
-        $isAwalDone  = $awalTotal > 0 && $awalCount >= $awalTotal;
-        $isAkhirDone = $akhirTotal > 0 && $akhirCount >= $akhirTotal;
+        $isAwalDone  = $record->isAwalComplete($awalTotal);
+        $isAkhirDone = $record->isAkhirComplete($akhirTotal);
         $isComplete  = $isAwalDone && $isAkhirDone;
+        $canApprove  = $this->service->canApproveChecksheet($record, $awalTotal, $akhirTotal);
 
         $jamAwal = $record->awal_completed_at 
             ? $record->awal_completed_at->format('H:i') 
@@ -487,6 +488,7 @@ class DandoryChecksheetController extends Controller
             'is_awal_done'       => $isAwalDone,
             'is_akhir_done'      => $isAkhirDone,
             'is_complete'        => $isComplete,
+            'can_approve'        => $canApprove,
         ]);
     }
 
@@ -508,10 +510,13 @@ class DandoryChecksheetController extends Controller
             $minAwal = $masterItems->where('phase', 'awal')->count() ?: 9;
             $minAkhir = $masterItems->where('phase', 'akhir')->count() ?: 10;
 
-            if (!$checksheet->isComplete($minAwal, $minAkhir)) {
+            if (!$this->service->canApproveChecksheet($checksheet, $minAwal, $minAkhir)) {
+                $isInproses = $this->service->isInprosesChecksheet($checksheet);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Belum bisa melakukan approval! Pemeriksaan Dandory Awal dan Akhir harus diisi lengkap oleh Operator/Inspector terlebih dahulu.'
+                    'message' => $isInproses
+                        ? 'Belum bisa melakukan approval! Pemeriksaan Dandory Awal harus diisi lengkap oleh Inspector Inproses terlebih dahulu.'
+                        : 'Belum bisa melakukan approval! Pemeriksaan Dandory Awal dan Akhir harus diisi lengkap oleh Operator/Inspector terlebih dahulu.'
                 ], 422);
             }
         }
@@ -548,10 +553,13 @@ class DandoryChecksheetController extends Controller
         $minAwal = $masterItems->where('phase', 'awal')->count() ?: 9;
         $minAkhir = $masterItems->where('phase', 'akhir')->count() ?: 10;
 
-        if (!$checksheet->isComplete($minAwal, $minAkhir)) {
+        if (!$this->service->canApproveChecksheet($checksheet, $minAwal, $minAkhir)) {
+            $isInproses = $this->service->isInprosesChecksheet($checksheet);
             return response()->json([
                 'success' => false,
-                'message' => 'Belum bisa melakukan reject! Pemeriksaan Dandory Awal dan Akhir harus diisi lengkap oleh Operator/Inspector terlebih dahulu.'
+                'message' => $isInproses
+                    ? 'Belum bisa melakukan reject! Pemeriksaan Dandory Awal harus diisi lengkap oleh Inspector Inproses terlebih dahulu.'
+                    : 'Belum bisa melakukan reject! Pemeriksaan Dandory Awal dan Akhir harus diisi lengkap oleh Operator/Inspector terlebih dahulu.'
             ], 422);
         }
 
@@ -724,10 +732,17 @@ class DandoryChecksheetController extends Controller
             ->where('leader_checked', false)
             ->get();
 
+        $opInprosesCache = [];
         $validIds = [];
         $skippedCount = 0;
         foreach ($selectedRows as $cs) {
-            if ($cs->isComplete($minAwal, $minAkhir)) {
+            $cacheKey = strtolower($cs->plant_code ?: 'karawang') . ':' . (int) $cs->operator_id;
+            if (!array_key_exists($cacheKey, $opInprosesCache)) {
+                $opCfg = $this->service->getOperatorConfig($cs->plant_code ?: 'karawang', (int) $cs->operator_id);
+                $opInprosesCache[$cacheKey] = $this->service->isMachineBasedBagian($opCfg->bagian ?? '');
+            }
+
+            if ($this->service->canApproveChecksheet($cs, $minAwal, $minAkhir, $opInprosesCache[$cacheKey])) {
                 $validIds[] = $cs->id;
             } else {
                 $skippedCount++;
@@ -735,9 +750,12 @@ class DandoryChecksheetController extends Controller
         }
 
         if (empty($validIds)) {
+            $allInproses = $selectedRows->isNotEmpty() && collect($opInprosesCache)->every(fn($v) => $v === true);
             return response()->json([
                 'success' => false,
-                'message' => 'Semua data yang dipilih belum melengkapi pemeriksaan Dandory Awal dan Akhir, sehingga belum dapat diverifikasi Leader.'
+                'message' => $allInproses
+                    ? 'Semua data yang dipilih belum melengkapi pemeriksaan Dandory Awal, sehingga belum dapat diverifikasi Leader.'
+                    : 'Semua data yang dipilih belum melengkapi pemeriksaan Dandory Awal dan Akhir, sehingga belum dapat diverifikasi Leader.'
             ], 422);
         }
 

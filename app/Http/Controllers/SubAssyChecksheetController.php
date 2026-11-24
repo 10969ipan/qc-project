@@ -234,7 +234,7 @@ class SubAssyChecksheetController extends Controller
         $plantModel = $plant ? \App\Models\Plant::find($plant) : null;
         $plantCode = strtolower($plantModel?->code ?? 'karawang');
         $isJakarta = in_array($plantCode, ['jakarta', 'jkt']);
-        $tableOptions = range(1, 15);
+        $tableOptions = range(1, 20);
 
         $nextProcesses = \App\Models\NextProcess::where('plant_id', $plant)
             ->where('module', 'sub_assy')

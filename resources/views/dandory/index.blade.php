@@ -682,15 +682,16 @@
                             <tbody>
                                 @forelse($checksheets as $index => $cs)
                                     @php
-                                        $awalMap  = (array) ($cs->awal_checks ?? []);
-                                        $akhirMap = (array) ($cs->akhir_checks ?? []);
+                                        $awalMap    = (array) ($cs->awal_checks ?? []);
+                                        $akhirMap   = (array) ($cs->akhir_checks ?? []);
                                         $isComplete = $cs->is_complete ?? false;
+                                        $canApprove = $cs->can_approve ?? $isComplete;
                                     @endphp
                                     <tr id="row-dandory-{{ $cs->id }}" data-id="{{ $cs->id }}" data-part-name="{{ $cs->part_name }}" data-part-number="{{ $cs->item?->part_number ?? '' }}" data-sap-code="{{ $cs->item?->sap_code ?? '' }}">
                                         @if($canVerify)
                                             <td class="align-middle text-center">
                                                 <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $cs->id }}" value="{{ $cs->id }}" data-approved="{{ $cs->leader_checked ? '1' : '0' }}" data-complete="{{ $isComplete ? '1' : '0' }}">
+                                                    <input type="checkbox" class="custom-control-input row-checkbox" id="checkRow{{ $cs->id }}" value="{{ $cs->id }}" data-approved="{{ $cs->leader_checked ? '1' : '0' }}" data-complete="{{ $canApprove ? '1' : '0' }}">
                                                     <label class="custom-control-label" for="checkRow{{ $cs->id }}" style="cursor:pointer;"></label>
                                                 </div>
                                             </td>
@@ -856,17 +857,14 @@
                                                             <i class="fas fa-undo mr-1"></i> Batal
                                                         </button>
                                                     @else
-                                                        {{-- Tombol Verifikasi Leader (Approve & Reject): Hanya muncul jika Dandory Awal & Akhir sudah lengkap --}}
-                                                        @if($isComplete)
-                                                            <button type="button" class="btn btn-success btn-xs rounded-pill px-2 shadow-xs btn-approve-row"
-                                                                    data-id="{{ $cs->id }}" style="font-size:0.6rem; padding: 2px 6px;" title="Approve Sesi Dandory">
-                                                                <i class="fas fa-check mr-1"></i> Approve
-                                                            </button>
-                                                            <button type="button" class="btn btn-danger btn-xs rounded-pill px-2 shadow-xs btn-reject-row"
-                                                                    data-id="{{ $cs->id }}" data-part="{{ $cs->part_name }}" style="font-size:0.6rem; padding: 2px 6px;" title="Reject Sesi Dandory">
-                                                                <i class="fas fa-times mr-1"></i> Reject
-                                                            </button>
-                                                        @endif
+                                                        <button type="button" class="btn btn-success btn-xs rounded-pill px-2 shadow-xs btn-approve-row {{ $canApprove ? '' : 'd-none' }}"
+                                                                data-id="{{ $cs->id }}" style="font-size:0.6rem; padding: 2px 6px;" title="Approve Sesi Dandory">
+                                                            <i class="fas fa-check mr-1"></i> Approve
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger btn-xs rounded-pill px-2 shadow-xs btn-reject-row {{ $canApprove ? '' : 'd-none' }}"
+                                                                data-id="{{ $cs->id }}" data-part="{{ $cs->part_name }}" style="font-size:0.6rem; padding: 2px 6px;" title="Reject Sesi Dandory">
+                                                            <i class="fas fa-times mr-1"></i> Reject
+                                                        </button>
                                                     @endif
                                                 @endif
 

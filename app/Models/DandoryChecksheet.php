@@ -69,18 +69,24 @@ class DandoryChecksheet extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function isAwalComplete(?int $minAwal = 9): bool
+    {
+        $minAwal = $minAwal ?: 9;
+        return count((array) ($this->awal_checks ?? [])) >= $minAwal;
+    }
+
+    public function isAkhirComplete(?int $minAkhir = 10): bool
+    {
+        $minAkhir = $minAkhir ?: 10;
+        return count((array) ($this->akhir_checks ?? [])) >= $minAkhir;
+    }
+
     /**
      * Memeriksa apakah pemeriksaan Dandory Awal dan Akhir sudah diisi lengkap.
      */
     public function isComplete(?int $minAwal = 9, ?int $minAkhir = 10): bool
     {
-        $minAwal = $minAwal ?: 9;
-        $minAkhir = $minAkhir ?: 10;
-
-        $awalCount = count((array) ($this->awal_checks ?? []));
-        $akhirCount = count((array) ($this->akhir_checks ?? []));
-
-        return $awalCount >= $minAwal && $akhirCount >= $minAkhir;
+        return $this->isAwalComplete($minAwal) && $this->isAkhirComplete($minAkhir);
     }
 
     /**

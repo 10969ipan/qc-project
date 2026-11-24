@@ -97,7 +97,7 @@
             </div>
 
             @php
-                $tableOptions = range(1, 15);
+                $tableOptions = range(1, 20);
             @endphp
             <div class="form-group row align-items-center mb-2">
                 <label class="col-sm-4 col-form-label small font-weight-bold text-gray-700">Meja <span class="text-danger">*</span></label>

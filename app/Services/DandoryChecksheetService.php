@@ -95,9 +95,17 @@ class DandoryChecksheetService
      */
     public function getMasterItems()
     {
-        return Cache::remember('dandory_master_items_active', 3600, function () {
-            return DandoryItem::active()->orderBy('order_no')->get();
-        });
+        $cached = Cache::get('dandory_master_items_active');
+        if ($cached && $cached->isNotEmpty()) {
+            return $cached;
+        }
+
+        $items = DandoryItem::active()->orderBy('order_no')->get();
+        if ($items->isNotEmpty()) {
+            Cache::put('dandory_master_items_active', $items, 3600);
+        }
+
+        return $items;
     }
 
     /**
@@ -182,6 +190,34 @@ class DandoryChecksheetService
         }
         $b = strtolower(trim($bagian));
         return str_contains($b, 'inproses') || str_contains($b, 'in process') || str_contains($b, 'in-process');
+    }
+
+    /**
+     * Cek apakah baris checksheet milik bagian Inspector Inproses
+     */
+    public function isInprosesChecksheet(DandoryChecksheet $checksheet, ?bool $operatorIsInproses = null): bool
+    {
+        if ($this->isMachineBasedBagian($checksheet->jabatan)) {
+            return true;
+        }
+        if ($operatorIsInproses !== null) {
+            return $operatorIsInproses;
+        }
+
+        $opConfig = $this->getOperatorConfig($checksheet->plant_code ?: 'karawang', (int) $checksheet->operator_id);
+        return $this->isMachineBasedBagian($opConfig->bagian ?? '');
+    }
+
+    /**
+     * Cek kelayakan approval Leader (Inspector Inproses cukup Awal Dandory lengkap)
+     */
+    public function canApproveChecksheet(DandoryChecksheet $checksheet, int $minAwal = 9, int $minAkhir = 10, ?bool $operatorIsInproses = null): bool
+    {
+        if ($this->isInprosesChecksheet($checksheet, $operatorIsInproses)) {
+            return $checksheet->isAwalComplete($minAwal);
+        }
+
+        return $checksheet->isComplete($minAwal, $minAkhir);
     }
 
     /**
@@ -388,9 +424,7 @@ class DandoryChecksheetService
      */
     public function getItemsForOperator(string $plantCode, int $operatorId)
     {
-        $opConfig = DandoryOperatorConfig::where('plant_code', strtolower($plantCode))
-            ->where('operator_id', $operatorId)
-            ->first();
+        $opConfig = $this->getOperatorConfig($plantCode, $operatorId);
 
         // Jika user belum memilih bagian atau kategori, default part item = kosong (null/empty collection)
         if (!$opConfig || empty($opConfig->bagian) || empty($opConfig->allowed_categories)) {
@@ -405,7 +439,8 @@ class DandoryChecksheetService
         $plant = Plant::whereRaw('LOWER(code) = ?', [strtolower($plantCode)])->first();
         $plantId = $plant ? $plant->id : null;
 
-        return Item::select(['id', 'name', 'part_number', 'sap_code', 'category_id', 'plant_id'])
+        return Item::withoutGlobalScope('plant')
+            ->select(['id', 'name', 'part_number', 'sap_code', 'category_id', 'plant_id'])
             ->when($plantId, function ($q) use ($plantId) {
                 $q->where(function ($sq) use ($plantId) {
                     $sq->where('plant_id', $plantId)->orWhereNull('plant_id');
@@ -445,7 +480,9 @@ class DandoryChecksheetService
     {
         $item = !empty($data['item_id']) ? Item::find($data['item_id']) : null;
         $partName = $item ? $item->name : ($data['part_name'] ?? '-');
-        $bagian = $data['jabatan'] ?? $this->getOperatorBagianFromCompliance((int)$data['operator_id']);
+        $plantCode = strtolower($data['plant_code'] ?? 'karawang');
+        $opConfig = $this->getOperatorConfig($plantCode, (int) $data['operator_id']);
+        $bagian = $data['jabatan'] ?? ($opConfig->bagian ?: 'Quality Control');
 
         $notesAwal = !empty($data['notes']) ? trim($data['notes']) : null;
 
