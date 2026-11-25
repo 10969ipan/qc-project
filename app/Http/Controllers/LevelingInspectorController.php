@@ -21,6 +21,7 @@ use App\Services\LevelingInspectorService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class LevelingInspectorController extends Controller
@@ -30,21 +31,24 @@ class LevelingInspectorController extends Controller
     }
 
     /**
-     * Cek hak akses menu (Leader/Karu/Kashift ke atas + izin AppMenu per plant).
+     * Cek hak akses menu (Leader/Karu/Kashift ke atas + izin AppMenu per plant, cached).
      */
-    private function authorizeAccess(Request $request, string $plantCode): void
+    private function authorizeAccess(Request $request, string $plantCode, string $roleDeniedMessage = 'Menu Leveling Inspector hanya dapat diakses oleh level Leader/Karu/Kashift ke atas.'): void
     {
         $user = $request->user();
         if (!$user || !in_array($user->role, LevelingRecapApproval::REKAP_ACCESS_ROLES, true)) {
-            abort(403, 'Menu Leveling Inspector hanya dapat diakses oleh level Leader/Karu/Kashift ke atas.');
+            abort(403, $roleDeniedMessage);
         }
 
         if ($user->role !== 'admin') {
-            $menu = AppMenu::where('route', 'checksheet.leveling_inspector.index')
-                ->where('plant_code', strtolower($plantCode))
-                ->first();
+            $cleanPlant = strtolower($plantCode);
+            $menuId = (int) Cache::remember("leveling_app_menu_id_{$cleanPlant}", 3600, function () use ($cleanPlant) {
+                return (int) (AppMenu::where('route', 'checksheet.leveling_inspector.index')
+                    ->where('plant_code', $cleanPlant)
+                    ->value('id') ?? 0);
+            });
 
-            if ($menu && !$user->hasPermission($menu->id, 'view')) {
+            if ($menuId > 0 && !$user->hasPermission($menuId, 'view')) {
                 abort(403, 'Anda tidak memiliki hak akses untuk membuka menu Leveling Inspector pada plant ini.');
             }
         }
@@ -131,20 +135,11 @@ class LevelingInspectorController extends Controller
 
     private function authorizeRekapAccess(Request $request, string $plantCode): void
     {
-        $user = $request->user();
-        if (!$user || !in_array($user->role, LevelingRecapApproval::REKAP_ACCESS_ROLES, true)) {
-            abort(403, 'Halaman Rekap Leveling Inspector hanya dapat diakses oleh Leader/Karu/Kashift ke atas.');
-        }
-
-        if ($user->role !== 'admin') {
-            $menu = AppMenu::where('route', 'checksheet.leveling_inspector.index')
-                ->where('plant_code', strtolower($plantCode))
-                ->first();
-
-            if ($menu && !$user->hasPermission($menu->id, 'view')) {
-                abort(403, 'Anda tidak memiliki hak akses untuk membuka menu Leveling Inspector pada plant ini.');
-            }
-        }
+        $this->authorizeAccess(
+            $request,
+            $plantCode,
+            'Halaman Rekap Leveling Inspector hanya dapat diakses oleh Leader/Karu/Kashift ke atas.'
+        );
     }
 
     public function rekap(Request $request)

@@ -24,6 +24,13 @@ class LevelingInspectorService
 {
     private const CACHE_ACTIVE_ITEMS = 'leveling_active_check_items_v1';
 
+    private const STAGE_COLUMNS = [
+        'auditor'  => ['by' => 'auditor_approved_by',  'at' => 'auditor_approved_at',  'rel' => 'auditorApprover'],
+        'leader'   => ['by' => 'leader_approved_by',   'at' => 'leader_approved_at',   'rel' => 'leaderApprover'],
+        'spv'      => ['by' => 'spv_approved_by',      'at' => 'spv_approved_at',      'rel' => 'spvApprover'],
+        'asst_mgr' => ['by' => 'asst_mgr_approved_by', 'at' => 'asst_mgr_approved_at', 'rel' => 'asstMgrApprover'],
+    ];
+
     /**
      * Ambil daftar Master Point Check aktif (di-cache & diurutkan sesuai urutan prinsip baku).
      */
@@ -445,7 +452,9 @@ class LevelingInspectorService
         $auditDate = $audit->audit_date?->format('d/m/Y') ?? '-';
         $this->logActivity($user, 'delete', $audit, "Menghapus audit Leveling Inspector ({$auditDate} - {$partInfo})");
 
+        $plantCode = $audit->plant_code;
         $audit->delete();
+        $this->clearOpenNgCache($plantCode);
     }
 
     /**
@@ -566,6 +575,7 @@ class LevelingInspectorService
         }
 
         $recalc = $this->recalculateAuditSummary($audit, $checkItem->prinsip);
+        $this->clearOpenNgCache($audit->plant_code);
 
         $this->logActivity($user, 'update', $record, "Set hasil Leveling [{$checkItem->prinsip} L{$checkItem->level}] = " . ($resultValue ?? 'KOSONG'));
 
@@ -678,49 +688,21 @@ class LevelingInspectorService
             }
         }
 
-        $totalOk = 0;
-        $totalNg = 0;
-        foreach ($itemsForAudit as $it) {
-            $res = $resultsByItemId->get($it->id);
-            if ($res && $res->result === 'OK') {
-                $totalOk++;
-            } elseif ($res && $res->result === 'NG') {
-                $totalNg++;
-            }
-        }
-
-        $filled = $totalOk + $totalNg;
-
-        $allPrinsipLevels = [];
-        foreach ($itemsForAudit->groupBy('prinsip') as $pKey => $pItems) {
-            $allPrinsipLevels[$pKey] = $this->calculatePrinsipLevel($pItems, $resultsByItemId);
-        }
-        $score = $this->calculateAverageLevelScore($allPrinsipLevels);
-
-        $audit->update([
-            'total_ok' => $totalOk,
-            'total_ng' => $totalNg,
-            'score'    => $score,
-        ]);
+        $calc = $this->computeAndPersistAuditSummary($audit, $itemsForAudit, $resultsByItemId);
 
         $achievedLevels = [];
         foreach (array_keys($affectedPrinsips ?? []) as $prinsipKey) {
-            $achievedLevels[$prinsipKey] = $allPrinsipLevels[$prinsipKey] ?? '-';
+            $achievedLevels[$prinsipKey] = $calc['prinsip_levels'][$prinsipKey] ?? '-';
         }
 
         $count = count($updatedRows);
+        $this->clearOpenNgCache($audit->plant_code);
         $this->logActivity($user, 'update', $audit, "Bulk set {$count} point check Leveling = {$resultValue}");
 
         return [
             'updated_rows'    => $updatedRows,
             'achieved_levels' => $achievedLevels,
-            'summary'         => [
-                'total_items' => $itemsForAudit->count(),
-                'total_ok'    => $totalOk,
-                'total_ng'    => $totalNg,
-                'total_empty' => max(0, $itemsForAudit->count() - $filled),
-                'score'       => $score,
-            ],
+            'summary'         => $calc['summary'],
             'open_ng_count'   => $this->countOpenNg($audit->plant_code),
         ];
     }
@@ -735,7 +717,16 @@ class LevelingInspectorService
             ->keyBy('check_item_id');
 
         $itemsForAudit = $this->getCheckItemsForAudit($audit, $resultsByItemId);
+        $calc = $this->computeAndPersistAuditSummary($audit, $itemsForAudit, $resultsByItemId);
 
+        return [
+            'achieved_level' => $calc['prinsip_levels'][$targetPrinsip] ?? '-',
+            'summary'        => $calc['summary'],
+        ];
+    }
+
+    private function computeAndPersistAuditSummary(LevelingAudit $audit, Collection $itemsForAudit, Collection $resultsByItemId): array
+    {
         $totalOk = 0;
         $totalNg = 0;
 
@@ -748,7 +739,6 @@ class LevelingInspectorService
             }
         }
 
-        $filled = $totalOk + $totalNg;
         $allPrinsipLevels = [];
         foreach ($itemsForAudit->groupBy('prinsip') as $pKey => $pItems) {
             $allPrinsipLevels[$pKey] = $this->calculatePrinsipLevel($pItems, $resultsByItemId);
@@ -761,15 +751,13 @@ class LevelingInspectorService
             'score'    => $score,
         ]);
 
-        $achievedLevel = $allPrinsipLevels[$targetPrinsip] ?? '-';
-
         return [
-            'achieved_level' => $achievedLevel,
+            'prinsip_levels' => $allPrinsipLevels,
             'summary'        => [
                 'total_items' => $itemsForAudit->count(),
                 'total_ok'    => $totalOk,
                 'total_ng'    => $totalNg,
-                'total_empty' => max(0, $itemsForAudit->count() - $filled),
+                'total_empty' => max(0, $itemsForAudit->count() - ($totalOk + $totalNg)),
                 'score'       => $score,
             ],
         ];
@@ -874,14 +862,10 @@ class LevelingInspectorService
             ]);
         }
 
-        $paths = $existing ? $existing->getEvidencePathsList() : [];
-        $dir = 'leveling/' . strtolower($audit->plant_code) . '/' . date('Y-m');
-
-        foreach ($files as $file) {
-            if ($file instanceof UploadedFile) {
-                $paths[] = $this->storeOptimizedImage($file, $dir);
-            }
-        }
+        $paths = array_merge(
+            $existing ? $existing->getEvidencePathsList() : [],
+            $this->storeOptimizedImages($files, $audit->plant_code)
+        );
 
         $record = LevelingAuditResult::updateOrCreate(
             [
@@ -958,17 +942,31 @@ class LevelingInspectorService
         return $record->fresh();
     }
 
+    private function openNgCacheKey(string $plantCode): string
+    {
+        return 'leveling_open_ng_count_' . strtolower($plantCode);
+    }
+
+    public function clearOpenNgCache(string $plantCode): void
+    {
+        Cache::forget($this->openNgCacheKey($plantCode));
+    }
+
     /**
-     * Hitung jumlah temuan NG yang belum Closed (open + waiting_verify) untuk plant terpilih.
+     * Hitung jumlah temuan NG yang belum Closed (open + waiting_verify) untuk plant terpilih (cached 5 menit, auto-invalidate saat mutasi).
      * Memakai JOIN langsung (lebih cepat dari whereHas EXISTS subquery).
      */
     public function countOpenNg(string $plantCode): int
     {
-        return (int) DB::table('leveling_audit_results as r')
-            ->join('leveling_audits as a', 'a.id', '=', 'r.audit_id')
-            ->where('a.plant_code', strtolower($plantCode))
-            ->whereIn('r.ng_status', ['open', 'waiting_verify'])
-            ->count();
+        $cleanPlant = strtolower($plantCode);
+
+        return (int) Cache::remember($this->openNgCacheKey($cleanPlant), 300, function () use ($cleanPlant) {
+            return (int) DB::table('leveling_audit_results as r')
+                ->join('leveling_audits as a', 'a.id', '=', 'r.audit_id')
+                ->where('a.plant_code', $cleanPlant)
+                ->whereIn('r.ng_status', ['open', 'waiting_verify'])
+                ->count();
+        });
     }
 
     /**
@@ -1008,6 +1006,47 @@ class LevelingInspectorService
     }
 
     /**
+     * @param UploadedFile[] $files
+     * @return string[]
+     */
+    private function storeOptimizedImages(array $files, string $plantCode): array
+    {
+        $dir = 'leveling/' . strtolower($plantCode) . '/' . date('Y-m');
+        $stored = [];
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile) {
+                $stored[] = $this->storeOptimizedImage($file, $dir);
+            }
+        }
+
+        return $stored;
+    }
+
+    private function sanitizeWhyPayload(array $data): array
+    {
+        $why1 = $this->sanitizeGuidanceHtml((string) ($data['why_1'] ?? ''));
+        $why2 = $this->sanitizeGuidanceHtml(isset($data['why_2']) ? (string) $data['why_2'] : null);
+        $why3 = $this->sanitizeGuidanceHtml(isset($data['why_3']) ? (string) $data['why_3'] : null);
+        $rootCause = $this->sanitizeGuidanceHtml((string) ($data['root_cause'] ?? ''));
+        $corrAction = $this->sanitizeGuidanceHtml((string) ($data['corrective_action'] ?? ''));
+
+        if (trim(strip_tags((string) $why1)) === '' || trim(strip_tags((string) $rootCause)) === '' || trim(strip_tags((string) $corrAction)) === '') {
+            throw ValidationException::withMessages([
+                'why_1' => ['Why 1, Root Cause, dan Tindakan Perbaikan wajib diisi.'],
+            ]);
+        }
+
+        return [
+            'why_1'             => $why1,
+            'why_2'             => ($why2 !== null && trim(strip_tags($why2)) !== '') ? $why2 : null,
+            'why_3'             => ($why3 !== null && trim(strip_tags($why3)) !== '') ? $why3 : null,
+            'root_cause'        => $rootCause,
+            'corrective_action' => $corrAction,
+            'corrective_date'   => $data['corrective_date'],
+        ];
+    }
+
+    /**
      * Input Why 1-3, Root Cause, tindakan perbaikan NG + upload satu/lebih foto evidence after.
      *
      * @param UploadedFile[] $files
@@ -1022,45 +1061,23 @@ class LevelingInspectorService
             ]);
         }
 
-        $dir = 'leveling/' . strtolower($record->audit->plant_code) . '/' . date('Y-m');
-        $newPaths = [];
-        foreach ($files as $file) {
-            if ($file instanceof UploadedFile) {
-                $newPaths[] = $this->storeOptimizedImage($file, $dir);
-            }
-        }
+        $whyPayload = $this->sanitizeWhyPayload($data);
+        $newPaths = $this->storeOptimizedImages($files, $record->audit->plant_code);
 
         // Hapus foto perbaikan lama jika resubmit setelah reject
         foreach ($record->getCorrectiveEvidencePathsList() as $oldPath) {
             Storage::disk('public')->delete($oldPath);
         }
 
-        $why1 = $this->sanitizeGuidanceHtml((string) ($data['why_1'] ?? ''));
-        $why2 = $this->sanitizeGuidanceHtml(isset($data['why_2']) ? (string) $data['why_2'] : null);
-        $why3 = $this->sanitizeGuidanceHtml(isset($data['why_3']) ? (string) $data['why_3'] : null);
-        $rootCause = $this->sanitizeGuidanceHtml((string) ($data['root_cause'] ?? ''));
-        $corrAction = $this->sanitizeGuidanceHtml((string) ($data['corrective_action'] ?? ''));
-
-        if (trim(strip_tags((string) $why1)) === '' || trim(strip_tags((string) $rootCause)) === '' || trim(strip_tags((string) $corrAction)) === '') {
-            throw ValidationException::withMessages([
-                'why_1' => ['Why 1, Root Cause, dan Tindakan Perbaikan wajib diisi.'],
-            ]);
-        }
-
-        $record->update([
-            'why_1'                     => $why1,
-            'why_2'                     => ($why2 !== null && trim(strip_tags($why2)) !== '') ? $why2 : null,
-            'why_3'                     => ($why3 !== null && trim(strip_tags($why3)) !== '') ? $why3 : null,
-            'root_cause'                => $rootCause,
-            'corrective_action'         => $corrAction,
-            'corrective_date'           => $data['corrective_date'],
+        $record->update(array_merge($whyPayload, [
             'corrective_evidence_path'  => $newPaths[0] ?? null,
             'corrective_evidence_paths' => !empty($newPaths) ? array_values($newPaths) : null,
             'corrected_by'              => $user->id,
             'ng_status'                 => 'waiting_verify',
             'reject_reason'             => null,
-        ]);
+        ]));
 
+        $this->clearOpenNgCache($record->audit->plant_code);
         $this->logActivity($user, 'update', $record, 'Input Why Analysis, Root Cause, tindakan perbaikan & evidence NG Leveling');
 
         return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
@@ -1085,27 +1102,9 @@ class LevelingInspectorService
             ]);
         }
 
-        $why1 = $this->sanitizeGuidanceHtml((string) ($data['why_1'] ?? ''));
-        $why2 = $this->sanitizeGuidanceHtml(isset($data['why_2']) ? (string) $data['why_2'] : null);
-        $why3 = $this->sanitizeGuidanceHtml(isset($data['why_3']) ? (string) $data['why_3'] : null);
-        $rootCause = $this->sanitizeGuidanceHtml((string) ($data['root_cause'] ?? ''));
-        $corrAction = $this->sanitizeGuidanceHtml((string) ($data['corrective_action'] ?? ''));
-
-        if (trim(strip_tags((string) $why1)) === '' || trim(strip_tags((string) $rootCause)) === '' || trim(strip_tags((string) $corrAction)) === '') {
-            throw ValidationException::withMessages([
-                'why_1' => ['Why 1, Root Cause, dan Tindakan Perbaikan wajib diisi.'],
-            ]);
-        }
-
-        $record->update([
-            'why_1'             => $why1,
-            'why_2'             => ($why2 !== null && trim(strip_tags($why2)) !== '') ? $why2 : null,
-            'why_3'             => ($why3 !== null && trim(strip_tags($why3)) !== '') ? $why3 : null,
-            'root_cause'        => $rootCause,
-            'corrective_action' => $corrAction,
-            'corrective_date'   => $data['corrective_date'],
-            'corrected_by'      => $user->id,
-        ]);
+        $record->update(array_merge($this->sanitizeWhyPayload($data), [
+            'corrected_by' => $user->id,
+        ]));
 
         $this->logActivity($user, 'update', $record, 'Edit inline tindakan perbaikan NG Leveling');
 
@@ -1159,10 +1158,7 @@ class LevelingInspectorService
             ]);
         }
 
-        $dir = 'leveling/' . strtolower($record->audit->plant_code) . '/' . date('Y-m');
-        foreach ($validNewFiles as $file) {
-            $finalPaths[] = $this->storeOptimizedImage($file, $dir);
-        }
+        $finalPaths = array_merge($finalPaths, $this->storeOptimizedImages($validNewFiles, $record->audit->plant_code));
 
         foreach ($toDelete as $oldPath) {
             Storage::disk('public')->delete($oldPath);
@@ -1209,6 +1205,7 @@ class LevelingInspectorService
                 'verified_at' => null,
             ]);
             $this->logActivity($user, 'update', $record, 'Batal verifikasi perbaikan NG Leveling (kembali ke Waiting Verify)');
+            $this->clearOpenNgCache($record->audit->plant_code);
 
             return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
         }
@@ -1242,6 +1239,8 @@ class LevelingInspectorService
             ]);
             $this->logActivity($user, 'reject', $record, 'Reject perbaikan NG Leveling: ' . trim((string) $rejectReason));
         }
+
+        $this->clearOpenNgCache($record->audit->plant_code);
 
         return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
     }
@@ -1406,24 +1405,19 @@ class LevelingInspectorService
 
         // 1. Ambil seluruh inspector aktif plant ini
         $inspectors = $this->getInspectorsForPlant($cleanPlant, null, 500);
-        $inspectorIds = $inspectors->pluck('id')->all();
 
-        // 2. Batch-load bagian terbaru dari jadwal Kepatuhan Operator (1 query flat)
-        $bagianMap = [];
-        if (!empty($inspectorIds)) {
-            $bagianMap = OperatorComplianceSchedule::whereIn('operator_id', $inspectorIds)
-                ->whereNotNull('bagian')
-                ->where('bagian', '!=', '')
-                ->orderByDesc('schedule_date')
-                ->get(['operator_id', 'bagian'])
-                ->unique('operator_id')
-                ->pluck('bagian', 'operator_id')
-                ->all();
-        }
-
-        // 3. Batch-load seluruh audit tahun terpilih memakai range BETWEEN agar composite index (plant_code, audit_date) aktif
-        $audits = LevelingAudit::with([
-            'results:id,audit_id,check_item_id,prinsip,level,result,ng_status',
+        // 2. Batch-load seluruh audit tahun terpilih TANPA eager-load results (hemat ribuan baris hasil non-terbaru)
+        $audits = LevelingAudit::select([
+            'id',
+            'plant_code',
+            'audit_date',
+            'inspector_id',
+            'bagian',
+            'part_name',
+            'total_ok',
+            'total_ng',
+            'auditor_id',
+            'auditor_name',
         ])
             ->where('plant_code', $cleanPlant)
             ->whereBetween('audit_date', ["{$year}-01-01", "{$year}-12-31"])
@@ -1433,7 +1427,51 @@ class LevelingInspectorService
 
         $auditsByInspector = $audits->groupBy('inspector_id');
 
-        // 4. Batch-load seluruh approval rekap tahun terpilih (1 query + eager load approver)
+        // 3. Ambil bagian terbaru dari jadwal Kepatuhan Operator HANYA untuk inspector yang belum punya bagian di audit terbarunya (1 baris/inspector via SQL)
+        $missingBagianIds = [];
+        foreach ($inspectors as $insp) {
+            $latestAudit = $auditsByInspector->get($insp->id)?->first();
+            if (empty($latestAudit?->bagian)) {
+                $missingBagianIds[] = (int) $insp->id;
+            }
+        }
+
+        $bagianMap = [];
+        if (!empty($missingBagianIds)) {
+            $idList = implode(',', array_unique($missingBagianIds));
+            $latestSchedules = DB::table('operator_compliance_schedules as ocs')
+                ->select('ocs.operator_id', 'ocs.bagian')
+                ->join(
+                    DB::raw("(SELECT operator_id, MAX(schedule_date) AS max_date FROM operator_compliance_schedules WHERE operator_id IN ({$idList}) AND bagian IS NOT NULL AND bagian != '' GROUP BY operator_id) AS latest"),
+                    function ($join) {
+                        $join->on('ocs.operator_id', '=', 'latest.operator_id')
+                            ->on('ocs.schedule_date', '=', 'latest.max_date');
+                    }
+                )
+                ->whereNotNull('ocs.bagian')
+                ->where('ocs.bagian', '!=', '')
+                ->orderByDesc('ocs.id')
+                ->get();
+
+            foreach ($latestSchedules as $sched) {
+                if (!isset($bagianMap[$sched->operator_id])) {
+                    $bagianMap[$sched->operator_id] = $sched->bagian;
+                }
+            }
+        }
+
+        // 4. Hitung open_ng_count per inspector tahun terpilih via 1 query agregasi SQL
+        $openNgByInspector = DB::table('leveling_audit_results as r')
+            ->join('leveling_audits as a', 'a.id', '=', 'r.audit_id')
+            ->where('a.plant_code', $cleanPlant)
+            ->whereBetween('a.audit_date', ["{$year}-01-01", "{$year}-12-31"])
+            ->where('r.result', 'NG')
+            ->whereIn('r.ng_status', ['open', 'waiting_verify'])
+            ->groupBy('a.inspector_id')
+            ->pluck(DB::raw('COUNT(*) as cnt'), 'a.inspector_id')
+            ->all();
+
+        // 5. Batch-load seluruh approval rekap tahun terpilih (1 query + eager load approver)
         $approvalsByInspector = LevelingRecapApproval::with([
             'auditorApprover:id,name',
             'leaderApprover:id,name',
@@ -1445,11 +1483,9 @@ class LevelingInspectorService
             ->get()
             ->keyBy('inspector_id');
 
-        $rows = [];
-        $totalP1Done = 0;
-        $totalP2Done = 0;
-        $totalOpenNg = 0;
-
+        // 6. Filter inspector & kumpulkan HANYA audit_id P1/P2 terbaru untuk load results
+        $preparedInspectors = [];
+        $neededAuditIds = [];
         foreach ($inspectors as $insp) {
             $inspAudits = $auditsByInspector->get($insp->id, collect());
             $latestAuditOverall = $inspAudits->first();
@@ -1461,9 +1497,58 @@ class LevelingInspectorService
 
             $p1Audits = $inspAudits->filter(fn($a) => $a->audit_date && (int) $a->audit_date->month <= 6);
             $p2Audits = $inspAudits->filter(fn($a) => $a->audit_date && (int) $a->audit_date->month >= 7);
+            $p1Latest = $p1Audits->first();
+            $p2Latest = $p2Audits->first();
 
-            $p1Data = $this->summarizeAuditForRecap($p1Audits->first(), $prinsipList, $activeByPrinsip);
-            $p2Data = $this->summarizeAuditForRecap($p2Audits->first(), $prinsipList, $activeByPrinsip);
+            if ($p1Latest) {
+                $neededAuditIds[$p1Latest->id] = true;
+            }
+            if ($p2Latest) {
+                $neededAuditIds[$p2Latest->id] = true;
+            }
+
+            $preparedInspectors[] = [
+                'insp'        => $insp,
+                'bagian'      => $bagian,
+                'inspAudits'  => $inspAudits,
+                'latestAudit' => $latestAuditOverall,
+                'p1Latest'    => $p1Latest,
+                'p1Count'     => $p1Audits->count(),
+                'p2Latest'    => $p2Latest,
+                'p2Count'     => $p2Audits->count(),
+            ];
+        }
+
+        // 7. Load results HANYA untuk audit P1 & P2 terbaru yang dibutuhkan
+        $resultsByAuditId = empty($neededAuditIds)
+            ? collect()
+            : LevelingAuditResult::whereIn('audit_id', array_keys($neededAuditIds))
+                ->get(['id', 'audit_id', 'check_item_id', 'result'])
+                ->groupBy('audit_id');
+
+        $rows = [];
+        $totalP1Done = 0;
+        $totalP2Done = 0;
+        $totalOpenNg = 0;
+
+        foreach ($preparedInspectors as $item) {
+            $insp = $item['insp'];
+            $inspAudits = $item['inspAudits'];
+            $p1Latest = $item['p1Latest'];
+            $p2Latest = $item['p2Latest'];
+
+            $p1Data = $this->summarizeAuditForRecap(
+                $p1Latest,
+                $prinsipList,
+                $activeByPrinsip,
+                $p1Latest ? $resultsByAuditId->get($p1Latest->id, collect()) : collect()
+            );
+            $p2Data = $this->summarizeAuditForRecap(
+                $p2Latest,
+                $prinsipList,
+                $activeByPrinsip,
+                $p2Latest ? $resultsByAuditId->get($p2Latest->id, collect()) : collect()
+            );
 
             if ($p1Data !== null) {
                 $totalP1Done++;
@@ -1472,17 +1557,11 @@ class LevelingInspectorService
                 $totalP2Done++;
             }
 
-            $inspOpenNg = 0;
-            foreach ($inspAudits as $a) {
-                $inspOpenNg += $a->results
-                    ->where('result', 'NG')
-                    ->whereIn('ng_status', ['open', 'waiting_verify'])
-                    ->count();
-            }
+            $inspOpenNg = (int) ($openNgByInspector[$insp->id] ?? 0);
             $totalOpenNg += $inspOpenNg;
 
             $auditorIds = $inspAudits->pluck('auditor_id')->filter()->map(fn($v) => (int) $v)->unique()->values()->all();
-            $pendingAuditorName = $latestAuditOverall?->auditor_name ?: null;
+            $pendingAuditorName = $item['latestAudit']?->auditor_name ?: null;
             $approvalRecord = $approvalsByInspector->get($insp->id);
             $approvalStages = $this->formatRecapApprovalStages(
                 $approvalRecord,
@@ -1495,11 +1574,11 @@ class LevelingInspectorService
             $rows[] = [
                 'inspector_id'   => $insp->id,
                 'inspector_name' => $insp->name,
-                'bagian'         => $bagian,
+                'bagian'         => $item['bagian'],
                 'p1'             => $p1Data,
-                'p1_count'       => $p1Audits->count(),
+                'p1_count'       => $item['p1Count'],
                 'p2'             => $p2Data,
-                'p2_count'       => $p2Audits->count(),
+                'p2_count'       => $item['p2Count'],
                 'open_ng_count'  => $inspOpenNg,
                 'has_audit'      => $inspAudits->isNotEmpty(),
                 'approval'       => $approvalStages,
@@ -1525,13 +1604,14 @@ class LevelingInspectorService
     /**
      * Ringkas 1 audit untuk tampilan Rekap Tahunan (level tercapai per prinsip, skor, tanggal).
      */
-    private function summarizeAuditForRecap(?LevelingAudit $audit, array $prinsipList, Collection $activeByPrinsip): ?array
+    private function summarizeAuditForRecap(?LevelingAudit $audit, array $prinsipList, Collection $activeByPrinsip, ?Collection $auditResults = null): ?array
     {
         if (!$audit) {
             return null;
         }
 
-        $resultsByItemId = $audit->results->keyBy('check_item_id');
+        $resultsCollection = $auditResults ?? $audit->results;
+        $resultsByItemId = $resultsCollection->keyBy('check_item_id');
         $prinsipLevels = [];
 
         foreach ($prinsipList as $prinsip) {
@@ -1556,24 +1636,18 @@ class LevelingInspectorService
     public function formatRecapApprovalStages(?LevelingRecapApproval $record, bool $hasAudit, array $auditorIds, ?User $currentUser, ?string $pendingAuditorName = null): array
     {
         $stageOrder = array_keys(LevelingRecapApproval::STAGES);
-        $relMap = [
-            'auditor'  => ['by' => 'auditor_approved_by',  'at' => 'auditor_approved_at',  'rel' => 'auditorApprover'],
-            'leader'   => ['by' => 'leader_approved_by',   'at' => 'leader_approved_at',   'rel' => 'leaderApprover'],
-            'spv'      => ['by' => 'spv_approved_by',      'at' => 'spv_approved_at',      'rel' => 'spvApprover'],
-            'asst_mgr' => ['by' => 'asst_mgr_approved_by', 'at' => 'asst_mgr_approved_at', 'rel' => 'asstMgrApprover'],
-        ];
 
         $approvedFlags = [];
         foreach ($stageOrder as $st) {
-            $byCol = $relMap[$st]['by'];
+            $byCol = self::STAGE_COLUMNS[$st]['by'];
             $approvedFlags[$st] = (bool) ($record && $record->$byCol);
         }
 
         $result = [];
         foreach ($stageOrder as $idx => $st) {
-            $byCol = $relMap[$st]['by'];
-            $atCol = $relMap[$st]['at'];
-            $relName = $relMap[$st]['rel'];
+            $byCol = self::STAGE_COLUMNS[$st]['by'];
+            $atCol = self::STAGE_COLUMNS[$st]['at'];
+            $relName = self::STAGE_COLUMNS[$st]['rel'];
 
             $isApproved = $approvedFlags[$st];
             $prevApproved = ($idx === 0) ? true : $approvedFlags[$stageOrder[$idx - 1]];
@@ -1642,15 +1716,8 @@ class LevelingInspectorService
             'inspector_id' => $inspectorId,
         ]);
 
-        $colMap = [
-            'auditor'  => ['by' => 'auditor_approved_by',  'at' => 'auditor_approved_at'],
-            'leader'   => ['by' => 'leader_approved_by',   'at' => 'leader_approved_at'],
-            'spv'      => ['by' => 'spv_approved_by',      'at' => 'spv_approved_at'],
-            'asst_mgr' => ['by' => 'asst_mgr_approved_by', 'at' => 'asst_mgr_approved_at'],
-        ];
-
-        $byCol = $colMap[$stage]['by'];
-        $atCol = $colMap[$stage]['at'];
+        $byCol = self::STAGE_COLUMNS[$stage]['by'];
+        $atCol = self::STAGE_COLUMNS[$stage]['at'];
         $stageLabel = LevelingRecapApproval::STAGES[$stage];
 
         if ($action === 'approve') {
@@ -1666,7 +1733,7 @@ class LevelingInspectorService
 
             if ($stageIdx > 0) {
                 $prevStage = $stageOrder[$stageIdx - 1];
-                $prevByCol = $colMap[$prevStage]['by'];
+                $prevByCol = self::STAGE_COLUMNS[$prevStage]['by'];
                 if (!$record->$prevByCol) {
                     $prevLabel = LevelingRecapApproval::STAGES[$prevStage];
                     throw ValidationException::withMessages([
@@ -1689,7 +1756,7 @@ class LevelingInspectorService
 
             if ($stageIdx < count($stageOrder) - 1) {
                 $nextStage = $stageOrder[$stageIdx + 1];
-                $nextByCol = $colMap[$nextStage]['by'];
+                $nextByCol = self::STAGE_COLUMNS[$nextStage]['by'];
                 if ($record->$nextByCol) {
                     $nextLabel = LevelingRecapApproval::STAGES[$nextStage];
                     throw ValidationException::withMessages([
