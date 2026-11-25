@@ -77,6 +77,9 @@
                         @foreach ($numbers as $num)
                             <option value="{{ $num }}" {{ $checksheet->code_machine == $num ? 'selected' : '' }}>Machine {{ $num }}</option>
                         @endforeach
+                        @if($checksheet->code_machine && !in_array((int)$checksheet->code_machine, $numbers, true))
+                            <option value="{{ $checksheet->code_machine }}" selected>Machine {{ $checksheet->code_machine }}</option>
+                        @endif
                     </select>
                 </div>
             </div>

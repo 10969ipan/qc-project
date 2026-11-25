@@ -778,17 +778,22 @@ class FirstPieceApprovalService extends BaseService
                 $updateData["leader_alat_ukur"] = $data["leader_alat_ukur"];
             }
 
-            // Update created_at and cycle_time if user has authority
+            // Update created_at and cycle_time only if time inputs were actually changed
             if (auth()->user()->role !== "inspector") {
                 $currentDate = $checksheet->created_at->format("Y-m-d");
+                $originalJamAfter = $checksheet->created_at->format("H:i");
+                $originalJamBefore = $checksheet->created_at->copy()->subSeconds($checksheet->cycle_time ?? 0)->format("H:i");
 
-                if (!empty($data["jam_after"])) {
+                $jamAfterChanged = !empty($data["jam_after"]) && $data["jam_after"] !== $originalJamAfter;
+                $jamBeforeChanged = !empty($data["jam_before"]) && $data["jam_before"] !== $originalJamBefore;
+
+                if ($jamAfterChanged) {
                     $updateData["created_at"] = \Carbon\Carbon::parse(
                         $currentDate . " " . $data["jam_after"],
                     );
                 }
 
-                if (!empty($data["jam_before"]) && !empty($data["jam_after"])) {
+                if (($jamBeforeChanged || $jamAfterChanged) && !empty($data["jam_before"]) && !empty($data["jam_after"])) {
                     $before = \Carbon\Carbon::parse(
                         $currentDate . " " . $data["jam_before"],
                     );
@@ -801,11 +806,11 @@ class FirstPieceApprovalService extends BaseService
                     }
 
                     $updateData["cycle_time"] = $before->diffInSeconds($after);
-                } else {
-                    $updateData["cycle_time"] = $data["cycle_time"] ?? null;
+                } elseif (array_key_exists("cycle_time", $data) && $data["cycle_time"] !== null) {
+                    $updateData["cycle_time"] = $data["cycle_time"];
                 }
-            } else {
-                $updateData["cycle_time"] = $data["cycle_time"] ?? null;
+            } elseif (array_key_exists("cycle_time", $data) && $data["cycle_time"] !== null) {
+                $updateData["cycle_time"] = $data["cycle_time"];
             }
 
             $checksheet->update($updateData);

@@ -294,6 +294,15 @@ class FirstPieceApprovalController extends Controller
             ->where('plant_id', $checksheet->plant_id)
             ->orderBy('name')
             ->get();
+
+        // Pastikan item asli milik checksheet selalu tersedia di dropdown edit
+        // agar item_id tidak diam-diam berubah saat item berstatus non-approved / beda kategori
+        if ($checksheet->item_id && !$items->contains('id', $checksheet->item_id)) {
+            $currentItem = Item::withoutGlobalScope('plant')->find($checksheet->item_id);
+            if ($currentItem) {
+                $items->prepend($currentItem);
+            }
+        }
         $partDimensionStandards = $this->getConsolidatedStandards();
 
         $users = \App\Models\User::where('is_active', true)
