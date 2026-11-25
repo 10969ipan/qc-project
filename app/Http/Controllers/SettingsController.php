@@ -86,6 +86,7 @@ class SettingsController extends Controller
             'salt_spray' => 'Salt Spray Test',
             'porecount' => 'Porecount Test',
             'kepatuhan_operator' => 'Kepatuhan Operator Quality',
+            'leveling_inspector' => 'Leveling Inspector',
             'schedule_kalibrasi' => 'Schedule Kalibrasi Alat Ukur',
             'master_alat_ukur' => 'Master Alat Ukur',
             'hasil_verifikasi' => 'Hasil Verifikasi Kalibrasi',

@@ -17,6 +17,7 @@ use App\Http\Controllers\PaintingChecksheetController;
 use App\Http\Controllers\DoubleTapeChecksheetController;
 use App\Http\Controllers\PlatingScanController;
 use App\Http\Controllers\OperatorComplianceController;
+use App\Http\Controllers\LevelingInspectorController;
 use App\Http\Controllers\DandoryChecksheetController;
 
 Route::middleware(['auth'])->group(function () {
@@ -34,6 +35,37 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/history', [PlatingScanController::class, 'history'])->name('plating_scan.history');
     });
+
+    // Leveling Inspector Checksheet (Leader/Karu/Kashift ke atas — di luar check_approval_rate agar selalu bisa diakses & di-approve)
+    Route::prefix('/checksheet/leveling-inspector')->name('checksheet.leveling_inspector.')->group(function () {
+        Route::get('/', [LevelingInspectorController::class, 'index'])->name('index');
+        Route::get('/rekap', [LevelingInspectorController::class, 'rekap'])->name('rekap');
+        Route::get('/rekap/print', [LevelingInspectorController::class, 'rekapPrint'])->name('rekap.print');
+        Route::post('/rekap/approve', [LevelingInspectorController::class, 'approveRekap'])->name('rekap.approve');
+        Route::get('/print', [LevelingInspectorController::class, 'print'])->name('print');
+        Route::post('/audit', [LevelingInspectorController::class, 'storeAudit'])->name('audit.store');
+        Route::delete('/audit/{id}', [LevelingInspectorController::class, 'destroyAudit'])->name('audit.destroy');
+        Route::post('/result', [LevelingInspectorController::class, 'saveResult'])->name('result.save');
+        Route::post('/result/bulk', [LevelingInspectorController::class, 'bulkSaveResult'])->name('result.bulk');
+        Route::post('/result/evidence', [LevelingInspectorController::class, 'uploadEvidence'])->name('result.evidence');
+        Route::patch('/result/{id}/evidence-note', [LevelingInspectorController::class, 'updateEvidenceNote'])->name('result.evidence_note');
+        Route::delete('/result/{id}/evidence', [LevelingInspectorController::class, 'destroyEvidence'])->name('result.evidence.destroy');
+        Route::get('/lookup/inspectors', [LevelingInspectorController::class, 'lookupInspectors'])->name('lookup.inspectors');
+        Route::get('/lookup/audits', [LevelingInspectorController::class, 'lookupAudits'])->name('lookup.audits');
+        Route::get('/lookup/bagian', [LevelingInspectorController::class, 'lookupBagian'])->name('lookup.bagian');
+        Route::get('/lookup/parts', [LevelingInspectorController::class, 'lookupParts'])->name('lookup.parts');
+        Route::get('/ng', [LevelingInspectorController::class, 'listNg'])->name('ng.list');
+        Route::get('/ng/print', [LevelingInspectorController::class, 'printNg'])->name('ng.print');
+        Route::post('/ng/{id}/correct', [LevelingInspectorController::class, 'correctNg'])->name('ng.correct');
+        Route::patch('/ng/{id}/correct-text', [LevelingInspectorController::class, 'updateNgCorrectionText'])->name('ng.correct_text');
+        Route::post('/ng/{id}/correct-photos', [LevelingInspectorController::class, 'updateNgCorrectionPhotos'])->name('ng.correct_photos');
+        Route::post('/ng/{id}/verify', [LevelingInspectorController::class, 'verifyNg'])->name('ng.verify');
+        Route::get('/master-item', [LevelingInspectorController::class, 'listMasterItems'])->name('master_item.list');
+        Route::post('/master-item', [LevelingInspectorController::class, 'storeMasterItem'])->name('master_item.store');
+        Route::put('/master-item/{id}', [LevelingInspectorController::class, 'updateMasterItem'])->name('master_item.update');
+        Route::post('/master-item/{id}/toggle', [LevelingInspectorController::class, 'toggleMasterItem'])->name('master_item.toggle');
+    });
+
     // --- Input Routes (Protected by Approval Rate after 12:00 PM) ---
     Route::middleware(['check_approval_rate'])->group(function () {
         // Sub Assy
