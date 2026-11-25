@@ -169,7 +169,6 @@ $(document).ready(function () {
         $.get(cfg.lookupAuditsUrl, {
             plant: cfg.plant,
             q: q || '',
-            date: $('#filterDate').val() || '',
             inspector_id: $('#filterInspectorId').val() || ''
         })
             .done(function (res) {
@@ -189,11 +188,6 @@ $(document).ready(function () {
             });
     }
 
-    $('#filterDate').on('change', function () {
-        $('#filterAuditId').val('');
-        $('#levelingFilterForm').submit();
-    });
-
     $('#filterInspectorSearch').on('focus', function () {
         loadFilterInspectors($(this).val());
     }).on('input', function () {
@@ -212,7 +206,6 @@ $(document).ready(function () {
         $('#filterInspectorId').val(id || '');
         $('#filterInspectorSearch').val(name || '');
         $('#filterInspectorDropdown').hide();
-        $('#filterDate').val('');
         $('#filterAuditId').val('');
         $('#levelingFilterForm').submit();
     });
@@ -220,7 +213,6 @@ $(document).ready(function () {
     $('#btnClearFilterInspector').on('click', function () {
         $('#filterInspectorId').val('');
         $('#filterInspectorSearch').val('');
-        $('#filterDate').val('');
         $('#filterAuditId').val('');
         $('#levelingFilterForm').submit();
     });

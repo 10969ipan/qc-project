@@ -142,12 +142,6 @@
                   style="gap: 12px;">
                 <input type="hidden" name="plant" value="{{ $plantCode }}">
 
-                <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold">Tanggal</label>
-                    <input type="date" name="date" id="filterDate" value="{{ $date }}"
-                           class="form-control form-control-sm filter-select-custom" style="width: 140px;">
-                </div>
-
                 @php
                     $selectedInspectorObj = $inspectorId ? $inspectors->firstWhere('id', (int) $inspectorId) : null;
                     $selectedInspectorName = $selectedInspectorObj ? $selectedInspectorObj->name : '';
