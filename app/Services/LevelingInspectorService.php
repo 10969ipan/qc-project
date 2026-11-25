@@ -297,7 +297,6 @@ class LevelingInspectorService
     public function searchPartsForInspector(string $plantCode, int $inspectorId, ?string $search = null, int $limit = 20): array
     {
         $cleanPlant = strtolower($plantCode);
-        $bagian = $this->getBagianForInspector($inspectorId);
 
         $config = DandoryOperatorConfig::where('plant_code', $cleanPlant)
             ->where('operator_id', $inspectorId)
@@ -306,6 +305,8 @@ class LevelingInspectorService
         $allowedCategories = ($config && is_array($config->allowed_categories))
             ? array_values(array_filter($config->allowed_categories))
             : [];
+
+        $bagian = $config?->bagian ?: $this->getBagianForInspector($inspectorId);
 
         if (empty($allowedCategories) && !empty($bagian)) {
             $sameBagianConfig = DandoryOperatorConfig::where('plant_code', $cleanPlant)
@@ -905,7 +906,7 @@ class LevelingInspectorService
         $record->update(['evidence_note' => $cleanNote]);
         $this->logActivity($user, 'update', $record, 'Edit keterangan evidence temuan Leveling');
 
-        return $record->fresh();
+        return $record;
     }
 
     /**
@@ -939,7 +940,7 @@ class LevelingInspectorService
 
         $this->logActivity($user, 'delete', $record, 'Menghapus foto evidence temuan Leveling');
 
-        return $record->fresh();
+        return $record;
     }
 
     private function openNgCacheKey(string $plantCode): string
@@ -1080,7 +1081,7 @@ class LevelingInspectorService
         $this->clearOpenNgCache($record->audit->plant_code);
         $this->logActivity($user, 'update', $record, 'Input Why Analysis, Root Cause, tindakan perbaikan & evidence NG Leveling');
 
-        return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
+        return $record;
     }
 
     /**
@@ -1108,7 +1109,7 @@ class LevelingInspectorService
 
         $this->logActivity($user, 'update', $record, 'Edit inline tindakan perbaikan NG Leveling');
 
-        return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
+        return $record->setRelation('corrector', $user);
     }
 
     /**
@@ -1172,7 +1173,7 @@ class LevelingInspectorService
 
         $this->logActivity($user, 'update', $record, 'Ubah foto evidence perbaikan NG Leveling');
 
-        return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
+        return $record;
     }
 
     /**
@@ -1207,7 +1208,7 @@ class LevelingInspectorService
             $this->logActivity($user, 'update', $record, 'Batal verifikasi perbaikan NG Leveling (kembali ke Waiting Verify)');
             $this->clearOpenNgCache($record->audit->plant_code);
 
-            return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
+            return $record;
         }
 
         if ($record->ng_status !== 'waiting_verify') {
@@ -1242,7 +1243,7 @@ class LevelingInspectorService
 
         $this->clearOpenNgCache($record->audit->plant_code);
 
-        return $record->fresh(['audit.inspector:id,name', 'corrector:id,name', 'verifier:id,name']);
+        return $record;
     }
 
     /**

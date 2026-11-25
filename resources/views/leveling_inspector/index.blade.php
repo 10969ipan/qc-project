@@ -680,9 +680,6 @@
                                 <div id="ngFilterInspectorDropdown" class="lvl-search-dropdown"></div>
                             </div>
                         </div>
-                        <div>
-                            <button type="button" id="btnReloadNgList" class="btn btn-primary btn-sm px-3" style="height:31px;">Filter</button>
-                        </div>
                         <div class="ml-auto">
                             <button type="button" id="btnPrintNgList" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height:31px;">
                                 <i class="fas fa-print fa-sm mr-1"></i> Cetak

@@ -1836,10 +1836,6 @@ $(document).ready(function () {
         switchNgPanel('list');
     });
 
-    $('#btnReloadNgList').on('click', function () {
-        loadNgFindings();
-    });
-
     $('#ngFilterStatus, #ngFilterDateFrom, #ngFilterDateTo').on('change', function () {
         loadNgFindings();
     });
