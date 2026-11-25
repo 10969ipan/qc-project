@@ -139,51 +139,94 @@ $(document).ready(function () {
     // -------------------------------------------------------------------------
     var filterInspTimer = null;
     var filterAuditTimer = null;
+    var filterInspXhr = null;
+    var filterAuditXhr = null;
+    var filterInspCache = {};
+    var filterAuditCache = {};
+
+    function renderFilterInspectors($dd, rows) {
+        var html = '<div class="lvl-search-item font-weight-bold text-primary js-pick-filter-inspector" data-id="" data-name="">-- Semua Inspector --</div>';
+        if (!rows.length) {
+            html += '<div class="lvl-search-item text-muted">Inspector tidak ditemukan</div>';
+        } else {
+            rows.forEach(function (u) {
+                html += '<div class="lvl-search-item js-pick-filter-inspector" data-id="' + u.id + '" data-name="' + escHtml(u.name) + '">' + escHtml(u.name) + '</div>';
+            });
+        }
+        $dd.html(html);
+    }
+
+    function renderFilterAudits($dd, rows) {
+        if (!rows.length) {
+            $dd.html('<div class="lvl-search-item text-muted">Riwayat audit tidak ditemukan</div>');
+            return;
+        }
+        var html = '';
+        rows.forEach(function (a) {
+            html += '<div class="lvl-search-item js-pick-filter-audit" data-id="' + a.id + '" data-label="' + escHtml(a.label) + '">' + escHtml(a.label) + '</div>';
+        });
+        $dd.html(html);
+    }
 
     function loadFilterInspectors(q) {
         var $dd = $('#filterInspectorDropdown');
+        var term = String(q || '').trim();
+        var cacheKey = cfg.plant + '|' + term;
+
+        if (Object.prototype.hasOwnProperty.call(filterInspCache, cacheKey)) {
+            $dd.show();
+            renderFilterInspectors($dd, filterInspCache[cacheKey]);
+            return;
+        }
+
+        if (filterInspXhr && filterInspXhr.readyState !== 4) {
+            filterInspXhr.abort();
+        }
+
         $dd.html('<div class="lvl-search-item text-muted">Mencari...</div>').show();
 
-        $.get(cfg.lookupInspectorsUrl, { plant: cfg.plant, q: q || '' })
+        filterInspXhr = $.get(cfg.lookupInspectorsUrl, { plant: cfg.plant, q: term })
             .done(function (res) {
                 var rows = (res && res.data) ? res.data : [];
-                var html = '<div class="lvl-search-item font-weight-bold text-primary js-pick-filter-inspector" data-id="" data-name="">-- Semua Inspector --</div>';
-                if (!rows.length) {
-                    html += '<div class="lvl-search-item text-muted">Inspector tidak ditemukan</div>';
-                } else {
-                    rows.forEach(function (u) {
-                        html += '<div class="lvl-search-item js-pick-filter-inspector" data-id="' + u.id + '" data-name="' + escHtml(u.name) + '">' + escHtml(u.name) + '</div>';
-                    });
-                }
-                $dd.html(html);
+                filterInspCache[cacheKey] = rows;
+                renderFilterInspectors($dd, rows);
             })
-            .fail(function () {
+            .fail(function (xhr, status) {
+                if (status === 'abort') return;
                 $dd.html('<div class="lvl-search-item text-danger">Gagal memuat data inspector</div>');
             });
     }
 
     function loadFilterAudits(q) {
         var $dd = $('#filterAuditDropdown');
+        var term = String(q || '').trim();
+        var inspectorId = $('#filterInspectorId').val() || '';
+        var cacheKey = cfg.plant + '|' + inspectorId + '|' + term;
+
+        if (Object.prototype.hasOwnProperty.call(filterAuditCache, cacheKey)) {
+            $dd.show();
+            renderFilterAudits($dd, filterAuditCache[cacheKey]);
+            return;
+        }
+
+        if (filterAuditXhr && filterAuditXhr.readyState !== 4) {
+            filterAuditXhr.abort();
+        }
+
         $dd.html('<div class="lvl-search-item text-muted">Mencari riwayat audit...</div>').show();
 
-        $.get(cfg.lookupAuditsUrl, {
+        filterAuditXhr = $.get(cfg.lookupAuditsUrl, {
             plant: cfg.plant,
-            q: q || '',
-            inspector_id: $('#filterInspectorId').val() || ''
+            q: term,
+            inspector_id: inspectorId
         })
             .done(function (res) {
                 var rows = (res && res.data) ? res.data : [];
-                if (!rows.length) {
-                    $dd.html('<div class="lvl-search-item text-muted">Riwayat audit tidak ditemukan</div>');
-                    return;
-                }
-                var html = '';
-                rows.forEach(function (a) {
-                    html += '<div class="lvl-search-item js-pick-filter-audit" data-id="' + a.id + '" data-label="' + escHtml(a.label) + '">' + escHtml(a.label) + '</div>';
-                });
-                $dd.html(html);
+                filterAuditCache[cacheKey] = rows;
+                renderFilterAudits($dd, rows);
             })
-            .fail(function () {
+            .fail(function (xhr, status) {
+                if (status === 'abort') return;
                 $dd.html('<div class="lvl-search-item text-danger">Gagal memuat riwayat audit</div>');
             });
     }

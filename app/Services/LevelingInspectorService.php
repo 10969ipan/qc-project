@@ -373,21 +373,43 @@ class LevelingInspectorService
     public function searchAudits(string $plantCode, ?string $search = null, ?string $date = null, ?int $inspectorId = null, int $limit = 10): Collection
     {
         $query = LevelingAudit::query()
-            ->select('leveling_audits.*')
+            ->select([
+                'leveling_audits.id',
+                'leveling_audits.audit_date',
+                'leveling_audits.inspector_id',
+                'leveling_audits.part_name',
+                'leveling_audits.part_number',
+                'insp.name as inspector_name',
+            ])
             ->leftJoin('users as insp', 'insp.id', '=', 'leveling_audits.inspector_id')
-            ->with(['inspector:id,name'])
             ->where('leveling_audits.plant_code', strtolower($plantCode))
             ->when(!empty($date), fn($q) => $q->where('leveling_audits.audit_date', $date))
             ->when($inspectorId, fn($q) => $q->where('leveling_audits.inspector_id', $inspectorId));
 
-        if ($search !== null && trim($search) !== '') {
-            $term = '%' . trim($search) . '%';
-            $query->where(function ($q) use ($term) {
+        $trimmedSearch = $search !== null ? trim($search) : '';
+        if ($trimmedSearch !== '') {
+            $term = '%' . $trimmedSearch . '%';
+            $hasSlash = str_contains($trimmedSearch, '/');
+            $exactIsoDate = null;
+            if ($hasSlash && preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $trimmedSearch)) {
+                try {
+                    $exactIsoDate = Carbon::createFromFormat('d/m/Y', $trimmedSearch)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $exactIsoDate = null;
+                }
+            }
+
+            $query->where(function ($q) use ($term, $hasSlash, $exactIsoDate) {
                 $q->where('insp.name', 'LIKE', $term)
                     ->orWhere('leveling_audits.part_name', 'LIKE', $term)
                     ->orWhere('leveling_audits.part_number', 'LIKE', $term)
-                    ->orWhere('leveling_audits.bagian', 'LIKE', $term)
-                    ->orWhereRaw("DATE_FORMAT(leveling_audits.audit_date, '%d/%m/%Y') LIKE ?", [$term]);
+                    ->orWhere('leveling_audits.bagian', 'LIKE', $term);
+
+                if ($exactIsoDate !== null) {
+                    $q->orWhere('leveling_audits.audit_date', $exactIsoDate);
+                } elseif ($hasSlash) {
+                    $q->orWhereRaw("DATE_FORMAT(leveling_audits.audit_date, '%d/%m/%Y') LIKE ?", [$term]);
+                }
             });
         }
 

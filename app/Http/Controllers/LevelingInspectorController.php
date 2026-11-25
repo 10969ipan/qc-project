@@ -16,6 +16,7 @@ use App\Models\AppMenu;
 use App\Models\LevelingAudit;
 use App\Models\LevelingRecapApproval;
 use App\Models\OperatorComplianceItem;
+use App\Models\User;
 use App\Services\LevelingInspectorService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -77,24 +78,19 @@ class LevelingInspectorController extends Controller
         $auditId = $request->filled('audit_id') ? (int) $request->get('audit_id') : null;
         $explicitDate = $request->filled('date') ? $request->get('date') : null;
 
-        $inspectors = $this->service->getInspectorsForPlant($plantCode);
-        $audits = $this->service->getAuditsForFilter($plantCode, $explicitDate, $inspectorId, 50);
+        $selectedInspector = $inspectorId
+            ? User::select(['id', 'name'])->find($inspectorId)
+            : null;
+        $inspectors = $selectedInspector ? collect([$selectedInspector]) : collect();
 
         $selectedAudit = null;
         if ($auditId) {
-            // Cek dulu di koleksi memori $audits (hindari query dobel ke DB)
-            $selectedAudit = $audits->firstWhere('id', $auditId);
-            if (!$selectedAudit) {
-                $selectedAudit = LevelingAudit::with(['inspector:id,name', 'auditor:id,name'])
-                    ->where('plant_code', $plantCode)
-                    ->find($auditId);
-                if ($selectedAudit) {
-                    $audits->prepend($selectedAudit);
-                }
-            }
+            $selectedAudit = LevelingAudit::with(['inspector:id,name', 'auditor:id,name'])
+                ->where('plant_code', $plantCode)
+                ->find($auditId);
         }
-        if (!$selectedAudit && $audits->isNotEmpty()) {
-            $selectedAudit = $audits->first();
+        if (!$selectedAudit) {
+            $selectedAudit = $this->service->getAuditsForFilter($plantCode, $explicitDate, $inspectorId, 1)->first();
         }
 
         $date = $explicitDate ?? '';
@@ -121,7 +117,6 @@ class LevelingInspectorController extends Controller
             'date'                 => $date,
             'inspectorId'          => $inspectorId,
             'inspectors'           => $inspectors,
-            'audits'               => $audits,
             'selectedAudit'        => $selectedAudit,
             'prinsipGroups'        => $tableData['prinsip_groups'],
             'summary'              => $tableData['summary'],
@@ -402,7 +397,7 @@ class LevelingInspectorController extends Controller
             'data'    => $audits->map(fn($a) => [
                 'id'    => $a->id,
                 'label' => ($a->audit_date ? $a->audit_date->format('d/m/Y') : '-')
-                    . ' — ' . ($a->inspector->name ?? '-')
+                    . ' — ' . ($a->inspector_name ?? '-')
                     . ' — ' . $a->part_name
                     . ($a->part_number ? ' (' . $a->part_number . ')' : ''),
             ])->values(),
