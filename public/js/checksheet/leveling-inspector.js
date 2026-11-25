@@ -355,9 +355,16 @@ $(document).ready(function () {
             });
     }
 
+    var PERFORMANCE_TEST_ROOM = 'Ruangan Durability Test';
+
     function isMachineBasedBagian(bagian) {
         var b = String(bagian || '').trim().toLowerCase();
         return b.indexOf('inproses') !== -1 || b.indexOf('in process') !== -1 || b.indexOf('in-process') !== -1;
+    }
+
+    function isPerformanceTestBagian(bagian) {
+        var b = String(bagian || '').trim().toLowerCase();
+        return b.indexOf('performance test') !== -1 || b.indexOf('perfoment test') !== -1;
     }
 
     function readSelectJsonAttr($sel, attrName) {
@@ -402,6 +409,15 @@ $(document).ready(function () {
                 validValues.push(item);
                 optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
             });
+        } else if (isPerformanceTestBagian(bagianTrim)) {
+            optionsHtml += '<option value="">-- Pilih Meja / Ruangan --</option>';
+            validValues.push(PERFORMANCE_TEST_ROOM);
+            optionsHtml += '<option value="' + escHtml(PERFORMANCE_TEST_ROOM) + '">' + escHtml(PERFORMANCE_TEST_ROOM) + '</option>';
+            mejaList.forEach(function (item) {
+                if (item === PERFORMANCE_TEST_ROOM) return;
+                validValues.push(item);
+                optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
+            });
         } else {
             optionsHtml += '<option value="">-- Pilih Meja --</option>';
             mejaList.forEach(function (item) {
@@ -411,7 +427,10 @@ $(document).ready(function () {
         }
 
         $sel.html(optionsHtml);
-        if (currentVal && validValues.indexOf(currentVal) !== -1) {
+        if (isPerformanceTestBagian(bagianTrim)) {
+            var perfVal = (typeof preferredVal !== 'undefined' && preferredVal) ? String(preferredVal).trim() : PERFORMANCE_TEST_ROOM;
+            $sel.val(validValues.indexOf(perfVal) !== -1 ? perfVal : PERFORMANCE_TEST_ROOM);
+        } else if (currentVal && validValues.indexOf(currentVal) !== -1) {
             $sel.val(currentVal);
         } else {
             $sel.val('');
