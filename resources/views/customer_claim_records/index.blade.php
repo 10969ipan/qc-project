@@ -80,7 +80,7 @@
                 <!-- 1. Field: Cari -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Cari</label>
-                    <div style="width: 180px;" class="custom-filter-wrapper">
+                    <div style="width: 220px;" class="custom-filter-wrapper">
                         <input type="text" name="search" class="form-control form-control-sm no-autoupper" 
                             placeholder="Ketik untuk mencari..." value="{{ request('search') }}" style="font-size: 0.68rem; height: 26px;">
                     </div>
@@ -89,7 +89,7 @@
                 <!-- 2. Field: Customer -->
                 <div class="d-flex flex-column align-items-start">
                     <label class="mb-1 small font-weight-bold text-gray-700" style="font-size: 0.68rem;">Customer</label>
-                    <div style="width: 140px;" class="custom-filter-wrapper">
+                    <div style="width: 150px;" class="custom-filter-wrapper">
                         <select name="customer" id="filterCustomer" class="form-control form-control-sm border-0 shadow-sm d-none">
                             <option value="">Semua Customer</option>
                             @foreach($customers as $cust)
@@ -124,36 +124,17 @@
                     </div>
                 </div>
 
-                <!-- Tombol Filter & Reset -->
-                <div class="d-flex align-items-center" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important; margin-left: 20px;">
-                    <style>
-                        .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
-                        .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
-                        .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
-                        .custom-filter-wrapper { position: relative; top: 0px; }
-                        #filterFormClaim label { white-space: nowrap; }
-                        #filterFormClaim input[type="text"].form-control-sm,
-                        #filterFormClaim select.form-control-sm { height: 26px !important; min-height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
-                        .uppercase-input { text-transform: uppercase; }
-                    </style>
-                    <button type="submit" class="btn btn-primary btn-sm shadow-sm rounded-pill px-2 py-1 d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Cari Data">
-                        <i class="fas fa-search fa-sm mr-1"></i> Filter
-                    </button>
-                    <a href="{{ route('admin.customer-claim-records.index', ['plant' => request('plant')]) }}"
-                        class="btn btn-secondary btn-sm shadow-sm rounded-pill px-2 py-1 no-loader d-flex align-items-center" style="font-size: 0.68rem; height: 26px;" title="Reset Filter">
-                        <i class="fas fa-undo fa-sm mr-1"></i> Reset
-                    </a>
-                </div>
-
                 <!-- Tombol Navigasi & Ekspor (Paling Kanan) -->
-                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end; margin-bottom: 8px !important;">
+                <div class="d-flex align-items-center ml-auto" style="gap: 4px; align-self: flex-end;">
                     @if($canExport)
                     <a href="{{ route('admin.customer-claim-records.export', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type', 'search'])) }}"
+                        id="btnExportClaim"
                         class="btn btn-danger btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-download d-flex align-items-center" title="Export PDF"
                         style="font-size: 0.68rem; height: 26px;">
                         <i class="fas fa-file-pdf fa-sm mr-1"></i> Export PDF
                     </a>
                     <a href="{{ route('admin.customer-claim-records.print', request()->only(['plant', 'start_date', 'end_date', 'smart_filter', 'customer', 'claim_type', 'search'])) }}"
+                        id="btnPrintClaim"
                         target="_blank"
                         class="btn btn-sm shadow-sm rounded-pill px-2 py-1 no-loader btn-print d-flex align-items-center" title="Print"
                         style="background-color: #17a589; color: white; font-size: 0.68rem; height: 26px;">
@@ -167,6 +148,17 @@
                         </button>
                     @endif
                 </div>
+
+                <style>
+                    .custom-filter-wrapper .ips-wrapper { margin-bottom: 0 !important; }
+                    .custom-filter-wrapper .ips-input { padding: 2px 18px 2px 6px !important; font-size: 0.68rem !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; height: 26px !important; }
+                    .custom-filter-wrapper .ips-clear { right: 5px; font-size: 10px; }
+                    .custom-filter-wrapper { position: relative; top: 0px; }
+                    #filterFormClaim label { white-space: nowrap; }
+                    #filterFormClaim input[type="text"].form-control-sm,
+                    #filterFormClaim select.form-control-sm { height: 26px !important; min-height: 26px !important; font-size: 0.68rem !important; padding: 2px 8px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; box-shadow: none !important; }
+                    .uppercase-input { text-transform: uppercase; }
+                </style>
             </form>
 
             @if(session('success'))
@@ -249,6 +241,41 @@
                     transition: background-color 0.2s ease;
                 }
 
+                /* DataTables overrides matching Kakotora */
+                #dataTable.dataTable thead .sorting:before,
+                #dataTable.dataTable thead .sorting:after,
+                #dataTable.dataTable thead .sorting_asc:before,
+                #dataTable.dataTable thead .sorting_asc:after,
+                #dataTable.dataTable thead .sorting_desc:before,
+                #dataTable.dataTable thead .sorting_desc:after {
+                    display: none !important;
+                }
+                #dataTable.dataTable thead th,
+                #dataTable.dataTable thead .sorting,
+                #dataTable.dataTable thead .sorting_asc,
+                #dataTable.dataTable thead .sorting_desc {
+                    background-image: none !important;
+                    background-color: #f8fafc !important;
+                    color: #475569 !important;
+                }
+                .dataTables_wrapper > .row:last-child {
+                    background-color: transparent !important;
+                    padding: 0 !important;
+                    margin: 1rem 0 0 0 !important;
+                    border-top: none !important;
+                    position: static !important;
+                    box-shadow: none !important;
+                }
+                .dataTables_info {
+                    font-size: 0.875rem !important;
+                    color: #6c757d !important;
+                    font-weight: 400 !important;
+                    padding-top: 0.35rem !important;
+                }
+                .dataTables_paginate .pagination {
+                    margin: 0 !important;
+                }
+
                 .badge {
                     font-size: 0.65rem !important;
                     padding: 0.25rem 0.45rem !important;
@@ -261,7 +288,15 @@
                 }
             </style>
 
-            <div class="table-responsive">
+            <!-- Loading Spinner -->
+            <div id="tableLoader" class="text-center py-5">
+                <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="text-muted small mb-0 font-weight-bold">Memuat data claim...</p>
+            </div>
+
+            <div id="tableContainer" style="display: none;">
                 <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
                     <thead class="bg-light">
                         <tr>
@@ -295,9 +330,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($records as $record)
+                        @foreach($records as $record)
                             <tr>
-                                <td class="text-center align-middle">{{ $records->firstItem() + $loop->index }}</td>
+                                <td class="text-center align-middle">{{ $loop->iteration }}</td>
                                 <td class="text-nowrap align-middle text-center" data-order="{{ $record->tanggal_claim ? $record->tanggal_claim->format('Y-m-d') : '' }}">
                                     {{ $record->tanggal_claim ? $record->tanggal_claim->format('d/m/Y') : '-' }}
                                 </td>
@@ -393,16 +428,9 @@
                                     @endif
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="27" class="text-center text-muted py-4">Belum ada data claim</td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
-            </div>
-            <div class="mt-4">
-                {{ $records->withQueryString()->links() }}
             </div>
         </div>
     </div>

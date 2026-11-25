@@ -2,8 +2,128 @@ $(document).ready(function () {
     const config = window.__CUSTOMER_CLAIM_RECORDS__ || {};
 
     if (typeof initItemSearch === 'function') {
-        initItemSearch('filterCustomer', { placeholder: 'Ketik Customer...', maxResults: 30 });
+        initItemSearch('filterCustomer', { placeholder: 'Semua Customer', maxResults: 30, hideSelect: true });
     }
+
+    const CLAIM_STOP_WORDS = [
+        'tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung',
+        'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau',
+        'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'claim',
+        'customer', 'database', 'dari', 'ke', 'untuk'
+    ];
+
+    function normalizeSmartSearch(raw) {
+        const input = String(raw || '').toLowerCase().trim();
+        if (!input) return '';
+        const keywords = input.split(/[\s,.]+/).filter(w => w && !CLAIM_STOP_WORDS.includes(w));
+        return keywords.length ? keywords.join(' ') : input;
+    }
+
+    // Custom DataTables date-range filter based on Tanggal Claim (col 1 data-order="YYYY-MM-DD")
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        if (!settings || !settings.nTable || settings.nTable.id !== 'dataTable') {
+            return true;
+        }
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
+        if (!startDate && !endDate) {
+            return true;
+        }
+
+        const rowNode = settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
+        const dateCell = rowNode ? rowNode.cells[1] : null;
+        const rowDate = dateCell ? (dateCell.getAttribute('data-order') || '') : '';
+        if (!rowDate) return false;
+
+        if (startDate && rowDate < startDate) return false;
+        if (endDate && rowDate > endDate) return false;
+        return true;
+    });
+
+    const table = $('#dataTable').DataTable({
+        dom: "<'row'<'col-sm-12'<'table-responsive'tr>>>" +
+             "<'row px-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        order: [],
+        autoWidth: false,
+        pageLength: 10,
+        columnDefs: [
+            { orderable: false, targets: [0, 26] }
+        ],
+        language: {
+            emptyTable: 'Belum ada data claim',
+            zeroRecords: 'Tidak ada data claim yang cocok dengan filter',
+            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+            infoEmpty: 'Showing 0 to 0 of 0 entries',
+            infoFiltered: '(filtered from _MAX_ total records)',
+            paginate: {
+                first: 'First',
+                last: 'Last',
+                next: 'Next',
+                previous: 'Previous'
+            }
+        },
+        initComplete: function () {
+            $('#tableLoader').hide();
+            $('#tableContainer').fadeIn('fast', function () {
+                table.columns.adjust();
+            });
+        },
+        drawCallback: function () {
+            const api = this.api();
+            const info = api.page.info();
+            const tbody = api.table().body();
+
+            // Re-number visible No column sequentially
+            api.rows({ page: 'current' }).nodes().each(function (row, idx) {
+                const firstCell = row.cells[0];
+                if (firstCell) {
+                    firstCell.textContent = info.start + idx + 1;
+                }
+            });
+
+            // Unmark previous highlights and merge split text nodes
+            $(tbody).find('mark.hlt').each(function () {
+                $(this).replaceWith(this.childNodes);
+            });
+            tbody.normalize();
+
+            const searchStr = api.search();
+            if (!searchStr) return;
+
+            let keywords = searchStr.split(' ').filter(w => w.trim().length > 1);
+            if (keywords.length === 0) return;
+
+            keywords = keywords
+                .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                .sort((a, b) => b.length - a.length);
+            const regex = new RegExp('(' + keywords.join('|') + ')', 'gi');
+
+            api.rows({ page: 'current' }).nodes().each(function (row) {
+                $(row).find('td:not(:first-child):not(:last-child)').each(function () {
+                    const walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
+                    const nodes = [];
+                    while (walker.nextNode()) {
+                        nodes.push(walker.currentNode);
+                    }
+                    nodes.forEach(function (node) {
+                        const text = node.nodeValue;
+                        if (text.trim() && regex.test(text)) {
+                            const span = document.createElement('span');
+                            span.innerHTML = text.replace(
+                                regex,
+                                "<mark class='hlt' style='background-color: #fffa90; color: #000000; padding: 0 2px; border-radius: 2px;'>$1</mark>"
+                            );
+                            const frag = document.createDocumentFragment();
+                            while (span.firstChild) {
+                                frag.appendChild(span.firstChild);
+                            }
+                            node.parentNode.replaceChild(frag, node);
+                        }
+                    });
+                });
+            });
+        }
+    });
 
     function syncExportLinks() {
         const query = $('#filterFormClaim').serialize();
@@ -15,22 +135,82 @@ $(document).ready(function () {
         }
     }
 
-    $('#filterFormClaim input, #filterFormClaim select').on('change input', syncExportLinks);
-
+    // Prevent Enter key & normal submit on filter form (live client-side filtering)
+    $('#filterFormClaim input[name="search"]').on('keypress', function (e) {
+        if (e.which === 13) {
+            e.preventDefault();
+        }
+    });
     $('#filterFormClaim').on('submit', function (e) {
-        const startDate = $(this).find('[name="start_date"]').val();
-        const endDate = $(this).find('[name="end_date"]').val();
+        e.preventDefault();
+    });
+
+    // 1. Instant Smart Search (same logic as Kakotora)
+    $('#filterFormClaim input[name="search"]').on('keyup input', function () {
+        table.search(normalizeSmartSearch($(this).val())).draw();
+        syncExportLinks();
+    });
+
+    // 2. Instant Customer Filter (Column index 2)
+    $('#filterCustomer').on('change', function () {
+        const val = $(this).val();
+        table.column(2).search(val ? '^' + $.fn.dataTable.util.escapeRegex(val) + '$' : '', true, false).draw();
+        syncExportLinks();
+    });
+
+    // Also clear customer filter immediately if user clears the autocomplete input manually
+    $('#filterCustomer').closest('.custom-filter-wrapper').on('input', '.ips-input', function () {
+        if ($(this).val().trim() === '' && $('#filterCustomer').val() !== '') {
+            $('#filterCustomer').val('').trigger('change');
+        }
+    });
+
+    // 3. Instant Date Range Filter
+    $('#start_date, #end_date').on('change input', function () {
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
 
         if (startDate && endDate && startDate > endDate) {
-            e.preventDefault();
             Swal.fire({
                 icon: 'warning',
                 title: 'Rentang Tanggal Tidak Valid',
                 text: 'Tanggal awal tidak boleh lebih besar dari tanggal akhir!',
                 confirmButtonColor: '#4e73df'
             });
+            return;
         }
+
+        table.draw();
+        syncExportLinks();
     });
+
+    // 4. Instant Claim Type Filter (Column index 4)
+    $('#filterClaimType').on('change', function () {
+        const val = $(this).val();
+        table.column(4).search(val ? '^\\s*' + $.fn.dataTable.util.escapeRegex(val) + '\\s*$' : '', true, false).draw();
+        syncExportLinks();
+    });
+
+    // Run initial filters if URL already contains query params
+    const initialSearch = $('#filterFormClaim input[name="search"]').val();
+    const initialCustomer = $('#filterCustomer').val();
+    const initialType = $('#filterClaimType').val();
+    const initialStart = $('#start_date').val();
+    const initialEnd = $('#end_date').val();
+
+    if (initialSearch) {
+        table.search(normalizeSmartSearch(initialSearch));
+    }
+    if (initialCustomer) {
+        table.column(2).search('^' + $.fn.dataTable.util.escapeRegex(initialCustomer) + '$', true, false);
+    }
+    if (initialType) {
+        table.column(4).search('^\\s*' + $.fn.dataTable.util.escapeRegex(initialType) + '\\s*$', true, false);
+    }
+    if (initialSearch || initialCustomer || initialType || initialStart || initialEnd) {
+        table.draw();
+    }
+    syncExportLinks();
 
     function updateEvaluasiDate(inputSelector, targetSelector) {
         const dateVal = $(inputSelector).val();

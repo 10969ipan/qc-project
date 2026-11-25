@@ -13,90 +13,10 @@ use Carbon\Carbon;
 class CustomerClaimRecordController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Apply shared filter & smart NLP search clauses (used by exportPdf & printView).
      */
-    public function index(Request $request)
+    private function applyClaimFilters($query, Request $request): void
     {
-        $query = CustomerClaimRecord::with(['plant', 'creator'])
-            ->orderBy('tanggal_claim', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->orderBy('id', 'desc');
-
-        // Filter by plant
-        if ($request->filled('plant')) {
-            $plantId = Plant::resolveId($request->plant);
-            if ($plantId) {
-                $query->where('plant_id', $plantId);
-            }
-        }
-
-        // Filter by customer
-        if ($request->filled('customer')) {
-            $query->where('customer', $request->customer);
-        }
-
-        // Filter by date range
-        if ($request->filled('start_date')) {
-            $query->where('tanggal_claim', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->where('tanggal_claim', '<=', $request->end_date);
-        }
-
-        // Smart Search Filter
-        if ($request->filled('smart_filter')) {
-            $query->where('id', $request->smart_filter);
-        }
-
-        // Filter by claim type
-        if ($request->filled('claim_type')) {
-            $query->where('claim_type', $request->claim_type);
-        }
-
-        // Global Search
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
-            });
-        }
-
-        $records = $query->paginate(10)->withQueryString();
-
-        $plants = Plant::orderBy('name')->get();
-        $customers = CustomerClaimRecord::whereNotNull('customer')
-            ->where('customer', '!=', '')
-            ->distinct()
-            ->orderBy('customer')
-            ->pluck('customer');
-        $plantId = Plant::resolveId($request->plant) ?: (auth()->check() ? auth()->user()->plant_id : null);
-
-        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'customers'));
-    }
-
-    /**
-     * Export records to PDF.
-     */
-    public function exportPdf(Request $request)
-    {
-        $query = CustomerClaimRecord::with(['plant', 'creator'])
-            ->orderBy('tanggal_claim', 'desc');
-
-        // Reuse filtering logic from index
         if ($request->filled('plant')) {
             $plantId = Plant::resolveId($request->plant);
             if ($plantId) {
@@ -115,37 +35,90 @@ class CustomerClaimRecordController extends Controller
             $query->whereDate('tanggal_claim', '<=', $request->end_date);
         }
 
-        // Smart Search Filter
         if ($request->filled('smart_filter')) {
             $query->where('id', $request->smart_filter);
         }
 
-        // Filter by claim type
         if ($request->filled('claim_type')) {
             $query->where('claim_type', $request->claim_type);
         }
 
-        // Global Search
         if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('plant_up_customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
-            });
+            $rawSearch = strtolower(trim((string) $request->search));
+            $stops = ['tolong', 'keluarkan', 'semua', 'di', 'pada', 'proses', 'nah', 'langsung', 'nya', 'tampilkan', 'cari', 'carikan', 'yang', 'ada', 'dan', 'atau', 'buatkan', 'buat', 'data', 'problem', 'masalah', 'part', 'claim', 'customer', 'database', 'dari', 'ke', 'untuk'];
+            $keywords = array_values(array_filter(preg_split('/[\s,.]+/', $rawSearch), fn ($w) => $w !== '' && !in_array($w, $stops, true)));
+            if (empty($keywords)) {
+                $keywords = [$rawSearch];
+            }
+
+            foreach ($keywords as $kw) {
+                $query->where(function ($q) use ($kw) {
+                    $q->where('customer', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('plant_up_customer', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('claim_type', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('eksternal_internal', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('no_report', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('project', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('nama_part', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('problem', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('kategori_defect', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('action_taken', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('feedback', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('status_feedback', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('status_cm', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('monitoring', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('monitoring_status', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('evaluasi', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('initial_operator', 'LIKE', '%' . $kw . '%')
+                      ->orWhere('initial_inspektor', 'LIKE', '%' . $kw . '%');
+                });
+            }
         }
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $query = CustomerClaimRecord::with(['plant', 'creator'])
+            ->orderBy('tanggal_claim', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc');
+
+        $resolvedPlantId = null;
+        if ($request->filled('plant')) {
+            $resolvedPlantId = Plant::resolveId($request->plant);
+            if ($resolvedPlantId) {
+                $query->where('plant_id', $resolvedPlantId);
+            }
+        }
+
+        // Load records client-side for instant Kakotora-style live search & filtering
+        $records = $query->get();
+
+        $plants = Plant::orderBy('name')->get();
+        $customersQuery = CustomerClaimRecord::whereNotNull('customer')
+            ->where('customer', '!=', '');
+        if ($resolvedPlantId) {
+            $customersQuery->where('plant_id', $resolvedPlantId);
+        }
+        $customers = $customersQuery->distinct()->orderBy('customer')->pluck('customer');
+        $plantId = $resolvedPlantId ?: (auth()->check() ? auth()->user()->plant_id : null);
+
+        return view('customer_claim_records.index', compact('records', 'plants', 'plantId', 'customers'));
+    }
+
+    /**
+     * Export records to PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $query = CustomerClaimRecord::with(['plant', 'creator'])
+            ->orderBy('tanggal_claim', 'desc');
+
+        $this->applyClaimFilters($query, $request);
 
         $records = $query->get();
 
@@ -198,53 +171,7 @@ class CustomerClaimRecordController extends Controller
         $query = CustomerClaimRecord::with(['plant', 'creator'])
             ->orderBy('tanggal_claim', 'desc');
 
-        // Reuse filtering logic
-        if ($request->filled('plant')) {
-            $plantId = Plant::resolveId($request->plant);
-            if ($plantId) {
-                $query->where('plant_id', $plantId);
-            }
-        }
-
-        if ($request->filled('customer')) {
-            $query->where('customer', $request->customer);
-        }
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal_claim', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal_claim', '<=', $request->end_date);
-        }
-
-        if ($request->filled('smart_filter')) {
-            $query->where('id', $request->smart_filter);
-        }
-
-        // Filter by claim type
-        if ($request->filled('claim_type')) {
-            $query->where('claim_type', $request->claim_type);
-        }
-
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('customer', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('no_report', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('nama_part', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('problem', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_defect', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('kategori_penyimpangan', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('action_taken', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_feedback', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('status_cm', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('monitoring', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('evaluasi', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_operator', 'LIKE', '%' . $searchTerm . '%')
-                  ->orWhere('initial_inspektor', 'LIKE', '%' . $searchTerm . '%');
-            });
-        }
+        $this->applyClaimFilters($query, $request);
 
         $records = $query->get();
 
