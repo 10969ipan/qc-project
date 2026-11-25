@@ -360,52 +360,62 @@ $(document).ready(function () {
         return b.indexOf('inproses') !== -1 || b.indexOf('in process') !== -1 || b.indexOf('in-process') !== -1;
     }
 
-    function formatMejaMesinOption(raw, isMachine) {
-        var val = String(raw || '').trim();
-        if (!val) return '';
-        if (isMachine) {
-            return val.replace(/^meja\b/i, 'Mesin');
+    function readSelectJsonAttr($sel, attrName) {
+        var val = $sel.data(attrName);
+        if (Array.isArray(val)) return val;
+        try {
+            var parsed = JSON.parse($sel.attr('data-' + attrName) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
         }
-        return val.replace(/^mesin\b/i, 'Meja');
     }
 
     function refreshMejaMesinOptions(bagian, preferredVal) {
         var $sel = $('#auditMejaMesin');
         if (!$sel.length) return;
 
-        var rawList = $sel.data('plant-tables');
-        if (!Array.isArray(rawList)) {
-            try {
-                rawList = JSON.parse($sel.attr('data-plant-tables') || '[]');
-            } catch (e) {
-                rawList = [];
-            }
-        }
+        var mejaList = readSelectJsonAttr($sel, 'meja-options');
+        var mesinList = readSelectJsonAttr($sel, 'mesin-options');
+        var bagianTrim = String(bagian || '').trim();
+        var currentVal = (typeof preferredVal !== 'undefined') ? String(preferredVal || '').trim() : String($sel.val() || '').trim();
 
-        var isMachine = isMachineBasedBagian(bagian);
-        var targetVal = (typeof preferredVal !== 'undefined')
-            ? formatMejaMesinOption(preferredVal, isMachine)
-            : formatMejaMesinOption($sel.val(), isMachine);
+        var optionsHtml = '';
+        var validValues = [];
 
-        var optionsHtml = '<option value="">-- Pilih ' + (isMachine ? 'Mesin' : 'Meja / Mesin') + ' --</option>';
-        var matched = false;
-
-        rawList.forEach(function (tbl) {
-            var formatted = formatMejaMesinOption(tbl, isMachine);
-            if (!formatted) return;
-            if (targetVal && formatted.toLowerCase() === targetVal.toLowerCase()) {
-                matched = true;
-                targetVal = formatted;
-            }
-            optionsHtml += '<option value="' + escHtml(formatted) + '">' + escHtml(formatted) + '</option>';
-        });
-
-        if (targetVal && !matched) {
-            optionsHtml += '<option value="' + escHtml(targetVal) + '">' + escHtml(targetVal) + '</option>';
+        if (!bagianTrim) {
+            optionsHtml += '<option value="">-- Pilih Meja / Mesin --</option>';
+            optionsHtml += '<optgroup label="Meja">';
+            mejaList.forEach(function (item) {
+                validValues.push(item);
+                optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
+            });
+            optionsHtml += '</optgroup><optgroup label="Mesin">';
+            mesinList.forEach(function (item) {
+                validValues.push(item);
+                optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
+            });
+            optionsHtml += '</optgroup>';
+        } else if (isMachineBasedBagian(bagianTrim)) {
+            optionsHtml += '<option value="">-- Pilih Mesin --</option>';
+            mesinList.forEach(function (item) {
+                validValues.push(item);
+                optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
+            });
+        } else {
+            optionsHtml += '<option value="">-- Pilih Meja --</option>';
+            mejaList.forEach(function (item) {
+                validValues.push(item);
+                optionsHtml += '<option value="' + escHtml(item) + '">' + escHtml(item) + '</option>';
+            });
         }
 
         $sel.html(optionsHtml);
-        $sel.val(targetVal || '');
+        if (currentVal && validValues.indexOf(currentVal) !== -1) {
+            $sel.val(currentVal);
+        } else {
+            $sel.val('');
+        }
     }
 
     $('#auditBagian').on('change', function () {
@@ -434,10 +444,7 @@ $(document).ready(function () {
                         $('#auditBagian').val('');
                         $('#auditBagianHint').text('Jadwal kepatuhan belum memiliki bagian, silakan pilih manual.');
                     }
-                    refreshMejaMesinOptions(
-                        (res && res.bagian) ? res.bagian : '',
-                        (res && res.default_table) ? res.default_table : ''
-                    );
+                    refreshMejaMesinOptions((res && res.bagian) ? res.bagian : '');
                 }
 
                 var rows = (res && res.data) ? res.data : [];

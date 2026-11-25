@@ -272,11 +272,19 @@
                             <label class="small font-weight-bold lvl-label-black mb-1">Meja / Mesin</label>
                             <select name="meja_mesin" id="auditMejaMesin"
                                     class="form-control form-control-sm border bg-white"
-                                    data-plant-tables='@json($plantTables)'>
+                                    data-meja-options='@json($mejaOptions)'
+                                    data-mesin-options='@json($mesinOptions)'>
                                 <option value="">-- Pilih Meja / Mesin --</option>
-                                @foreach($plantTables as $tbl)
-                                    <option value="{{ $tbl }}">{{ $tbl }}</option>
-                                @endforeach
+                                <optgroup label="Meja">
+                                    @foreach($mejaOptions as $tbl)
+                                        <option value="{{ $tbl }}">{{ $tbl }}</option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="Mesin">
+                                    @foreach($mesinOptions as $msn)
+                                        <option value="{{ $msn }}">{{ $msn }}</option>
+                                    @endforeach
+                                </optgroup>
                             </select>
                         </div>
 

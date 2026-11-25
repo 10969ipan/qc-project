@@ -106,7 +106,15 @@ class LevelingInspectorController extends Controller
         $tableData = $this->service->buildAuditTableData($selectedAudit);
         $openNgCount = $canManageAuditTools ? $this->service->countOpenNg($plantCode) : 0;
         $bagianOptions = $canManageAuditTools ? OperatorComplianceItem::getBagianOptions() : [];
-        $plantTables = $canManageAuditTools ? app(\App\Services\DandoryChecksheetService::class)->getPlantTables($plantCode) : [];
+        $mejaOptions = $canManageAuditTools
+            ? array_map(static fn (int $i): string => 'Meja ' . $i, range(1, 20))
+            : [];
+        $machineNumbers = in_array(strtolower($plantCode), ['jakarta', 'jkt'], true)
+            ? [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+            : [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
+        $mesinOptions = $canManageAuditTools
+            ? array_map(static fn (int $n): string => 'Mesin ' . $n, $machineNumbers)
+            : [];
 
         return view('leveling_inspector.index', [
             'plantCode'            => $plantCode,
@@ -119,7 +127,8 @@ class LevelingInspectorController extends Controller
             'summary'              => $tableData['summary'],
             'openNgCount'          => $openNgCount,
             'bagianOptions'        => $bagianOptions,
-            'plantTables'          => $plantTables,
+            'mejaOptions'          => $mejaOptions,
+            'mesinOptions'         => $mesinOptions,
             'canManageAuditTools'  => $canManageAuditTools,
             'canEditSelectedAudit' => $canEditSelectedAudit,
         ]);
