@@ -14,6 +14,7 @@ class LevelingAudit extends Model
         'audit_date',
         'inspector_id',
         'bagian',
+        'meja_mesin',
         'item_id',
         'part_name',
         'part_number',
@@ -49,5 +50,22 @@ class LevelingAudit extends Model
     public function results()
     {
         return $this->hasMany(LevelingAuditResult::class, 'audit_id');
+    }
+
+    /**
+     * Format gabungan Proses / Line / Meja / Mesin (contoh: "Inspector Plating / Meja 9").
+     */
+    public function getProsesLineLabelAttribute(): string
+    {
+        $bagian = trim((string) ($this->bagian ?? ''));
+        $meja = trim((string) ($this->meja_mesin ?? ''));
+
+        if ($bagian !== '' && $meja !== '') {
+            return $bagian . ' / ' . $meja;
+        }
+        if ($bagian !== '') {
+            return $bagian;
+        }
+        return $meja !== '' ? $meja : '-';
     }
 }

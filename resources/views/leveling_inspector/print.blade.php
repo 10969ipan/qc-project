@@ -307,7 +307,7 @@
                     <table class="sub-header">
                         <tr>
                             <td style="width:14%;"><strong>Tanggal:</strong> {{ $audit->audit_date->format('d/m/Y') }}</td>
-                            <td style="width:24%;"><strong>Proses/Line/Leader:</strong> {{ $audit->bagian ?: '-' }}</td>
+                            <td style="width:24%;"><strong>Proses/Line/Meja/Mesin:</strong> {{ $audit->proses_line_label }}</td>
                             <td style="width:30%;"><strong>Nama Part / No. Part:</strong> {{ $audit->part_name }}{{ $audit->part_number ? ' / ' . $audit->part_number : '' }}</td>
                             <td style="width:16%;"><strong>Inspector:</strong> {{ $audit->inspector->name ?? '-' }}</td>
                             <td style="width:16%;"><strong>Auditor:</strong> {{ $audit->auditor_name }}</td>

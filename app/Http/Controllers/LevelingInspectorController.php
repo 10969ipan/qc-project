@@ -106,6 +106,7 @@ class LevelingInspectorController extends Controller
         $tableData = $this->service->buildAuditTableData($selectedAudit);
         $openNgCount = $canManageAuditTools ? $this->service->countOpenNg($plantCode) : 0;
         $bagianOptions = $canManageAuditTools ? OperatorComplianceItem::getBagianOptions() : [];
+        $plantTables = $canManageAuditTools ? app(\App\Services\DandoryChecksheetService::class)->getPlantTables($plantCode) : [];
 
         return view('leveling_inspector.index', [
             'plantCode'            => $plantCode,
@@ -118,6 +119,7 @@ class LevelingInspectorController extends Controller
             'summary'              => $tableData['summary'],
             'openNgCount'          => $openNgCount,
             'bagianOptions'        => $bagianOptions,
+            'plantTables'          => $plantTables,
             'canManageAuditTools'  => $canManageAuditTools,
             'canEditSelectedAudit' => $canEditSelectedAudit,
         ]);
@@ -421,9 +423,10 @@ class LevelingInspectorController extends Controller
         $res = $this->service->searchPartsForInspector($plantCode, $inspectorId, $request->get('q'), 20);
 
         return response()->json([
-            'success'      => true,
-            'bagian'       => $res['bagian'],
-            'fallback_all' => $res['fallback_all'],
+            'success'       => true,
+            'bagian'        => $res['bagian'],
+            'default_table' => $res['default_table'] ?? null,
+            'fallback_all'  => $res['fallback_all'],
             'data'         => $res['items']->map(fn($it) => [
                 'id'          => $it->id,
                 'name'        => $it->name,
@@ -465,7 +468,7 @@ class LevelingInspectorController extends Controller
                 'id'                        => $r->id,
                 'audit_date'                => $r->audit?->audit_date?->format('d/m/Y') ?? '-',
                 'inspector_name'            => $r->audit?->inspector?->name ?? '-',
-                'bagian'                    => $r->audit?->bagian ?? '-',
+                'bagian'                    => $r->audit?->proses_line_label ?? '-',
                 'part_name'                 => $r->audit?->part_name ?? '-',
                 'part_number'               => $r->audit?->part_number ?? '',
                 'part_label'                => trim(($r->audit?->part_name ?? '-') . ($r->audit?->part_number ? ' / ' . $r->audit->part_number : '')),

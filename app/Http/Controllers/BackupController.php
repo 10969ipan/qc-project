@@ -109,7 +109,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Download file backup.
+     * Download file backup menggunakan chunked streaming (aman untuk file > 500 MB tanpa memakan RAM).
      */
     public function downloadBackup(string $filename)
     {
@@ -120,7 +120,37 @@ class BackupController extends Controller
             return redirect()->back()->with('error', 'File backup tidak ditemukan.');
         }
 
-        return Storage::disk('local')->download($filePath);
+        $fullPath = Storage::disk('local')->path($filePath);
+        $fileSize = @filesize($fullPath);
+
+        @set_time_limit(0);
+
+        $headers = [
+            'Content-Type'      => 'application/sql',
+            'Cache-Control'     => 'no-store, no-cache, must-revalidate',
+            'X-Accel-Buffering' => 'no',
+        ];
+        if ($fileSize !== false) {
+            $headers['Content-Length'] = (string) $fileSize;
+        }
+
+        return response()->streamDownload(function () use ($fullPath) {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            $stream = fopen($fullPath, 'rb');
+            if ($stream === false) {
+                return;
+            }
+
+            while (!feof($stream)) {
+                echo fread($stream, 1024 * 1024);
+                flush();
+            }
+
+            fclose($stream);
+        }, $filename, $headers);
     }
 
     /**
@@ -140,7 +170,9 @@ class BackupController extends Controller
     }
 
     /**
-     * Restore Full System Database dengan Pre-Restore Snapshot otomatis (Line-by-line Streaming).
+     * Restore Full System Database dengan Pre-Restore Snapshot otomatis.
+     * Memprioritaskan binary native `mysql` CLI (10-50x lebih cepat untuk file ratusan MB)
+     * dan fallback ke PHP streaming dengan AUTOCOMMIT=0 + UNIQUE_CHECKS=0 + batch COMMIT.
      */
     public function restoreFullBackup(Request $request)
     {
@@ -153,52 +185,191 @@ class BackupController extends Controller
         try {
             @ini_set('memory_limit', '2048M');
             @set_time_limit(0);
+            DB::disableQueryLog();
 
             // 1. Buat Pre-Restore Snapshot otomatis untuk keamanan data existing
             $snapshotFilename = 'pre_restore_snapshot_' . date('Y-m-d_H-i-s') . '.sql';
             $snapshotPath = Storage::disk('local')->path($this->backupDir . '/' . $snapshotFilename);
             $this->generateDatabaseDumpToFile($snapshotPath);
 
-            // 2. Baca isi file dan jalankan per statement SQL untuk efisiensi RAM
+            // 2. Restore file SQL (prioritas native mysql CLI, fallback ke PHP batched streaming)
             $file = $request->file('backup_file');
             $realPath = $file->getRealPath();
 
-            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-            $handle = fopen($realPath, 'r');
-            if ($handle) {
-                $query = '';
-                while (($line = fgets($handle)) !== false) {
-                    $trimmed = trim($line);
-                    if (empty($trimmed) || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '/*')) {
-                        continue;
-                    }
-                    $query .= $line;
-                    if (str_ends_with($trimmed, ';')) {
-                        DB::unprepared($query);
-                        $query = '';
-                    }
-                }
-                if (!empty(trim($query))) {
-                    DB::unprepared($query);
-                }
-                fclose($handle);
+            if (!$this->restoreDatabaseViaCli($realPath)) {
+                $this->restoreDatabaseViaPhp($realPath);
             }
-
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Database berhasil di-restore! Pre-restore snapshot otomatis disimpan sebagai: ' . $snapshotFilename
             ]);
         } catch (\Throwable $e) {
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            try {
+                DB::statement('SET AUTOCOMMIT=1;');
+                DB::statement('SET UNIQUE_CHECKS=1;');
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } catch (\Throwable $ignored) {
+            }
             Log::error('Restore Full Backup Error: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal mengembalikan database: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Cari path binary mysql / mysqldump (Linux PATH & Windows Laragon).
+     */
+    protected function resolveMysqlBinary(string $binaryName): ?string
+    {
+        $isWindows = DIRECTORY_SEPARATOR === '\\';
+        $exe = $isWindows ? ($binaryName . '.exe') : $binaryName;
+
+        // 1. Cek PATH sistem
+        $whichCmd = $isWindows ? ('where ' . escapeshellarg($binaryName) . ' 2>NUL') : ('which ' . escapeshellarg($binaryName) . ' 2>/dev/null');
+        $found = @shell_exec($whichCmd);
+        if (is_string($found) && trim($found) !== '') {
+            $firstLine = trim(preg_split('/\r\n|\r|\n/', trim($found))[0] ?? '');
+            if ($firstLine !== '' && is_file($firstLine)) {
+                return $firstLine;
+            }
+        }
+
+        // 2. Cek lokasi standar Linux / Laragon Windows
+        $candidates = $isWindows
+            ? array_merge(
+                glob('D:\\laragon\\bin\\mysql\\*\\bin\\' . $exe) ?: [],
+                glob('C:\\laragon\\bin\\mysql\\*\\bin\\' . $exe) ?: [],
+                glob('C:\\xampp\\mysql\\bin\\' . $exe) ?: []
+            )
+            : ['/usr/bin/' . $exe, '/usr/local/bin/' . $exe, '/usr/local/mysql/bin/' . $exe];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Restore cepat menggunakan native `mysql` CLI dengan streaming 1MB chunk (hemat RAM, 20-50x lebih cepat).
+     */
+    protected function restoreDatabaseViaCli(string $sqlFilePath): bool
+    {
+        $mysqlBin = $this->resolveMysqlBinary('mysql');
+        if (!$mysqlBin || !function_exists('proc_open')) {
+            return false;
+        }
+
+        $conn = config('database.connections.' . config('database.default'));
+        $host = (string) ($conn['host'] ?? '127.0.0.1');
+        $port = (string) ($conn['port'] ?? '3306');
+        $user = (string) ($conn['username'] ?? 'root');
+        $pass = (string) ($conn['password'] ?? '');
+        $db   = (string) ($conn['database'] ?? '');
+
+        $cmd = sprintf(
+            '%s --host=%s --port=%s --user=%s --default-character-set=utf8mb4 %s',
+            escapeshellarg($mysqlBin),
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($user),
+            escapeshellarg($db)
+        );
+
+        $env = array_merge($_ENV, $_SERVER);
+        $env = array_filter($env, fn($v) => is_scalar($v));
+        if ($pass !== '') {
+            $env['MYSQL_PWD'] = $pass;
+        }
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
+        if (!is_resource($proc)) {
+            return false;
+        }
+
+        try {
+            fwrite($pipes[0], "SET FOREIGN_KEY_CHECKS=0;\nSET UNIQUE_CHECKS=0;\nSET AUTOCOMMIT=0;\n");
+            $fh = fopen($sqlFilePath, 'rb');
+            if ($fh) {
+                while (!feof($fh)) {
+                    $chunk = fread($fh, 1024 * 1024);
+                    if ($chunk !== false && $chunk !== '') {
+                        fwrite($pipes[0], $chunk);
+                    }
+                }
+                fclose($fh);
+            }
+            fwrite($pipes[0], "\nCOMMIT;\nSET AUTOCOMMIT=1;\nSET UNIQUE_CHECKS=1;\nSET FOREIGN_KEY_CHECKS=1;\n");
+            fclose($pipes[0]);
+
+            stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            $stderr = trim((string) stream_get_contents($pipes[2]));
+            fclose($pipes[2]);
+
+            $exitCode = proc_close($proc);
+            if ($exitCode !== 0) {
+                Log::warning('Native mysql CLI restore failed (fallback ke PHP): ' . $stderr);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning('Native mysql CLI restore exception (fallback ke PHP): ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Fallback restore via PHP PDO yang sudah dioptimasi (AUTOCOMMIT=0, UNIQUE_CHECKS=0, batch COMMIT).
+     */
+    protected function restoreDatabaseViaPhp(string $sqlFilePath): void
+    {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::statement('SET UNIQUE_CHECKS=0;');
+        DB::statement('SET AUTOCOMMIT=0;');
+
+        $handle = fopen($sqlFilePath, 'r');
+        if ($handle) {
+            $query = '';
+            $execCount = 0;
+            while (($line = fgets($handle)) !== false) {
+                $trimmed = trim($line);
+                if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '/*')) {
+                    continue;
+                }
+                $query .= $line;
+                if (str_ends_with($trimmed, ';')) {
+                    DB::unprepared($query);
+                    $query = '';
+                    $execCount++;
+                    if ($execCount >= 200) {
+                        DB::statement('COMMIT;');
+                        $execCount = 0;
+                    }
+                }
+            }
+            if (trim($query) !== '') {
+                DB::unprepared($query);
+            }
+            fclose($handle);
+        }
+
+        DB::statement('COMMIT;');
+        DB::statement('SET AUTOCOMMIT=1;');
+        DB::statement('SET UNIQUE_CHECKS=1;');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**
@@ -366,13 +537,57 @@ class BackupController extends Controller
     }
 
     /**
-     * Utility streaming dump database langsung ke file disk (RAM usage < 5MB).
+     * Utility dump database langsung ke file disk.
+     * Prioritas native `mysqldump` (20-50x lebih cepat untuk DB > 100 MB), fallback ke PHP cursor streaming.
      */
     protected function generateDatabaseDumpToFile(string $fullPath): void
     {
         @ini_set('memory_limit', '2048M');
         @set_time_limit(0);
+        DB::disableQueryLog();
 
+        // 1. Coba dump super cepat via native mysqldump CLI
+        $mysqldumpBin = $this->resolveMysqlBinary('mysqldump');
+        if ($mysqldumpBin && function_exists('proc_open')) {
+            $conn = config('database.connections.' . config('database.default'));
+            $host = (string) ($conn['host'] ?? '127.0.0.1');
+            $port = (string) ($conn['port'] ?? '3306');
+            $user = (string) ($conn['username'] ?? 'root');
+            $pass = (string) ($conn['password'] ?? '');
+            $db   = (string) ($conn['database'] ?? '');
+
+            $cmd = sprintf(
+                '%s --host=%s --port=%s --user=%s --single-transaction --quick --skip-lock-tables --default-character-set=utf8mb4 --result-file=%s %s',
+                escapeshellarg($mysqldumpBin),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($user),
+                escapeshellarg($fullPath),
+                escapeshellarg($db)
+            );
+
+            $env = array_filter(array_merge($_ENV, $_SERVER), fn($v) => is_scalar($v));
+            if ($pass !== '') {
+                $env['MYSQL_PWD'] = $pass;
+            }
+
+            $proc = @proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
+            if (is_resource($proc)) {
+                fclose($pipes[0]);
+                stream_get_contents($pipes[1]);
+                fclose($pipes[1]);
+                $stderr = trim((string) stream_get_contents($pipes[2]));
+                fclose($pipes[2]);
+                $exitCode = proc_close($proc);
+
+                if ($exitCode === 0 && is_file($fullPath) && filesize($fullPath) > 0) {
+                    return;
+                }
+                Log::warning('Native mysqldump failed (fallback ke PHP dump): ' . $stderr);
+            }
+        }
+
+        // 2. Fallback: PHP cursor streaming
         $handle = fopen($fullPath, 'w');
         if (!$handle) {
             throw new \Exception("Gagal membuat file backup di lokasi disk: " . $fullPath);

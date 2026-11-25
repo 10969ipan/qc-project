@@ -18,6 +18,7 @@ class StoreLevelingAuditRequest extends FormRequest
             'plant'        => ['required', 'string', 'max:30'],
             'inspector_id' => ['required', 'integer', 'exists:users,id'],
             'bagian'       => ['required', 'string', 'max:120'],
+            'meja_mesin'   => ['nullable', 'string', 'max:80'],
             'item_id'      => ['required', 'string', 'exists:items,id'],
         ];
     }
@@ -26,7 +27,7 @@ class StoreLevelingAuditRequest extends FormRequest
     {
         return [
             'inspector_id.required' => 'Nama Inspector wajib dipilih.',
-            'bagian.required'       => 'Proses/Line/Leader (Bagian) wajib diisi.',
+            'bagian.required'       => 'Proses / Line (Bagian) wajib diisi.',
             'item_id.required'      => 'Nama Part / No. Part wajib dipilih.',
         ];
     }

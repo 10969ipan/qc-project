@@ -284,7 +284,7 @@
                         <td style="text-align:center; white-space:nowrap;">{{ $r->audit?->audit_date?->format('d/m/Y') ?? '-' }}</td>
                         <td>
                             <strong>{{ $r->audit?->inspector?->name ?? '-' }}</strong>
-                            <div class="text-muted" style="font-size:7px;">{{ $r->audit?->bagian ?? '-' }}</div>
+                            <div class="text-muted" style="font-size:7px;">{{ $r->audit?->proses_line_label ?? '-' }}</div>
                         </td>
                         <td>
                             <strong>{{ $r->audit?->part_name ?? '-' }}</strong>

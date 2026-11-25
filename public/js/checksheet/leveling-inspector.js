@@ -355,6 +355,63 @@ $(document).ready(function () {
             });
     }
 
+    function isMachineBasedBagian(bagian) {
+        var b = String(bagian || '').trim().toLowerCase();
+        return b.indexOf('inproses') !== -1 || b.indexOf('in process') !== -1 || b.indexOf('in-process') !== -1;
+    }
+
+    function formatMejaMesinOption(raw, isMachine) {
+        var val = String(raw || '').trim();
+        if (!val) return '';
+        if (isMachine) {
+            return val.replace(/^meja\b/i, 'Mesin');
+        }
+        return val.replace(/^mesin\b/i, 'Meja');
+    }
+
+    function refreshMejaMesinOptions(bagian, preferredVal) {
+        var $sel = $('#auditMejaMesin');
+        if (!$sel.length) return;
+
+        var rawList = $sel.data('plant-tables');
+        if (!Array.isArray(rawList)) {
+            try {
+                rawList = JSON.parse($sel.attr('data-plant-tables') || '[]');
+            } catch (e) {
+                rawList = [];
+            }
+        }
+
+        var isMachine = isMachineBasedBagian(bagian);
+        var targetVal = (typeof preferredVal !== 'undefined')
+            ? formatMejaMesinOption(preferredVal, isMachine)
+            : formatMejaMesinOption($sel.val(), isMachine);
+
+        var optionsHtml = '<option value="">-- Pilih ' + (isMachine ? 'Mesin' : 'Meja / Mesin') + ' --</option>';
+        var matched = false;
+
+        rawList.forEach(function (tbl) {
+            var formatted = formatMejaMesinOption(tbl, isMachine);
+            if (!formatted) return;
+            if (targetVal && formatted.toLowerCase() === targetVal.toLowerCase()) {
+                matched = true;
+                targetVal = formatted;
+            }
+            optionsHtml += '<option value="' + escHtml(formatted) + '">' + escHtml(formatted) + '</option>';
+        });
+
+        if (targetVal && !matched) {
+            optionsHtml += '<option value="' + escHtml(targetVal) + '">' + escHtml(targetVal) + '</option>';
+        }
+
+        $sel.html(optionsHtml);
+        $sel.val(targetVal || '');
+    }
+
+    $('#auditBagian').on('change', function () {
+        refreshMejaMesinOptions($(this).val());
+    });
+
     function loadPartsDropdown(q, autoFillBagian) {
         var inspectorId = $('#auditInspectorId').val();
         if (!inspectorId) return;
@@ -377,6 +434,10 @@ $(document).ready(function () {
                         $('#auditBagian').val('');
                         $('#auditBagianHint').text('Jadwal kepatuhan belum memiliki bagian, silakan pilih manual.');
                     }
+                    refreshMejaMesinOptions(
+                        (res && res.bagian) ? res.bagian : '',
+                        (res && res.default_table) ? res.default_table : ''
+                    );
                 }
 
                 var rows = (res && res.data) ? res.data : [];
@@ -409,6 +470,7 @@ $(document).ready(function () {
         $('#auditInspectorSearch').val('');
         $('#auditBagian').val('');
         $('#auditBagianHint').text('');
+        refreshMejaMesinOptions('', '');
         $('#auditItemId').val('');
         $('#auditPartSearch').val('').prop('disabled', true).attr('placeholder', 'Pilih inspector dulu, lalu ketik part...');
         $('#auditPartHint').text('');
@@ -493,11 +555,12 @@ $(document).ready(function () {
         e.preventDefault();
         var inspectorId = $('#auditInspectorId').val();
         var bagian = $('#auditBagian').val();
+        var mejaMesin = ($('#auditMejaMesin').val() || '').trim();
         var itemId = $('#auditItemId').val();
 
         var missing = [];
         if (!inspectorId) missing.push('Nama Inspector');
-        if (!bagian) missing.push('Proses / Line / Leader (Bagian)');
+        if (!bagian) missing.push('Proses / Line');
         if (!itemId) missing.push('Nama Part / No. Part');
 
         if (missing.length) {
@@ -513,6 +576,7 @@ $(document).ready(function () {
             plant: cfg.plant,
             inspector_id: inspectorId,
             bagian: bagian,
+            meja_mesin: mejaMesin,
             item_id: itemId
         })
             .done(function (res) {

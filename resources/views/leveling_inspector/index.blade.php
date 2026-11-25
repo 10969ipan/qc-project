@@ -257,8 +257,8 @@
                             </div>
                         </div>
 
-                        <div class="col-md-3 mb-2 mb-md-0">
-                            <label class="small font-weight-bold lvl-label-black mb-1">Proses / Line / Leader (Bagian) <span class="text-danger">*</span></label>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="small font-weight-bold lvl-label-black mb-1">Proses / Line <span class="text-danger">*</span></label>
                             <select name="bagian" id="auditBagian" class="form-control form-control-sm border bg-white" required>
                                 <option value="">-- Otomatis dari Kepatuhan --</option>
                                 @foreach($bagianOptions as $opt)
@@ -268,7 +268,19 @@
                             <small id="auditBagianHint" class="text-muted d-block mt-1" style="font-size:0.68rem;"></small>
                         </div>
 
-                        <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="small font-weight-bold lvl-label-black mb-1">Meja / Mesin</label>
+                            <select name="meja_mesin" id="auditMejaMesin"
+                                    class="form-control form-control-sm border bg-white"
+                                    data-plant-tables='@json($plantTables)'>
+                                <option value="">-- Pilih Meja / Mesin --</option>
+                                @foreach($plantTables as $tbl)
+                                    <option value="{{ $tbl }}">{{ $tbl }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <label class="small font-weight-bold lvl-label-black mb-1">Nama Part / No. Part <span class="text-danger">*</span></label>
                             <input type="hidden" name="item_id" id="auditItemId" required>
                             <div class="position-relative">
@@ -288,15 +300,15 @@
             </div>
             @endif
 
-            <!-- 3. Informasi Header Audit (Tanggal, Proses/Line/Leader, Part, Inspector, Auditor) -->
+            <!-- 3. Informasi Header Audit (Tanggal, Proses/Line/Meja/Mesin, Part, Inspector, Auditor) -->
             <div class="row bg-white p-2 rounded border mx-0 mb-3 shadow-xs" style="font-size: 0.78rem;">
                 <div class="col-md-2 mb-1 mb-md-0">
                     <span class="text-muted d-block" style="font-size:0.68rem;">Tanggal</span>
                     <strong class="text-dark">{{ $selectedAudit ? $selectedAudit->audit_date->format('d/m/Y') : \Carbon\Carbon::today()->format('d/m/Y') }}</strong>
                 </div>
                 <div class="col-md-3 mb-1 mb-md-0">
-                    <span class="text-muted d-block" style="font-size:0.68rem;">Proses / Line / Leader</span>
-                    <strong class="text-dark">{{ $selectedAudit ? ($selectedAudit->bagian ?: '-') : '-' }}</strong>
+                    <span class="text-muted d-block" style="font-size:0.68rem;">Proses / Line / Meja / Mesin</span>
+                    <strong class="text-dark">{{ $selectedAudit ? $selectedAudit->proses_line_label : '-' }}</strong>
                 </div>
                 <div class="col-md-3 mb-1 mb-md-0">
                     <span class="text-muted d-block" style="font-size:0.68rem;">Nama Part / No. Part</span>

@@ -294,7 +294,7 @@ class LevelingInspectorService
 
         $config = DandoryOperatorConfig::where('plant_code', $cleanPlant)
             ->where('operator_id', $inspectorId)
-            ->first(['bagian', 'allowed_categories']);
+            ->first(['bagian', 'default_table', 'allowed_categories']);
 
         $allowedCategories = ($config && is_array($config->allowed_categories))
             ? array_values(array_filter($config->allowed_categories))
@@ -344,9 +344,10 @@ class LevelingInspectorService
         $items = $query->orderBy('name')->limit($limit)->get();
 
         return [
-            'items'        => $items,
-            'bagian'       => $meta['bagian'],
-            'fallback_all' => $fallbackAll,
+            'items'         => $items,
+            'bagian'        => $meta['bagian'],
+            'default_table' => $config?->default_table,
+            'fallback_all'  => $fallbackAll,
         ];
     }
 
@@ -452,6 +453,7 @@ class LevelingInspectorService
             'audit_date'   => $today,
             'inspector_id' => $data['inspector_id'],
             'bagian'       => trim($data['bagian']),
+            'meja_mesin'   => !empty($data['meja_mesin']) ? trim($data['meja_mesin']) : null,
             'item_id'      => $item->id,
             'part_name'    => $item->name,
             'part_number'  => $item->part_number,
@@ -956,7 +958,7 @@ class LevelingInspectorService
             ->select('leveling_audit_results.*')
             ->join('leveling_audits as a', 'a.id', '=', 'leveling_audit_results.audit_id')
             ->with([
-                'audit:id,plant_code,audit_date,inspector_id,bagian,part_name,part_number,auditor_id,auditor_name',
+                'audit:id,plant_code,audit_date,inspector_id,bagian,meja_mesin,part_name,part_number,auditor_id,auditor_name',
                 'audit.inspector:id,name',
                 'corrector:id,name',
                 'verifier:id,name',
