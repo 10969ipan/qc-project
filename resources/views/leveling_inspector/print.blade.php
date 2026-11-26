@@ -264,9 +264,9 @@
                                             <table style="border-collapse:collapse; text-align:center; font-size:7pt; line-height:1.1; table-layout:fixed; width:295px;">
                                                 <tr>
                                                     <th style="width:22px; background:#fff !important; font-size:6.5pt;">Tgl.</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Dibuat</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diperiksa</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diketahui</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Prepared By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Checked By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Approved By</th>
                                                 </tr>
                                                 <tr>
                                                     <td rowspan="3" style="padding:2px;">
@@ -306,9 +306,9 @@
 
                     <table class="sub-header">
                         <tr>
-                            <td style="width:14%;"><strong>Tanggal:</strong> {{ $audit->audit_date->format('d/m/Y') }}</td>
-                            <td style="width:24%;"><strong>Proses/Line/Meja/Mesin:</strong> {{ $audit->proses_line_label }}</td>
-                            <td style="width:30%;"><strong>Nama Part / No. Part:</strong> {{ $audit->part_name }}{{ $audit->part_number ? ' / ' . $audit->part_number : '' }}</td>
+                            <td style="width:14%;"><strong>Date:</strong> {{ $audit->audit_date->format('d/m/Y') }}</td>
+                            <td style="width:24%;"><strong>Process/Line/Table/Machine:</strong> {{ $audit->proses_line_label }}</td>
+                            <td style="width:30%;"><strong>Part Name / Part No.:</strong> {{ $audit->part_name }}{{ $audit->part_number ? ' / ' . $audit->part_number : '' }}</td>
                             <td style="width:16%;"><strong>Inspector:</strong> {{ $audit->inspector->name ?? '-' }}</td>
                             <td style="width:16%;"><strong>Auditor:</strong> {{ $audit->auditor_name }}</td>
                         </tr>
@@ -316,10 +316,10 @@
                 </th>
             </tr>
             <tr>
-                <th rowspan="2" style="width:36px;">PRINSIP</th>
+                <th rowspan="2" style="width:36px;">PRINCIPLE</th>
                 <th rowspan="2" style="width:32px;">LEVEL</th>
-                <th rowspan="2" style="width:23%;">POINT CHECK</th>
-                <th rowspan="2" style="width:31%;">GUIDANCE PENILAIAN</th>
+                <th rowspan="2" style="width:23%;">CHECK POINT</th>
+                <th rowspan="2" style="width:31%;">ASSESSMENT GUIDANCE</th>
                 <th colspan="2">RESULT</th>
                 <th rowspan="2" style="width:185px;">EVIDENCE</th>
             </tr>
@@ -394,7 +394,7 @@
                             <td style="text-align:center;">
                                 @if(count($evUrls) > 0)
                                     @if(!empty($res?->evidence_note))
-                                        <div style="font-size:7px; text-align:left; margin-bottom:3px; color:#111;"><strong>Ket:</strong> {{ $res->evidence_note }}</div>
+                                        <div style="font-size:7px; text-align:left; margin-bottom:3px; color:#111;"><strong>Note:</strong> {{ $res->evidence_note }}</div>
                                     @endif
                                     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:3px;">
                                         @foreach($evUrls as $eUrl)
@@ -417,10 +417,10 @@
                 <td colspan="4" style="text-align:left;">
                     Total OK: <span class="text-ok">{{ $summary['total_ok'] }}</span> &nbsp;|&nbsp;
                     Total NG: <span class="text-ng">{{ $summary['total_ng'] }}</span> &nbsp;|&nbsp;
-                    Belum Diisi: <span class="text-muted">{{ $summary['total_empty'] }}</span>
+                    Unfilled: <span class="text-muted">{{ $summary['total_empty'] }}</span>
                 </td>
                 <td colspan="3" style="text-align:right;">
-                    Rata-rata Level: <strong>{{ $summary['score'] !== null ? $summary['score'] : '-' }}</strong>
+                    Average Level: <strong>{{ $summary['score'] !== null ? $summary['score'] : '-' }}</strong>
                 </td>
             </tr>
         </tbody>

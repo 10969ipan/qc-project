@@ -49,6 +49,41 @@ $(document).ready(function () {
             .replace(/'/g, '&#039;');
     }
 
+    function refreshApprovalKpi() {
+        var $val = $('#kpiApprovalVal');
+        var $sub = $('#kpiApprovalSub');
+        if (!$val.length) return;
+
+        var totalStages = 0;
+        var approvedStages = 0;
+        var auditedRows = 0;
+        var fullApprovedRows = 0;
+
+        $('#rekapLevelingTable tbody tr.js-rekap-row[data-has-audit="1"]').each(function () {
+            auditedRows++;
+            var $cells = $(this).find('.js-rekap-approval-stage');
+            var rowApproved = 0;
+            $cells.each(function () {
+                totalStages++;
+                if (String($(this).attr('data-approved')) === '1') {
+                    approvedStages++;
+                    rowApproved++;
+                }
+            });
+            if ($cells.length > 0 && rowApproved === $cells.length) {
+                fullApprovedRows++;
+            }
+        });
+
+        var pct = totalStages > 0 ? Math.round((approvedStages / totalStages) * 1000) / 10 : 0;
+        $val.removeClass('text-dark text-primary text-success')
+            .addClass(totalStages > 0 && approvedStages === totalStages ? 'text-success' : (approvedStages > 0 ? 'text-primary' : 'text-dark'))
+            .html(approvedStages + ' / ' + totalStages + ' Stages <span style="font-size:0.72rem;">(' + pct + '%)</span>');
+        if ($sub.length) {
+            $sub.text(fullApprovedRows + ' / ' + auditedRows + ' full approved');
+        }
+    }
+
     function renderApprovalRow($row, inspectorId, stages) {
         var approveStage = null;
         var cancelStage = null;
@@ -59,6 +94,8 @@ $(document).ready(function () {
 
             var $cell = $row.find('.js-rekap-approval-stage[data-stage="' + st.stage + '"]');
             if (!$cell.length) return;
+
+            $cell.attr('data-approved', st.approved ? '1' : '0');
 
             var html = '';
             if (st.approved) {
@@ -72,6 +109,8 @@ $(document).ready(function () {
 
             $cell.html(html);
         });
+
+        refreshApprovalKpi();
 
         var $actionsWrap = $row.find('.js-rekap-approval-actions');
         if ($actionsWrap.length) {
@@ -184,5 +223,94 @@ $(document).ready(function () {
 
     $(document).on('click', '.js-rekap-cancel-approve-btn', function () {
         sendRekapApproval($(this), 'cancel');
+    });
+
+    // Inline edit Meja / Mesin: klik 2x pada sel untuk membuka dropdown
+    function closeMejaEditor($cell) {
+        $cell.find('.js-rekap-meja-select').addClass('d-none');
+        $cell.find('.js-rekap-meja-text').removeClass('d-none');
+    }
+
+    $(document).on('dblclick', '.js-rekap-meja-cell', function () {
+        var $cell = $(this);
+        var $sel = $cell.find('.js-rekap-meja-select');
+        if (!$sel.length || !$sel.hasClass('d-none')) return;
+
+        $cell.find('.js-rekap-meja-text').addClass('d-none');
+        $sel.removeClass('d-none').focus();
+    });
+
+    $(document).on('blur', '.js-rekap-meja-select', function () {
+        var $sel = $(this);
+        if ($sel.prop('disabled')) return;
+        closeMejaEditor($sel.closest('.js-rekap-meja-cell'));
+    });
+
+    $(document).on('keydown', '.js-rekap-meja-select', function (e) {
+        if (e.key === 'Escape') {
+            var $sel = $(this);
+            $sel.val(String($sel.attr('data-prev') || ''));
+            closeMejaEditor($sel.closest('.js-rekap-meja-cell'));
+        }
+    });
+
+    $(document).on('change', '.js-rekap-meja-select', function () {
+        var $sel = $(this);
+        var $cell = $sel.closest('.js-rekap-meja-cell');
+        var $table = $('#rekapLevelingTable');
+        var url = $table.data('meja-url');
+        var csrf = $table.data('csrf');
+        var auditId = $sel.data('audit-id');
+        var newVal = $sel.val();
+        var prevVal = String($sel.attr('data-prev') || '');
+        if (!url || !auditId) return;
+
+        $sel.prop('disabled', true);
+        $.ajax({
+            url: url,
+            type: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf },
+            data: {
+                _method: 'PATCH',
+                audit_id: auditId,
+                meja_mesin: newVal
+            }
+        })
+            .done(function (res) {
+                var displayTxt = (res && res.meja_mesin) ? res.meja_mesin : (newVal || '-');
+                $sel.attr('data-prev', newVal || '');
+                $cell.find('.js-rekap-meja-text').text(displayTxt);
+                var $row = $sel.closest('tr.js-rekap-row');
+                if ($row.length) {
+                    var inspName = $row.find('td').eq(1).text().trim();
+                    var bagianTxt = $row.find('td').eq(2).text().trim();
+                    $row.attr('data-search', (inspName + ' ' + bagianTxt + ' ' + (newVal || '')).toLowerCase());
+                }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: (res && res.message) || 'Meja / Mesin diperbarui.',
+                        showConfirmButton: false,
+                        timer: 1800
+                    });
+                }
+            })
+            .fail(function (xhr) {
+                $sel.val(prevVal);
+                var msg = (xhr && xhr.responseJSON && xhr.responseJSON.message)
+                    ? xhr.responseJSON.message
+                    : 'Gagal memperbarui Meja / Mesin.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: msg });
+                } else {
+                    alert(msg);
+                }
+            })
+            .always(function () {
+                $sel.prop('disabled', false);
+                closeMejaEditor($cell);
+            });
     });
 });

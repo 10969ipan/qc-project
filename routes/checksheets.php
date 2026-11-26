@@ -42,6 +42,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/rekap', [LevelingInspectorController::class, 'rekap'])->name('rekap');
         Route::get('/rekap/print', [LevelingInspectorController::class, 'rekapPrint'])->name('rekap.print');
         Route::post('/rekap/approve', [LevelingInspectorController::class, 'approveRekap'])->name('rekap.approve');
+        Route::patch('/rekap/meja-mesin', [LevelingInspectorController::class, 'updateRekapMejaMesin'])->name('rekap.meja_mesin');
         Route::get('/print', [LevelingInspectorController::class, 'print'])->name('print');
         Route::post('/audit', [LevelingInspectorController::class, 'storeAudit'])->name('audit.store');
         Route::delete('/audit/{id}', [LevelingInspectorController::class, 'destroyAudit'])->name('audit.destroy');

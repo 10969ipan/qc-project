@@ -115,6 +115,7 @@
         .text-ng { color: #b91c1c !important; font-weight: 700; }
         .text-pri { color: #1d4ed8 !important; font-weight: 700; }
         .text-muted { color: #64748b !important; }
+        .rekap-row-ng td { background-color: #fee2e2 !important; }
 
         .print-footer {
             margin-top: 5mm;
@@ -129,7 +130,7 @@
     <table class="table">
         <thead>
             <tr style="border:none !important; background:transparent !important;">
-                <th colspan="24" class="print-header-cell">
+                <th colspan="25" class="print-header-cell">
                     <table class="header-table">
                         <tr>
                             <td style="width:72px; text-align:center;">
@@ -169,9 +170,9 @@
                                             <table style="border-collapse:collapse; text-align:center; font-size:7pt; line-height:1.1; table-layout:fixed; width:295px;">
                                                 <tr>
                                                     <th style="width:22px; background:#fff !important; font-size:6.5pt;">Tgl.</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Dibuat</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diperiksa</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diketahui</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Prepared By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Checked By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Approved By</th>
                                                 </tr>
                                                 <tr>
                                                     <td rowspan="3" style="padding:2px;">
@@ -211,38 +212,42 @@
 
                     <table class="sub-header">
                         <tr>
-                            <td style="width:18%;"><strong>Plant:</strong> {{ strtoupper($headerPlantCode) }}</td>
-                            <td style="width:22%;"><strong>Bagian:</strong> {{ $bagianFilter ?: 'Semua Bagian' }}</td>
-                            <td style="width:20%;"><strong>Realisasi Periode 1:</strong> {{ $summary['p1_done'] }}/{{ $summary['total_inspectors'] }} ({{ $summary['p1_pct'] }}%)</td>
-                            <td style="width:20%;"><strong>Realisasi Periode 2:</strong> {{ $summary['p2_done'] }}/{{ $summary['total_inspectors'] }} ({{ $summary['p2_pct'] }}%)</td>
-                            <td style="width:20%;"><strong>NG Belum Closed:</strong> {{ $summary['total_open_ng'] }} Temuan</td>
+                            <td style="white-space:nowrap;"><strong>Plant:</strong> {{ strtoupper($headerPlantCode) }}</td>
+                            <td style="white-space:nowrap;"><strong>Section:</strong> {{ $bagianFilter ?: 'All Sections' }}</td>
+                            <td style="white-space:nowrap;"><strong>Period 1:</strong> {{ $summary['p1_done'] }}/{{ $summary['total_inspectors'] }} ({{ $summary['p1_pct'] }}%)</td>
+                            <td style="white-space:nowrap;"><strong>Period 2:</strong> {{ $summary['p2_done'] }}/{{ $summary['total_inspectors'] }} ({{ $summary['p2_pct'] }}%)</td>
+                            <td style="white-space:nowrap;"><strong>NG Closed:</strong> {{ $summary['total_closed_ng'] }}/{{ $summary['total_ng'] }} ({{ $summary['total_ng'] > 0 ? $summary['ng_closure_pct'] . '%' : '-' }})</td>
+                            <td style="white-space:nowrap;"><strong>Avg. Level:</strong> {{ $summary['avg_level_overall'] !== null ? number_format($summary['avg_level_overall'], 2) . '/3' : '-' }}</td>
+                            <td style="white-space:nowrap;"><strong>Result OK:</strong> {{ $summary['result_ok_count'] }}/{{ $summary['audited_count'] }} ({{ $summary['result_ok_pct'] }}%)</td>
+                            <td style="white-space:nowrap;"><strong>Approval:</strong> {{ $summary['approved_stages_count'] }}/{{ $summary['total_stages_count'] }} ({{ $summary['approval_stage_pct'] }}%)</td>
                         </tr>
                     </table>
                 </th>
             </tr>
             <tr>
                 <th rowspan="2" style="width:26px;">NO</th>
-                <th rowspan="2">NAMA INSPECTOR</th>
-                <th rowspan="2">BAGIAN</th>
-                <th colspan="8">PERIODE 1 (JAN – JUN {{ $year }})</th>
-                <th colspan="8">PERIODE 2 (JUL – DES {{ $year }})</th>
+                <th rowspan="2">INSPECTOR NAME</th>
+                <th rowspan="2">SECTION</th>
+                <th rowspan="2" style="width:50px;">TABLE / MACHINE</th>
+                <th colspan="8">PERIOD 1 (JAN – JUN {{ $year }})</th>
+                <th colspan="8">PERIOD 2 (JUL – DEC {{ $year }})</th>
                 <th rowspan="2" style="width:45px;">NG OPEN</th>
                 <th colspan="4">APPROVAL</th>
             </tr>
             <tr>
                 <th style="width:42px;">STATUS</th>
-                <th style="width:55px;">TGL AUDIT</th>
+                <th style="width:55px;">AUDIT DATE</th>
                 @foreach($prinsipList as $p)
                     <th class="th-prinsip-{{ strtolower($p) }}" style="width:28px;">{{ $p }}</th>
                 @endforeach
-                <th style="width:38px;">RATA-RATA LEVEL</th>
+                <th style="width:42px; line-height:1.15;">AVG.<br>LEVEL</th>
 
                 <th style="width:42px;">STATUS</th>
-                <th style="width:55px;">TGL AUDIT</th>
+                <th style="width:55px;">AUDIT DATE</th>
                 @foreach($prinsipList as $p)
                     <th class="th-prinsip-{{ strtolower($p) }}" style="width:28px;">{{ $p }}</th>
                 @endforeach
-                <th style="width:38px;">RATA-RATA LEVEL</th>
+                <th style="width:42px; line-height:1.15;">AVG.<br>LEVEL</th>
 
                 <th style="width:58px;">AUDITOR</th>
                 <th style="width:65px;">KARU/KASHIFT</th>
@@ -252,13 +257,14 @@
         </thead>
         <tbody>
             @foreach($rows as $idx => $r)
-                <tr>
+                <tr class="{{ !empty($r['has_ng']) ? 'rekap-row-ng' : '' }}">
                     <td style="text-align:center; font-weight:700;">{{ $idx + 1 }}</td>
                     <td style="font-weight:700;">{{ $r['inspector_name'] }}</td>
                     <td>{{ $r['bagian'] }}</td>
+                    <td style="text-align:center; white-space:nowrap;">{{ $r['meja_mesin'] ?? '-' }}</td>
 
                     @if($r['p1'])
-                        <td style="text-align:center;" class="text-ok">Sudah</td>
+                        <td style="text-align:center;" class="text-ok">Done</td>
                         <td style="text-align:center; white-space:nowrap;">{{ $r['p1']['audit_date'] }}</td>
                         @foreach($prinsipList as $p)
                             @php $lv = $r['p1']['prinsip_levels'][$p] ?? '-'; @endphp
@@ -266,7 +272,7 @@
                         @endforeach
                         <td style="text-align:center;" class="text-pri">{{ $r['p1']['score'] !== null ? $r['p1']['score'] : '-' }}</td>
                     @else
-                        <td style="text-align:center;" class="text-ng">Belum</td>
+                        <td style="text-align:center;" class="text-ng">Pending</td>
                         <td style="text-align:center;" class="text-muted">-</td>
                         @foreach($prinsipList as $p)
                             <td style="text-align:center;" class="text-muted">-</td>
@@ -275,7 +281,7 @@
                     @endif
 
                     @if($r['p2'])
-                        <td style="text-align:center;" class="text-ok">Sudah</td>
+                        <td style="text-align:center;" class="text-ok">Done</td>
                         <td style="text-align:center; white-space:nowrap;">{{ $r['p2']['audit_date'] }}</td>
                         @foreach($prinsipList as $p)
                             @php $lv = $r['p2']['prinsip_levels'][$p] ?? '-'; @endphp
@@ -283,7 +289,7 @@
                         @endforeach
                         <td style="text-align:center;" class="text-pri">{{ $r['p2']['score'] !== null ? $r['p2']['score'] : '-' }}</td>
                     @else
-                        <td style="text-align:center;" class="text-ng">Belum</td>
+                        <td style="text-align:center;" class="text-ng">Pending</td>
                         <td style="text-align:center;" class="text-muted">-</td>
                         @foreach($prinsipList as $p)
                             <td style="text-align:center;" class="text-muted">-</td>

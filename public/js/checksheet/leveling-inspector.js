@@ -1011,7 +1011,7 @@ $(document).ready(function () {
                 '<img src="' + escHtml(u) + '" alt="Evidence" class="lvl-thumb">' +
                 '<span class="lvl-photo-eye"><i class="fas fa-eye"></i></span>' +
                 '</div>' +
-                '<span class="lvl-uploaded-name js-preview-photo" style="cursor:pointer;" data-src="' + escHtml(u) + '">Foto #' + (idx + 1) + '</span>' +
+                '<span class="lvl-uploaded-name js-preview-photo" style="cursor:pointer;" data-src="' + escHtml(u) + '">Photo #' + (idx + 1) + '</span>' +
                 '</div>' +
                 '<div class="lvl-uploaded-actions">' +
                 reuploadPart +
@@ -1206,7 +1206,7 @@ $(document).ready(function () {
         var itemId = $(this).attr('data-item-id');
         delete pendingEvidenceUploads[itemId];
         $row.find('.js-pending-upload-bar').addClass('d-none').empty();
-        $row.find('.js-ev-note-field').removeClass('is-invalid-note').attr('placeholder', 'Tulis keterangan evidence...');
+        $row.find('.js-ev-note-field').removeClass('is-invalid-note').attr('placeholder', 'Write evidence note...');
         var hasExisting = $row.find('.js-uploaded-items .lvl-uploaded-item').length > 0;
         if (hasExisting) {
             $row.find('.js-evidence-box').removeClass('d-none');
@@ -1394,24 +1394,24 @@ $(document).ready(function () {
         if (r.why_2 && !isRichTextEmpty(r.why_2)) corrParts.push('<div class="lvl-guidance-content"><strong>Why 2:</strong> ' + r.why_2 + '</div>');
         if (r.why_3 && !isRichTextEmpty(r.why_3)) corrParts.push('<div class="lvl-guidance-content"><strong>Why 3:</strong> ' + r.why_3 + '</div>');
         if (r.root_cause && !isRichTextEmpty(r.root_cause)) corrParts.push('<div class="lvl-guidance-content"><strong>Root Cause:</strong> ' + r.root_cause + '</div>');
-        if (r.corrective_action && !isRichTextEmpty(r.corrective_action)) corrParts.push('<div class="lvl-guidance-content"><strong>Tindakan:</strong> ' + r.corrective_action + '</div>');
+        if (r.corrective_action && !isRichTextEmpty(r.corrective_action)) corrParts.push('<div class="lvl-guidance-content"><strong>Action:</strong> ' + r.corrective_action + '</div>');
 
         var hasCorr = corrParts.length > 0;
         var bodyHtml = hasCorr ? corrParts.join('') : '<span class="text-muted">-</span>';
         if (r.corrective_date) {
-            bodyHtml += '<div class="text-muted" style="font-size:0.64rem;">Tgl: ' + escHtml(r.corrective_date) + '</div>';
+            bodyHtml += '<div class="text-muted" style="font-size:0.64rem;">Date: ' + escHtml(r.corrective_date) + '</div>';
         }
         if (r.corrector_name) {
             bodyHtml += '<div class="text-muted" style="font-size:0.64rem;">By: ' + escHtml(r.corrector_name) + '</div>';
         }
         if (r.reject_reason) {
-            bodyHtml += '<div class="text-danger" style="font-size:0.64rem;">Alasan reject: ' + escHtml(r.reject_reason) + '</div>';
+            bodyHtml += '<div class="text-danger" style="font-size:0.64rem;">Reject reason: ' + escHtml(r.reject_reason) + '</div>';
         }
 
         if (hasCorr && r.ng_status !== 'closed') {
             return '<div class="lvl-inline-cell-head">' +
                 '<div class="flex-grow-1">' + bodyHtml + '</div>' +
-                '<button type="button" class="lvl-inline-edit-btn js-inline-edit-corr" data-id="' + r.id + '" title="Edit Tindakan Perbaikan">' +
+                '<button type="button" class="lvl-inline-edit-btn js-inline-edit-corr" data-id="' + r.id + '" title="Edit Corrective Action">' +
                 '<i class="fas fa-pencil-alt"></i>' +
                 '</button>' +
                 '</div>';
@@ -1472,13 +1472,13 @@ $(document).ready(function () {
                     var evList = (Array.isArray(r.evidence_urls) && r.evidence_urls.length) ? r.evidence_urls : (r.evidence_url ? [r.evidence_url] : []);
 
                     var evHtml = evList.length
-                        ? (r.evidence_note ? '<div class="text-left text-dark mb-1" style="font-size:0.64rem; line-height:1.25;"><strong>Ket:</strong> ' + escHtml(r.evidence_note) + '</div>' : '') +
+                        ? (r.evidence_note ? '<div class="text-left text-dark mb-1" style="font-size:0.64rem; line-height:1.25;"><strong>Note:</strong> ' + escHtml(r.evidence_note) + '</div>' : '') +
                         '<div class="d-flex flex-wrap justify-content-center" style="gap:4px;">' +
                         evList.map(function (u) {
                             return buildPhotoWithEye(u, 'max-width:68px; max-height:48px;', true);
                         }).join('') +
                         '</div>'
-                        : '<span class="text-danger">Belum ada</span>';
+                        : '<span class="text-danger">None</span>';
 
                     var corrText = buildNgCorrTextHtml(r);
                     var corrEvHtml = buildNgCorrPhotosHtml(r);
@@ -1490,12 +1490,12 @@ $(document).ready(function () {
 
                     var actionHtml = '';
                     if (r.ng_status === 'open') {
-                        actionHtml = '<button type="button" class="btn btn-primary btn-sm px-2 py-1 js-open-correct-ng" style="font-size:0.65rem;" data-id="' + r.id + '">Input Perbaikan</button>';
+                        actionHtml = '<button type="button" class="btn btn-primary btn-sm px-2 py-1 js-open-correct-ng" style="font-size:0.65rem;" data-id="' + r.id + '">Input Action</button>';
                     } else if (r.ng_status === 'waiting_verify') {
                         if (r.can_verify) {
-                            actionHtml = '<button type="button" class="btn btn-success btn-sm px-2 py-1 js-open-verify-ng" style="font-size:0.65rem;" data-id="' + r.id + '">Verifikasi</button>';
+                            actionHtml = '<button type="button" class="btn btn-success btn-sm px-2 py-1 js-open-verify-ng" style="font-size:0.65rem;" data-id="' + r.id + '">Verify</button>';
                         } else {
-                            actionHtml = '<span class="text-muted" style="font-size:0.65rem;">Menunggu ' + escHtml(r.auditor_name) + '</span>';
+                            actionHtml = '<span class="text-muted" style="font-size:0.65rem;">Waiting ' + escHtml(r.auditor_name) + '</span>';
                         }
                     } else {
                         var verifyInfoHtml = '<div class="text-left">' +
@@ -1504,7 +1504,7 @@ $(document).ready(function () {
                             '<div class="text-dark" style="font-size:0.62rem; line-height:1.25;">By ' + escHtml(r.verifier_name || '-') + '</div>' +
                             '</div>';
                         var unverifyBtnHtml = r.can_unverify
-                            ? '<button type="button" class="lvl-inline-edit-btn js-unverify-ng ml-2" data-id="' + r.id + '" title="Batal Verifikasi"><i class="fas fa-undo-alt"></i></button>'
+                            ? '<button type="button" class="lvl-inline-edit-btn js-unverify-ng ml-2" data-id="' + r.id + '" title="Undo Verification"><i class="fas fa-undo-alt"></i></button>'
                             : '';
                         actionHtml = '<div class="d-inline-flex align-items-center justify-content-between" style="gap:6px;">' + verifyInfoHtml + unverifyBtnHtml + '</div>';
                     }
@@ -1813,13 +1813,13 @@ $(document).ready(function () {
 
         if (panel === 'correct') {
             $('#ngPanelCorrect, #ngFooterCorrect').removeClass('d-none');
-            $('#ngModalTitle').text('Input Perbaikan Temuan NG');
+            $('#ngModalTitle').text('Input NG Corrective Action');
         } else if (panel === 'verify') {
             $('#ngPanelVerify, #ngFooterVerify').removeClass('d-none');
-            $('#ngModalTitle').text('Verifikasi Perbaikan Temuan NG');
+            $('#ngModalTitle').text('Verify NG Corrective Action');
         } else {
             $('#ngPanelList, #ngFooterList').removeClass('d-none');
-            $('#ngModalTitle').text('Daftar Temuan NG & Verifikasi Perbaikan');
+            $('#ngModalTitle').text('NG Findings & Corrective Verification');
         }
 
         $('#ngListModal .modal-body').scrollTop(0);
@@ -1960,14 +1960,14 @@ $(document).ready(function () {
         $list.empty();
 
         if (!correctiveSelectedFiles.length) {
-            $('#ngCorrectEvidenceHint').html('<span class="text-muted">Belum ada foto dipilih</span>');
-            $list.html('<div class="lvl-correct-preview-empty"><i class="far fa-image mr-1"></i>Belum ada foto evidence perbaikan. Klik area <strong>Upload</strong> di bawah atau drag &amp; drop foto.</div>');
+            $('#ngCorrectEvidenceHint').html('<span class="text-muted">No photo selected</span>');
+            $list.html('<div class="lvl-correct-preview-empty"><i class="far fa-image mr-1"></i>No corrective evidence photo yet. Click the <strong>Upload</strong> area below or drag &amp; drop photos.</div>');
             return;
         }
 
-        var hintHtml = '<span class="text-success font-weight-bold">' + correctiveSelectedFiles.length + ' foto siap diupload</span>';
+        var hintHtml = '<span class="text-success font-weight-bold">' + correctiveSelectedFiles.length + ' photo(s) ready to upload</span>';
         if (correctiveSelectedFiles.length > 1) {
-            hintHtml += ' <button type="button" class="btn btn-link btn-sm text-danger p-0 ml-2 js-clear-all-correct-files" style="font-size:0.75rem; vertical-align:baseline;">Hapus Semua</button>';
+            hintHtml += ' <button type="button" class="btn btn-link btn-sm text-danger p-0 ml-2 js-clear-all-correct-files" style="font-size:0.75rem; vertical-align:baseline;">Clear All</button>';
         }
         $('#ngCorrectEvidenceHint').html(hintHtml);
 
@@ -2367,9 +2367,9 @@ $(document).ready(function () {
                 rows.forEach(function (it) {
                     masterItemsCache[it.id] = it;
                     var stHtml = it.is_active
-                        ? '<span class="text-success font-weight-bold">Aktif</span>'
-                        : '<span class="text-muted font-weight-bold">Nonaktif</span>';
-                    var toggleLabel = it.is_active ? 'Nonaktifkan' : 'Aktifkan';
+                        ? '<span class="text-success font-weight-bold">Active</span>'
+                        : '<span class="text-muted font-weight-bold">Inactive</span>';
+                    var toggleLabel = it.is_active ? 'Deactivate' : 'Activate';
                     var toggleCls = it.is_active ? 'text-danger' : 'text-success';
                     var guidanceCell = it.guidance_html
                         ? '<div class="lvl-guidance-content">' + it.guidance_html + '</div>'

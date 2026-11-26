@@ -14,11 +14,11 @@
         'waiting_verify' => 'Waiting Verify',
         'closed'         => 'Closed',
     ];
-    $filterStatusText = !empty($filters['status']) ? ($statusLabelMap[$filters['status']] ?? $filters['status']) : 'Semua Status';
+    $filterStatusText = !empty($filters['status']) ? ($statusLabelMap[$filters['status']] ?? $filters['status']) : 'All Statuses';
     $filterDateText = (!empty($filters['date_from']) || !empty($filters['date_to']))
-        ? trim(($filters['date_from'] ? \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') : '...') . ' s/d ' . ($filters['date_to'] ? \Carbon\Carbon::parse($filters['date_to'])->format('d/m/Y') : '...'))
-        : 'Semua Tanggal';
-    $pageTitle = 'Daftar Temuan NG Leveling Inspector - ' . strtoupper($headerPlantCode);
+        ? trim(($filters['date_from'] ? \Carbon\Carbon::parse($filters['date_from'])->format('d/m/Y') : '...') . ' - ' . ($filters['date_to'] ? \Carbon\Carbon::parse($filters['date_to'])->format('d/m/Y') : '...'))
+        : 'All Dates';
+    $pageTitle = 'NG Findings Leveling Inspector - ' . strtoupper($headerPlantCode);
 @endphp
 <html lang="id">
 
@@ -203,9 +203,9 @@
                                             <table style="border-collapse:collapse; text-align:center; font-size:7pt; line-height:1.1; table-layout:fixed; width:295px;">
                                                 <tr>
                                                     <th style="width:22px; background:#fff !important; font-size:6.5pt;">Tgl.</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Dibuat</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diperiksa</th>
-                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Diketahui</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Prepared By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Checked By</th>
+                                                    <th style="width:91px; background:#fff !important; font-size:6.5pt;">Approved By</th>
                                                 </tr>
                                                 <tr>
                                                     <td rowspan="3" style="padding:2px;">
@@ -246,31 +246,31 @@
                     <table class="sub-header">
                         <tr>
                             <td style="width:18%;"><strong>Plant:</strong> {{ strtoupper($headerPlantCode) }}</td>
-                            <td style="width:24%;"><strong>Filter Status:</strong> {{ $filterStatusText }}</td>
-                            <td style="width:30%;"><strong>Rentang Tanggal:</strong> {{ $filterDateText }}</td>
-                            <td style="width:28%;"><strong>Inspector:</strong> {{ $inspectorName ?: 'Semua Inspector' }}</td>
+                            <td style="width:24%;"><strong>Status Filter:</strong> {{ $filterStatusText }}</td>
+                            <td style="width:30%;"><strong>Date Range:</strong> {{ $filterDateText }}</td>
+                            <td style="width:28%;"><strong>Inspector:</strong> {{ $inspectorName ?: 'All Inspectors' }}</td>
                         </tr>
                     </table>
                 </th>
             </tr>
             <tr>
                 <th style="width:24px;">NO</th>
-                <th style="width:52px;">TANGGAL</th>
-                <th style="width:105px;">INSPECTOR / BAGIAN</th>
-                <th style="width:125px;">NAMA PART / PART NO</th>
-                <th style="width:74px;">PRINSIP / LEVEL</th>
-                <th>POINT CHECK</th>
-                <th style="width:105px;">FOTO TEMUAN</th>
-                <th>TINDAKAN PERBAIKAN</th>
-                <th style="width:105px;">FOTO PERBAIKAN</th>
-                <th style="width:68px;">STATUS / VERIFIKASI</th>
+                <th style="width:52px;">DATE</th>
+                <th style="width:105px;">INSPECTOR / SECTION</th>
+                <th style="width:125px;">PART NAME / PART NO.</th>
+                <th style="width:74px;">PRINCIPLE / LEVEL</th>
+                <th>CHECK POINT</th>
+                <th style="width:105px;">FINDING PHOTOS</th>
+                <th>CORRECTIVE ACTION</th>
+                <th style="width:105px;">CORRECTIVE PHOTOS</th>
+                <th style="width:68px;">STATUS / VERIFICATION</th>
             </tr>
         </thead>
         <tbody>
             @if($findings->isEmpty())
                 <tr>
                     <td colspan="10" style="text-align:center; padding:16px;" class="text-muted">
-                        Tidak ada data temuan NG sesuai filter yang dipilih.
+                        No NG findings match the selected filters.
                     </td>
                 </tr>
             @else
@@ -299,15 +299,15 @@
                         <td style="text-align:center;">
                             @if(count($evUrls) > 0)
                                 @if(!empty($r->evidence_note))
-                                    <div style="font-size:6.8px; text-align:left; margin-bottom:3px; color:#111;"><strong>Ket:</strong> {{ $r->evidence_note }}</div>
+                                    <div style="font-size:6.8px; text-align:left; margin-bottom:3px; color:#111;"><strong>Note:</strong> {{ $r->evidence_note }}</div>
                                 @endif
                                 <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:3px;">
                                     @foreach($evUrls as $u)
-                                        <img src="{{ $u }}" alt="Foto Temuan" class="thumb-print" style="{{ count($evUrls) > 1 ? 'max-width:65px; max-height:48px;' : '' }}">
+                                        <img src="{{ $u }}" alt="Finding Photo" class="thumb-print" style="{{ count($evUrls) > 1 ? 'max-width:65px; max-height:48px;' : '' }}">
                                     @endforeach
                                 </div>
                             @else
-                                <span class="text-ng">Belum ada</span>
+                                <span class="text-ng">None</span>
                             @endif
                         </td>
                         <td>
@@ -316,25 +316,25 @@
                                 @if($r->why_2)<div class="lvl-guidance-content" style="font-size:7.2px;"><strong>Why 2:</strong> {!! $r->why_2 !!}</div>@endif
                                 @if($r->why_3)<div class="lvl-guidance-content" style="font-size:7.2px;"><strong>Why 3:</strong> {!! $r->why_3 !!}</div>@endif
                                 @if($r->root_cause)<div class="lvl-guidance-content" style="font-size:7.2px;"><strong>Root Cause:</strong> {!! $r->root_cause !!}</div>@endif
-                                @if($r->corrective_action)<div class="lvl-guidance-content" style="font-size:7.2px;"><strong>Tindakan:</strong> {!! $r->corrective_action !!}</div>@endif
+                                @if($r->corrective_action)<div class="lvl-guidance-content" style="font-size:7.2px;"><strong>Action:</strong> {!! $r->corrective_action !!}</div>@endif
                                 @if($r->corrective_date)
-                                    <div class="text-muted" style="font-size:6.8px;">Tgl: {{ $r->corrective_date->format('d/m/Y') }}</div>
+                                    <div class="text-muted" style="font-size:6.8px;">Date: {{ $r->corrective_date->format('d/m/Y') }}</div>
                                 @endif
                                 @if($r->corrector)
-                                    <div class="text-muted" style="font-size:6.8px;">Oleh: {{ $r->corrector->name }}</div>
+                                    <div class="text-muted" style="font-size:6.8px;">By: {{ $r->corrector->name }}</div>
                                 @endif
                             @else
                                 <span class="text-muted">-</span>
                             @endif
                             @if($r->reject_reason)
-                                <div class="text-ng" style="font-size:7px;">Alasan reject: {{ $r->reject_reason }}</div>
+                                <div class="text-ng" style="font-size:7px;">Reject reason: {{ $r->reject_reason }}</div>
                             @endif
                         </td>
                         <td style="text-align:center;">
                             @if(count($corrEvUrls) > 0)
                                 <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:3px;">
                                     @foreach($corrEvUrls as $u)
-                                        <img src="{{ $u }}" alt="Foto Perbaikan" class="thumb-print" style="{{ count($corrEvUrls) > 1 ? 'max-width:65px; max-height:48px;' : '' }}">
+                                        <img src="{{ $u }}" alt="Corrective Photo" class="thumb-print" style="{{ count($corrEvUrls) > 1 ? 'max-width:65px; max-height:48px;' : '' }}">
                                     @endforeach
                                 </div>
                             @else
@@ -360,7 +360,7 @@
             @endif
             <tr class="summary-row">
                 <td colspan="6" style="text-align:left;">
-                    Total Temuan: <strong>{{ $summary['total'] }}</strong> &nbsp;|&nbsp;
+                    Total Findings: <strong>{{ $summary['total'] }}</strong> &nbsp;|&nbsp;
                     Open: <span class="text-ng">{{ $summary['open'] }}</span> &nbsp;|&nbsp;
                     Waiting Verify: <span class="text-warn">{{ $summary['waiting_verify'] }}</span> &nbsp;|&nbsp;
                     Closed: <span class="text-ok">{{ $summary['closed'] }}</span>

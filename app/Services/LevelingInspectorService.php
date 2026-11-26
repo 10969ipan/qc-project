@@ -1414,6 +1414,7 @@ class LevelingInspectorService
             'audit_date',
             'inspector_id',
             'bagian',
+            'meja_mesin',
             'part_name',
             'total_ok',
             'total_ng',
@@ -1461,16 +1462,16 @@ class LevelingInspectorService
             }
         }
 
-        // 4. Hitung open_ng_count per inspector tahun terpilih via 1 query agregasi SQL
-        $openNgByInspector = DB::table('leveling_audit_results as r')
+        // 4. Hitung total_ng & open_ng per inspector tahun terpilih via 1 query agregasi SQL
+        $ngStatsByInspector = DB::table('leveling_audit_results as r')
             ->join('leveling_audits as a', 'a.id', '=', 'r.audit_id')
             ->where('a.plant_code', $cleanPlant)
             ->whereBetween('a.audit_date', ["{$year}-01-01", "{$year}-12-31"])
             ->where('r.result', 'NG')
-            ->whereIn('r.ng_status', ['open', 'waiting_verify'])
             ->groupBy('a.inspector_id')
-            ->pluck(DB::raw('COUNT(*) as cnt'), 'a.inspector_id')
-            ->all();
+            ->selectRaw("a.inspector_id, COUNT(*) as total_ng, SUM(CASE WHEN r.ng_status IN ('open', 'waiting_verify') THEN 1 ELSE 0 END) as open_ng")
+            ->get()
+            ->keyBy('inspector_id');
 
         // 5. Batch-load seluruh approval rekap tahun terpilih (1 query + eager load approver)
         $approvalsByInspector = LevelingRecapApproval::with([
@@ -1508,9 +1509,16 @@ class LevelingInspectorService
                 $neededAuditIds[$p2Latest->id] = true;
             }
 
+            $mejaMesin = trim((string) ($latestAuditOverall?->meja_mesin ?? ''));
+            if ($mejaMesin === '') {
+                $auditWithMeja = $inspAudits->first(fn($a) => trim((string) ($a->meja_mesin ?? '')) !== '');
+                $mejaMesin = trim((string) ($auditWithMeja?->meja_mesin ?? ''));
+            }
+
             $preparedInspectors[] = [
                 'insp'        => $insp,
                 'bagian'      => $bagian,
+                'meja_mesin'  => $mejaMesin !== '' ? $mejaMesin : '-',
                 'inspAudits'  => $inspAudits,
                 'latestAudit' => $latestAuditOverall,
                 'p1Latest'    => $p1Latest,
@@ -1530,7 +1538,16 @@ class LevelingInspectorService
         $rows = [];
         $totalP1Done = 0;
         $totalP2Done = 0;
+        $totalNg = 0;
         $totalOpenNg = 0;
+        $p1Scores = [];
+        $p2Scores = [];
+        $auditedCount = 0;
+        $resultOkCount = 0;
+        $resultNgCount = 0;
+        $fullApprovedCount = 0;
+        $approvedStagesCount = 0;
+        $totalStagesCount = 0;
 
         foreach ($preparedInspectors as $item) {
             $insp = $item['insp'];
@@ -1553,53 +1570,133 @@ class LevelingInspectorService
 
             if ($p1Data !== null) {
                 $totalP1Done++;
+                if ($p1Data['score'] !== null) {
+                    $p1Scores[] = (float) $p1Data['score'];
+                }
             }
             if ($p2Data !== null) {
                 $totalP2Done++;
+                if ($p2Data['score'] !== null) {
+                    $p2Scores[] = (float) $p2Data['score'];
+                }
             }
 
-            $inspOpenNg = (int) ($openNgByInspector[$insp->id] ?? 0);
+            $inspNgStat = $ngStatsByInspector->get($insp->id);
+            $inspTotalNg = (int) ($inspNgStat->total_ng ?? 0);
+            $inspOpenNg = (int) ($inspNgStat->open_ng ?? 0);
+            $totalNg += $inspTotalNg;
             $totalOpenNg += $inspOpenNg;
+
+            $hasAudit = $inspAudits->isNotEmpty();
+            $latestPeriodData = $p2Data ?? $p1Data;
+            $inspHasNg = $inspOpenNg > 0 || ($latestPeriodData !== null && (int) ($latestPeriodData['total_ng'] ?? 0) > 0);
+
+            if ($hasAudit) {
+                $auditedCount++;
+                if ($latestPeriodData !== null) {
+                    if ((int) ($latestPeriodData['total_ng'] ?? 0) > 0) {
+                        $resultNgCount++;
+                    } elseif ((int) ($latestPeriodData['total_ok'] ?? 0) > 0) {
+                        $resultOkCount++;
+                    }
+                }
+            }
 
             $auditorIds = $inspAudits->pluck('auditor_id')->filter()->map(fn($v) => (int) $v)->unique()->values()->all();
             $pendingAuditorName = $item['latestAudit']?->auditor_name ?: null;
             $approvalRecord = $approvalsByInspector->get($insp->id);
             $approvalStages = $this->formatRecapApprovalStages(
                 $approvalRecord,
-                $inspAudits->isNotEmpty(),
+                $hasAudit,
                 $auditorIds,
                 $currentUser,
                 $pendingAuditorName
             );
 
+            if ($hasAudit && !empty($approvalStages)) {
+                $totalStagesCount += count($approvalStages);
+                $allApproved = true;
+                foreach ($approvalStages as $st) {
+                    if (!empty($st['approved'])) {
+                        $approvedStagesCount++;
+                    } else {
+                        $allApproved = false;
+                    }
+                }
+                if ($allApproved) {
+                    $fullApprovedCount++;
+                }
+            }
+
             $rows[] = [
-                'inspector_id'   => $insp->id,
-                'inspector_name' => $insp->name,
-                'bagian'         => $item['bagian'],
-                'p1'             => $p1Data,
+                'inspector_id'    => $insp->id,
+                'inspector_name'  => $insp->name,
+                'bagian'          => $item['bagian'],
+                'meja_mesin'      => $item['meja_mesin'],
+                'latest_audit_id' => $item['latestAudit']?->id,
+                'p1'              => $p1Data,
                 'p1_count'       => $item['p1Count'],
                 'p2'             => $p2Data,
                 'p2_count'       => $item['p2Count'],
                 'open_ng_count'  => $inspOpenNg,
-                'has_audit'      => $inspAudits->isNotEmpty(),
+                'has_ng'         => $inspHasNg,
+                'has_audit'      => $hasAudit,
                 'approval'       => $approvalStages,
             ];
         }
 
         $totalInspectors = count($rows);
+        $totalClosedNg = max(0, $totalNg - $totalOpenNg);
+        $allScores = array_merge($p1Scores, $p2Scores);
+        $avgLevelOverall = count($allScores) > 0 ? round(array_sum($allScores) / count($allScores), 2) : null;
+        $avgLevelP1 = count($p1Scores) > 0 ? round(array_sum($p1Scores) / count($p1Scores), 2) : null;
+        $avgLevelP2 = count($p2Scores) > 0 ? round(array_sum($p2Scores) / count($p2Scores), 2) : null;
 
         return [
             'prinsip_list' => $prinsipList,
             'rows'         => $rows,
             'summary'      => [
-                'total_inspectors' => $totalInspectors,
-                'p1_done'          => $totalP1Done,
-                'p1_pct'           => $totalInspectors > 0 ? round(($totalP1Done / $totalInspectors) * 100, 1) : 0,
-                'p2_done'          => $totalP2Done,
-                'p2_pct'           => $totalInspectors > 0 ? round(($totalP2Done / $totalInspectors) * 100, 1) : 0,
-                'total_open_ng'    => $totalOpenNg,
+                'total_inspectors'       => $totalInspectors,
+                'audited_count'          => $auditedCount,
+                'p1_done'                => $totalP1Done,
+                'p1_pct'                 => $totalInspectors > 0 ? round(($totalP1Done / $totalInspectors) * 100, 1) : 0,
+                'p2_done'                => $totalP2Done,
+                'p2_pct'                 => $totalInspectors > 0 ? round(($totalP2Done / $totalInspectors) * 100, 1) : 0,
+                'total_ng'               => $totalNg,
+                'total_open_ng'          => $totalOpenNg,
+                'total_closed_ng'        => $totalClosedNg,
+                'ng_closure_pct'         => $totalNg > 0 ? round(($totalClosedNg / $totalNg) * 100, 1) : 0,
+                'avg_level_overall'      => $avgLevelOverall,
+                'avg_level_p1'           => $avgLevelP1,
+                'avg_level_p2'           => $avgLevelP2,
+                'result_ok_count'        => $resultOkCount,
+                'result_ng_count'        => $resultNgCount,
+                'result_ok_pct'          => $auditedCount > 0 ? round(($resultOkCount / $auditedCount) * 100, 1) : 0,
+                'approved_stages_count'  => $approvedStagesCount,
+                'total_stages_count'     => $totalStagesCount,
+                'approval_stage_pct'     => $totalStagesCount > 0 ? round(($approvedStagesCount / $totalStagesCount) * 100, 1) : 0,
+                'full_approved_count'    => $fullApprovedCount,
+                'approval_pending_count' => max(0, $auditedCount - $fullApprovedCount),
+                'approval_pct'           => $auditedCount > 0 ? round(($fullApprovedCount / $auditedCount) * 100, 1) : 0,
             ],
         ];
+    }
+
+    /**
+     * Update kolom meja_mesin pada audit terbaru dari tabel Rekap Tahunan.
+     */
+    public function updateAuditMejaMesin(int $auditId, ?string $mejaMesin, User $user): LevelingAudit
+    {
+        $audit = LevelingAudit::findOrFail($auditId);
+        if (!$this->canEditAudit($audit, $user)) {
+            abort(403, 'Anda tidak memiliki izin mengubah Meja / Mesin audit ini.');
+        }
+
+        $clean = trim((string) ($mejaMesin ?? ''));
+        $audit->meja_mesin = $clean !== '' ? $clean : null;
+        $audit->save();
+
+        return $audit;
     }
 
     /**

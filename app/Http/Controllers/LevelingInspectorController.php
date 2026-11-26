@@ -8,6 +8,7 @@ use App\Http\Requests\Leveling\CorrectLevelingNgRequest;
 use App\Http\Requests\Leveling\SaveLevelingResultRequest;
 use App\Http\Requests\Leveling\StoreLevelingAuditRequest;
 use App\Http\Requests\Leveling\StoreLevelingCheckItemRequest;
+use App\Http\Requests\Leveling\UpdateLevelingMejaMesinRequest;
 use App\Http\Requests\Leveling\UpdateLevelingNgPhotosRequest;
 use App\Http\Requests\Leveling\UpdateLevelingNgTextRequest;
 use App\Http\Requests\Leveling\UploadLevelingEvidenceRequest;
@@ -152,15 +153,45 @@ class LevelingInspectorController extends Controller
 
         $recapData = $this->service->buildAnnualRecapData($plantCode, $year, $bagianFilter, $request->user());
         $bagianOptions = OperatorComplianceItem::getBagianOptions();
+        $currentUser = $request->user();
+        $canEditMejaMesin = $currentUser && in_array($currentUser->role, OperatorComplianceItem::MASTER_MANAGER_ROLES, true);
+        $mejaOptions = $canEditMejaMesin
+            ? array_map(static fn (int $i): string => 'Meja ' . $i, range(1, 20))
+            : [];
+        $machineNumbers = in_array(strtolower($plantCode), ['jakarta', 'jkt'], true)
+            ? [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+            : [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 18, 19];
+        $mesinOptions = $canEditMejaMesin
+            ? array_map(static fn (int $n): string => 'Mesin ' . $n, $machineNumbers)
+            : [];
 
         return view('leveling_inspector.rekap', [
-            'plantCode'     => $plantCode,
-            'year'          => $year,
-            'bagianFilter'  => $bagianFilter,
-            'bagianOptions' => $bagianOptions,
-            'prinsipList'   => $recapData['prinsip_list'],
-            'rows'          => $recapData['rows'],
-            'summary'       => $recapData['summary'],
+            'plantCode'        => $plantCode,
+            'year'             => $year,
+            'bagianFilter'     => $bagianFilter,
+            'bagianOptions'    => $bagianOptions,
+            'prinsipList'      => $recapData['prinsip_list'],
+            'rows'             => $recapData['rows'],
+            'summary'          => $recapData['summary'],
+            'canEditMejaMesin' => $canEditMejaMesin,
+            'mejaOptions'      => $mejaOptions,
+            'mesinOptions'     => $mesinOptions,
+        ]);
+    }
+
+    public function updateRekapMejaMesin(UpdateLevelingMejaMesinRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $audit = $this->service->updateAuditMejaMesin(
+            (int) $validated['audit_id'],
+            $validated['meja_mesin'] ?? null,
+            $request->user()
+        );
+
+        return response()->json([
+            'success'    => true,
+            'message'    => 'Meja / Mesin berhasil diperbarui.',
+            'meja_mesin' => $audit->meja_mesin ?: '-',
         ]);
     }
 

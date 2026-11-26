@@ -63,9 +63,9 @@
                                             <thead>
                                                 <tr>
                                                     <th style="border:1px solid #dee2e6; padding:3px 2px; font-weight:600; color:#495057; background:#fff; width:28px;">Tgl.</th>
-                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Dibuat</th>
-                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diperiksa</th>
-                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Diketahui</th>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Prepared By</th>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Checked By</th>
+                                                    <th style="border:1px solid #dee2e6; padding:3px 6px; font-weight:600; color:#495057; background:#fff; width:120px;">Approved By</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -120,11 +120,81 @@
                     font-weight: 600 !important;
                     color: #212529 !important;
                 }
+                .rekap-kpi-grid {
+                    display: grid;
+                    grid-template-columns: repeat(7, minmax(0, 1fr));
+                    gap: 8px;
+                }
+                @media (max-width: 1199.98px) {
+                    .rekap-kpi-grid {
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                    }
+                }
+                @media (max-width: 767.98px) {
+                    .rekap-kpi-grid {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                    }
+                }
                 .rekap-kpi-box {
                     background: #fff;
                     border: 1px solid #e2e8f0;
                     border-radius: 6px;
-                    padding: 8px 12px;
+                    padding: 7px 10px;
+                    min-width: 0;
+                }
+                .rekap-kpi-title {
+                    font-size: 0.63rem;
+                    color: #6c757d;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .rekap-kpi-val {
+                    font-size: 0.94rem;
+                    font-weight: 700;
+                    line-height: 1.25;
+                    white-space: nowrap;
+                }
+                .rekap-kpi-sub {
+                    font-size: 0.61rem;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                #rekapLevelingTable tbody tr.rekap-row-ng td {
+                    background-color: #fee2e2 !important;
+                }
+                #rekapLevelingTable tbody tr.rekap-row-ng:hover td {
+                    background-color: #fecaca !important;
+                }
+                .rekap-meja-editable {
+                    cursor: pointer;
+                    user-select: none;
+                }
+                .rekap-meja-editable:hover .rekap-meja-text {
+                    text-decoration: underline;
+                    color: #2563eb;
+                }
+                .rekap-view-link {
+                    color: #212529 !important;
+                    font-weight: 700;
+                    font-size: 0.65rem;
+                    text-decoration: none;
+                }
+                .rekap-view-link:hover {
+                    color: #2563eb !important;
+                    text-decoration: underline;
+                }
+                .rekap-meja-select {
+                    font-size: 0.7rem !important;
+                    height: 24px !important;
+                    padding: 1px 6px !important;
+                    border: 1px solid #4e73df !important;
+                    border-radius: 4px !important;
+                    background-color: #fff !important;
+                    color: #212529 !important;
+                    min-width: 105px;
+                    cursor: pointer;
                 }
                 .rekap-table-wrapper {
                     max-height: none !important;
@@ -215,7 +285,23 @@
                 <input type="hidden" name="plant" value="{{ $plantCode }}">
 
                 <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold">Tahun</label>
+                    <label class="mb-1 small font-weight-bold">Search Inspector</label>
+                    <input type="text" id="rekapSearchInspector" class="form-control form-control-sm rekap-filter-select"
+                           style="width: 210px;" placeholder="Type inspector / section..." autocomplete="off">
+                </div>
+
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold">Section</label>
+                    <select name="bagian" id="rekapBagian" class="form-control form-control-sm rekap-filter-select" style="width: 240px;">
+                        <option value="">-- All Sections --</option>
+                        @foreach($bagianOptions as $opt)
+                            <option value="{{ $opt }}" {{ $bagianFilter === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="d-flex flex-column align-items-start">
+                    <label class="mb-1 small font-weight-bold">Year</label>
                     <select name="year" id="rekapYear" class="form-control form-control-sm rekap-filter-select" style="width: 100px;">
                         @php $cy = (int) date('Y'); @endphp
                         @for($y = $cy - 2; $y <= $cy + 2; $y++)
@@ -224,69 +310,96 @@
                     </select>
                 </div>
 
-                <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold">Bagian</label>
-                    <select name="bagian" id="rekapBagian" class="form-control form-control-sm rekap-filter-select" style="width: 240px;">
-                        <option value="">-- Semua Bagian --</option>
-                        @foreach($bagianOptions as $opt)
-                            <option value="{{ $opt }}" {{ $bagianFilter === $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="d-flex flex-column align-items-start">
-                    <label class="mb-1 small font-weight-bold">Cari Inspector</label>
-                    <input type="text" id="rekapSearchInspector" class="form-control form-control-sm rekap-filter-select"
-                           style="width: 210px;" placeholder="Ketik nama inspector / bagian..." autocomplete="off">
-                </div>
-
                 <div class="ml-auto d-flex flex-wrap align-items-center mt-auto" style="gap: 6px;">
                     <a href="{{ route('checksheet.leveling_inspector.index', ['plant' => $plantCode]) }}"
                        class="btn btn-secondary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center" style="height: 31px;">
-                        <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali ke Checksheet
+                        <i class="fas fa-arrow-left fa-sm mr-1"></i> Back to Checksheet
                     </a>
                     <a href="{{ route('checksheet.leveling_inspector.rekap.print', ['plant' => $plantCode, 'year' => $year, 'bagian' => $bagianFilter]) }}"
                        id="btnPrintRekap"
                        class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center btn-print-direct no-loader"
                        style="height: 31px;"
-                       title="Cetak Rekap Leveling Inspector Tahunan">
-                        <i class="fas fa-print fa-sm mr-1"></i> Cetak
+                       title="Print Annual Leveling Inspector Recap">
+                        <i class="fas fa-print fa-sm mr-1"></i> Print
                     </a>
                 </div>
             </form>
 
-            <!-- 3. Ringkasan Monitoring Tahunan (tanpa badge, teks berwarna saja) -->
-            <div class="row mx-0 mb-3" style="gap: 0;">
-                <div class="col-6 col-md-3 px-1 mb-2 mb-md-0">
-                    <div class="rekap-kpi-box">
-                        <div class="text-muted" style="font-size:0.68rem;">Total Inspector ({{ strtoupper($plantCode) }})</div>
-                        <div class="font-weight-bold text-dark" style="font-size:1.1rem;">{{ $summary['total_inspectors'] }} Orang</div>
+            <!-- 3. Ringkasan Monitoring Tahunan (1 baris, tanpa badge) -->
+            <div class="rekap-kpi-grid mb-3">
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Total Inspectors ({{ strtoupper($plantCode) }})">Total Inspectors ({{ strtoupper($plantCode) }})</div>
+                    <div class="rekap-kpi-val text-dark">{{ $summary['total_inspectors'] }}</div>
+                    <div class="rekap-kpi-sub text-muted">Audited {{ $year }}: {{ $summary['audited_count'] }}</div>
+                </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Period 1 Realization (Jan – Jun)">Period 1 (Jan – Jun)</div>
+                    <div class="rekap-kpi-val text-primary">
+                        {{ $summary['p1_done'] }} / {{ $summary['total_inspectors'] }}
+                        <span style="font-size:0.72rem;">({{ $summary['p1_pct'] }}%)</span>
+                    </div>
+                    <div class="rekap-kpi-sub text-muted">Pending: {{ max(0, $summary['total_inspectors'] - $summary['p1_done']) }}</div>
+                </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Period 2 Realization (Jul – Dec)">Period 2 (Jul – Dec)</div>
+                    <div class="rekap-kpi-val text-success">
+                        {{ $summary['p2_done'] }} / {{ $summary['total_inspectors'] }}
+                        <span style="font-size:0.72rem;">({{ $summary['p2_pct'] }}%)</span>
+                    </div>
+                    <div class="rekap-kpi-sub text-muted">Pending: {{ max(0, $summary['total_inspectors'] - $summary['p2_done']) }}</div>
+                </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="NG Closure ({{ $year }})">NG Closure ({{ $year }})</div>
+                    @if($summary['total_ng'] > 0)
+                        <div class="rekap-kpi-val {{ $summary['total_open_ng'] > 0 ? 'text-danger' : 'text-success' }}">
+                            {{ $summary['total_closed_ng'] }} / {{ $summary['total_ng'] }} Closed
+                            <span style="font-size:0.72rem;">({{ $summary['ng_closure_pct'] }}%)</span>
+                        </div>
+                        <div class="rekap-kpi-sub {{ $summary['total_open_ng'] > 0 ? 'text-danger' : 'text-success' }}">
+                            {{ $summary['total_open_ng'] }} open
+                        </div>
+                    @else
+                        <div class="rekap-kpi-val text-success">0 / 0 Closed</div>
+                        <div class="rekap-kpi-sub text-muted">No NG findings</div>
+                    @endif
+                </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Average Level ({{ $year }})">Average Level ({{ $year }})</div>
+                    <div class="rekap-kpi-val text-primary">
+                        @if($summary['avg_level_overall'] !== null)
+                            {{ number_format($summary['avg_level_overall'], 2) }} <span class="text-muted" style="font-size:0.72rem;">/ 3.00</span>
+                        @else
+                            -
+                        @endif
+                    </div>
+                    <div class="rekap-kpi-sub text-muted">
+                        Periode 1 : {{ $summary['avg_level_p1'] !== null ? number_format($summary['avg_level_p1'], 2) : '-' }} | Periode 2 : {{ $summary['avg_level_p2'] !== null ? number_format($summary['avg_level_p2'], 2) : '-' }}
                     </div>
                 </div>
-                <div class="col-6 col-md-3 px-1 mb-2 mb-md-0">
-                    <div class="rekap-kpi-box">
-                        <div class="text-muted" style="font-size:0.68rem;">Realisasi Periode 1 (Jan – Jun)</div>
-                        <div class="font-weight-bold text-primary" style="font-size:1.1rem;">
-                            {{ $summary['p1_done'] }} / {{ $summary['total_inspectors'] }}
-                            <span style="font-size:0.8rem;">({{ $summary['p1_pct'] }}%)</span>
-                        </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Pass Rate / Result OK ({{ $year }})">Result OK ({{ $year }})</div>
+                    <div class="rekap-kpi-val {{ $summary['result_ng_count'] > 0 ? 'text-primary' : 'text-success' }}">
+                        {{ $summary['result_ok_count'] }} / {{ $summary['audited_count'] }} OK
+                        <span style="font-size:0.72rem;">({{ $summary['result_ok_pct'] }}%)</span>
+                    </div>
+                    <div class="rekap-kpi-sub {{ $summary['result_ng_count'] > 0 ? 'text-danger' : 'text-muted' }}">
+                        {{ $summary['result_ng_count'] }} with NG
                     </div>
                 </div>
-                <div class="col-6 col-md-3 px-1">
-                    <div class="rekap-kpi-box">
-                        <div class="text-muted" style="font-size:0.68rem;">Realisasi Periode 2 (Jul – Des)</div>
-                        <div class="font-weight-bold text-success" style="font-size:1.1rem;">
-                            {{ $summary['p2_done'] }} / {{ $summary['total_inspectors'] }}
-                            <span style="font-size:0.8rem;">({{ $summary['p2_pct'] }}%)</span>
-                        </div>
+
+                <div class="rekap-kpi-box">
+                    <div class="rekap-kpi-title" title="Approval Progress ({{ $year }})">Approval ({{ $year }})</div>
+                    <div id="kpiApprovalVal" class="rekap-kpi-val {{ $summary['total_stages_count'] > 0 && $summary['approved_stages_count'] === $summary['total_stages_count'] ? 'text-success' : ($summary['approved_stages_count'] > 0 ? 'text-primary' : 'text-dark') }}">
+                        {{ $summary['approved_stages_count'] }} / {{ $summary['total_stages_count'] }} Stages
+                        <span style="font-size:0.72rem;">({{ $summary['approval_stage_pct'] }}%)</span>
                     </div>
-                </div>
-                <div class="col-6 col-md-3 px-1">
-                    <div class="rekap-kpi-box">
-                        <div class="text-muted" style="font-size:0.68rem;">Temuan NG Belum Closed ({{ $year }})</div>
-                        <div class="font-weight-bold {{ $summary['total_open_ng'] > 0 ? 'text-danger' : 'text-success' }}" style="font-size:1.1rem;">
-                            {{ $summary['total_open_ng'] }} Temuan
-                        </div>
+                    <div id="kpiApprovalSub" class="rekap-kpi-sub text-muted">
+                        {{ $summary['full_approved_count'] }} / {{ $summary['audited_count'] }} full approved
                     </div>
                 </div>
             </div>
@@ -296,6 +409,7 @@
                 <table class="table table-hover"
                        id="rekapLevelingTable"
                        data-approve-url="{{ route('checksheet.leveling_inspector.rekap.approve') }}"
+                       data-meja-url="{{ route('checksheet.leveling_inspector.rekap.meja_mesin') }}"
                        data-plant="{{ $plantCode }}"
                        data-year="{{ $year }}"
                        data-csrf="{{ csrf_token() }}"
@@ -303,29 +417,30 @@
                     <thead>
                         <tr>
                             <th rowspan="2" style="width:36px;">NO</th>
-                            <th rowspan="2" style="min-width:155px;">NAMA INSPECTOR</th>
-                            <th rowspan="2" style="min-width:155px;">BAGIAN</th>
-                            <th colspan="9">PERIODE 1 (JAN – JUN {{ $year }})</th>
-                            <th colspan="9">PERIODE 2 (JUL – DES {{ $year }})</th>
+                            <th rowspan="2" style="min-width:155px;">INSPECTOR NAME</th>
+                            <th rowspan="2" style="min-width:155px;">SECTION</th>
+                            <th rowspan="2" style="min-width:85px;">TABLE / MACHINE</th>
+                            <th colspan="9">PERIOD 1 (JAN – JUN {{ $year }})</th>
+                            <th colspan="9">PERIOD 2 (JUL – DEC {{ $year }})</th>
                             <th rowspan="2" style="width:65px;">NG OPEN</th>
                             <th colspan="4">APPROVAL</th>
-                            <th rowspan="2" class="no-print text-nowrap">AKSI</th>
+                            <th rowspan="2" class="no-print text-nowrap">ACTION</th>
                         </tr>
                         <tr>
                             <th style="width:62px;">STATUS</th>
-                            <th style="width:74px;">TGL AUDIT</th>
+                            <th style="width:74px;">AUDIT DATE</th>
                             @foreach($prinsipList as $p)
                                 <th class="th-prinsip-{{ strtolower($p) }}" style="width:38px;">{{ $p }}</th>
                             @endforeach
-                            <th style="width:52px;">RATA-RATA LEVEL</th>
+                            <th style="width:58px; white-space:normal !important; line-height:1.15;">AVG.<br>LEVEL</th>
                             <th class="no-print" style="width:48px;">RESULT</th>
 
                             <th style="width:62px;">STATUS</th>
-                            <th style="width:74px;">TGL AUDIT</th>
+                            <th style="width:74px;">AUDIT DATE</th>
                             @foreach($prinsipList as $p)
                                 <th class="th-prinsip-{{ strtolower($p) }}" style="width:38px;">{{ $p }}</th>
                             @endforeach
-                            <th style="width:52px;">RATA-RATA LEVEL</th>
+                            <th style="width:58px; white-space:normal !important; line-height:1.15;">AVG.<br>LEVEL</th>
                             <th class="no-print" style="width:48px;">RESULT</th>
 
                             <th style="min-width:95px;">AUDITOR</th>
@@ -337,25 +452,51 @@
                     <tbody>
                         @if(empty($rows))
                             <tr>
-                                <td colspan="27" class="text-center text-muted py-4">
-                                    Tidak ada data inspector untuk filter yang dipilih.
+                                <td colspan="28" class="text-center text-muted py-4">
+                                    No inspector data found for the selected filter.
                                 </td>
                             </tr>
                         @else
                             @foreach($rows as $idx => $r)
-                                <tr class="js-rekap-row"
-                                    data-search="{{ strtolower($r['inspector_name'] . ' ' . $r['bagian']) }}">
+                                <tr class="js-rekap-row {{ !empty($r['has_ng']) ? 'rekap-row-ng' : '' }}"
+                                    data-has-audit="{{ $r['has_audit'] ? '1' : '0' }}"
+                                    data-search="{{ strtolower($r['inspector_name'] . ' ' . $r['bagian'] . ' ' . ($r['meja_mesin'] ?? '')) }}">
                                     <td class="text-center font-weight-bold">{{ $idx + 1 }}</td>
                                     <td class="font-weight-bold text-dark">{{ $r['inspector_name'] }}</td>
                                     <td>{{ $r['bagian'] }}</td>
+                                    <td class="text-center text-nowrap {{ (!empty($canEditMejaMesin) && !empty($r['latest_audit_id'])) ? 'rekap-meja-editable js-rekap-meja-cell' : '' }}"
+                                        @if(!empty($canEditMejaMesin) && !empty($r['latest_audit_id'])) title="Double-click to edit Table / Machine" @endif>
+                                        @if(!empty($canEditMejaMesin) && !empty($r['latest_audit_id']))
+                                            @php
+                                                $currentMeja = ($r['meja_mesin'] ?? '-') === '-' ? '' : $r['meja_mesin'];
+                                                $bagianLower = strtolower((string) ($r['bagian'] ?? ''));
+                                                $isMachineRow = str_contains($bagianLower, 'inproses') || str_contains($bagianLower, 'in process') || str_contains($bagianLower, 'in-process');
+                                                $rowMejaOpts = $isMachineRow ? ($mesinOptions ?? []) : ($mejaOptions ?? []);
+                                            @endphp
+                                            <span class="rekap-meja-text js-rekap-meja-text">{{ $r['meja_mesin'] ?? '-' }}</span>
+                                            <select class="form-control form-control-sm rekap-meja-select js-rekap-meja-select d-none"
+                                                    data-audit-id="{{ $r['latest_audit_id'] }}"
+                                                    data-prev="{{ $currentMeja }}">
+                                                <option value="">-</option>
+                                                @foreach($rowMejaOpts as $optVal)
+                                                    <option value="{{ $optVal }}" {{ $currentMeja === $optVal ? 'selected' : '' }}>{{ $optVal }}</option>
+                                                @endforeach
+                                                @if($currentMeja !== '' && !in_array($currentMeja, $rowMejaOpts, true))
+                                                    <option value="{{ $currentMeja }}" selected>{{ $currentMeja }}</option>
+                                                @endif
+                                            </select>
+                                        @else
+                                            {{ $r['meja_mesin'] ?? '-' }}
+                                        @endif
+                                    </td>
 
-                                    {{-- PERIODE 1 (JAN - JUN) --}}
+                                    {{-- PERIOD 1 (JAN - JUN) --}}
                                     @if($r['p1'])
                                         <td class="text-center">
                                             <a href="{{ route('checksheet.leveling_inspector.index', ['plant' => $plantCode, 'inspector_id' => $r['inspector_id'], 'audit_id' => $r['p1']['audit_id']]) }}"
                                                class="rekap-link text-success"
-                                               title="Buka detail audit ({{ $r['p1']['part_name'] }})">
-                                                Sudah
+                                               title="Open audit detail ({{ $r['p1']['part_name'] }})">
+                                                Done
                                             </a>
                                         </td>
                                         <td class="text-center text-nowrap">
@@ -377,14 +518,13 @@
                                         </td>
                                         <td class="text-center text-nowrap no-print">
                                             <a href="{{ route('checksheet.leveling_inspector.index', ['plant' => $plantCode, 'inspector_id' => $r['inspector_id'], 'audit_id' => $r['p1']['audit_id']]) }}"
-                                               class="text-primary font-weight-bold"
-                                               style="text-decoration: underline; font-size:0.65rem;"
-                                               title="Lihat hasil audit Periode 1 ({{ $r['p1']['audit_date'] }} - {{ $r['p1']['part_name'] }})">
+                                               class="rekap-view-link"
+                                               title="View Period 1 audit result ({{ $r['p1']['audit_date'] }} - {{ $r['p1']['part_name'] }})">
                                                 View
                                             </a>
                                         </td>
                                     @else
-                                        <td class="text-center text-danger font-weight-bold">Belum</td>
+                                        <td class="text-center text-danger font-weight-bold">Pending</td>
                                         <td class="text-center text-muted">-</td>
                                         @foreach($prinsipList as $p)
                                             <td class="text-center text-muted">-</td>
@@ -393,13 +533,13 @@
                                         <td class="text-center text-muted no-print">-</td>
                                     @endif
 
-                                    {{-- PERIODE 2 (JUL - DES) --}}
+                                    {{-- PERIOD 2 (JUL - DEC) --}}
                                     @if($r['p2'])
                                         <td class="text-center">
                                             <a href="{{ route('checksheet.leveling_inspector.index', ['plant' => $plantCode, 'inspector_id' => $r['inspector_id'], 'audit_id' => $r['p2']['audit_id']]) }}"
                                                class="rekap-link text-success"
-                                               title="Buka detail audit ({{ $r['p2']['part_name'] }})">
-                                                Sudah
+                                               title="Open audit detail ({{ $r['p2']['part_name'] }})">
+                                                Done
                                             </a>
                                         </td>
                                         <td class="text-center text-nowrap">
@@ -421,14 +561,13 @@
                                         </td>
                                         <td class="text-center text-nowrap no-print">
                                             <a href="{{ route('checksheet.leveling_inspector.index', ['plant' => $plantCode, 'inspector_id' => $r['inspector_id'], 'audit_id' => $r['p2']['audit_id']]) }}"
-                                               class="text-primary font-weight-bold"
-                                               style="text-decoration: underline; font-size:0.65rem;"
-                                               title="Lihat hasil audit Periode 2 ({{ $r['p2']['audit_date'] }} - {{ $r['p2']['part_name'] }})">
+                                               class="rekap-view-link"
+                                               title="View Period 2 audit result ({{ $r['p2']['audit_date'] }} - {{ $r['p2']['part_name'] }})">
                                                 View
                                             </a>
                                         </td>
                                     @else
-                                        <td class="text-center text-danger font-weight-bold">Belum</td>
+                                        <td class="text-center text-danger font-weight-bold">Pending</td>
                                         <td class="text-center text-muted">-</td>
                                         @foreach($prinsipList as $p)
                                             <td class="text-center text-muted">-</td>
@@ -444,6 +583,7 @@
                                         <td class="text-center align-middle js-rekap-approval-stage"
                                             data-inspector-id="{{ $r['inspector_id'] }}"
                                             data-stage="{{ $st['stage'] }}"
+                                            data-approved="{{ ($r['has_audit'] && $st['approved']) ? '1' : '0' }}"
                                             style="font-size:0.65rem; line-height:1.3;">
                                             @if(!$r['has_audit'])
                                                 <span class="text-muted">-</span>
@@ -486,7 +626,7 @@
                                                             data-inspector-id="{{ $r['inspector_id'] }}"
                                                             data-stage="{{ $cancelStage['stage'] }}"
                                                             data-label="{{ $cancelStage['label'] }}"
-                                                            title="Batal Approval">
+                                                            title="Undo Approval">
                                                         <i class="fas fa-undo-alt"></i>
                                                     </button>
                                                 @endif
