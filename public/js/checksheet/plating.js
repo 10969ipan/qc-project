@@ -570,12 +570,22 @@ class PlatingCreate {
         this.initFormSubmit();
         this.initHardwareScanner();
         this.initPersistentFields();
+        this.initNoLotNumericInput();
 
         // Inisialisasi mode berdasarkan input tersembunyi is_scanned (default: manual mode)
         this.setScanMode(false);
 
         // Inisialisasi awal untuk logic kalkulasi & judgment
         this.updateJudgment();
+    }
+
+    initNoLotNumericInput() {
+        $(document).on("input", "#noLotInput", function () {
+            const cleaned = $(this).val().replace(/\D/g, "");
+            if ($(this).val() !== cleaned) {
+                $(this).val(cleaned);
+            }
+        });
     }
 
     initPersistentFields() {
@@ -1919,6 +1929,43 @@ class PlatingCreate {
                     }, 3000);
                     return false;
                 }
+
+                // 1c. Validasi: Plating (Tgl / Shift / No Lot) jika tidak dalam mode scan
+                const platingDate = $("#platingDateInput").val();
+                const platingShift = $("#platingShiftInput").val();
+                const noLot = ($("#noLotInput").val() || "").trim();
+
+                if (!platingDate || !platingShift || !noLot) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: !noLot ? "No Lot Wajib Diisi" : "Data Plating Belum Lengkap",
+                        text: !noLot
+                            ? "Silahkan isi No Lot Plating terlebih dahulu."
+                            : "Silahkan lengkapi Tanggal dan Shift Plating terlebih dahulu.",
+                        confirmButtonText: "Perbaiki Input",
+                        confirmButtonColor: "#e74a3b"
+                    });
+                    if (!noLot) $("#noLotInput").addClass("is-invalid").focus();
+                    else if (!platingDate) $("#platingDateInput").addClass("is-invalid").focus();
+                    else if (!platingShift) $("#platingShiftInput").addClass("is-invalid").focus();
+                    setTimeout(() => {
+                        $("#platingDateInput, #platingShiftInput, #noLotInput").removeClass("is-invalid");
+                    }, 3000);
+                    return false;
+                }
+
+                if (!/^\d+$/.test(noLot)) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "No Lot Harus Angka",
+                        text: "No Lot wajib diisi dengan angka, bukan huruf.",
+                        confirmButtonText: "Perbaiki Input",
+                        confirmButtonColor: "#e74a3b"
+                    });
+                    $("#noLotInput").addClass("is-invalid").focus();
+                    setTimeout(() => $("#noLotInput").removeClass("is-invalid"), 3000);
+                    return false;
+                }
             }
 
             // 2. Validasi: Meja harus dipilih
@@ -2307,6 +2354,13 @@ class PlatingEdit {
         $(document).on("change", "#editJudgment", (e) => {
             if ($(e.target).val() === "NG") $("#editNextProses").slideDown();
             else $("#editNextProses").slideUp();
+        });
+
+        $(document).on("input", "#editNoLotInput", function () {
+            const cleaned = $(this).val().replace(/\D/g, "");
+            if ($(this).val() !== cleaned) {
+                $(this).val(cleaned);
+            }
         });
     }
 }

@@ -245,7 +245,7 @@
                                         <option value="3" {{ $defaultShift == 3 ? 'selected' : '' }}>Shift 3</option>
                                     </select>
                                     <input type="text" class="form-control form-control-sm" name="no_lot" id="noLotInput"
-                                        placeholder="No Lot..." autocomplete="off" data-scan-optional="1">
+                                        placeholder="No Lot (Angka)..." inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-scan-optional="1">
                                 </td>
 
                                 <!-- Kualitas (Tanggal / Shift / Meja) -->
@@ -588,20 +588,14 @@
             window.initItemSearch('itemSelect');
 
             // --- Auto-fill Logic ---
-            const nextNoLotUrl = "{{ route('plating.next_no_lot') }}";
             const lastDataUrl = "{{ route('plating.last_data') }}";
 
             const itemSelect = document.getElementById('itemSelect');
             const initialsInput = document.getElementById('operatorInitialsInput');
-            const platingDateInput = document.getElementById('platingDateInput');
-            const platingShiftInput = document.getElementById('platingShiftInput');
-            const shiftInput = document.getElementById('shiftInput');
-            const noLotInput = document.getElementById('noLotInput');
 
             const injectionDateInput = document.getElementById('injectionDateInput');
             const injectionShiftInput = document.getElementById('injectionShiftInput');
             const injectionInitialsInput = document.getElementById('injectionInitialsInput');
-            const lineSelect = document.getElementById('lineSelect');
 
             function debounce(func, wait) {
                 let timeout;
@@ -613,30 +607,6 @@
                         func.apply(context, args);
                     }, wait);
                 };
-            }
-
-            function fetchNextNoLot() {
-                const itemId = itemSelect ? itemSelect.value : '';
-                const platingDate = platingDateInput ? platingDateInput.value : '';
-                const platingShift = platingShiftInput ? platingShiftInput.value : '1';
-                const initials = initialsInput ? initialsInput.value : '';
-
-                if (!itemId || !platingDate || !initials) return;
-
-                const params = new URLSearchParams({
-                    item_id: itemId,
-                    plating_date: platingDate,
-                    plating_shift: platingShift,
-                    shift: shiftInput ? shiftInput.value : '1',
-                    operator_initials: initials
-                });
-
-                fetch(nextNoLotUrl + '?' + params.toString())
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.no_lot) noLotInput.value = data.no_lot;
-                    })
-                    .catch(e => console.error('Error fetching no lot:', e));
             }
 
             function fetchLastData() {
@@ -664,25 +634,19 @@
             }
 
             const debouncedFetch = debounce(() => {
-                fetchNextNoLot();
                 fetchLastData();
             }, 500);
 
             if (itemSelect) {
                 $(itemSelect).on('change', () => {
-                    fetchNextNoLot();
                     fetchLastData();
                 });
             }
             if (initialsInput) initialsInput.addEventListener('input', debouncedFetch);
-            if (platingDateInput) platingDateInput.addEventListener('change', fetchNextNoLot);
-            if (platingShiftInput) platingShiftInput.addEventListener('change', fetchNextNoLot);
-            if (shiftInput) shiftInput.addEventListener('change', fetchNextNoLot);
 
             // Initial trigger
             setTimeout(() => {
                 if (itemSelect && itemSelect.value) {
-                    fetchNextNoLot();
                     fetchLastData();
                 }
             }, 500);

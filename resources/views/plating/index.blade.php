@@ -425,7 +425,7 @@
                                 <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
                             @else
                                 <th rowspan="2" class="bg-light align-middle">Injection<br>(Tgl / Shift / Inisial)</th>
-                                <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / Lot)</th>
+                                <th rowspan="2" class="bg-light align-middle">Plating<br>(Tgl / Shift / No. Lot)</th>
                                 <th rowspan="2" class="bg-light align-middle">Checked<br>(Tgl / Shift / Inisial)</th>
                                 <th rowspan="2" class="align-middle">Waktu Check<br>(Start - Finish / Cycle Time)</th>
                             @endif
@@ -529,7 +529,7 @@
                                         {{ $checksheet->injection_date ? $checksheet->injection_date->format('d-m-Y') : '-' }} / {{ $checksheet->injection_shift ?? '-' }} / {{ strtoupper($checksheet->injection_initials ?? '-') }}
                                     </td>
                                     <td class="align-middle text-nowrap">
-                                        {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ $checksheet->no_lot ?? '-' }}
+                                        {{ $checksheet->plating_date ? $checksheet->plating_date->format('d-m-Y') : '-' }} / {{ $checksheet->plating_shift ?? '-' }} / {{ filled($checksheet->no_lot) ? $checksheet->no_lot : '-' }}
                                     </td>
                                     <td class="align-middle text-nowrap">
                                         {{ \Carbon\Carbon::parse($checksheet->date)->format('d-m-Y') }} / {{ $checksheet->shift }} / {{ strtoupper($checksheet->user->initials ?? $checksheet->operator_initials ?? '-') }}

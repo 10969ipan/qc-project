@@ -113,8 +113,9 @@
                                     </select>
                                 </div>
                                 <div class="col-8">
-                                    <input type="text" name="no_lot" class="form-control form-control-sm font-weight-bold" 
-                                        placeholder="No Lot" value="{{ $checksheet->no_lot }}">
+                                    <input type="text" name="no_lot" id="editNoLotInput" class="form-control form-control-sm font-weight-bold"
+                                        data-field-name="No Lot" inputmode="numeric" pattern="[0-9]*"
+                                        placeholder="No Lot (Angka)" value="{{ $checksheet->no_lot }}" {{ empty($checksheet->qrcode) ? 'required' : '' }}>
                                 </div>
                             </div>
                         </div>
